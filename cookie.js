@@ -9,15 +9,20 @@ JustNaturalExpansion.launch = function() {
     JustNaturalExpansion.init = function() {
         // Helper function to add a Springerle upgrade
         function addSpringerleUpgrade(name, desc, order) {
-            CCSE.NewUpgrade(
+            var upg = new Game.Upgrade(
                 name, // Name
                 desc, // Description
                 111111111 * order, // Price (adjust as desired)
                 [25, 7], // Icon (Springerle)
-                Game.UpgradesById[Game.UpgradesN-1].buyFunction || null // No custom buy function
+                function() { return true; } // Buy function
             );
+            upg.pool = 'cookie';
+            upg.order = Game.UpgradesN;
+            Game.UpgradesById[Game.UpgradesN] = upg;
+            Game.UpgradesN++;
+            Game.Upgrades.push(upg);
+            return upg;
         }
-
 
         // Add 25 new cookie upgrades after Springerle
         var baseIndex = 4; // Since Springerle I-III are 1-3
@@ -25,13 +30,7 @@ JustNaturalExpansion.launch = function() {
             var num = baseIndex + i;
             var name = 'Springerle ' + num;
             var desc = 'An even more elaborate springerle cookie. <q>Level ' + num + ' of deliciousness!</q>';
-            CCSE.NewUpgrade(
-                name,
-                desc,
-                111111111 * num, // Price progression
-                [25, 7], // Springerle icon
-                null
-            );
+            addSpringerleUpgrade(name, desc, num);
         }
 
         JustNaturalExpansion.addBuildingAchievements();
@@ -50,6 +49,7 @@ JustNaturalExpansion.launch = function() {
         JustNaturalExpansion.addAscensionBakeAchievements && JustNaturalExpansion.addAscensionBakeAchievements();
     }
     JustNaturalExpansion.init();
+    JustNaturalExpansion.isLoaded = true;
 }
 
 if(!JustNaturalExpansion.isLoaded) {
@@ -75,23 +75,17 @@ JustNaturalExpansion.addBuildingAchievements = function() {
             var desc = 'Own ' + amount + ' ' + building.plural + '.';
             // Use the same icon as the last vanilla achievement for this building
             var icon = [building.icon[0], building.icon[1]];
-            // You can customize the icon if you want a new look for higher achievements
 
-            // Create the achievement
-            CCSE.NewAchievement(
-                name,
-                desc,
-                icon
-            );
-
-            // Make the achievement unlock when the player owns the required amount
-            // This is how the base game does it, but you may need to add a check in a custom logic loop if it doesn't trigger automatically
-            var ach = Game.AchievementsByName[name];
-            if (ach) {
-                ach.pool = 'normal';
-                ach.buildingTie = building;
-                ach.buildingTie1 = amount;
-            }
+            // Create the achievement using the proper Game.Achievement constructor
+            var ach = new Game.Achievement(name, desc, icon);
+            ach.pool = 'normal';
+            ach.buildingTie = building;
+            ach.buildingTie1 = amount;
+            ach.order = Game.AchievementsN;
+            Game.AchievementsById[Game.AchievementsN] = ach;
+            Game.AchievementsN++;
+            Game.Achievements.push(ach);
+            Game.AchievementsByName[name] = ach;
         }
     }
 };
@@ -115,19 +109,16 @@ JustNaturalExpansion.addCpsAchievements = function() {
 
     for (var i = 0; i < thresholds.length; i++) {
         var t = thresholds[i];
-        CCSE.NewAchievement(
-            t.name,
-            t.desc,
-            icon
-        );
-        // Custom unlock logic: check raw CpS
-        var ach = Game.AchievementsByName[t.name];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = function(amount) {
-                return function() { return Game.cookiesPs >= amount; };
-            }(t.amount);
-        }
+        var ach = new Game.Achievement(t.name, t.desc, icon);
+        ach.pool = 'normal';
+        ach.customRequirement = function(amount) {
+            return function() { return Game.cookiesPs >= amount; };
+        }(t.amount);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[t.name] = ach;
     }
 };
 
@@ -149,19 +140,16 @@ JustNaturalExpansion.addClickAchievements = function() {
 
     for (var i = 0; i < thresholds.length; i++) {
         var t = thresholds[i];
-        CCSE.NewAchievement(
-            t.name,
-            t.desc,
-            icon
-        );
-        // Custom unlock logic: check cookies from clicking
-        var ach = Game.AchievementsByName[t.name];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = function(amount) {
-                return function() { return Game.cookieClicksThisAscension >= amount; };
-            }(t.amount);
-        }
+        var ach = new Game.Achievement(t.name, t.desc, icon);
+        ach.pool = 'normal';
+        ach.customRequirement = function(amount) {
+            return function() { return Game.cookieClicksThisAscension >= amount; };
+        }(t.amount);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[t.name] = ach;
     }
 };
 
@@ -181,20 +169,16 @@ JustNaturalExpansion.addBuildingProductionAchievements = function() {
             var desc = "Make " + th.amount.toLocaleString('en-US', {maximumFractionDigits: 0}) + " cookies just from " + building.plural + ".";
             var icon = [building.icon[0], building.icon[1]];
 
-            CCSE.NewAchievement(
-                name,
-                desc,
-                icon
-            );
-
-            // Custom unlock logic: check cookies produced by this building
-            var ach = Game.AchievementsByName[name];
-            if (ach) {
-                ach.pool = 'normal';
-                ach.customRequirement = (function(building, amount) {
-                    return function() { return building.amountEarned >= amount; };
-                })(building, th.amount);
-            }
+            var ach = new Game.Achievement(name, desc, icon);
+            ach.pool = 'normal';
+            ach.customRequirement = (function(building, amount) {
+                return function() { return building.amountEarned >= amount; };
+            })(building, th.amount);
+            ach.order = Game.AchievementsN;
+            Game.AchievementsById[Game.AchievementsN] = ach;
+            Game.AchievementsN++;
+            Game.Achievements.push(ach);
+            Game.AchievementsByName[name] = ach;
         }
     }
 };
@@ -219,18 +203,16 @@ JustNaturalExpansion.addGoldenCookieAchievements = function() {
     ];
     var icon = [10, 7]; // Use the same icon as Black cat's paw
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return Game.goldenClicks >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return Game.goldenClicks >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -256,18 +238,16 @@ JustNaturalExpansion.addKittenAchievements = function() {
 
     for (var i = 0; i < thresholds.length; i++) {
         var t = thresholds[i];
-        CCSE.NewAchievement(
-            t.name,
-            t.desc,
-            icon
-        );
-        var ach = Game.AchievementsByName[t.name];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return countKittenUpgrades() >= amount; };
-            })(t.amount);
-        }
+        var ach = new Game.Achievement(t.name, t.desc, icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return countKittenUpgrades() >= amount; };
+        })(t.amount);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[t.name] = ach;
     }
 };
 
@@ -287,18 +267,16 @@ JustNaturalExpansion.addGrandmatriarchAchievements = function() {
     ];
     var icon = [17, 7]; // Use the same icon as Elder slumber
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.elderWrathGrandmaAppeased || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.elderWrathGrandmaAppeased || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -318,18 +296,16 @@ JustNaturalExpansion.addWrinklerAchievements = function() {
     ];
     var icon = [18, 7]; // Use the same icon as Moistburster
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.wrinklersPopped || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.wrinklersPopped || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -349,18 +325,16 @@ JustNaturalExpansion.addReindeerAchievements = function() {
     ];
     var icon = [19, 7]; // Use the same icon as Reindeer sleigher
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.reindeerPopped || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.reindeerPopped || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -392,18 +366,16 @@ JustNaturalExpansion.addAscendCookieAchievements = function() {
         descs.push(desc);
     }
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.cookiesReset || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.cookiesReset || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -419,18 +391,16 @@ JustNaturalExpansion.addSpellAchievements = function() {
     ];
     var icon = [20, 7]; // Use the same icon as 'A wizard is you'
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.spellsCast || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.spellsCast || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -448,18 +418,16 @@ JustNaturalExpansion.addGardenAchievements = function() {
     ];
     var icon = [22, 7]; // Use the same icon as 'Green, aching thumb'
     for (var i = 0; i < thresholds.length; i++) {
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() { return (Game.gardenPlantsHarvestedMature || 0) >= amount; };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() { return (Game.gardenPlantsHarvestedMature || 0) >= amount; };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
     }
 };
 
@@ -496,45 +464,44 @@ JustNaturalExpansion.addSeptcentennialExpansions = function() {
     var icon = [26, 7]; // Use a cookie icon, or customize as desired
     for (var i = 0; i < thresholds.length; i++) {
         // Achievement
-        CCSE.NewAchievement(
-            names[i],
-            descs[i],
-            icon
-        );
-        var ach = Game.AchievementsByName[names[i]];
-        if (ach) {
-            ach.pool = 'normal';
-            ach.customRequirement = (function(amount) {
-                return function() {
-                    for (var j in Game.ObjectsById) {
-                        if (Game.ObjectsById[j].amount < amount) return false;
-                    }
-                    return true;
-                };
-            })(thresholds[i]);
-        }
+        var ach = new Game.Achievement(names[i], descs[i], icon);
+        ach.pool = 'normal';
+        ach.customRequirement = (function(amount) {
+            return function() {
+                for (var j in Game.ObjectsById) {
+                    if (Game.ObjectsById[j].amount < amount) return false;
+                }
+                return true;
+            };
+        })(thresholds[i]);
+        ach.order = Game.AchievementsN;
+        Game.AchievementsById[Game.AchievementsN] = ach;
+        Game.AchievementsN++;
+        Game.Achievements.push(ach);
+        Game.AchievementsByName[names[i]] = ach;
         // Upgrade (cookie)
-        CCSE.NewUpgrade(
+        var upg = new Game.Upgrade(
             cookieNames[i],
             cookieDescs[i],
             77777777777 * (i+1), // Arbitrary price, can be adjusted
             icon,
-            null
+            function() { return true; }
         );
-        var upg = Game.UpgradesByName[cookieNames[i]];
-        if (upg) {
-            upg.pool = 'cookie';
-            upg.descFunc = function() { return '+10% CpS'; };
-            upg.power = 0.1;
-            upg.cpsMult = 1.1;
-            upg.hide = 3;
-            upg.unlocked = 0;
-            upg.unlockAt = names[i];
-            // Custom unlock: unlock when achievement is earned
-            upg.customRequirement = (function(achName) {
-                return function() { return Game.AchievementsByName[achName] && Game.AchievementsByName[achName].won; };
-            })(names[i]);
-        }
+        upg.pool = 'cookie';
+        upg.descFunc = function() { return '+10% CpS'; };
+        upg.power = 0.1;
+        upg.cpsMult = 1.1;
+        upg.hide = 3;
+        upg.unlocked = 0;
+        upg.unlockAt = names[i];
+        upg.customRequirement = (function(achName) {
+            return function() { return Game.AchievementsByName[achName] && Game.AchievementsByName[achName].won; };
+        })(names[i]);
+        upg.order = Game.UpgradesN;
+        Game.UpgradesById[Game.UpgradesN] = upg;
+        Game.UpgradesN++;
+        Game.Upgrades.push(upg);
+        Game.UpgradesByName[cookieNames[i]] = upg;
     }
 };
 
