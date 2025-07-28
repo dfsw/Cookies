@@ -6,8 +6,9 @@ JustNaturalExpansion.name = 'Just Natural Expansion';
 JustNaturalExpansion.version = '1.00';
 JustNaturalExpansion.GameVersion = '2.052';
 
-JustNaturalExpansion.launch = function() {
-    console.log('Just Natural Expansion: Launching...');
+// Main initialization function
+JustNaturalExpansion.init = function() {
+    console.log('Just Natural Expansion: Starting initialization...');
     
     // Check if CCSE is available
     if (typeof CCSE === 'undefined') {
@@ -24,57 +25,66 @@ JustNaturalExpansion.launch = function() {
     
     console.log('Just Natural Expansion: CCSE is loaded, proceeding...');
     
-    JustNaturalExpansion.init = function() {
-        // Helper function to add a Springerle upgrade
-        function addSpringerleUpgrade(name, desc, order) {
-            CCSE.NewUpgrade(
-                name, // Name
-                desc, // Description
-                111111111 * order, // Price (adjust as desired)
-                [25, 7], // Icon (Springerle)
-                null // No custom buy function
-            );
-        }
-
-        // Add 25 new cookie upgrades after Springerle
-        var baseIndex = 4; // Since Springerle I-III are 1-3
-        for (var i = 0; i < 25; i++) {
-            var num = baseIndex + i;
-            var name = 'Springerle ' + num;
-            var desc = 'An even more elaborate springerle cookie. <q>Level ' + num + ' of deliciousness!</q>';
-            addSpringerleUpgrade(name, desc, num);
-        }
-
-        JustNaturalExpansion.addBuildingAchievements();
-        JustNaturalExpansion.addCpsAchievements();
-        JustNaturalExpansion.addClickAchievements();
-        JustNaturalExpansion.addBuildingProductionAchievements();
-        JustNaturalExpansion.addGoldenCookieAchievements();
-        JustNaturalExpansion.addKittenAchievements();
-        JustNaturalExpansion.addGrandmatriarchAchievements && JustNaturalExpansion.addGrandmatriarchAchievements();
-        JustNaturalExpansion.addWrinklerAchievements && JustNaturalExpansion.addWrinklerAchievements();
-        JustNaturalExpansion.addReindeerAchievements && JustNaturalExpansion.addReindeerAchievements();
-        JustNaturalExpansion.addAscendCookieAchievements();
-        JustNaturalExpansion.addSpellAchievements && JustNaturalExpansion.addSpellAchievements();
-        JustNaturalExpansion.addGardenAchievements && JustNaturalExpansion.addGardenAchievements();
-        JustNaturalExpansion.addSeptcentennialExpansions && JustNaturalExpansion.addSeptcentennialExpansions();
-        JustNaturalExpansion.addAscensionBakeAchievements && JustNaturalExpansion.addAscensionBakeAchievements();
-        
-        Game.Popup('Just Natural Expansion loaded successfully!');
-        console.log('Just Natural Expansion: Initialization complete!');
+    // Helper function to add a Springerle upgrade
+    function addSpringerleUpgrade(name, desc, order) {
+        CCSE.NewUpgrade(
+            name, // Name
+            desc, // Description
+            111111111 * order, // Price (adjust as desired)
+            [25, 7], // Icon (Springerle)
+            null // No custom buy function
+        );
     }
-    JustNaturalExpansion.init();
-}
 
-if(!JustNaturalExpansion.isLoaded) {
-    if(CCSE && CCSE.isLoaded) {
-        JustNaturalExpansion.launch();
+    // Add 25 new cookie upgrades after Springerle
+    var baseIndex = 4; // Since Springerle I-III are 1-3
+    for (var i = 0; i < 25; i++) {
+        var num = baseIndex + i;
+        var name = 'Springerle ' + num;
+        var desc = 'An even more elaborate springerle cookie. <q>Level ' + num + ' of deliciousness!</q>';
+        addSpringerleUpgrade(name, desc, num);
+    }
+
+    JustNaturalExpansion.addBuildingAchievements();
+    JustNaturalExpansion.addCpsAchievements();
+    JustNaturalExpansion.addClickAchievements();
+    JustNaturalExpansion.addBuildingProductionAchievements();
+    JustNaturalExpansion.addGoldenCookieAchievements();
+    JustNaturalExpansion.addKittenAchievements();
+    JustNaturalExpansion.addGrandmatriarchAchievements && JustNaturalExpansion.addGrandmatriarchAchievements();
+    JustNaturalExpansion.addWrinklerAchievements && JustNaturalExpansion.addWrinklerAchievements();
+    JustNaturalExpansion.addReindeerAchievements && JustNaturalExpansion.addReindeerAchievements();
+    JustNaturalExpansion.addAscendCookieAchievements();
+    JustNaturalExpansion.addSpellAchievements && JustNaturalExpansion.addSpellAchievements();
+    JustNaturalExpansion.addGardenAchievements && JustNaturalExpansion.addGardenAchievements();
+    JustNaturalExpansion.addSeptcentennialExpansions && JustNaturalExpansion.addSeptcentennialExpansions();
+    JustNaturalExpansion.addAscensionBakeAchievements && JustNaturalExpansion.addAscensionBakeAchievements();
+    
+    Game.Popup('Just Natural Expansion loaded successfully!');
+    console.log('Just Natural Expansion: Initialization complete!');
+};
+
+// Try to initialize immediately, or wait for CCSE
+JustNaturalExpansion.tryInit = function() {
+    console.log('Just Natural Expansion: Checking if ready to initialize...');
+    console.log('CCSE exists:', typeof CCSE !== 'undefined');
+    if (typeof CCSE !== 'undefined') {
+        console.log('CCSE.isLoaded:', CCSE.isLoaded);
+    }
+    
+    if (typeof CCSE !== 'undefined' && CCSE.isLoaded) {
+        console.log('Just Natural Expansion: CCSE is ready, initializing...');
+        JustNaturalExpansion.init();
     } else {
-        if(!CCSE) var CCSE = {};
-        if(!CCSE.postLoadHooks) CCSE.postLoadHooks = [];
-        CCSE.postLoadHooks.push(JustNaturalExpansion.launch);
+        console.log('Just Natural Expansion: CCSE not ready, waiting...');
+        // Try again in 100ms
+        setTimeout(JustNaturalExpansion.tryInit, 100);
     }
-}
+};
+
+// Start the initialization process immediately
+console.log('Just Natural Expansion: Mod script loaded, starting initialization process...');
+JustNaturalExpansion.tryInit();
 
 JustNaturalExpansion.addBuildingAchievements = function() {
     // List of thresholds for new achievements
