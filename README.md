@@ -1,25 +1,49 @@
-# Just Natural Expansion 0.0.1 - A Cookie Clicker Mod
+# Just Natural Expansion 0.0.1 
+### A Cookie Clicker Mod
 
-A comprehensive expansion mod for Cookie Clicker that adds new achievements, upgrades, and features while maintaining compatibility with the vanilla game.
+**The Just Natural Expansion Mod** enhances the Cookie Clicker endgame without disrupting core gameplay, staying true to the spirit of the vanilla experience. It introduces over **450 achievements** and **200 upgrades**, all specifically designed for late-game progression, so early or mid-game players may not immediately notice changes upon installation. By default, the mod adds no upgrades and marks new achievements as shadow, allowing leaderboard-focused players to pursue extra challenges without affecting their current gameplay.
 
-This mod adds a total of **459 new achievements** and **252 new upgrades** to Cookie Clicker, significantly expanding the endgame content and providing new goals for long-term players.
+Players aiming for higher scores and a more rewarding late-game can enable Cookie, Kitten, and Building upgrades, while also converting shadow achievements into regular ones to gain extra milk for their efforts. These upgrades can be disabled at any time, and shadow achievements can be re-enabled via the options menu. However, a permanent shadow achievement will be awarded to mark that you have used the mod outside of leaderboard competition mode.
 
 Many achievements are tracked across multiple ascensions or involve progress that the base game does not normally record, such as popping Shiny Wrinklers. While you may have already completed some of these, there is no way to determine your progress on them unless the mod is installed. Progress on items not tracked by the vanilla game or not carried across ascensions will only start being recorded once the mod is active. You can view additional tracked stats and their current values in the Stats menu.
 
-## Special Thanks
+**All new achievements are designed to be attainable, though some require significant effort. Thank you for playing! If you enjoy the mod, please spread the word!**
 
-A very special thank you to the creator of the [Darky Cheevos Package](https://github.com/hyoretsu/DarkysCheevosPackage) Cookie Clicker mod — wherever you may be. I borrowed some of your custom icons, and your mod provided valuable guidance and inspiration during development.
+#### Special Thanks
+Extra gooey gratitude to the mysterious hero who uploaded the custom Cookie Clicker icons I stumbled upon on [Imgur](https://imgur.com/3jNJJNw). If you ever reveal yourself, I will shower you with credit (and maybe a few billion cookies). Those icons patched up some stubborn gaps that were giving me dough-induced headaches.
 
-Another big thanks to the active members of the Cookie Clicker Discord, who answered my questions about late-game strategy and helped shape the direction this mod ultimately took.
+Big, chocolate-covered thanks to the amazing folks in the Cookie Clicker Discord, whose late-game wisdom and strategic tips helped shape this mod into the crunchy masterpiece it is today.
+
+#### Why This Mod Exists
+
+As I approached the late-game of Cookie Clicker, I felt a real sense of loss, I was running out of fun goals to chase. I began searching for mods that could extend the experience without radically changing the core playstyle.  
+
+I found plenty of end-game mods that added new buildings or flashy mechanics, but they did not feel true to the vanilla game and often were not balanced at all. I also came across a few that introduced extremely difficult—sometimes nearly impossible—achievements. Those were closer to what I wanted, but I was not looking for the impossible. I wanted *more* of what I had already been enjoying.  
+
+So, I set out to imagine what Cookie Clicker might feel like if it simply lasted longer. Achievements are challenging, but not unreasonable. Additions don’t break the existing formula, though I did have to nerf my kittens pretty heavily to keep them balanced. The goal was always to extend the game, not reinvent it.  
+
+I hope you find that I have met that goal and that this mod adds a few more years of clicking, planning, and cookie glory to your game. If not I plan on enjoying it myself anyways. 
+
+## Installation Directions
+
+This mod has not been released yet, please keep an eye on this area for release information. 
+
+#### Web (Preferred)
+
+#### Steam
+
+#### Mobile
+The mobile version of Cookie Clicker does not support mods at this time. 
+
 
 ## Features
 
 ## New Achievements
 
-### Challenge Achievements (15 achievements)
-*Note: Yes, these challenges are all doable, and no, none of them are absurdly impossible (No ECM Life Here). But do not expect a free ride. These achievments won't hold your hand, and they definitely won't go easy on you. Think of them less like a grind and more like a puzzle, one that needs clever planning, careful timing, and maybe a lucky cookie or well placed upgrade. Remember this is extending the late game and adding game play time, you should not be looking to knock these all out in a week.*
+### Challenge Achievements (16 achievements)
+*Note: Yes, these challenges are all doable, and no, none of them are absurdly impossible (No [ECM Style](https://lookas123.github.io/ECM/) Here). But do not expect a free ride. These achievments won't hold your hand, and they definitely won't go easy on you. Think of them less like a grind and more like a puzzle, one that needs clever planning, careful timing, and maybe a lucky cookie or well placed upgrade. Remember this is extending the late game and adding game play time, you should not be looking to knock these all out in a week.*
 
-### Requires Born Again Mode
+##### Requires Born Again Mode
 - **Hardercorest**: Bake **10 billion cookies** with no cookie clicks and no upgrades bought in Born Again mode
 - **Hardercorest-er**: Bake **1 billion cookies** with no more than 15 clicks, no more than 15 buildings (no selling), and no more than 15 upgrades in Born Again mode
 - **The Final Countdown**: Own exactly 20 Cursors, 19 Grandmas, 18 Farms, yada yada yada, down to 1 You. No selling or sacrificing any buildings. Must be earned in Born Again mode
@@ -30,15 +54,16 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 - **Difficult Decisions**: Bake **1 billion cookies** without ever having more than **25 combined upgrades or buildings** at any given time, must be done in Born Again mode
 - **Laid in Plain Sight**: Bake **10 cookies per second** without purchasing any buildings, must be done in Born Again mode
 
-### Can Be Done In Any Mode
+##### Can Be Done In Any Mode
 - **I feel the need for seed**: Unlock all garden seeds within **5 days** of your last garden sacrifice. Look this one is tricky, if you reload or load a save the 5 day timer is invalidated, so you cant load in a completed garden.
 - **Holiday Hoover**: Collect all seasonal drops within **60 minutes** of an Ascension start
 - **Merry Mayhem**: Collect all seasonal drops within **40 minutes** of an Ascension start
 - **Second Life, First Click**: Click a golden cookie within **120 seconds** of ascending
-- **We don't need no heavenly chips**: Own at least **500 of every building type**, without ever selling or sacrificing any buildings, and without owning the 'Heavenly chip secret' upgrade
+- **We dont need no heavenly chips**: Own at least **500 of every building type**, without ever selling or sacrificing any buildings, and without owning the 'Heavenly chip secret' upgrade
 - **Precision Nerd**: Have exactly **1,234,567,890 cookies** in your bank and hold it for **60 seconds**
+- **The Final Challenger**: Win **10**/15 of the Just Natural Expansion **Challenge Achievements**
 
-#### Minigame Achievements (26 achievements)
+### Minigame Achievements (29 achievements)
 
 #### Stock Market
 - **Solid Assets**: Have **$25 million** in stock market profits across all ascensions
@@ -47,6 +72,7 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 - **Secure Assets**: Have **$500 million** in stock market profits across all ascensions
 - **Prime Assets**: Have **$1 billion** in stock market profits across all ascensions
 - **The Dough Jones Plunge**: Have **$1 million** in stock market losses in one ascension
+- **Broiler room**: Hire at least **100** stockbrokers in the Stock Market
 
 #### Garden
 - **Seedless to eternity**: Convert a complete seed log into sugar lumps by sacrificing your garden to the sugar hornets **5 times**
@@ -58,6 +84,7 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 - **Garden master**: Harvest **7,500 mature garden plants**
 - **Plant whisperer**: Harvest **10,000 mature garden plants**
 - **Botanical Perfection**: Have one of every type of plant in the mature stage at once
+- **Duketater Salad**: Harvest **12 mature Duketaters** simultaneously
 - **Fifty Shades of Clay**: Change the soil type of your Garden **100 times** in one ascension
 
 #### Grimoire
@@ -224,7 +251,7 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 - **Cortex Baker**: Cortex master (750 cortex bakers), Brain baker (800 cortex bakers), Neural network (850 cortex bakers), Synaptic sovereign (900 cortex bakers), Cerebral czar (950 cortex bakers), Mind monarch (1,000 cortex bakers), Cortex conqueror (1,050 cortex bakers), Brain boss (1,100 cortex bakers), Neural lord (1,150 cortex bakers), Synaptic sage (1,200 cortex bakers), Cerebral master (1,250 cortex bakers)
 - **You**: Clone master (750 You), Duplicate dynasty (800 You), Copy empire (850 You), Replica realm (900 You), Mirror monarch (950 You), Twin tycoon (1,000 You), Doppelganger deity (1,050 You), Clone conqueror (1,100 You), Duplicate deity (1,150 You), Copy deity (1,200 You), Replica deity (1,250 You)
 
-### Building Production Achievements (60 achievements) needs testing
+### Building Production Achievements (60 achievements)
 - **Cursor**: Click (starring Adam Sandler) II - Make **1 quattuordecillion cookies** just from cursors
 - **Cursor**: Click (starring Adam Sandler) III - Make **1 septendecillion cookies** just from cursors
 - **Cursor**: Click (starring Adam Sandler) IV - Make **1 novemdecillion cookies** just from cursors
@@ -372,7 +399,60 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 ## New Upgrades
 
 ### Generic Upgrades
-- **Box of improved cookies**: Contains an assortment of scientifically improved cookies
+- **Box of improved cookies**: Contains an assortment of scientifically improved cookies, 25 cookies to a box. 
+
+### Kitten Upgrades (11 New Kitten Upgrades)
+*Note: Expansion Kittens are the knock-off brand: cute, cuddly, and noticeably worse at their job. Don’t expect them to pull their weight like the original kittens.*
+
+- **Kitten unpaid interns**: Provides small production bonus (requires 500 achievements)
+- **Kitten overpaid "temporary" contractors**: Provides small production bonus (requires 550 achievements)
+- **Kitten remote workers**: Provides small production bonus (requires 600 achievements)
+- **Kitten scrum masters**: Provides small production bonus (requires 650 achievements)
+- **Kitten UX designers**: Provides small production bonus (requires 700 achievements)
+- **Kitten janitors**: Provides small production bonus (requires 750 achievements)
+- **Kitten coffee fetchers**: Provides small production bonus (requires 800 achievements)
+- **Kitten personal assistants**: Provides small production bonus (requires 850 achievements)
+- **Kitten vice presidents**: Provides small production bonus (requires 900 achievements)
+- **Kitten board members**: Provides small production bonus (requires 950 achievements)
+- **Kitten founders**: Provides small production bonus (requires 1000 achievements)
+
+### Cookie Production Upgrades (25 New Cookies)
+- **Improved Plain cookies**: 2% cookie production increase
+- **Improved Sugar cookies**: 2% cookie production increase
+- **Improved Oatmeal raisin cookies**: 2% cookie production increase
+- **Improved Peanut butter cookies**: 2% cookie production increase
+- **Improved Coconut cookies**: 2% cookie production increase
+- **Improved Macadamia nut cookies**: 2% cookie production increase
+- **Improved Almond cookies**: 2% cookie production increase
+- **Improved Hazelnut cookies**: 2% cookie production increase
+- **Improved Walnut cookies**: 2% cookie production increase
+- **Improved Cashew cookies**: 2% cookie production increase
+- **Improved White chocolate cookies**: 2% cookie production increase
+- **Improved Milk chocolate cookies**: 2% cookie production increase
+- **Improved Double-chip cookies**: 2% cookie production increase
+- **Improved White chocolate macadamia nut cookies**: 2% cookie production increase
+- **Improved All-chocolate cookies**: 2% cookie production increase
+- **Improved Dark chocolate-coated cookies**: 2% cookie production increase
+- **Improved White chocolate-coated cookies**: 2% cookie production increase
+- **Improved Eclipse cookies**: 2% cookie production increase
+- **Improved Zebra cookies**: 2% cookie production increase
+- **Improved Snickerdoodles**: 2% cookie production increase
+- **Improved Stroopwafels**: 2% cookie production increase
+- **Improved Macaroons**: 2% cookie production increase
+- **Improved Empire biscuits**: 2% cookie production increase
+- **Improved Madeleines**: 2% cookie production increase
+- **Improved Palmiers**: 2% cookie production increase
+- **Improved Palets**: 2% cookie production increase
+
+### Achivement Reward Cookies
+- **Improved Milk chocolate butter biscuit**: 10% cookie production increase (requires Septcentennial and a half achievement)
+- **Improved Dark chocolate butter biscuit**: 10% cookie production increase (requires Octcentennial achievement)
+- **Improved White chocolate butter biscuit**: 10% cookie production increase (requires Octcentennial and a half achievement)
+- **Improved Ruby chocolate butter biscuit**: 10% cookie production increase (requires Nonacentennial achievement)
+- **Improved Lavender chocolate butter biscuit**: 10% cookie production increase (requires Nonacentennial and a half achievement)
+- **Improved Synthetic chocolate green honey butter biscuit**: 10% cookie production increase (requires Millennial achievement)
+
+###Building Upgrades
 
 #### Building Cost Reduction Upgrades (114 Upgrades)
 *Note: These upgrades provide cumulative 5% cost reductions for their respective buildings. Each upgrade applies a 5% discount to the remaining cost, so owning all 6 upgrades for a building provides approximately a 26.5% total discount.*
@@ -505,186 +585,135 @@ Another big thanks to the active members of the Cookie Clicker Discord, who answ
 - **Programming institute support**: Javascript consoles cost **5%** less (requires 1150 javascript consoles)
 - **Code cookie cities**: Javascript consoles cost **5%** less (requires 1250 javascript consoles)
 
-#### Kitten Upgrades (11 New Kitten Upgrades)
-*Note: Expansion Kittens are the knock-off brand: cute, cuddly, and noticeably worse at their job. Don’t expect them to pull their weight like the original kittens.*
+### Building Efficiency Upgrades (95 Upgrades)
 
-- **Kitten unpaid interns**: Provides small production bonus (requires 500 achievements)
-- **Kitten overpaid "temporary" contractors**: Provides small production bonus (requires 550 achievements)
-- **Kitten remote workers**: Provides small production bonus (requires 600 achievements)
-- **Kitten scrum masters**: Provides small production bonus (requires 650 achievements)
-- **Kitten UX designers**: Provides small production bonus (requires 700 achievements)
-- **Kitten janitors**: Provides small production bonus (requires 750 achievements)
-- **Kitten coffee fetchers**: Provides small production bonus (requires 800 achievements)
-- **Kitten personal assistants**: Provides small production bonus (requires 850 achievements)
-- **Kitten vice presidents**: Provides small production bonus (requires 900 achievements)
-- **Kitten board members**: Provides small production bonus (requires 950 achievements)
-- **Kitten founders**: Provides small production bonus (requires 1000 achievements)
-
-### Cookie Production Upgrades (25 New Cookies)
-- **Improved Plain cookies**: 2% cookie production increase
-- **Improved Sugar cookies**: 2% cookie production increase
-- **Improved Oatmeal raisin cookies**: 2% cookie production increase
-- **Improved Peanut butter cookies**: 2% cookie production increase
-- **Improved Coconut cookies**: 2% cookie production increase
-- **Improved Macadamia nut cookies**: 2% cookie production increase
-- **Improved Almond cookies**: 2% cookie production increase
-- **Improved Hazelnut cookies**: 2% cookie production increase
-- **Improved Walnut cookies**: 2% cookie production increase
-- **Improved Cashew cookies**: 2% cookie production increase
-- **Improved White chocolate cookies**: 2% cookie production increase
-- **Improved Milk chocolate cookies**: 2% cookie production increase
-- **Improved Double-chip cookies**: 2% cookie production increase
-- **Improved White chocolate macadamia nut cookies**: 2% cookie production increase
-- **Improved All-chocolate cookies**: 2% cookie production increase
-- **Improved Dark chocolate-coated cookies**: 2% cookie production increase
-- **Improved White chocolate-coated cookies**: 2% cookie production increase
-- **Improved Eclipse cookies**: 2% cookie production increase
-- **Improved Zebra cookies**: 2% cookie production increase
-- **Improved Snickerdoodles**: 2% cookie production increase
-- **Improved Stroopwafels**: 2% cookie production increase
-- **Improved Macaroons**: 2% cookie production increase
-- **Improved Empire biscuits**: 2% cookie production increase
-- **Improved Madeleines**: 2% cookie production increase
-- **Improved Palmiers**: 2% cookie production increase
-- **Improved Palets**: 2% cookie production increase
-
-### Achivement Reward Cookies
-- **Improved Milk chocolate butter biscuit**: 10% cookie production increase (requires Septcentennial and a half achievement)
-- **Improved Dark chocolate butter biscuit**: 10% cookie production increase (requires Octcentennial achievement)
-- **Improved White chocolate butter biscuit**: 10% cookie production increase (requires Octcentennial and a half achievement)
-- **Improved Ruby chocolate butter biscuit**: 10% cookie production increase (requires Nonacentennial achievement)
-- **Improved Lavender chocolate butter biscuit**: 10% cookie production increase (requires Nonacentennial and a half achievement)
-- **Improved Synthetic chocolate green honey butter biscuit**: 10% cookie production increase (requires Millennial achievement)
-
-## Building Efficiency Upgrades (95 Upgrades)
-
-### Grandma Upgrades
+##### Grandma Upgrades
 - **Advanced knitting techniques**: Grandmas are **8%** more efficient (requires 800 grandmas)
 - **Bingo night optimization**: Grandmas are **8%** more efficient (requires 900 grandmas)
 - **Tea time efficiency**: Grandmas are **8%** more efficient (requires 1000 grandmas)
 - **Gossip-powered baking**: Grandmas are **8%** more efficient (requires 1100 grandmas)
 - **Senior discount mastery**: Grandmas are **8%** more efficient (requires 1200 grandmas)
 
-### Farm Upgrades
+##### Farm Upgrades
 - **Hydroponic cookie cultivation**: Farms are **8%** more efficient (requires 800 farms)
 - **Vertical farming revolution**: Farms are **8%** more efficient (requires 900 farms)
 - **Quantum crop rotation**: Farms are **8%** more efficient (requires 1000 farms)
 - **Sentient soil enhancement**: Farms are **8%** more efficient (requires 1100 farms)
 - **Temporal harvest acceleration**: Farms are **8%** more efficient (requires 1200 farms)
 
-### Mine Upgrades
+##### Mine Upgrades
 - **Quantum tunneling excavation**: Mines are **8%** more efficient (requires 800 mines)
 - **Neutron star compression**: Mines are **8%** more efficient (requires 900 mines)
 - **Dimensional rift mining**: Mines are **8%** more efficient (requires 1000 mines)
 - **Singularity core extraction**: Mines are **8%** more efficient (requires 1100 mines)
 - **Temporal paradox drilling**: Mines are **8%** more efficient (requires 1200 mines)
 
-### Factory Upgrades
+##### Factory Upgrades
 - **Quantum assembly optimization**: Factories are **8%** more efficient (requires 800 factories)
 - **Temporal manufacturing loops**: Factories are **8%** more efficient (requires 900 factories)
 - **Dimensional cookie synthesis**: Factories are **8%** more efficient (requires 1000 factories)
 - **Singularity production cores**: Factories are **8%** more efficient (requires 1100 factories)
 - **Reality-warping assembly**: Factories are **8%** more efficient (requires 1200 factories)
 
-### Bank Upgrades
+##### Bank Upgrades
 - **Quantum banking protocols**: Banks are **8%** more efficient (requires 800 banks)
 - **Temporal interest compounding**: Banks are **8%** more efficient (requires 900 banks)
 - **Dimensional currency exchange**: Banks are **8%** more efficient (requires 1000 banks)
 - **Singularity financial algorithms**: Banks are **8%** more efficient (requires 1100 banks)
 - **Reality-warping economics**: Banks are **8%** more efficient (requires 1200 banks)
 
-### Temple Upgrades
+##### Temple Upgrades
 - **Quantum divine intervention**: Temples are **8%** more efficient (requires 800 temples)
 - **Temporal prayer loops**: Temples are **8%** more efficient (requires 900 temples)
 - **Dimensional deity summoning**: Temples are **8%** more efficient (requires 1000 temples)
 - **Singularity divine consciousness**: Temples are **8%** more efficient (requires 1100 temples)
 - **Reality-warping divinity**: Temples are **8%** more efficient (requires 1200 temples)
 
-### Wizard Tower Upgrades
+##### Wizard Tower Upgrades
 - **Arcane resonance**: Wizard towers are **8%** more efficient (requires 800 wizard towers)
 - **Spell weaving**: Wizard towers are **8%** more efficient (requires 900 wizard towers)
 - **Mystical attunement**: Wizard towers are **8%** more efficient (requires 1000 wizard towers)
 - **Ethereal manifestation**: Wizard towers are **8%** more efficient (requires 1100 wizard towers)
 - **Transcendent thaumaturgy**: Wizard towers are **8%** more efficient (requires 1200 wizard towers)
 
-### Shipment Upgrades
+##### Shipment Upgrades
 - **Hypervelocity transport**: Shipments are **8%** more efficient (requires 800 shipments)
 - **Spatial compression**: Shipments are **8%** more efficient (requires 900 shipments)
 - **Dimensional routing**: Shipments are **8%** more efficient (requires 1000 shipments)
 - **Quantum teleportation**: Shipments are **8%** more efficient (requires 1100 shipments)
 - **Causality manipulation**: Shipments are **8%** more efficient (requires 1200 shipments)
 
-### Alchemy Lab Upgrades
+##### Alchemy Lab Upgrades
 - **Essence distillation**: Alchemy labs are **8%** more efficient (requires 800 alchemy labs)
 - **Molecular gastronomy**: Alchemy labs are **8%** more efficient (requires 900 alchemy labs)
 - **Flavor alchemy**: Alchemy labs are **8%** more efficient (requires 1000 alchemy labs)
 - **Culinary transmutation**: Alchemy labs are **8%** more efficient (requires 1100 alchemy labs)
 - **Gastronomic enlightenment**: Alchemy labs are **8%** more efficient (requires 1200 alchemy labs)
 
-### Portal Upgrades
+##### Portal Upgrades
 - **Dimensional gateways**: Portals are **8%** more efficient (requires 800 portals)
 - **Reality bridges**: Portals are **8%** more efficient (requires 900 portals)
 - **Spatial conduits**: Portals are **8%** more efficient (requires 1000 portals)
 - **Interdimensional highways**: Portals are **8%** more efficient (requires 1100 portals)
 - **Cosmic gateways**: Portals are **8%** more efficient (requires 1200 portals)
 
-### Time Machine Upgrades
+##### Time Machine Upgrades
 - **Temporal engineering**: Time machines are **8%** more efficient (requires 800 time machines)
 - **Chronological optimization**: Time machines are **8%** more efficient (requires 900 time machines)
 - **Historical preservation**: Time machines are **8%** more efficient (requires 1000 time machines)
 - **Temporal synchronization**: Time machines are **8%** more efficient (requires 1100 time machines)
 - **Chronological mastery**: Time machines are **8%** more efficient (requires 1200 time machines)
 
-### Antimatter Condenser Upgrades
+##### Antimatter Condenser Upgrades
 - **Particle synthesis**: Antimatter condensers are **8%** more efficient (requires 800 antimatter condensers)
 - **Matter transmutation**: Antimatter condensers are **8%** more efficient (requires 900 antimatter condensers)
 - **Quantum baking**: Antimatter condensers are **8%** more efficient (requires 1000 antimatter condensers)
 - **Particle optimization**: Antimatter condensers are **8%** more efficient (requires 1100 antimatter condensers)
 - **Matter manipulation**: Antimatter condensers are **8%** more efficient (requires 1200 antimatter condensers)
 
-### Prism Upgrades
+##### Prism Upgrades
 - **Light crystallization**: Prisms are **8%** more efficient (requires 800 prisms)
 - **Spectral baking**: Prisms are **8%** more efficient (requires 900 prisms)
 - **Optical alchemy**: Prisms are **8%** more efficient (requires 1000 prisms)
 - **Luminous confectionery**: Prisms are **8%** more efficient (requires 1100 prisms)
 - **Radiant gastronomy**: Prisms are **8%** more efficient (requires 1200 prisms)
 
-### Chancemaker Upgrades
+##### Chancemaker Upgrades
 - **Probability manipulation**: Chancemakers are **8%** more efficient (requires 800 chancemakers)
 - **Fortune optimization**: Chancemakers are **8%** more efficient (requires 900 chancemakers)
 - **Serendipity engineering**: Chancemakers are **8%** more efficient (requires 1000 chancemakers)
 - **Random enhancement**: Chancemakers are **8%** more efficient (requires 1100 chancemakers)
 - **Luck amplification**: Chancemakers are **8%** more efficient (requires 1200 chancemakers)
 
-### Fractal Engine Upgrades
+##### Fractal Engine Upgrades
 - **Infinite recursion**: Fractal engines are **8%** more efficient (requires 800 fractal engines)
 - **Self-similar baking**: Fractal engines are **8%** more efficient (requires 900 fractal engines)
 - **Fractal optimization**: Fractal engines are **8%** more efficient (requires 1000 fractal engines)
 - **Recursive enhancement**: Fractal engines are **8%** more efficient (requires 1100 fractal engines)
 - **Fractal gastronomy**: Fractal engines are **8%** more efficient (requires 1200 fractal engines)
 
-### Javascript Console Upgrades
+##### Javascript Console Upgrades
 - **Code optimization**: Javascript consoles are **8%** more efficient (requires 800 javascript consoles)
 - **Programmatic baking**: Javascript consoles are **8%** more efficient (requires 900 javascript consoles)
 - **Algorithmic enhancement**: Javascript consoles are **8%** more efficient (requires 1000 javascript consoles)
 - **Computational gastronomy**: Javascript consoles are **8%** more efficient (requires 1100 javascript consoles)
 - **Digital confectionery**: Javascript consoles are **8%** more efficient (requires 1200 javascript consoles)
 
-### Idleverse Upgrades
+##### Idleverse Upgrades
 - **Reality real estate**: Idleverses are **8%** more efficient (requires 800 idleverses)
 - **Dimensional franchising**: Idleverses are **8%** more efficient (requires 900 idleverses)
 - **Cosmic supply chains**: Idleverses are **8%** more efficient (requires 1000 idleverses)
 - **Reality marketplaces**: Idleverses are **8%** more efficient (requires 1100 idleverses)
 - **Multiverse headquarters**: Idleverses are **8%** more efficient (requires 1200 idleverses)
 
-### Cortex Baker Upgrades
+##### Cortex Baker Upgrades
 - **Neural plasticity**: Cortex bakers are **8%** more efficient (requires 800 cortex bakers)
 - **Synaptic pruning**: Cortex bakers are **8%** more efficient (requires 900 cortex bakers)
 - **Cognitive load balancing**: Cortex bakers are **8%** more efficient (requires 1000 cortex bakers)
 - **Metacognitive awareness**: Cortex bakers are **8%** more efficient (requires 1100 cortex bakers)
 - **Neural synchronization**: Cortex bakers are **8%** more efficient (requires 1200 cortex bakers)
 
-### You Upgrades
+##### You Upgrades
 - **Mitotic mastery**: You are **8%** more efficient (requires 800 You)
 - **Epigenetic programming**: You are **8%** more efficient (requires 900 You)
 - **Cellular differentiation**: You are **8%** more efficient (requires 1000 You)
