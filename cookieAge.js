@@ -1003,8 +1003,14 @@
                             choose: null // Timestamp when current choose puzzle was activated
                         },
                         purchasedHints: {} // Track which puzzles have hints purchased: { puzzleId: true }
-                    }
+                    },
+                    completed: [] // Array of completed puzzle IDs
                 };
+            }
+            
+            // Ensure completed array exists even if puzzles was already initialized
+            if (!cookieAgeData.puzzles.completed) {
+                cookieAgeData.puzzles.completed = [];
             }
             
             // Ensure hint data structure exists even if puzzles was already initialized
@@ -2410,7 +2416,7 @@
     // Get all puzzles that are eligible for hints
     function getAvailablePuzzlesForHint() {
         ensurePuzzleSystemInitialized();
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.hints) {
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
             return [];
         }
         
@@ -2431,7 +2437,7 @@
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
             
             // Check if puzzle is already completed
-            if (!puzzle || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
+            if (!puzzle || !cookieAgeData.puzzles.completed || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
                 continue;
             }
             
@@ -2606,7 +2612,10 @@
     
     // Get tooltip content for hint purchase controller
     function getHintTooltipContent() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {
+        // Ensure puzzle system is initialized before accessing hint system
+        ensurePuzzleSystemInitialized();
+        
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
             // Return full tooltip HTML with wrapper and icon
             var iconX = 3;
             var iconY = 35;
@@ -9364,18 +9373,24 @@
         // Ensure puzzle system is initialized if it doesn't exist
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {
             setupPuzzleSystem();
-        } else if (cookieAgeData.puzzles && !cookieAgeData.puzzles.hints) {
+        } else {
             // Ensure hints system is initialized even if puzzles structure exists
-            cookieAgeData.puzzles.hints = {
-                hintsUsed: 0,
-                lastHintTime: null,
-                puzzleActivationTimes: {
-                    investigate: null,
-                    infiltrate: null,
-                    choose: null
-                },
-                purchasedHints: {}
-            };
+            if (!cookieAgeData.puzzles.hints) {
+                cookieAgeData.puzzles.hints = {
+                    hintsUsed: 0,
+                    lastHintTime: null,
+                    puzzleActivationTimes: {
+                        investigate: null,
+                        infiltrate: null,
+                        choose: null
+                    },
+                    purchasedHints: {}
+                };
+            }
+            // Ensure completed array exists
+            if (!cookieAgeData.puzzles.completed) {
+                cookieAgeData.puzzles.completed = [];
+            }
         }
     }
     
