@@ -1398,7 +1398,7 @@
                 'litany_crumbs': {
                 name: 'Magical rites of passage',
                 description: 'You measured to the mark and spoke the breaths in order, quieting chaos, striking the bargain, stretching time, waking what slept. The vessel settled precisely, and a hush moved through the room.<q>Someone notes your steadiness. A new hand begins to open doors rather than close them.</q>',
-                clue: 'Bring the vessel to one part in five of six hundred,<br>and finish it with five more for fortune\'s favor.<br>No drop more, no drop less.<br>Speak the rite in these breaths:<br>Hush the chaos,<br>strike the bargain,<br>stretch the moment,<br>wake what slumbers.',
+                clue: 'Bring the vessel to one part in five of six hundred,<br>and take back five for fortune\'s favor.<br>No drop more, no drop less.<br>Speak the rite in these breaths:<br>Hush the chaos,<br>strike the bargain,<br>stretch the moment,<br>wake what slumbers.',
                 hint: '• Spells need mana, and that vessel must be precisely filled before you can begin.<br>• Each spell has a particular meaning.',
                 puzzleClass: LitanyCrumbsPuzzle,
                 mainIcon: [5, 16, customSpriteSheetUrl],
@@ -6172,7 +6172,7 @@
                 'Resurrect Abomination'
             ],
             currentSequence: [],
-            maxMagicRequired: 125,
+            maxMagicRequired: 115,
             originalCastSpell: null,
             hooked: false
         };
@@ -6218,9 +6218,8 @@
         
         var tracking = this.getTracking();
         
-        // Check if max magic is exactly 125
         var M = Game.Objects['Wizard tower'].minigame;
-        if (!M || M.magicM !== 125) {
+        if (!M || M.magicM !== 115) {
             return;
         }
         
@@ -9149,11 +9148,11 @@
             }
         }
 
-        var requiredAllTimeCookies = 5e65;
+        var requiredAllTimeCookies = 8e55;
         var totalCookiesBaked = Game.cookiesEarned + Game.cookiesReset;
 
         if (!Number.isFinite(totalCookiesBaked) || totalCookiesBaked < requiredAllTimeCookies) {
-            missingRequirements.push({ type: 'progress', label: '50 vigintillion cookies baked all time' });
+            missingRequirements.push({ type: 'progress', label: '80 septendecillion cookies baked all time' });
         }
 
         var requiredHeavenlyUpgrades = [
