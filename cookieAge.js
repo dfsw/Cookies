@@ -2338,9 +2338,7 @@
     }
     
     // ===== HINT SYSTEM FUNCTIONS =====
-    
-    // Get the cost for the next hint (escalating: 1, 2, 3, ...)
-    function getHintCost() {
+     function getHintCost() {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {
             return 1;
         }
@@ -2384,19 +2382,21 @@
             };
         }
         var activationTime = cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType];
+        var twoHours = 2 * 60 * 60 * 1000; // 2 hours
+
         if (!activationTime) {
             // If there's an active puzzle but no activation time, set it now and enforce cooldown
             var track = cookieAgeData.puzzles.tracks && cookieAgeData.puzzles.tracks[trackType];
             if (track && track.active) {
                 // Puzzle is active but no activation time set - set it now and return full cooldown
                 cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();
-                var twoHours = 2 * 60 * 60 * 1000; // 2 hours
+                
                 // Return full cooldown time since we just set the activation time
                 return twoHours;
             }
             return null;
         }
-        var twoHours = 2 * 60 * 60 * 1000; // 2 hours
+
         var elapsed = Date.now() - activationTime;
         var remaining = twoHours - elapsed;
         return remaining > 0 ? remaining : 0;
@@ -2446,12 +2446,12 @@
                 continue;
             }
             
-            // Both cooldowns must be satisfied - check hint cooldown (24 hours since last hint)
+            // Both cooldowns must be satisfied
             if (hintCooldownRemaining > 0) {
                 continue;
             }
             
-            // Check puzzle cooldown (must be active for at least 60 seconds) - both must be satisfied
+            // Check puzzle cooldown
             var puzzleCooldownRemaining = getTimeUntilPuzzleHintAvailable(trackType);
             if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {
                 continue;
@@ -2474,7 +2474,7 @@
         return eligiblePuzzles;
     }
     
-    // Get active hints that have been purchased (for display)
+    // Get active hints that have been purchased 
     function getActiveHints() {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.purchasedHints) {
             return [];
@@ -2494,7 +2494,7 @@
             
             var puzzleId = track.active;
             
-            // Check if puzzle is completed (don't show hints for completed puzzles)
+            // Check if puzzle is completed - no hints for completed puzzles
             if (cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
                 continue;
             }
@@ -2559,13 +2559,13 @@
             return false;
         }
         
-        // Both cooldowns must be satisfied - check hint cooldown (24 hours since last hint)
+        // Both cooldowns must be satisfied - check hint cooldown
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
         if (hintCooldownRemaining > 0) {
             return false;
         }
         
-        // Check puzzle cooldown (must be active for at least 60 seconds) - both must be satisfied
+        // Check puzzle cooldown 
         var puzzleCooldownRemaining = getTimeUntilPuzzleHintAvailable(trackType);
         if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {
             return false;
@@ -2630,15 +2630,12 @@
         var activeHints = getActiveHints();
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
         
-        // Show cost with icon and special color styling - right justified on title line
-        // Use 48px element with transform:scale to get 24px display (like button does for 0.66 scale)
-        // Scale to 24/48 = 0.5
         var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:top;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;position:relative;left:30px;top:-4px;"></div>';
         // Use the raw cost number - LBeautify returns an object, not a string
         var costNumber = String(cost);
-        // Check if player can afford the hint - use red text if not affordable
+        // Check if player can afford the hint
         var canAfford = Game.lumps && Game.lumps >= cost;
-        var costColor = canAfford ? '#8cff66' : '#ff6b6b';
+        var costColor = canAfford ? 'rgb(140, 255, 102)' : 'rgb(253, 56, 56)';
         var costShadow = canAfford ? '0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e' : '0px 1px 0px #8b2323,0px 0px 6px #8b2323';
         var costDisplay = '<b style="color:' + costColor + ';text-shadow:' + costShadow + ';white-space:nowrap;">' + sugarLumpIcon + ' ' + costNumber + '</b>';
         html += '<div class="name">Purchase Hint<span style="float:right;line-height:1.2;">' + costDisplay + '</span></div>';
@@ -2646,7 +2643,7 @@
         
         // Show description text when no hints are active
         if (activeHints.length === 0) {
-            html += '<div class="description" style="margin-top:4px;">Provides a small hint for active puzzles to help you along the way. Each puzzle has a single hint. You can use one hint every 24 hours, and you must wait at least two hours after unlocking a puzzle before using a hint on it.<br><br>Each hint is more expensive than the last.</div>';        }
+            html += '<div class="description" style="margin-top:4px;">Provides a small hint for active puzzles to help you along the way. Each puzzle has a <b>single</b> hint. You can use one hint every <b>24 hours</b>, and you must wait at least <b>two hours</b> after unlocking a puzzle before using a hint on it.<br><br>Each hint is more expensive than the last.<br></div>';        }
         
         // Check cooldowns - check ALL active puzzles for cooldowns, not just eligible ones
         // Show any cooldown that is blocking a purchase
@@ -2694,7 +2691,6 @@
                         var puzzleCooldown = getTimeUntilPuzzleHintAvailable(trackType);
                         // Show cooldown if it exists and would block a purchase (cooldown > 0)
                         // Always show puzzle cooldown when it's blocking a purchase
-                        // Check explicitly for null and positive values to ensure all tracks are processed
                         if (puzzleCooldown !== null && puzzleCooldown > 0) {
                             hasCooldown = true;
                             var trackName = getTrackDisplayName(trackType);
@@ -2721,8 +2717,7 @@
             html += '<div class="line"></div>';
         }
         
-        // Show availability status - only show when there are no active puzzles at all and no cooldowns
-        // Don't show if there's a cooldown active (cooldown messages already explain the situation)
+        // Show availability status
         if (!hasCooldown) {
             var hasActivePuzzle = false;
             if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {
@@ -2746,13 +2741,13 @@
             }
         }
         
-        // Show hints used at bottom - only if at least 1 hint has been used
+        // Show hints used at bottom 
         if (hintsUsed >= 1) {
             var hintText = hintsUsed === 1 ? 'hint' : 'hints';
             html += '<div class="description" style="text-align:center;font-size:10px;color:#aaa;">' + hintsUsed + ' ' + hintText + ' used</div>';
         }
         
-        // Wrap the content with tooltipCrate div and icon - use [3, 35, gardenSpriteSheetUrl] for the tooltip header icon
+        //icon
         var iconX = 3;
         var iconY = 35;
         var iconUrl = gardenSpriteSheetUrl;
@@ -2804,8 +2799,7 @@
                 return;
             }
             
-            // Show confirmation dialog before spending sugar lump (matching Cookie Clicker style)
-            // Use 24px icon with proper scaling - wrap to eliminate extra space from transform
+            // Show confirmation dialog before spending sugar lump
             var sugarLumpIcon = '<span style="display:inline-block;width:24px;height:24px;overflow:hidden;vertical-align:middle;line-height:0;font-size:0;margin:0;padding:0;"><div style="width:48px;height:48px;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;"></div></span>';
             var sugarLumpText = '';
             if (typeof loc !== 'undefined' && typeof LBeautify !== 'undefined') {
@@ -2828,7 +2822,7 @@
                     // Check if it failed due to insufficient sugar lumps
                     var finalCost = getHintCost();
                     if (!Game.lumps || Game.lumps < finalCost) {
-                        // Use same icon format as tooltip - 24px display with transform scale
+
                         var errorSugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:middle;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;"></div>';
                         var errorSugarLumpText = '';
                         if (typeof loc !== 'undefined' && typeof LBeautify !== 'undefined') {
@@ -9165,7 +9159,7 @@
             'Classic dairy selection',
             'Basic wallpaper assortment',
             'Heralds',
-            'Wrapping paper',
+            'Wrapping paper', 
             'Fanciful dairy selection',
             'Distinguished wallpaper assortment',
             'Sound test',
