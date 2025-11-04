@@ -5982,11 +5982,15 @@
     FalseDawnPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (!tracking || tracking.sequenceComplete) {
+            if (tracking && tracking.sequenceComplete) {
+                debugLog('[False Dawn] onCheck called but sequence already complete');
+            }
             return;
         }
         
         // Check if season has changed from business day
         if (Game.season !== 'fools') {
+            debugLog('[False Dawn] Season changed from fools, resetting sequence');
             this.resetSequence();
             tracking.seasonValid = false;
             return;
@@ -5995,6 +5999,7 @@
         tracking.seasonValid = true;
         
         var currentStep = tracking.currentStep;
+        debugLog('[False Dawn] onCheck - currentStep:', currentStep, 'of', tracking.stepTargets.length);
         if (currentStep >= tracking.stepTargets.length) {
             return;
         }
@@ -6006,7 +6011,11 @@
         }
         
         var currentCount = buildingObj.amount;
-        var startCount = tracking.stepStartCounts[currentStep] || 0;
+        // Initialize stepStartCounts if not set (shouldn't happen, but safety check)
+        if (tracking.stepStartCounts[currentStep] === undefined) {
+            tracking.stepStartCounts[currentStep] = currentCount;
+        }
+        var startCount = tracking.stepStartCounts[currentStep];
         var amountToChange = stepTarget.amount;
         // SPECIAL HANDLING FOR STEP 0 (FARM/KITCHEN):
         // Buying ANY farm(s) completes step 0 and resets all baselines for remaining steps
@@ -6035,32 +6044,9 @@
             }
         }
         
-        // Check if they're working on the wrong building type
-        var wrongBuildingChanged = false;
-        
-        // Get list of all buildings in the sequence
-        var sequenceBuildings = [];
-        for (var j = 0; j < tracking.stepTargets.length; j++) {
-            sequenceBuildings.push(tracking.stepTargets[j].building);
-        }
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            var initialCount = tracking.initialBuildingCounts[building.name] || 0;
-            
-            // Check if this building changed and it's not in the sequence at all
-            if (sequenceBuildings.indexOf(building.name) === -1 && building.amount !== initialCount) {
-                wrongBuildingChanged = true;
-                break;
-            }
-        }
-        
-        if (wrongBuildingChanged) {
-            this.resetSequence();
-            return;
-        }
-        
         if (stepComplete) {
+            debugLog('[False Dawn] Step', currentStep, 'completed:', stepTarget.building, stepTarget.action, '- currentCount:', currentCount, 'startCount:', startCount);
+            
             // Move to next step
             tracking.currentStep++;
             
@@ -6074,9 +6060,9 @@
                         tracking.stepStartCounts[i] = buildingObj2.amount;
                     }
                 }
-                falseDawnDebugLog('recaptured baselines after step 0', {
+                debugLog('recaptured baselines after step 0', JSON.stringify({
                     stepStartCounts: tracking.stepStartCounts.slice()
-                });
+                }));
                 
                 // Also update baseline counts for wrong-building detection
                 for (var i = 0; i < Game.ObjectsById.length; i++) {
@@ -6087,8 +6073,39 @@
             
             // If we've completed all steps, complete the puzzle
             if (tracking.currentStep >= tracking.stepTargets.length) {
+                debugLog('[False Dawn] All steps completed! Completing puzzle...');
                 tracking.sequenceComplete = true;
                 this.complete();
+            } else {
+                debugLog('[False Dawn] Step', currentStep, 'completed, moving to step', tracking.currentStep);
+            }
+        } else {
+            // Only check for wrong buildings if the current step didn't complete
+            // This prevents resetting when the user correctly completes a step but also
+            // changes other buildings (e.g., for normal gameplay)
+            var wrongBuildingChanged = false;
+            
+            // Get list of all buildings in the sequence
+            var sequenceBuildings = [];
+            for (var j = 0; j < tracking.stepTargets.length; j++) {
+                sequenceBuildings.push(tracking.stepTargets[j].building);
+            }
+            
+            for (var i = 0; i < Game.ObjectsById.length; i++) {
+                var building = Game.ObjectsById[i];
+                var initialCount = tracking.initialBuildingCounts[building.name] || 0;
+                
+                // Check if this building changed and it's not in the sequence at all
+                if (sequenceBuildings.indexOf(building.name) === -1 && building.amount !== initialCount) {
+                    wrongBuildingChanged = true;
+                    break;
+                }
+            }
+            
+            if (wrongBuildingChanged) {
+                debugLog('[False Dawn] Wrong building changed - resetting sequence at step', currentStep);
+                this.resetSequence();
+                return;
             }
         }
     };
