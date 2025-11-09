@@ -86,7 +86,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Requires Born Again Mode
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1306.png" alt="Hardercorest" width="48"></div> | **Hardercorest** | Bake **3 billion cookies** with no cookie clicks and no upgrades bought in Born Again mode<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1406.png" alt="Hardercorest-er" width="48"></div> | **Hardercorest-er** | Bake **1 billion cookies** with no more than 20 clicks, no more than 20 buildings (no selling), and no more than 20 upgrades in Born Again mode<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1307.png" alt="The Final Countdown" width="48"></div> | **The Final Countdown** | Own exactly 15 Cursors, 14 Grandmas, 13 Farms, yada yada yada, down to 1 Chancemaker. No selling or sacrificing any buildings. Must be earned in Born Again mode. See [Changelog](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#version-0011) for Version 0.0.11 for more info.<br>&nbsp;<br>&nbsp; |
@@ -99,7 +99,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Can Be Done In Any Mode
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2515.png" alt="I feel the need for seed" width="48"></div> | **I feel the need for seed** | Unlock all garden seeds within **5 days** of your last garden sacrifice. Look this one is tricky, if you reload or load a save the 5 day timer is invalidated, so you cant load in a completed garden.<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1804.png" alt="Holiday Hoover" width="48"></div> | **Holiday Hoover** | Collect all seasonal drops within **60 minutes** of an Ascension start<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1709.png" alt="Merry Mayhem" width="48"></div> | **Merry Mayhem** | Collect all seasonal drops within **40 minutes** of an Ascension start<br>&nbsp;<br>&nbsp; |
@@ -115,7 +115,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Stock Market
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1706.png" alt="Doughfolio Debut" width="48"></div> | **Doughfolio Debut** | Have **$25 million** in stock market profits across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2607.png" alt="Crumb Fund Manager" width="48"></div> | **Crumb Fund Manager** | Have **$100 million** in stock market profits across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla3333.png" alt="Biscuit Market Baron" width="48"></div> | **Biscuit Market Baron** | Have **$250 million** in stock market profits across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -126,7 +126,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Garden
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetGarden0034.png" alt="Seedless to eternity" width="48"></div> | **Seedless to eternity** | Convert a complete seed log into sugar lumps by sacrificing your garden to the sugar hornets **5 times**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetGarden0134.png" alt="Seedless to infinity" width="48"></div> | **Seedless to infinity** | Convert a complete seed log into sugar lumps by sacrificing your garden to the sugar hornets **10 times**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetGarden0234.png" alt="Seedless to beyond" width="48"></div> | **Seedless to beyond** | Convert a complete seed log into sugar lumps by sacrificing your garden to the sugar hornets **25 times**<br>&nbsp;<br>&nbsp; |
@@ -142,7 +142,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Grimoire
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2212.png" alt="Archwizard" width="48"></div> | **Archwizard** | Cast **1,999 spells** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2014.png" alt="Spellmaster" width="48"></div> | **Spellmaster** | Cast **2,999 spells** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2013.png" alt="Cookieomancer" width="48"></div> | **Cookieomancer** | Cast **3,999 spells** across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -155,13 +155,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Pantheon
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2118.png" alt="Faithless Loyalty" width="48"></div> | **Faithless Loyalty** | Swap gods in the Pantheon **100 times** in one ascension<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2218.png" alt="God of All Gods" width="48"></div> | **God of All Gods** | Use each pantheon god for at least **24 hours** total across all ascensions<br>&nbsp;<br>&nbsp; |
 
 ### Seasonal Achievements (9 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1606.png" alt="Calendar Abuser" width="48"></div> | **Calendar Abuser** | Switch seasons **50 times** in one ascension<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1917.png" alt="Reindeer destroyer" width="48"></div> | **Reindeer destroyer** | Pop **500 reindeer** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1916.png" alt="Reindeer obliterator" width="48"></div> | **Reindeer obliterator** | Pop **1,000 reindeer** across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -175,7 +175,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Completionist Achievements (7 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2207.png" alt="Vanilla Star" width="48"></div> | **Vanilla Star** | Own all **622 original achievements**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2916.png" alt="Sweet Child of Mine" width="48"></div> | **Sweet Child of Mine** | Own **100 sugar lumps** at once<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2007.png" alt="Beyond Prestige" width="48"></div> | **Beyond Prestige** | Own all **129 original heavenly upgrades**<br>&nbsp;<br>&nbsp; |
@@ -187,7 +187,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Combo Achievements (7 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2536.png" alt="Trifecta Combo" width="48"></div> | **Trifecta Combo** | Have **3 buffs** active at once<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2611.png" alt="Combo Initiate" width="48"></div> | **Combo Initiate** | Have **6 buffs** active at once<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2211.png" alt="Combo God" width="48"></div> | **Combo God** | Have **9 buffs** active at once<br>&nbsp;<br>&nbsp; |
@@ -198,7 +198,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### CPS Achievements (9 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0012.png" alt="Beyond the speed of dough" width="48"></div> | **Beyond the speed of dough** | Bake **1 octodecillion** per second<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0112.png" alt="Speed of sound" width="48"></div> | **Speed of sound** | Bake **10 octodecillion** per second<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0212.png" alt="Speed of light" width="48"></div> | **Speed of light** | Bake **100 octodecillion** per second<br>&nbsp;<br>&nbsp; |
@@ -211,7 +211,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Click Achievements (9 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0908.png" alt="Click of the Titans" width="48"></div> | **Click of the Titans** | Generate **1 year of raw CPS** in a single cookie click<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla1230.png" alt="Buff Finger" width="48"></div> | **Buff Finger** | Click the cookie **250,000 times** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1012.png" alt="News ticker addict" width="48"></div> | **News ticker addict** | Click on the news ticker **1,000 times** in one ascension<br>&nbsp;<br>&nbsp; |
@@ -224,7 +224,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Grandmapocalypse Achievements (15 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2116.png" alt="Wrinkler annihilator" width="48"></div> | **Wrinkler annihilator** | Burst **666 wrinklers** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2117.png" alt="Wrinkler eradicator" width="48"></div> | **Wrinkler eradicator** | Burst **2,666 wrinklers** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2118.png" alt="Wrinkler extinction event" width="48"></div> | **Wrinkler extinction event** | Burst **6,666 wrinklers** across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -243,7 +243,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Golden Cookie Achievements (6 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0013.png" alt="Find a penny, pick it up" width="48"></div> | **Find a penny, pick it up** | Click **17,777 golden cookies** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0113.png" alt="Four-leaf overkill" width="48"></div> | **Four-leaf overkill** | Click **37,777 golden cookies** across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0213.png" alt="Rabbit's footnote" width="48"></div> | **Rabbit's footnote** | Click **47,777 golden cookies** across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -254,7 +254,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Cookies Baked In Ascension Achievements (7 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0012.png" alt="The Doughpocalypse" width="48"></div> | **The Doughpocalypse** | Bake **10 trevigintillion cookies** in one ascension<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0112.png" alt="The Flour Flood" width="48"></div> | **The Flour Flood** | Bake **1 quattuorvigintillion cookies** in one ascension<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0212.png" alt="The Ovenverse" width="48"></div> | **The Ovenverse** | Bake **100 quattuorvigintillion cookies** in one ascension<br>&nbsp;<br>&nbsp; |
@@ -265,7 +265,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Forfeited Cookies Achievements (13 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0011.png" alt="Dante's unwaking dream" width="48"></div> | **Dante's unwaking dream** | Forfeit **1 novemdecillion cookies** total across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0111.png" alt="The abyss gazes back" width="48"></div> | **The abyss gazes back** | Forfeit **1 vigintillion cookies** total across all ascensions<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0211.png" alt="Charon's final toll" width="48"></div> | **Charon's final toll** | Forfeit **1 unvigintillion cookies** total across all ascensions<br>&nbsp;<br>&nbsp; |
@@ -282,7 +282,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Building Ownership Achievements (13 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1612.png" alt="Septcentennial and a half" width="48"></div> | **Septcentennial and a half** | Have at least **750 of everything**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1712.png" alt="Octcentennial" width="48"></div> | **Octcentennial** | Have at least **800 of everything**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1812.png" alt="Octcentennial and a half" width="48"></div> | **Octcentennial and a half** | Have at least **850 of everything**<br>&nbsp;<br>&nbsp; |
@@ -300,14 +300,14 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Reincarnation Achievements (3 achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement Name | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1716.png" alt="Ascension master" width="48"></div> | **Ascension master** | Ascend **250 times**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1715.png" alt="Ascension legend" width="48"></div> | **Ascension legend** | Ascend **500 times**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1714.png" alt="Ascension deity" width="48"></div> | **Ascension deity** | Ascend **999 times**<br>&nbsp;<br>&nbsp; |
 
 #### Cursor (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0000.png" alt="Carpal diem" width="48"></div> | **Carpal diem** | Own **1,100 cursors**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0001.png" alt="Hand over fist" width="48"></div> | **Hand over fist** | Own **1,150 cursors**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0002.png" alt="Finger guns" width="48"></div> | **Finger guns** | Own **1,250 cursors**<br>&nbsp;<br>&nbsp; |
@@ -327,7 +327,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Grandma (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0100.png" alt="All rise for Nana" width="48"></div> | **All rise for Nana** | Own **750 grandmas**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0101.png" alt="The crinkle collective" width="48"></div> | **The crinkle collective** | Own **800 grandmas**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0102.png" alt="Okay elder" width="48"></div> | **Okay elder** | Own **850 grandmas**<br>&nbsp;<br>&nbsp; |
@@ -347,7 +347,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Farm (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0200.png" alt="Little house on the dairy" width="48"></div> | **Little house on the dairy** | Own **750 farms**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0201.png" alt="The plow thickens" width="48"></div> | **The plow thickens** | Own **800 farms**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0202.png" alt="Cabbage patch dynasty" width="48"></div> | **Cabbage patch dynasty** | Own **850 farms**<br>&nbsp;<br>&nbsp; |
@@ -367,7 +367,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Mine (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0300.png" alt="Shafted" width="48"></div> | **Shafted** | Own **750 mines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0301.png" alt="Shiny object syndrome" width="48"></div> | **Shiny object syndrome** | Own **800 mines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0302.png" alt="Ore what?" width="48"></div> | **Ore what?** | Own **850 mines**<br>&nbsp;<br>&nbsp; |
@@ -387,7 +387,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Factory (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0400.png" alt="Assembly required" width="48"></div> | **Assembly required** | Own **750 factories**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0401.png" alt="Quality unassured" width="48"></div> | **Quality unassured** | Own **800 factories**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0402.png" alt="Error 404-manpower not found" width="48"></div> | **Error 404-manpower not found** | Own **850 factories**<br>&nbsp;<br>&nbsp; |
@@ -407,7 +407,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Bank (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1300.png" alt="Petty cash splash" width="48"></div> | **Petty cash splash** | Own **750 banks**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1301.png" alt="The Invisible Hand That Feeds" width="48"></div> | **The Invisible Hand That Feeds** | Own **800 banks**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1302.png" alt="Under-mattress banking" width="48"></div> | **Under-mattress banking** | Own **850 banks**<br>&nbsp;<br>&nbsp; |
@@ -427,7 +427,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Temple (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1400.png" alt="Monk mode" width="48"></div> | **Monk mode** | Own **750 temples**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1401.png" alt="Ritual and error" width="48"></div> | **Ritual and error** | Own **800 temples**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1402.png" alt="Chant and deliver" width="48"></div> | **Chant and deliver** | Own **850 temples**<br>&nbsp;<br>&nbsp; |
@@ -447,7 +447,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Wizard Tower (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1500.png" alt="Is this your cardamom?" width="48"></div> | **Is this your cardamom?** | Own **750 wizard towers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1501.png" alt="Rabbit optional, hat mandatory" width="48"></div> | **Rabbit optional, hat mandatory** | Own **800 wizard towers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1502.png" alt="Wand and done" width="48"></div> | **Wand and done** | Own **850 wizard towers**<br>&nbsp;<br>&nbsp; |
@@ -467,7 +467,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Shipment (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0500.png" alt="Door-to-airlock" width="48"></div> | **Door-to-airlock** | Own **750 shipments**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0501.png" alt="Contents may shift in zero-G" width="48"></div> | **Contents may shift in zero-G** | Own **800 shipments**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0502.png" alt="Fragile: vacuum inside" width="48"></div> | **Fragile: vacuum inside** | Own **850 shipments**<br>&nbsp;<br>&nbsp; |
@@ -487,7 +487,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Alchemy Lab (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0600.png" alt="Stir-crazy crucible" width="48"></div> | **Stir-crazy crucible** | Own **750 alchemy labs**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0601.png" alt="Flask dance" width="48"></div> | **Flask dance** | Own **800 alchemy labs**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0602.png" alt="Beaker than fiction" width="48"></div> | **Beaker than fiction** | Own **850 alchemy labs**<br>&nbsp;<br>&nbsp; |
@@ -507,7 +507,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Portal (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0700.png" alt="Open sesameseed" width="48"></div> | **Open sesameseed** | Own **750 portals**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0701.png" alt="Mind the rift" width="48"></div> | **Mind the rift** | Own **800 portals**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0702.png" alt="Doorway to s'moreway" width="48"></div> | **Doorway to s'moreway** | Own **850 portals**<br>&nbsp;<br>&nbsp; |
@@ -527,7 +527,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Time Machine (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0800.png" alt="Yeasterday" width="48"></div> | **Yeasterday** | Own **750 time machines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0801.png" alt="Tick-tock, bake o'clock" width="48"></div> | **Tick-tock, bake o'clock** | Own **800 time machines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0802.png" alt="Back to the batter" width="48"></div> | **Back to the batter** | Own **850 time machines**<br>&nbsp;<br>&nbsp; |
@@ -547,7 +547,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Antimatter Condenser (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1100.png" alt="Up and atom!" width="48"></div> | **Up and atom!** | Own **750 antimatter condensers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1101.png" alt="Boson buddies" width="48"></div> | **Boson buddies** | Own **800 antimatter condensers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1102.png" alt="Schrödinger's snack" width="48"></div> | **Schrödinger's snack** | Own **850 antimatter condensers**<br>&nbsp;<br>&nbsp; |
@@ -567,7 +567,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Prism (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1200.png" alt="Light reading" width="48"></div> | **Light reading** | Own **750 prisms**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1201.png" alt="Refraction action" width="48"></div> | **Refraction action** | Own **800 prisms**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1202.png" alt="Snacktrum of light" width="48"></div> | **Snacktrum of light** | Own **850 prisms**<br>&nbsp;<br>&nbsp; |
@@ -587,7 +587,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Chancemaker (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1700.png" alt="Beginner's lucked-in" width="48"></div> | **Beginner's lucked-in** | Own **750 chancemakers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1701.png" alt="Risk it for the biscuit" width="48"></div> | **Risk it for the biscuit** | Own **800 chancemakers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1702.png" alt="Roll, baby, roll" width="48"></div> | **Roll, baby, roll** | Own **850 chancemakers**<br>&nbsp;<br>&nbsp; |
@@ -607,7 +607,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Fractal Engine (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1800.png" alt="Copy-paste-ry" width="48"></div> | **Copy-paste-ry** | Own **750 fractal engines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1801.png" alt="Again, but smaller" width="48"></div> | **Again, but smaller** | Own **800 fractal engines**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1802.png" alt="Edge-case frosting" width="48"></div> | **Edge-case frosting** | Own **850 fractal engines**<br>&nbsp;<br>&nbsp; |
@@ -627,7 +627,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Javascript Console (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1900.png" alt="F12, open sesame" width="48"></div> | **F12, open sesame** | Own **750 javascript consoles**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1901.png" alt="console.log('crumbs')" width="48"></div> | **console.log('crumbs')** | Own **800 javascript consoles**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1902.png" alt="Semicolons optional, sprinkles mandatory" width="48"></div> | **Semicolons optional, sprinkles mandatory** | Own **850 javascript consoles**<br>&nbsp;<br>&nbsp; |
@@ -647,7 +647,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Idleverse (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2000.png" alt="Pick-a-verse, any verse" width="48"></div> | **Pick-a-verse, any verse** | Own **750 idleverses**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2001.png" alt="Open in new universe" width="48"></div> | **Open in new universe** | Own **800 idleverses**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2002.png" alt="Meanwhile, in a parallel tab" width="48"></div> | **Meanwhile, in a parallel tab** | Own **850 idleverses**<br>&nbsp;<br>&nbsp; |
@@ -667,7 +667,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### Cortex Baker (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2100.png" alt="Gray matter batter" width="48"></div> | **Gray matter batter** | Own **750 cortex bakers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2101.png" alt="Outside the cookie box" width="48"></div> | **Outside the cookie box** | Own **800 cortex bakers**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2102.png" alt="Prefrontal glaze" width="48"></div> | **Prefrontal glaze** | Own **850 cortex bakers**<br>&nbsp;<br>&nbsp; |
@@ -687,7 +687,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 #### You (16 Achievements)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Achievement | Requirement |
-| --- | --- | --- |
+| :---: | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2200.png" alt="Me, myself, and Icing" width="48"></div> | **Me, myself, and Icing** | Own **750 You**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2201.png" alt="Copy of a copy" width="48"></div> | **Copy of a copy** | Own **800 You**<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2202.png" alt="Echo chamber" width="48"></div> | **Echo chamber** | Own **850 You**<br>&nbsp;<br>&nbsp; |
@@ -711,7 +711,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 *Long before ovens were kindled and sugar knew its name, there arose six Orders, bakers, mystics, and crumb-guardians whose deeds shaped the fate of cookies forevermore. Each sworn to a creed, each guarding secrets older than the dough itself. - Transcribed by Crumblekeeper Thryce, 3rd Sifter of the Sacred Pantry*
 
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1413.png" alt="Order of the Golden Crumb" width="48"></div> | **Order of the Golden Crumb** | - Requires [Vanilla Star achievement](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#completionist-achievements-7-achievements) | 250 years of base CpS, but no less than 1 duovigintillion cookies | Golden cookies appear **5%** more often.<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1513.png" alt="Order of the Impossible Batch" width="48"></div> | **Order of the Impossible Batch** | - Requires The [Final Challenger achievement](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#challenge-achievements-19-achievements) | 250 years of base CpS, but no less than 1 duovigintillion cookies | Golden cookies appear **5%** more often.<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1813.png" alt="Order of the Shining Spoon" width="48"></div> | **Order of the Shining Spoon** | - Requires all [Combo achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#combo-achievements-7-achievements) | 250 years of base CpS, but no less than 1 duovigintillion cookies | Golden cookie effects last **5%** longer.<br>&nbsp;<br>&nbsp; |
@@ -723,7 +723,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 *Note: Expansion Kittens are the knock-off brand: cute, cuddly, and noticeably worse at their job. Don’t expect them to pull their weight like original vanilla flavored kittens, but they sure as heck do try hard.*
 
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1600.png" alt="Kitten unpaid interns" width="48"></div> | **Kitten unpaid interns** | - Requires 500 achievements | **900 sexdecillion cookies** | Provides small production bonus<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1601.png" alt="Kitten overpaid &quot;temporary&quot; contractors" width="48"></div> | **Kitten overpaid "temporary" contractors** | - Requires 550 achievements | **900 septendecillion cookies** | Provides small production bonus<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1602.png" alt="Kitten remote workers" width="48"></div> | **Kitten remote workers** | - Requires 600 achievements | **900 octodecillion cookies** | Provides small production bonus<br>&nbsp;<br>&nbsp; |
@@ -738,12 +738,12 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Generic Upgrades
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla3404.png" alt="Box of improved cookies" width="48"></div> | **Box of improved cookies** | - Requires 25 unvigintillion cookies baked | **25 unvigintillion cookies** | Contains an assortment of scientifically improved cookies, 25 cookies to a box.<br>&nbsp;<br>&nbsp; |
 
 ### Cookie Production Upgrades (25 New Cookies)
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0203.png" alt="Improved Plain cookies" width="48"></div> | **Improved Plain cookies** | - Requires Box of improved cookies<br>- Requires 250 unvigintillion cookies baked | **500 unvigintillion cookies** | 2% cookie production increase<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0703.png" alt="Improved Sugar cookies" width="48"></div> | **Improved Sugar cookies** | - Requires Box of improved cookies<br>- Requires 500 unvigintillion cookies baked | **1 duovigintillion cookies** | 2% cookie production increase<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla0003.png" alt="Improved Oatmeal raisin cookies" width="48"></div> | **Improved Oatmeal raisin cookies** | - Requires Box of improved cookies<br>- Requires 1 duovigintillion cookies baked | **2 duovigintillion cookies** | 2% cookie production increase<br>&nbsp;<br>&nbsp; |
@@ -772,7 +772,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Building Count Reward Cookies
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2708.png" alt="Improved Milk chocolate butter biscuit" width="48"></div> | **Improved Milk chocolate butter biscuit** | - Requires at least 750 of every building type | **1 duovigintillion cookies** | 10% cookie production increase<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2709.png" alt="Improved Dark chocolate butter biscuit" width="48"></div> | **Improved Dark chocolate butter biscuit** | - Requires at least 800 of every building type | **1 trevigintillion cookies** | 10% cookie production increase<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetVanilla2809.png" alt="Improved White chocolate butter biscuit" width="48"></div> | **Improved White chocolate butter biscuit** | - Requires at least 850 of every building type | **1 quattuorvigintillion cookies** | 10% cookie production increase<br>&nbsp;<br>&nbsp; |
@@ -785,7 +785,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Grandma
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0100.png" alt="Increased Social Security Checks" width="48"></div> | **Increased Social Security Checks** | - Requires 750 grandmas | **5 quattuordecillion cookies** | Grandmas cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0101.png" alt="Advanced knitting techniques" width="48"></div> | **Advanced knitting techniques** | - Requires 800 grandmas | **500 quattuordecillion cookies** | Grandmas are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0102.png" alt="Off-Brand Eyeglasses" width="48"></div> | **Off-Brand Eyeglasses** | - Requires 850 grandmas | **50 quindecillion cookies** | Grandmas cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -800,7 +800,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Farm
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0200.png" alt="Biodiesel fueled tractors" width="48"></div> | **Biodiesel fueled tractors** | - Requires 750 farms | **50 quattuordecillion cookies** | Farms cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0201.png" alt="Hydroponic cookie cultivation" width="48"></div> | **Hydroponic cookie cultivation** | - Requires 800 farms | **5 quindecillion cookies** | Farms are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0202.png" alt="Free manure from clone factories" width="48"></div> | **Free manure from clone factories** | - Requires 850 farms | **500 quindecillion cookies** | Farms cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -815,7 +815,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Mine
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0300.png" alt="Clearance shaft kits" width="48"></div> | **Clearance shaft kits** | - Requires 750 mines | **500 quattuordecillion cookies** | Mines cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0301.png" alt="Quantum tunneling excavation" width="48"></div> | **Quantum tunneling excavation** | - Requires 800 mines | **50 quindecillion cookies** | Mines are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0302.png" alt="Punch-card TNT club" width="48"></div> | **Punch-card TNT club** | - Requires 850 mines | **5 sexdecillion cookies** | Mines cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -830,7 +830,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Factory
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0400.png" alt="Flat-pack factory frames" width="48"></div> | **Flat-pack factory frames** | - Requires 750 factories | **5 quindecillion cookies** | Factories cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0401.png" alt="Quantum assembly optimization" width="48"></div> | **Quantum assembly optimization** | - Requires 800 factories | **500 quindecillion cookies** | Factories are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0402.png" alt="BOGO rivet bins" width="48"></div> | **BOGO rivet bins** | - Requires 850 factories | **50 sexdecillion cookies** | Factories cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -845,7 +845,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Bank
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1300.png" alt="Piggy buyback bonanza" width="48"></div> | **Piggy buyback bonanza** | - Requires 750 banks | **50 quindecillion cookies** | Banks cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1301.png" alt="Quantum banking protocols" width="48"></div> | **Quantum banking protocols** | - Requires 800 banks | **5 sexdecillion cookies** | Banks are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1302.png" alt="Vault door floor-models" width="48"></div> | **Vault door floor-models** | - Requires 850 banks | **500 sexdecillion cookies** | Banks cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -860,7 +860,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Temple
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1400.png" alt="Tithe punch cards" width="48"></div> | **Tithe punch cards** | - Requires 750 temples | **500 quindecillion cookies** | Temples cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1401.png" alt="Quantum divine intervention" width="48"></div> | **Quantum divine intervention** | - Requires 800 temples | **50 sexdecillion cookies** | Temples are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1402.png" alt="Relic replica racks" width="48"></div> | **Relic replica racks** | - Requires 850 temples | **5 septendecillion cookies** | Temples cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -875,7 +875,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Wizard Tower
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1500.png" alt="Wand warranty returns" width="48"></div> | **Wand warranty returns** | - Requires 750 wizard towers | **5 sexdecillion cookies** | Wizard towers cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1501.png" alt="Arcane resonance" width="48"></div> | **Arcane resonance** | - Requires 800 wizard towers | **500 sexdecillion cookies** | Wizard towers are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1502.png" alt="Grimoire remainder sale" width="48"></div> | **Grimoire remainder sale** | - Requires 850 wizard towers | **50 septendecillion cookies** | Wizard towers cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -890,7 +890,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Shipment
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0500.png" alt="Retired cargo pods" width="48"></div> | **Retired cargo pods** | - Requires 750 shipments | **50 sexdecillion cookies** | Shipments cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0501.png" alt="Hypervelocity transport" width="48"></div> | **Hypervelocity transport** | - Requires 800 shipments | **5 septendecillion cookies** | Shipments are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0502.png" alt="Container co-op cards" width="48"></div> | **Container co-op cards** | - Requires 850 shipments | **500 septendecillion cookies** | Shipments cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -905,7 +905,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Alchemy Lab
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0600.png" alt="Beaker buybacks" width="48"></div> | **Beaker buybacks** | - Requires 750 alchemy labs | **500 sexdecillion cookies** | Alchemy labs cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0601.png" alt="Essence distillation" width="48"></div> | **Essence distillation** | - Requires 800 alchemy labs | **50 septendecillion cookies** | Alchemy labs are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0602.png" alt="Philosopher’s pebbles" width="48"></div> | **Philosopher’s pebbles** | - Requires 850 alchemy labs | **5 octodecillion cookies** | Alchemy labs cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -920,7 +920,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Portal
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0700.png" alt="Pre-owned ring frames" width="48"></div> | **Pre-owned ring frames** | - Requires 750 portals | **5 septendecillion cookies** | Portals cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0701.png" alt="Dimensional gateways" width="48"></div> | **Dimensional gateways** | - Requires 800 portals | **500 septendecillion cookies** | Portals are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0702.png" alt="Anchor warehouse club" width="48"></div> | **Anchor warehouse club** | - Requires 850 portals | **50 octodecillion cookies** | Portals cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -935,7 +935,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Time Machine
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0800.png" alt="Pre-loved hourglasses" width="48"></div> | **Pre-loved hourglasses** | - Requires 750 time machines | **50 septendecillion cookies** | Time machines cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0801.png" alt="Temporal engineering" width="48"></div> | **Temporal engineering** | - Requires 800 time machines | **5 octodecillion cookies** | Time machines are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom0802.png" alt="Depreciated timeline scraps" width="48"></div> | **Depreciated timeline scraps** | - Requires 850 time machines | **500 octodecillion cookies** | Time machines cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -950,7 +950,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Antimatter Condenser
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1100.png" alt="Certified negamatter cans" width="48"></div> | **Certified negamatter cans** | - Requires 750 antimatter condensers | **500 septendecillion cookies** | Antimatter condensers cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1101.png" alt="Particle synthesis" width="48"></div> | **Particle synthesis** | - Requires 800 antimatter condensers | **50 octodecillion cookies** | Antimatter condensers are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1102.png" alt="Matter swap rebates" width="48"></div> | **Matter swap rebates** | - Requires 850 antimatter condensers | **5 novemdecillion cookies** | Antimatter condensers cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -965,7 +965,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Prism
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1200.png" alt="Lens co-op exchange" width="48"></div> | **Lens co-op exchange** | - Requires 750 prisms | **50 octodecillion cookies** | Prisms cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1201.png" alt="Light crystallization" width="48"></div> | **Light crystallization** | - Requires 800 prisms | **5 novemdecillion cookies** | Prisms are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1202.png" alt="Spectral seconds" width="48"></div> | **Spectral seconds** | - Requires 850 prisms | **500 novemdecillion cookies** | Prisms cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -980,7 +980,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Chancemaker
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1700.png" alt="Misprinted fortunes" width="48"></div> | **Misprinted fortunes** | - Requires 750 chancemakers | **5 novemdecillion cookies** | Chancemakers cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1701.png" alt="Probability manipulation" width="48"></div> | **Probability manipulation** | - Requires 800 chancemakers | **500 novemdecillion cookies** | Chancemakers are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1702.png" alt="Reroll refund policy" width="48"></div> | **Reroll refund policy** | - Requires 850 chancemakers | **50 vigintillion cookies** | Chancemakers cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -995,7 +995,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Fractal Engine
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1800.png" alt="Iteration liquidation" width="48"></div> | **Iteration liquidation** | - Requires 750 fractal engines | **500 novemdecillion cookies** | Fractal engines cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1801.png" alt="Infinite recursion" width="48"></div> | **Infinite recursion** | - Requires 800 fractal engines | **50 vigintillion cookies** | Fractal engines are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1802.png" alt="Self-similar spare parts" width="48"></div> | **Self-similar spare parts** | - Requires 850 fractal engines | **5 unvigintillion cookies** | Fractal engines cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -1010,7 +1010,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Javascript Console
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1900.png" alt="Refurb dev boards" width="48"></div> | **Refurb dev boards** | - Requires 750 javascript consoles | **50 vigintillion cookies** | Javascript consoles cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1901.png" alt="Code optimization" width="48"></div> | **Code optimization** | - Requires 800 javascript consoles | **5 unvigintillion cookies** | Javascript consoles are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom1902.png" alt="Compiler credit program" width="48"></div> | **Compiler credit program** | - Requires 850 javascript consoles | **500 unvigintillion cookies** | Javascript consoles cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -1025,7 +1025,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Idleverse
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2000.png" alt="Interdimensional tax breaks" width="48"></div> | **Interdimensional tax breaks** | - Requires 750 idleverses | **6 unvigintillion cookies** | Idleverses cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2001.png" alt="Reality real estate" width="48"></div> | **Reality real estate** | - Requires 800 idleverses | **600 unvigintillion cookies** | Idleverses are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2002.png" alt="Reality consolidation discounts" width="48"></div> | **Reality consolidation discounts** | - Requires 850 idleverses | **60 duovigintillion cookies** | Idleverses cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -1040,7 +1040,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### Cortex Baker
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2100.png" alt="Neural bulk purchasing" width="48"></div> | **Neural bulk purchasing** | - Requires 750 cortex bakers | **950 unvigintillion cookies** | Cortex bakers cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2101.png" alt="Neural plasticity" width="48"></div> | **Neural plasticity** | - Requires 800 cortex bakers | **95 duovigintillion cookies** | Cortex bakers are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2102.png" alt="Synaptic wholesale networks" width="48"></div> | **Synaptic wholesale networks** | - Requires 850 cortex bakers | **9.5 trevigintillion cookies** | Cortex bakers cost **5%** less<br>&nbsp;<br>&nbsp; |
@@ -1055,7 +1055,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ##### You
 | <div style="min-width:48px;max-width:48px;width:48px">Icon</div> | Upgrade Name | Unlock Condition | Base Price | Description |
-| --- | --- | --- | --- | --- |
+| :---: | --- | --- | --- | --- |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2200.png" alt="Clone factory economies" width="48"></div> | **Clone factory economies** | - Requires 750 You | **27 duovigintillion cookies** | You cost **5%** less<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2201.png" alt="Mitotic mastery" width="48"></div> | **Mitotic mastery** | - Requires 800 You | **2.7 trevigintillion cookies** | You are **8%** more efficient<br>&nbsp;<br>&nbsp; |
 | <div style="width:48px;height:48px;overflow:hidden;display:inline-block;"><img src="assets/generated-icons/SheetCustom2202.png" alt="Replica production lines" width="48"></div> | **Replica production lines** | - Requires 850 You | **270 trevigintillion cookies** | You cost **5%** less<br>&nbsp;<br>&nbsp; |
