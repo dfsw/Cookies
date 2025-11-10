@@ -2940,42 +2940,42 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1413.png"><img src="assets/generated-icons/SheetCustom1413.png" alt="Order of the Golden Crumb" width="48" height="48"></a></td>
 <td><strong>Order of the Golden Crumb</strong></td>
-<td>- Requires <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#completionist-achievements-7-achievements">Vanilla Star achievement</a></td>
+<td>Requires <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#completionist-achievements-7-achievements">Vanilla Star achievement</a></td>
 <td>250 years of base CpS, but no less than 1 duovigintillion cookies</td>
 <td>Golden cookies appear <strong>5%</strong> more often.</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1513.png"><img src="assets/generated-icons/SheetCustom1513.png" alt="Order of the Impossible Batch" width="48" height="48"></a></td>
 <td><strong>Order of the Impossible Batch</strong></td>
-<td>- Requires The <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#challenge-achievements-19-achievements">Final Challenger achievement</a></td>
+<td>Requires The <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#challenge-achievements-19-achievements">Final Challenger achievement</a></td>
 <td>250 years of base CpS, but no less than 1 duovigintillion cookies</td>
 <td>Golden cookies appear <strong>5%</strong> more often.</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1813.png"><img src="assets/generated-icons/SheetCustom1813.png" alt="Order of the Shining Spoon" width="48" height="48"></a></td>
 <td><strong>Order of the Shining Spoon</strong></td>
-<td>- Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#combo-achievements-7-achievements">Combo achievements</a></td>
+<td>Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#combo-achievements-7-achievements">Combo achievements</a></td>
 <td>250 years of base CpS, but no less than 1 duovigintillion cookies</td>
 <td>Golden cookie effects last <strong>5%</strong> longer.</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1713.png"><img src="assets/generated-icons/SheetCustom1713.png" alt="Order of the Cookie Eclipse" width="48" height="48"></a></td>
 <td><strong>Order of the Cookie Eclipse</strong></td>
-<td>- Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#grandmapocalypse-achievements-15-achievements">Grandmapocalypse achievements</a></td>
+<td>Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#grandmapocalypse-achievements-15-achievements">Grandmapocalypse achievements</a></td>
 <td>250 years of base CpS, but no less than 1 duovigintillion cookies</td>
 <td>Golden cookie effects last <strong>5%</strong> longer.</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1613.png"><img src="assets/generated-icons/SheetCustom1613.png" alt="Order of the Enchanted Whisk" width="48" height="48"></a></td>
 <td><strong>Order of the Enchanted Whisk</strong></td>
-<td>- Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#grimoire">Grimoire achievements</a></td>
+<td>Requires all <a href="https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#grimoire">Grimoire achievements</a></td>
 <td>250 years of base CpS, but no less than 1 duovigintillion cookies</td>
 <td>Frenzy, Click Frenzy, and Elder Frenzy buffs are <strong>5%</strong> more powerful.</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1913.png"><img src="assets/generated-icons/SheetCustom1913.png" alt="Order of the Eternal Cookie" width="48" height="48"></a></td>
 <td><strong>Order of the Eternal Cookie</strong></td>
-<td>- Requires all previous Great Orders of the Cookie Age upgrades</td>
+<td>Requires all previous Great Orders of the Cookie Age upgrades</td>
 <td>1000 years of base CpS, but no less than 1 trevigintillion cookies</td>
 <td>Golden cookies appear <strong>5%</strong> more often and effects last <strong>5%</strong> longer.</td>
 </tr>
@@ -3000,77 +3000,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1600.png"><img src="assets/generated-icons/SheetCustom1600.png" alt="Kitten unpaid interns" width="48" height="48"></a></td>
 <td><strong>Kitten unpaid interns</strong></td>
-<td>- Requires 500 achievements</td>
+<td>Requires 500 achievements</td>
 <td><strong>900 sexdecillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1601.png"><img src="assets/generated-icons/SheetCustom1601.png" alt="Kitten overpaid &quot;temporary&quot; contractors" width="48" height="48"></a></td>
 <td><strong>Kitten overpaid "temporary" contractors</strong></td>
-<td>- Requires 550 achievements</td>
+<td>Requires 550 achievements</td>
 <td><strong>900 septendecillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1602.png"><img src="assets/generated-icons/SheetCustom1602.png" alt="Kitten remote workers" width="48" height="48"></a></td>
 <td><strong>Kitten remote workers</strong></td>
-<td>- Requires 600 achievements</td>
+<td>Requires 600 achievements</td>
 <td><strong>900 octodecillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1603.png"><img src="assets/generated-icons/SheetCustom1603.png" alt="Kitten scrum masters" width="48" height="48"></a></td>
 <td><strong>Kitten scrum masters</strong></td>
-<td>- Requires 650 achievements</td>
+<td>Requires 650 achievements</td>
 <td><strong>900 novemdecillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1604.png"><img src="assets/generated-icons/SheetCustom1604.png" alt="Kitten UX designers" width="48" height="48"></a></td>
 <td><strong>Kitten UX designers</strong></td>
-<td>- Requires 700 achievements</td>
+<td>Requires 700 achievements</td>
 <td><strong>900 vigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1008.png"><img src="assets/generated-icons/SheetCustom1008.png" alt="Kitten janitors" width="48" height="48"></a></td>
 <td><strong>Kitten janitors</strong></td>
-<td>- Requires 750 achievements</td>
+<td>Requires 750 achievements</td>
 <td><strong>900 unvigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1009.png"><img src="assets/generated-icons/SheetCustom1009.png" alt="Kitten coffee fetchers" width="48" height="48"></a></td>
 <td><strong>Kitten coffee fetchers</strong></td>
-<td>- Requires 800 achievements</td>
+<td>Requires 800 achievements</td>
 <td><strong>900 duovigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1010.png"><img src="assets/generated-icons/SheetCustom1010.png" alt="Kitten personal assistants" width="48" height="48"></a></td>
 <td><strong>Kitten personal assistants</strong></td>
-<td>- Requires 850 achievements</td>
+<td>Requires 850 achievements</td>
 <td><strong>900 trevigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1608.png"><img src="assets/generated-icons/SheetCustom1608.png" alt="Kitten vice presidents" width="48" height="48"></a></td>
 <td><strong>Kitten vice presidents</strong></td>
-<td>- Requires 900 achievements</td>
+<td>Requires 900 achievements</td>
 <td><strong>900 quattuorvigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1609.png"><img src="assets/generated-icons/SheetCustom1609.png" alt="Kitten board members" width="48" height="48"></a></td>
 <td><strong>Kitten board members</strong></td>
-<td>- Requires 950 achievements</td>
+<td>Requires 950 achievements</td>
 <td><strong>900 quinvigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1610.png"><img src="assets/generated-icons/SheetCustom1610.png" alt="Kitten founders" width="48" height="48"></a></td>
 <td><strong>Kitten founders</strong></td>
-<td>- Requires 1000 achievements</td>
+<td>Requires 1000 achievements</td>
 <td><strong>900 sexvigintillion cookies</strong></td>
 <td>Provides small production bonus</td>
 </tr>
@@ -3093,7 +3093,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla3404.png"><img src="assets/generated-icons/SheetVanilla3404.png" alt="Box of improved cookies" width="48" height="48"></a></td>
 <td><strong>Box of improved cookies</strong></td>
-<td>- Requires 25 unvigintillion cookies baked</td>
+<td>Requires 25 unvigintillion cookies baked</td>
 <td><strong>25 unvigintillion cookies</strong></td>
 <td>Contains an assortment of scientifically improved cookies, 25 cookies to a box.</td>
 </tr>
@@ -3116,175 +3116,175 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0203.png"><img src="assets/generated-icons/SheetVanilla0203.png" alt="Improved Plain cookies" width="48" height="48"></a></td>
 <td><strong>Improved Plain cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 250 unvigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 250 unvigintillion cookies baked</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0703.png"><img src="assets/generated-icons/SheetVanilla0703.png" alt="Improved Sugar cookies" width="48" height="48"></a></td>
 <td><strong>Improved Sugar cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 500 unvigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 500 unvigintillion cookies baked</td>
 <td><strong>1 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0003.png"><img src="assets/generated-icons/SheetVanilla0003.png" alt="Improved Oatmeal raisin cookies" width="48" height="48"></a></td>
 <td><strong>Improved Oatmeal raisin cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 1 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 1 duovigintillion cookies baked</td>
 <td><strong>2 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0103.png"><img src="assets/generated-icons/SheetVanilla0103.png" alt="Improved Peanut butter cookies" width="48" height="48"></a></td>
 <td><strong>Improved Peanut butter cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 2 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 2 duovigintillion cookies baked</td>
 <td><strong>4 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0303.png"><img src="assets/generated-icons/SheetVanilla0303.png" alt="Improved Coconut cookies" width="48" height="48"></a></td>
 <td><strong>Improved Coconut cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 4 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 4 duovigintillion cookies baked</td>
 <td><strong>8 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0503.png"><img src="assets/generated-icons/SheetVanilla0503.png" alt="Improved Macadamia nut cookies" width="48" height="48"></a></td>
 <td><strong>Improved Macadamia nut cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 8 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 8 duovigintillion cookies baked</td>
 <td><strong>16 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2127.png"><img src="assets/generated-icons/SheetVanilla2127.png" alt="Improved Almond cookies" width="48" height="48"></a></td>
 <td><strong>Improved Almond cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 16 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 16 duovigintillion cookies baked</td>
 <td><strong>32 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2227.png"><img src="assets/generated-icons/SheetVanilla2227.png" alt="Improved Hazelnut cookies" width="48" height="48"></a></td>
 <td><strong>Improved Hazelnut cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 32.5 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 32.5 duovigintillion cookies baked</td>
 <td><strong>65 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2327.png"><img src="assets/generated-icons/SheetVanilla2327.png" alt="Improved Walnut cookies" width="48" height="48"></a></td>
 <td><strong>Improved Walnut cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 65 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 65 duovigintillion cookies baked</td>
 <td><strong>130 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla3207.png"><img src="assets/generated-icons/SheetVanilla3207.png" alt="Improved Cashew cookies" width="48" height="48"></a></td>
 <td><strong>Improved Cashew cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 130 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 130 duovigintillion cookies baked</td>
 <td><strong>260 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0403.png"><img src="assets/generated-icons/SheetVanilla0403.png" alt="Improved White chocolate cookies" width="48" height="48"></a></td>
 <td><strong>Improved White chocolate cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 260 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 260 duovigintillion cookies baked</td>
 <td><strong>520 duovigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla3307.png"><img src="assets/generated-icons/SheetVanilla3307.png" alt="Improved Milk chocolate cookies" width="48" height="48"></a></td>
 <td><strong>Improved Milk chocolate cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 500 duovigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 500 duovigintillion cookies baked</td>
 <td><strong>1 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0603.png"><img src="assets/generated-icons/SheetVanilla0603.png" alt="Improved Double-chip cookies" width="48" height="48"></a></td>
 <td><strong>Improved Double-chip cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 1 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 1 trevigintillion cookies baked</td>
 <td><strong>2 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0803.png"><img src="assets/generated-icons/SheetVanilla0803.png" alt="Improved White chocolate macadamia nut cookies" width="48" height="48"></a></td>
 <td><strong>Improved White chocolate macadamia nut cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 2 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 2 trevigintillion cookies baked</td>
 <td><strong>4 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0903.png"><img src="assets/generated-icons/SheetVanilla0903.png" alt="Improved All-chocolate cookies" width="48" height="48"></a></td>
 <td><strong>Improved All-chocolate cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 4 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 4 trevigintillion cookies baked</td>
 <td><strong>8 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla1003.png"><img src="assets/generated-icons/SheetVanilla1003.png" alt="Improved Dark chocolate-coated cookies" width="48" height="48"></a></td>
 <td><strong>Improved Dark chocolate-coated cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 8 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 8 trevigintillion cookies baked</td>
 <td><strong>16 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla1103.png"><img src="assets/generated-icons/SheetVanilla1103.png" alt="Improved White chocolate-coated cookies" width="48" height="48"></a></td>
 <td><strong>Improved White chocolate-coated cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 16 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 16 trevigintillion cookies baked</td>
 <td><strong>32 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0004.png"><img src="assets/generated-icons/SheetVanilla0004.png" alt="Improved Eclipse cookies" width="48" height="48"></a></td>
 <td><strong>Improved Eclipse cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 32.5 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 32.5 trevigintillion cookies baked</td>
 <td><strong>65 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0104.png"><img src="assets/generated-icons/SheetVanilla0104.png" alt="Improved Zebra cookies" width="48" height="48"></a></td>
 <td><strong>Improved Zebra cookies</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 65 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 65 trevigintillion cookies baked</td>
 <td><strong>130 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0204.png"><img src="assets/generated-icons/SheetVanilla0204.png" alt="Improved Snickerdoodles" width="48" height="48"></a></td>
 <td><strong>Improved Snickerdoodles</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 130 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 130 trevigintillion cookies baked</td>
 <td><strong>260 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0304.png"><img src="assets/generated-icons/SheetVanilla0304.png" alt="Improved Stroopwafels" width="48" height="48"></a></td>
 <td><strong>Improved Stroopwafels</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 260 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 260 trevigintillion cookies baked</td>
 <td><strong>520 trevigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0404.png"><img src="assets/generated-icons/SheetVanilla0404.png" alt="Improved Macaroons" width="48" height="48"></a></td>
 <td><strong>Improved Macaroons</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 500 trevigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 500 trevigintillion cookies baked</td>
 <td><strong>1 quattuorvigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla0504.png"><img src="assets/generated-icons/SheetVanilla0504.png" alt="Improved Empire biscuits" width="48" height="48"></a></td>
 <td><strong>Improved Empire biscuits</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 1 quattuorvigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 1 quattuorvigintillion cookies baked</td>
 <td><strong>2 quattuorvigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla1203.png"><img src="assets/generated-icons/SheetVanilla1203.png" alt="Improved Madeleines" width="48" height="48"></a></td>
 <td><strong>Improved Madeleines</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 2 quattuorvigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 2 quattuorvigintillion cookies baked</td>
 <td><strong>4 quattuorvigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla1303.png"><img src="assets/generated-icons/SheetVanilla1303.png" alt="Improved Palmiers" width="48" height="48"></a></td>
 <td><strong>Improved Palmiers</strong></td>
-<td>- Requires Box of improved cookies<br>- Requires 5 quattuorvigintillion cookies baked</td>
+<td>Requires Box of improved cookies and Requires 5 quattuorvigintillion cookies baked</td>
 <td><strong>10 quattuorvigintillion cookies</strong></td>
 <td>2% cookie production increase</td>
 </tr>
@@ -3307,42 +3307,42 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2708.png"><img src="assets/generated-icons/SheetVanilla2708.png" alt="Improved Milk chocolate butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved Milk chocolate butter biscuit</strong></td>
-<td>- Requires at least 750 of every building type</td>
+<td>Requires at least 750 of every building type</td>
 <td><strong>1 duovigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2709.png"><img src="assets/generated-icons/SheetVanilla2709.png" alt="Improved Dark chocolate butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved Dark chocolate butter biscuit</strong></td>
-<td>- Requires at least 800 of every building type</td>
+<td>Requires at least 800 of every building type</td>
 <td><strong>1 trevigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2809.png"><img src="assets/generated-icons/SheetVanilla2809.png" alt="Improved White chocolate butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved White chocolate butter biscuit</strong></td>
-<td>- Requires at least 850 of every building type</td>
+<td>Requires at least 850 of every building type</td>
 <td><strong>1 quattuorvigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2808.png"><img src="assets/generated-icons/SheetVanilla2808.png" alt="Improved Ruby chocolate butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved Ruby chocolate butter biscuit</strong></td>
-<td>- Requires at least 900 of every building type</td>
+<td>Requires at least 900 of every building type</td>
 <td><strong>1 quinvigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2610.png"><img src="assets/generated-icons/SheetVanilla2610.png" alt="Improved Lavender chocolate butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved Lavender chocolate butter biscuit</strong></td>
-<td>- Requires at least 950 of every building type</td>
+<td>Requires at least 950 of every building type</td>
 <td><strong>1 sexvigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetVanilla2426.png"><img src="assets/generated-icons/SheetVanilla2426.png" alt="Improved Synthetic chocolate green honey butter biscuit" width="48" height="48"></a></td>
 <td><strong>Improved Synthetic chocolate green honey butter biscuit</strong></td>
-<td>- Requires at least 1,000 of every building type</td>
+<td>Requires at least 1,000 of every building type</td>
 <td><strong>1 septenvigintillion cookies</strong></td>
 <td>10% cookie production increase</td>
 </tr>
@@ -3368,77 +3368,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0100.png"><img src="assets/generated-icons/SheetCustom0100.png" alt="Increased Social Security Checks" width="48" height="48"></a></td>
 <td><strong>Increased Social Security Checks</strong></td>
-<td>- Requires 750 grandmas</td>
+<td>Requires 750 grandmas</td>
 <td><strong>5 quattuordecillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0101.png"><img src="assets/generated-icons/SheetCustom0101.png" alt="Advanced knitting techniques" width="48" height="48"></a></td>
 <td><strong>Advanced knitting techniques</strong></td>
-<td>- Requires 800 grandmas</td>
+<td>Requires 800 grandmas</td>
 <td><strong>500 quattuordecillion cookies</strong></td>
 <td>Grandmas are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0102.png"><img src="assets/generated-icons/SheetCustom0102.png" alt="Off-Brand Eyeglasses" width="48" height="48"></a></td>
 <td><strong>Off-Brand Eyeglasses</strong></td>
-<td>- Requires 850 grandmas</td>
+<td>Requires 850 grandmas</td>
 <td><strong>50 quindecillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0103.png"><img src="assets/generated-icons/SheetCustom0103.png" alt="Bingo night optimization" width="48" height="48"></a></td>
 <td><strong>Bingo night optimization</strong></td>
-<td>- Requires 900 grandmas</td>
+<td>Requires 900 grandmas</td>
 <td><strong>5 sexdecillion cookies</strong></td>
 <td>Grandmas are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0104.png"><img src="assets/generated-icons/SheetCustom0104.png" alt="Plastic Walkers" width="48" height="48"></a></td>
 <td><strong>Plastic Walkers</strong></td>
-<td>- Requires 950 grandmas</td>
+<td>Requires 950 grandmas</td>
 <td><strong>500 sexdecillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0105.png"><img src="assets/generated-icons/SheetCustom0105.png" alt="Tea time efficiency" width="48" height="48"></a></td>
 <td><strong>Tea time efficiency</strong></td>
-<td>- Requires 1000 grandmas</td>
+<td>Requires 1000 grandmas</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Grandmas are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0106.png"><img src="assets/generated-icons/SheetCustom0106.png" alt="Bulk Discount Hearing Aids" width="48" height="48"></a></td>
 <td><strong>Bulk Discount Hearing Aids</strong></td>
-<td>- Requires 1050 grandmas</td>
+<td>Requires 1050 grandmas</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0107.png"><img src="assets/generated-icons/SheetCustom0107.png" alt="Gossip-powered baking" width="48" height="48"></a></td>
 <td><strong>Gossip-powered baking</strong></td>
-<td>- Requires 1100 grandmas</td>
+<td>Requires 1100 grandmas</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Grandmas are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0108.png"><img src="assets/generated-icons/SheetCustom0108.png" alt="Generic Arthritis Medication" width="48" height="48"></a></td>
 <td><strong>Generic Arthritis Medication</strong></td>
-<td>- Requires 1150 grandmas</td>
+<td>Requires 1150 grandmas</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0109.png"><img src="assets/generated-icons/SheetCustom0109.png" alt="Senior discount mastery" width="48" height="48"></a></td>
 <td><strong>Senior discount mastery</strong></td>
-<td>- Requires 1200 grandmas</td>
+<td>Requires 1200 grandmas</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Grandmas are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0110.png"><img src="assets/generated-icons/SheetCustom0110.png" alt="Wholesale Denture Adhesive" width="48" height="48"></a></td>
 <td><strong>Wholesale Denture Adhesive</strong></td>
-<td>- Requires 1250 grandmas</td>
+<td>Requires 1250 grandmas</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Grandmas cost <strong>5%</strong> less</td>
 </tr>
@@ -3461,77 +3461,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0200.png"><img src="assets/generated-icons/SheetCustom0200.png" alt="Biodiesel fueled tractors" width="48" height="48"></a></td>
 <td><strong>Biodiesel fueled tractors</strong></td>
-<td>- Requires 750 farms</td>
+<td>Requires 750 farms</td>
 <td><strong>50 quattuordecillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0201.png"><img src="assets/generated-icons/SheetCustom0201.png" alt="Hydroponic cookie cultivation" width="48" height="48"></a></td>
 <td><strong>Hydroponic cookie cultivation</strong></td>
-<td>- Requires 800 farms</td>
+<td>Requires 800 farms</td>
 <td><strong>5 quindecillion cookies</strong></td>
 <td>Farms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0202.png"><img src="assets/generated-icons/SheetCustom0202.png" alt="Free manure from clone factories" width="48" height="48"></a></td>
 <td><strong>Free manure from clone factories</strong></td>
-<td>- Requires 850 farms</td>
+<td>Requires 850 farms</td>
 <td><strong>500 quindecillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0203.png"><img src="assets/generated-icons/SheetCustom0203.png" alt="Vertical farming revolution" width="48" height="48"></a></td>
 <td><strong>Vertical farming revolution</strong></td>
-<td>- Requires 900 farms</td>
+<td>Requires 900 farms</td>
 <td><strong>50 sexdecillion cookies</strong></td>
 <td>Farms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0204.png"><img src="assets/generated-icons/SheetCustom0204.png" alt="Solar-powered irrigation systems" width="48" height="48"></a></td>
 <td><strong>Solar-powered irrigation systems</strong></td>
-<td>- Requires 950 farms</td>
+<td>Requires 950 farms</td>
 <td><strong>5 septendecillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0205.png"><img src="assets/generated-icons/SheetCustom0205.png" alt="Quantum crop rotation" width="48" height="48"></a></td>
 <td><strong>Quantum crop rotation</strong></td>
-<td>- Requires 1000 farms</td>
+<td>Requires 1000 farms</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Farms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0206.png"><img src="assets/generated-icons/SheetCustom0206.png" alt="Bulk seed purchases" width="48" height="48"></a></td>
 <td><strong>Bulk seed purchases</strong></td>
-<td>- Requires 1050 farms</td>
+<td>Requires 1050 farms</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0207.png"><img src="assets/generated-icons/SheetCustom0207.png" alt="Sentient soil enhancement" width="48" height="48"></a></td>
 <td><strong>Sentient soil enhancement</strong></td>
-<td>- Requires 1100 farms</td>
+<td>Requires 1100 farms</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Farms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0208.png"><img src="assets/generated-icons/SheetCustom0208.png" alt="Robot farm hands" width="48" height="48"></a></td>
 <td><strong>Robot farm hands</strong></td>
-<td>- Requires 1150 farms</td>
+<td>Requires 1150 farms</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0209.png"><img src="assets/generated-icons/SheetCustom0209.png" alt="Temporal harvest acceleration" width="48" height="48"></a></td>
 <td><strong>Temporal harvest acceleration</strong></td>
-<td>- Requires 1200 farms</td>
+<td>Requires 1200 farms</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Farms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0210.png"><img src="assets/generated-icons/SheetCustom0210.png" alt="Vertical farming subsidies" width="48" height="48"></a></td>
 <td><strong>Vertical farming subsidies</strong></td>
-<td>- Requires 1250 farms</td>
+<td>Requires 1250 farms</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Farms cost <strong>5%</strong> less</td>
 </tr>
@@ -3554,77 +3554,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0300.png"><img src="assets/generated-icons/SheetCustom0300.png" alt="Clearance shaft kits" width="48" height="48"></a></td>
 <td><strong>Clearance shaft kits</strong></td>
-<td>- Requires 750 mines</td>
+<td>Requires 750 mines</td>
 <td><strong>500 quattuordecillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0301.png"><img src="assets/generated-icons/SheetCustom0301.png" alt="Quantum tunneling excavation" width="48" height="48"></a></td>
 <td><strong>Quantum tunneling excavation</strong></td>
-<td>- Requires 800 mines</td>
+<td>Requires 800 mines</td>
 <td><strong>50 quindecillion cookies</strong></td>
 <td>Mines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0302.png"><img src="assets/generated-icons/SheetCustom0302.png" alt="Punch-card TNT club" width="48" height="48"></a></td>
 <td><strong>Punch-card TNT club</strong></td>
-<td>- Requires 850 mines</td>
+<td>Requires 850 mines</td>
 <td><strong>5 sexdecillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0303.png"><img src="assets/generated-icons/SheetCustom0303.png" alt="Neutron star compression" width="48" height="48"></a></td>
 <td><strong>Neutron star compression</strong></td>
-<td>- Requires 900 mines</td>
+<td>Requires 900 mines</td>
 <td><strong>500 sexdecillion cookies</strong></td>
 <td>Mines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0304.png"><img src="assets/generated-icons/SheetCustom0304.png" alt="Hand-me-down hardhats" width="48" height="48"></a></td>
 <td><strong>Hand-me-down hardhats</strong></td>
-<td>- Requires 950 mines</td>
+<td>Requires 950 mines</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0305.png"><img src="assets/generated-icons/SheetCustom0305.png" alt="Dimensional rift mining" width="48" height="48"></a></td>
 <td><strong>Dimensional rift mining</strong></td>
-<td>- Requires 1000 mines</td>
+<td>Requires 1000 mines</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Mines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0306.png"><img src="assets/generated-icons/SheetCustom0306.png" alt="Lease-back drill rigs" width="48" height="48"></a></td>
 <td><strong>Lease-back drill rigs</strong></td>
-<td>- Requires 1050 mines</td>
+<td>Requires 1050 mines</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0307.png"><img src="assets/generated-icons/SheetCustom0307.png" alt="Singularity core extraction" width="48" height="48"></a></td>
 <td><strong>Singularity core extraction</strong></td>
-<td>- Requires 1100 mines</td>
+<td>Requires 1100 mines</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Mines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0308.png"><img src="assets/generated-icons/SheetCustom0308.png" alt="Ore cartel coupons" width="48" height="48"></a></td>
 <td><strong>Ore cartel coupons</strong></td>
-<td>- Requires 1150 mines</td>
+<td>Requires 1150 mines</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0309.png"><img src="assets/generated-icons/SheetCustom0309.png" alt="Temporal paradox drilling" width="48" height="48"></a></td>
 <td><strong>Temporal paradox drilling</strong></td>
-<td>- Requires 1200 mines</td>
+<td>Requires 1200 mines</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Mines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0310.png"><img src="assets/generated-icons/SheetCustom0310.png" alt="Cave-in insurance kickbacks" width="48" height="48"></a></td>
 <td><strong>Cave-in insurance kickbacks</strong></td>
-<td>- Requires 1250 mines</td>
+<td>Requires 1250 mines</td>
 <td><strong>50 unvigintillion cookies</strong></td>
 <td>Mines cost <strong>5%</strong> less</td>
 </tr>
@@ -3647,77 +3647,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0400.png"><img src="assets/generated-icons/SheetCustom0400.png" alt="Flat-pack factory frames" width="48" height="48"></a></td>
 <td><strong>Flat-pack factory frames</strong></td>
-<td>- Requires 750 factories</td>
+<td>Requires 750 factories</td>
 <td><strong>5 quindecillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0401.png"><img src="assets/generated-icons/SheetCustom0401.png" alt="Quantum assembly optimization" width="48" height="48"></a></td>
 <td><strong>Quantum assembly optimization</strong></td>
-<td>- Requires 800 factories</td>
+<td>Requires 800 factories</td>
 <td><strong>500 quindecillion cookies</strong></td>
 <td>Factories are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0402.png"><img src="assets/generated-icons/SheetCustom0402.png" alt="BOGO rivet bins" width="48" height="48"></a></td>
 <td><strong>BOGO rivet bins</strong></td>
-<td>- Requires 850 factories</td>
+<td>Requires 850 factories</td>
 <td><strong>50 sexdecillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0403.png"><img src="assets/generated-icons/SheetCustom0403.png" alt="Temporal manufacturing loops" width="48" height="48"></a></td>
 <td><strong>Temporal manufacturing loops</strong></td>
-<td>- Requires 900 factories</td>
+<td>Requires 900 factories</td>
 <td><strong>5 septendecillion cookies</strong></td>
 <td>Factories are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0404.png"><img src="assets/generated-icons/SheetCustom0404.png" alt="Off-brand gear grease" width="48" height="48"></a></td>
 <td><strong>Off-brand gear grease</strong></td>
-<td>- Requires 950 factories</td>
+<td>Requires 950 factories</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0405.png"><img src="assets/generated-icons/SheetCustom0405.png" alt="Dimensional cookie synthesis" width="48" height="48"></a></td>
 <td><strong>Dimensional cookie synthesis</strong></td>
-<td>- Requires 1000 factories</td>
+<td>Requires 1000 factories</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Factories are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0406.png"><img src="assets/generated-icons/SheetCustom0406.png" alt="Misprint warning labels" width="48" height="48"></a></td>
 <td><strong>Misprint warning labels</strong></td>
-<td>- Requires 1050 factories</td>
+<td>Requires 1050 factories</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0407.png"><img src="assets/generated-icons/SheetCustom0407.png" alt="Singularity production cores" width="48" height="48"></a></td>
 <td><strong>Singularity production cores</strong></td>
-<td>- Requires 1100 factories</td>
+<td>Requires 1100 factories</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Factories are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0408.png"><img src="assets/generated-icons/SheetCustom0408.png" alt="Pallet-jack rebates" width="48" height="48"></a></td>
 <td><strong>Pallet-jack rebates</strong></td>
-<td>- Requires 1150 factories</td>
+<td>Requires 1150 factories</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0409.png"><img src="assets/generated-icons/SheetCustom0409.png" alt="Reality-warping assembly" width="48" height="48"></a></td>
 <td><strong>Reality-warping assembly</strong></td>
-<td>- Requires 1200 factories</td>
+<td>Requires 1200 factories</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Factories are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0410.png"><img src="assets/generated-icons/SheetCustom0410.png" alt="Prefab cookie modules" width="48" height="48"></a></td>
 <td><strong>Prefab cookie modules</strong></td>
-<td>- Requires 1250 factories</td>
+<td>Requires 1250 factories</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Factories cost <strong>5%</strong> less</td>
 </tr>
@@ -3740,77 +3740,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1300.png"><img src="assets/generated-icons/SheetCustom1300.png" alt="Piggy buyback bonanza" width="48" height="48"></a></td>
 <td><strong>Piggy buyback bonanza</strong></td>
-<td>- Requires 750 banks</td>
+<td>Requires 750 banks</td>
 <td><strong>50 quindecillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1301.png"><img src="assets/generated-icons/SheetCustom1301.png" alt="Quantum banking protocols" width="48" height="48"></a></td>
 <td><strong>Quantum banking protocols</strong></td>
-<td>- Requires 800 banks</td>
+<td>Requires 800 banks</td>
 <td><strong>5 sexdecillion cookies</strong></td>
 <td>Banks are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1302.png"><img src="assets/generated-icons/SheetCustom1302.png" alt="Vault door floor-models" width="48" height="48"></a></td>
 <td><strong>Vault door floor-models</strong></td>
-<td>- Requires 850 banks</td>
+<td>Requires 850 banks</td>
 <td><strong>500 sexdecillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1303.png"><img src="assets/generated-icons/SheetCustom1303.png" alt="Temporal interest compounding" width="48" height="48"></a></td>
 <td><strong>Temporal interest compounding</strong></td>
-<td>- Requires 900 banks</td>
+<td>Requires 900 banks</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Banks are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1304.png"><img src="assets/generated-icons/SheetCustom1304.png" alt="Pen-on-a-chain procurement" width="48" height="48"></a></td>
 <td><strong>Pen-on-a-chain procurement</strong></td>
-<td>- Requires 950 banks</td>
+<td>Requires 950 banks</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1305.png"><img src="assets/generated-icons/SheetCustom1305.png" alt="Dimensional currency exchange" width="48" height="48"></a></td>
 <td><strong>Dimensional currency exchange</strong></td>
-<td>- Requires 1000 banks</td>
+<td>Requires 1000 banks</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Banks are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1306.png"><img src="assets/generated-icons/SheetCustom1306.png" alt="Complimentary complimentary mints" width="48" height="48"></a></td>
 <td><strong>Complimentary complimentary mints</strong></td>
-<td>- Requires 1050 banks</td>
+<td>Requires 1050 banks</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1307.png"><img src="assets/generated-icons/SheetCustom1307.png" alt="Singularity financial algorithms" width="48" height="48"></a></td>
 <td><strong>Singularity financial algorithms</strong></td>
-<td>- Requires 1100 banks</td>
+<td>Requires 1100 banks</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Banks are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1308.png"><img src="assets/generated-icons/SheetCustom1308.png" alt="Fee waiver wavers" width="48" height="48"></a></td>
 <td><strong>Fee waiver wavers</strong></td>
-<td>- Requires 1150 banks</td>
+<td>Requires 1150 banks</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1309.png"><img src="assets/generated-icons/SheetCustom1309.png" alt="Reality-warping economics" width="48" height="48"></a></td>
 <td><strong>Reality-warping economics</strong></td>
-<td>- Requires 1200 banks</td>
+<td>Requires 1200 banks</td>
 <td><strong>50 unvigintillion cookies</strong></td>
 <td>Banks are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1310.png"><img src="assets/generated-icons/SheetCustom1310.png" alt="Dough Jones clearance" width="48" height="48"></a></td>
 <td><strong>Dough Jones clearance</strong></td>
-<td>- Requires 1250 banks</td>
+<td>Requires 1250 banks</td>
 <td><strong>5 duovigintillion cookies</strong></td>
 <td>Banks cost <strong>5%</strong> less</td>
 </tr>
@@ -3833,77 +3833,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1400.png"><img src="assets/generated-icons/SheetCustom1400.png" alt="Tithe punch cards" width="48" height="48"></a></td>
 <td><strong>Tithe punch cards</strong></td>
-<td>- Requires 750 temples</td>
+<td>Requires 750 temples</td>
 <td><strong>500 quindecillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1401.png"><img src="assets/generated-icons/SheetCustom1401.png" alt="Quantum divine intervention" width="48" height="48"></a></td>
 <td><strong>Quantum divine intervention</strong></td>
-<td>- Requires 800 temples</td>
+<td>Requires 800 temples</td>
 <td><strong>50 sexdecillion cookies</strong></td>
 <td>Temples are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1402.png"><img src="assets/generated-icons/SheetCustom1402.png" alt="Relic replica racks" width="48" height="48"></a></td>
 <td><strong>Relic replica racks</strong></td>
-<td>- Requires 850 temples</td>
+<td>Requires 850 temples</td>
 <td><strong>5 septendecillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1403.png"><img src="assets/generated-icons/SheetCustom1403.png" alt="Temporal prayer loops" width="48" height="48"></a></td>
 <td><strong>Temporal prayer loops</strong></td>
-<td>- Requires 900 temples</td>
+<td>Requires 900 temples</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Temples are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1404.png"><img src="assets/generated-icons/SheetCustom1404.png" alt="Incense refill program" width="48" height="48"></a></td>
 <td><strong>Incense refill program</strong></td>
-<td>- Requires 950 temples</td>
+<td>Requires 950 temples</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1405.png"><img src="assets/generated-icons/SheetCustom1405.png" alt="Dimensional deity summoning" width="48" height="48"></a></td>
 <td><strong>Dimensional deity summoning</strong></td>
-<td>- Requires 1000 temples</td>
+<td>Requires 1000 temples</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Temples are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1406.png"><img src="assets/generated-icons/SheetCustom1406.png" alt="Chant-o-matic hymn reels" width="48" height="48"></a></td>
 <td><strong>Chant-o-matic hymn reels</strong></td>
-<td>- Requires 1050 temples</td>
+<td>Requires 1050 temples</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1407.png"><img src="assets/generated-icons/SheetCustom1407.png" alt="Singularity divine consciousness" width="48" height="48"></a></td>
 <td><strong>Singularity divine consciousness</strong></td>
-<td>- Requires 1100 temples</td>
+<td>Requires 1100 temples</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Temples are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1408.png"><img src="assets/generated-icons/SheetCustom1408.png" alt="Pew-per-view sponsorships" width="48" height="48"></a></td>
 <td><strong>Pew-per-view sponsorships</strong></td>
-<td>- Requires 1150 temples</td>
+<td>Requires 1150 temples</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1409.png"><img src="assets/generated-icons/SheetCustom1409.png" alt="Reality-warping divinity" width="48" height="48"></a></td>
 <td><strong>Reality-warping divinity</strong></td>
-<td>- Requires 1200 temples</td>
+<td>Requires 1200 temples</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Temples are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1410.png"><img src="assets/generated-icons/SheetCustom1410.png" alt="Sacred site tax amnesty" width="48" height="48"></a></td>
 <td><strong>Sacred site tax amnesty</strong></td>
-<td>- Requires 1250 temples</td>
+<td>Requires 1250 temples</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Temples cost <strong>5%</strong> less</td>
 </tr>
@@ -3926,77 +3926,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1500.png"><img src="assets/generated-icons/SheetCustom1500.png" alt="Wand warranty returns" width="48" height="48"></a></td>
 <td><strong>Wand warranty returns</strong></td>
-<td>- Requires 750 wizard towers</td>
+<td>Requires 750 wizard towers</td>
 <td><strong>5 sexdecillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1501.png"><img src="assets/generated-icons/SheetCustom1501.png" alt="Arcane resonance" width="48" height="48"></a></td>
 <td><strong>Arcane resonance</strong></td>
-<td>- Requires 800 wizard towers</td>
+<td>Requires 800 wizard towers</td>
 <td><strong>500 sexdecillion cookies</strong></td>
 <td>Wizard towers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1502.png"><img src="assets/generated-icons/SheetCustom1502.png" alt="Grimoire remainder sale" width="48" height="48"></a></td>
 <td><strong>Grimoire remainder sale</strong></td>
-<td>- Requires 850 wizard towers</td>
+<td>Requires 850 wizard towers</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1503.png"><img src="assets/generated-icons/SheetCustom1503.png" alt="Spell weaving" width="48" height="48"></a></td>
 <td><strong>Spell weaving</strong></td>
-<td>- Requires 900 wizard towers</td>
+<td>Requires 900 wizard towers</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Wizard towers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1504.png"><img src="assets/generated-icons/SheetCustom1504.png" alt="Robes with “character”" width="48" height="48"></a></td>
 <td><strong>Robes with “character”</strong></td>
-<td>- Requires 950 wizard towers</td>
+<td>Requires 950 wizard towers</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1505.png"><img src="assets/generated-icons/SheetCustom1505.png" alt="Mystical attunement" width="48" height="48"></a></td>
 <td><strong>Mystical attunement</strong></td>
-<td>- Requires 1000 wizard towers</td>
+<td>Requires 1000 wizard towers</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Wizard towers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1506.png"><img src="assets/generated-icons/SheetCustom1506.png" alt="Familiar foster program" width="48" height="48"></a></td>
 <td><strong>Familiar foster program</strong></td>
-<td>- Requires 1050 wizard towers</td>
+<td>Requires 1050 wizard towers</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1507.png"><img src="assets/generated-icons/SheetCustom1507.png" alt="Ethereal manifestation" width="48" height="48"></a></td>
 <td><strong>Ethereal manifestation</strong></td>
-<td>- Requires 1100 wizard towers</td>
+<td>Requires 1100 wizard towers</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Wizard towers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1508.png"><img src="assets/generated-icons/SheetCustom1508.png" alt="Council scroll stipends" width="48" height="48"></a></td>
 <td><strong>Council scroll stipends</strong></td>
-<td>- Requires 1150 wizard towers</td>
+<td>Requires 1150 wizard towers</td>
 <td><strong>50 unvigintillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1509.png"><img src="assets/generated-icons/SheetCustom1509.png" alt="Transcendent thaumaturgy" width="48" height="48"></a></td>
 <td><strong>Transcendent thaumaturgy</strong></td>
-<td>- Requires 1200 wizard towers</td>
+<td>Requires 1200 wizard towers</td>
 <td><strong>5 duovigintillion cookies</strong></td>
 <td>Wizard towers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1510.png"><img src="assets/generated-icons/SheetCustom1510.png" alt="Broom-sharing scheme" width="48" height="48"></a></td>
 <td><strong>Broom-sharing scheme</strong></td>
-<td>- Requires 1250 wizard towers</td>
+<td>Requires 1250 wizard towers</td>
 <td><strong>500 duovigintillion cookies</strong></td>
 <td>Wizard towers cost <strong>5%</strong> less</td>
 </tr>
@@ -4019,77 +4019,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0500.png"><img src="assets/generated-icons/SheetCustom0500.png" alt="Retired cargo pods" width="48" height="48"></a></td>
 <td><strong>Retired cargo pods</strong></td>
-<td>- Requires 750 shipments</td>
+<td>Requires 750 shipments</td>
 <td><strong>50 sexdecillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0501.png"><img src="assets/generated-icons/SheetCustom0501.png" alt="Hypervelocity transport" width="48" height="48"></a></td>
 <td><strong>Hypervelocity transport</strong></td>
-<td>- Requires 800 shipments</td>
+<td>Requires 800 shipments</td>
 <td><strong>5 septendecillion cookies</strong></td>
 <td>Shipments are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0502.png"><img src="assets/generated-icons/SheetCustom0502.png" alt="Container co-op cards" width="48" height="48"></a></td>
 <td><strong>Container co-op cards</strong></td>
-<td>- Requires 850 shipments</td>
+<td>Requires 850 shipments</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0503.png"><img src="assets/generated-icons/SheetCustom0503.png" alt="Spatial compression" width="48" height="48"></a></td>
 <td><strong>Spatial compression</strong></td>
-<td>- Requires 900 shipments</td>
+<td>Requires 900 shipments</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Shipments are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0504.png"><img src="assets/generated-icons/SheetCustom0504.png" alt="Reusable launch crates" width="48" height="48"></a></td>
 <td><strong>Reusable launch crates</strong></td>
-<td>- Requires 950 shipments</td>
+<td>Requires 950 shipments</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0505.png"><img src="assets/generated-icons/SheetCustom0505.png" alt="Dimensional routing" width="48" height="48"></a></td>
 <td><strong>Dimensional routing</strong></td>
-<td>- Requires 1000 shipments</td>
+<td>Requires 1000 shipments</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Shipments are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0506.png"><img src="assets/generated-icons/SheetCustom0506.png" alt="Autodocker apprentices" width="48" height="48"></a></td>
 <td><strong>Autodocker apprentices</strong></td>
-<td>- Requires 1050 shipments</td>
+<td>Requires 1050 shipments</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0507.png"><img src="assets/generated-icons/SheetCustom0507.png" alt="Quantum teleportation" width="48" height="48"></a></td>
 <td><strong>Quantum teleportation</strong></td>
-<td>- Requires 1100 shipments</td>
+<td>Requires 1100 shipments</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Shipments are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0508.png"><img src="assets/generated-icons/SheetCustom0508.png" alt="Route rebate vouchers" width="48" height="48"></a></td>
 <td><strong>Route rebate vouchers</strong></td>
-<td>- Requires 1150 shipments</td>
+<td>Requires 1150 shipments</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0509.png"><img src="assets/generated-icons/SheetCustom0509.png" alt="Causality manipulation" width="48" height="48"></a></td>
 <td><strong>Causality manipulation</strong></td>
-<td>- Requires 1200 shipments</td>
+<td>Requires 1200 shipments</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Shipments are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0510.png"><img src="assets/generated-icons/SheetCustom0510.png" alt="Free-trade cookie ports" width="48" height="48"></a></td>
 <td><strong>Free-trade cookie ports</strong></td>
-<td>- Requires 1250 shipments</td>
+<td>Requires 1250 shipments</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Shipments cost <strong>5%</strong> less</td>
 </tr>
@@ -4112,77 +4112,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0600.png"><img src="assets/generated-icons/SheetCustom0600.png" alt="Beaker buybacks" width="48" height="48"></a></td>
 <td><strong>Beaker buybacks</strong></td>
-<td>- Requires 750 alchemy labs</td>
+<td>Requires 750 alchemy labs</td>
 <td><strong>500 sexdecillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0601.png"><img src="assets/generated-icons/SheetCustom0601.png" alt="Essence distillation" width="48" height="48"></a></td>
 <td><strong>Essence distillation</strong></td>
-<td>- Requires 800 alchemy labs</td>
+<td>Requires 800 alchemy labs</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Alchemy labs are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0602.png"><img src="assets/generated-icons/SheetCustom0602.png" alt="Philosopher’s pebbles" width="48" height="48"></a></td>
 <td><strong>Philosopher’s pebbles</strong></td>
-<td>- Requires 850 alchemy labs</td>
+<td>Requires 850 alchemy labs</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0603.png"><img src="assets/generated-icons/SheetCustom0603.png" alt="Molecular gastronomy" width="48" height="48"></a></td>
 <td><strong>Molecular gastronomy</strong></td>
-<td>- Requires 900 alchemy labs</td>
+<td>Requires 900 alchemy labs</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Alchemy labs are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0604.png"><img src="assets/generated-icons/SheetCustom0604.png" alt="Cool-running crucibles" width="48" height="48"></a></td>
 <td><strong>Cool-running crucibles</strong></td>
-<td>- Requires 950 alchemy labs</td>
+<td>Requires 950 alchemy labs</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0605.png"><img src="assets/generated-icons/SheetCustom0605.png" alt="Flavor alchemy" width="48" height="48"></a></td>
 <td><strong>Flavor alchemy</strong></td>
-<td>- Requires 1000 alchemy labs</td>
+<td>Requires 1000 alchemy labs</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Alchemy labs are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0606.png"><img src="assets/generated-icons/SheetCustom0606.png" alt="Batch homunculi permits" width="48" height="48"></a></td>
 <td><strong>Batch homunculi permits</strong></td>
-<td>- Requires 1050 alchemy labs</td>
+<td>Requires 1050 alchemy labs</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0607.png"><img src="assets/generated-icons/SheetCustom0607.png" alt="Culinary transmutation" width="48" height="48"></a></td>
 <td><strong>Culinary transmutation</strong></td>
-<td>- Requires 1100 alchemy labs</td>
+<td>Requires 1100 alchemy labs</td>
 <td><strong>50 unvigintillion cookies</strong></td>
 <td>Alchemy labs are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0608.png"><img src="assets/generated-icons/SheetCustom0608.png" alt="Guild reagent rates" width="48" height="48"></a></td>
 <td><strong>Guild reagent rates</strong></td>
-<td>- Requires 1150 alchemy labs</td>
+<td>Requires 1150 alchemy labs</td>
 <td><strong>5 duovigintillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0609.png"><img src="assets/generated-icons/SheetCustom0609.png" alt="Gastronomic enlightenment" width="48" height="48"></a></td>
 <td><strong>Gastronomic enlightenment</strong></td>
-<td>- Requires 1200 alchemy labs</td>
+<td>Requires 1200 alchemy labs</td>
 <td><strong>500 duovigintillion cookies</strong></td>
 <td>Alchemy labs are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0610.png"><img src="assets/generated-icons/SheetCustom0610.png" alt="“Mostly lead” gold grants" width="48" height="48"></a></td>
 <td><strong>“Mostly lead” gold grants</strong></td>
-<td>- Requires 1250 alchemy labs</td>
+<td>Requires 1250 alchemy labs</td>
 <td><strong>50 trevigintillion cookies</strong></td>
 <td>Alchemy labs cost <strong>5%</strong> less</td>
 </tr>
@@ -4205,77 +4205,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0700.png"><img src="assets/generated-icons/SheetCustom0700.png" alt="Pre-owned ring frames" width="48" height="48"></a></td>
 <td><strong>Pre-owned ring frames</strong></td>
-<td>- Requires 750 portals</td>
+<td>Requires 750 portals</td>
 <td><strong>5 septendecillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0701.png"><img src="assets/generated-icons/SheetCustom0701.png" alt="Dimensional gateways" width="48" height="48"></a></td>
 <td><strong>Dimensional gateways</strong></td>
-<td>- Requires 800 portals</td>
+<td>Requires 800 portals</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Portals are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0702.png"><img src="assets/generated-icons/SheetCustom0702.png" alt="Anchor warehouse club" width="48" height="48"></a></td>
 <td><strong>Anchor warehouse club</strong></td>
-<td>- Requires 850 portals</td>
+<td>Requires 850 portals</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0703.png"><img src="assets/generated-icons/SheetCustom0703.png" alt="Reality bridges" width="48" height="48"></a></td>
 <td><strong>Reality bridges</strong></td>
-<td>- Requires 900 portals</td>
+<td>Requires 900 portals</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Portals are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0704.png"><img src="assets/generated-icons/SheetCustom0704.png" alt="Passive rift baffles" width="48" height="48"></a></td>
 <td><strong>Passive rift baffles</strong></td>
-<td>- Requires 950 portals</td>
+<td>Requires 950 portals</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0705.png"><img src="assets/generated-icons/SheetCustom0705.png" alt="Spatial conduits" width="48" height="48"></a></td>
 <td><strong>Spatial conduits</strong></td>
-<td>- Requires 1000 portals</td>
+<td>Requires 1000 portals</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Portals are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0706.png"><img src="assets/generated-icons/SheetCustom0706.png" alt="Volunteer gatekeepers" width="48" height="48"></a></td>
 <td><strong>Volunteer gatekeepers</strong></td>
-<td>- Requires 1050 portals</td>
+<td>Requires 1050 portals</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0707.png"><img src="assets/generated-icons/SheetCustom0707.png" alt="Interdimensional highways" width="48" height="48"></a></td>
 <td><strong>Interdimensional highways</strong></td>
-<td>- Requires 1100 portals</td>
+<td>Requires 1100 portals</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Portals are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0708.png"><img src="assets/generated-icons/SheetCustom0708.png" alt="Interrealm stipend scrolls" width="48" height="48"></a></td>
 <td><strong>Interrealm stipend scrolls</strong></td>
-<td>- Requires 1150 portals</td>
+<td>Requires 1150 portals</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0709.png"><img src="assets/generated-icons/SheetCustom0709.png" alt="Cosmic gateways" width="48" height="48"></a></td>
 <td><strong>Cosmic gateways</strong></td>
-<td>- Requires 1200 portals</td>
+<td>Requires 1200 portals</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Portals are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0710.png"><img src="assets/generated-icons/SheetCustom0710.png" alt="Multiversal enterprise zone" width="48" height="48"></a></td>
 <td><strong>Multiversal enterprise zone</strong></td>
-<td>- Requires 1250 portals</td>
+<td>Requires 1250 portals</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Portals cost <strong>5%</strong> less</td>
 </tr>
@@ -4298,77 +4298,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0800.png"><img src="assets/generated-icons/SheetCustom0800.png" alt="Pre-loved hourglasses" width="48" height="48"></a></td>
 <td><strong>Pre-loved hourglasses</strong></td>
-<td>- Requires 750 time machines</td>
+<td>Requires 750 time machines</td>
 <td><strong>50 septendecillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0801.png"><img src="assets/generated-icons/SheetCustom0801.png" alt="Temporal engineering" width="48" height="48"></a></td>
 <td><strong>Temporal engineering</strong></td>
-<td>- Requires 800 time machines</td>
+<td>Requires 800 time machines</td>
 <td><strong>5 octodecillion cookies</strong></td>
 <td>Time machines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0802.png"><img src="assets/generated-icons/SheetCustom0802.png" alt="Depreciated timeline scraps" width="48" height="48"></a></td>
 <td><strong>Depreciated timeline scraps</strong></td>
-<td>- Requires 850 time machines</td>
+<td>Requires 850 time machines</td>
 <td><strong>500 octodecillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0803.png"><img src="assets/generated-icons/SheetCustom0803.png" alt="Chronological optimization" width="48" height="48"></a></td>
 <td><strong>Chronological optimization</strong></td>
-<td>- Requires 900 time machines</td>
+<td>Requires 900 time machines</td>
 <td><strong>50 novemdecillion cookies</strong></td>
 <td>Time machines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0804.png"><img src="assets/generated-icons/SheetCustom0804.png" alt="Off-season flux valves" width="48" height="48"></a></td>
 <td><strong>Off-season flux valves</strong></td>
-<td>- Requires 950 time machines</td>
+<td>Requires 950 time machines</td>
 <td><strong>5 vigintillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0805.png"><img src="assets/generated-icons/SheetCustom0805.png" alt="Historical preservation" width="48" height="48"></a></td>
 <td><strong>Historical preservation</strong></td>
-<td>- Requires 1000 time machines</td>
+<td>Requires 1000 time machines</td>
 <td><strong>500 vigintillion cookies</strong></td>
 <td>Time machines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0806.png"><img src="assets/generated-icons/SheetCustom0806.png" alt="Weekend paradox passes" width="48" height="48"></a></td>
 <td><strong>Weekend paradox passes</strong></td>
-<td>- Requires 1050 time machines</td>
+<td>Requires 1050 time machines</td>
 <td><strong>50 unvigintillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0807.png"><img src="assets/generated-icons/SheetCustom0807.png" alt="Temporal synchronization" width="48" height="48"></a></td>
 <td><strong>Temporal synchronization</strong></td>
-<td>- Requires 1100 time machines</td>
+<td>Requires 1100 time machines</td>
 <td><strong>5 duovigintillion cookies</strong></td>
 <td>Time machines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0808.png"><img src="assets/generated-icons/SheetCustom0808.png" alt="Department of When grants" width="48" height="48"></a></td>
 <td><strong>Department of When grants</strong></td>
-<td>- Requires 1150 time machines</td>
+<td>Requires 1150 time machines</td>
 <td><strong>500 duovigintillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0809.png"><img src="assets/generated-icons/SheetCustom0809.png" alt="Chronological mastery" width="48" height="48"></a></td>
 <td><strong>Chronological mastery</strong></td>
-<td>- Requires 1200 time machines</td>
+<td>Requires 1200 time machines</td>
 <td><strong>50 trevigintillion cookies</strong></td>
 <td>Time machines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom0810.png"><img src="assets/generated-icons/SheetCustom0810.png" alt="Antique warranty loopholes" width="48" height="48"></a></td>
 <td><strong>Antique warranty loopholes</strong></td>
-<td>- Requires 1250 time machines</td>
+<td>Requires 1250 time machines</td>
 <td><strong>5 quattuorvigintillion cookies</strong></td>
 <td>Time machines cost <strong>5%</strong> less</td>
 </tr>
@@ -4391,77 +4391,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1100.png"><img src="assets/generated-icons/SheetCustom1100.png" alt="Certified negamatter cans" width="48" height="48"></a></td>
 <td><strong>Certified negamatter cans</strong></td>
-<td>- Requires 750 antimatter condensers</td>
+<td>Requires 750 antimatter condensers</td>
 <td><strong>500 septendecillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1101.png"><img src="assets/generated-icons/SheetCustom1101.png" alt="Particle synthesis" width="48" height="48"></a></td>
 <td><strong>Particle synthesis</strong></td>
-<td>- Requires 800 antimatter condensers</td>
+<td>Requires 800 antimatter condensers</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Antimatter condensers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1102.png"><img src="assets/generated-icons/SheetCustom1102.png" alt="Matter swap rebates" width="48" height="48"></a></td>
 <td><strong>Matter swap rebates</strong></td>
-<td>- Requires 850 antimatter condensers</td>
+<td>Requires 850 antimatter condensers</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1103.png"><img src="assets/generated-icons/SheetCustom1103.png" alt="Matter transmutation" width="48" height="48"></a></td>
 <td><strong>Matter transmutation</strong></td>
-<td>- Requires 900 antimatter condensers</td>
+<td>Requires 900 antimatter condensers</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Antimatter condensers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1104.png"><img src="assets/generated-icons/SheetCustom1104.png" alt="Low-idle annihilators" width="48" height="48"></a></td>
 <td><strong>Low-idle annihilators</strong></td>
-<td>- Requires 950 antimatter condensers</td>
+<td>Requires 950 antimatter condensers</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1105.png"><img src="assets/generated-icons/SheetCustom1105.png" alt="Quantum baking" width="48" height="48"></a></td>
 <td><strong>Quantum baking</strong></td>
-<td>- Requires 1000 antimatter condensers</td>
+<td>Requires 1000 antimatter condensers</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Antimatter condensers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1106.png"><img src="assets/generated-icons/SheetCustom1106.png" alt="Grad-lab particle labor" width="48" height="48"></a></td>
 <td><strong>Grad-lab particle labor</strong></td>
-<td>- Requires 1050 antimatter condensers</td>
+<td>Requires 1050 antimatter condensers</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1107.png"><img src="assets/generated-icons/SheetCustom1107.png" alt="Particle optimization" width="48" height="48"></a></td>
 <td><strong>Particle optimization</strong></td>
-<td>- Requires 1100 antimatter condensers</td>
+<td>Requires 1100 antimatter condensers</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Antimatter condensers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1108.png"><img src="assets/generated-icons/SheetCustom1108.png" alt="Institute endowment match" width="48" height="48"></a></td>
 <td><strong>Institute endowment match</strong></td>
-<td>- Requires 1150 antimatter condensers</td>
+<td>Requires 1150 antimatter condensers</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1109.png"><img src="assets/generated-icons/SheetCustom1109.png" alt="Matter manipulation" width="48" height="48"></a></td>
 <td><strong>Matter manipulation</strong></td>
-<td>- Requires 1200 antimatter condensers</td>
+<td>Requires 1200 antimatter condensers</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Antimatter condensers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1110.png"><img src="assets/generated-icons/SheetCustom1110.png" alt="Void-zone incentives" width="48" height="48"></a></td>
 <td><strong>Void-zone incentives</strong></td>
-<td>- Requires 1250 antimatter condensers</td>
+<td>Requires 1250 antimatter condensers</td>
 <td><strong>50 quattuorvigintillion cookies</strong></td>
 <td>Antimatter condensers cost <strong>5%</strong> less</td>
 </tr>
@@ -4484,77 +4484,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1200.png"><img src="assets/generated-icons/SheetCustom1200.png" alt="Lens co-op exchange" width="48" height="48"></a></td>
 <td><strong>Lens co-op exchange</strong></td>
-<td>- Requires 750 prisms</td>
+<td>Requires 750 prisms</td>
 <td><strong>50 octodecillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1201.png"><img src="assets/generated-icons/SheetCustom1201.png" alt="Light crystallization" width="48" height="48"></a></td>
 <td><strong>Light crystallization</strong></td>
-<td>- Requires 800 prisms</td>
+<td>Requires 800 prisms</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Prisms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1202.png"><img src="assets/generated-icons/SheetCustom1202.png" alt="Spectral seconds" width="48" height="48"></a></td>
 <td><strong>Spectral seconds</strong></td>
-<td>- Requires 850 prisms</td>
+<td>Requires 850 prisms</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1203.png"><img src="assets/generated-icons/SheetCustom1203.png" alt="Spectral baking" width="48" height="48"></a></td>
 <td><strong>Spectral baking</strong></td>
-<td>- Requires 900 prisms</td>
+<td>Requires 900 prisms</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Prisms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1204.png"><img src="assets/generated-icons/SheetCustom1204.png" alt="Sleep-mode rainbows" width="48" height="48"></a></td>
 <td><strong>Sleep-mode rainbows</strong></td>
-<td>- Requires 950 prisms</td>
+<td>Requires 950 prisms</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1205.png"><img src="assets/generated-icons/SheetCustom1205.png" alt="Optical alchemy" width="48" height="48"></a></td>
 <td><strong>Optical alchemy</strong></td>
-<td>- Requires 1000 prisms</td>
+<td>Requires 1000 prisms</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Prisms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1206.png"><img src="assets/generated-icons/SheetCustom1206.png" alt="Apprentice refractioneers" width="48" height="48"></a></td>
 <td><strong>Apprentice refractioneers</strong></td>
-<td>- Requires 1050 prisms</td>
+<td>Requires 1050 prisms</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1207.png"><img src="assets/generated-icons/SheetCustom1207.png" alt="Luminous confectionery" width="48" height="48"></a></td>
 <td><strong>Luminous confectionery</strong></td>
-<td>- Requires 1100 prisms</td>
+<td>Requires 1100 prisms</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Prisms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1208.png"><img src="assets/generated-icons/SheetCustom1208.png" alt="Arts-of-Optics grants" width="48" height="48"></a></td>
 <td><strong>Arts-of-Optics grants</strong></td>
-<td>- Requires 1150 prisms</td>
+<td>Requires 1150 prisms</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1209.png"><img src="assets/generated-icons/SheetCustom1209.png" alt="Radiant gastronomy" width="48" height="48"></a></td>
 <td><strong>Radiant gastronomy</strong></td>
-<td>- Requires 1200 prisms</td>
+<td>Requires 1200 prisms</td>
 <td><strong>50 quattuorvigintillion cookies</strong></td>
 <td>Prisms are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1210.png"><img src="assets/generated-icons/SheetCustom1210.png" alt="Rainbow renewal credits" width="48" height="48"></a></td>
 <td><strong>Rainbow renewal credits</strong></td>
-<td>- Requires 1250 prisms</td>
+<td>Requires 1250 prisms</td>
 <td><strong>5 quinvigintillion cookies</strong></td>
 <td>Prisms cost <strong>5%</strong> less</td>
 </tr>
@@ -4577,77 +4577,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1700.png"><img src="assets/generated-icons/SheetCustom1700.png" alt="Misprinted fortunes" width="48" height="48"></a></td>
 <td><strong>Misprinted fortunes</strong></td>
-<td>- Requires 750 chancemakers</td>
+<td>Requires 750 chancemakers</td>
 <td><strong>5 novemdecillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1701.png"><img src="assets/generated-icons/SheetCustom1701.png" alt="Probability manipulation" width="48" height="48"></a></td>
 <td><strong>Probability manipulation</strong></td>
-<td>- Requires 800 chancemakers</td>
+<td>Requires 800 chancemakers</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Chancemakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1702.png"><img src="assets/generated-icons/SheetCustom1702.png" alt="Reroll refund policy" width="48" height="48"></a></td>
 <td><strong>Reroll refund policy</strong></td>
-<td>- Requires 850 chancemakers</td>
+<td>Requires 850 chancemakers</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1703.png"><img src="assets/generated-icons/SheetCustom1703.png" alt="Fortune optimization" width="48" height="48"></a></td>
 <td><strong>Fortune optimization</strong></td>
-<td>- Requires 900 chancemakers</td>
+<td>Requires 900 chancemakers</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Chancemakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1704.png"><img src="assets/generated-icons/SheetCustom1704.png" alt="Economy-grade omens" width="48" height="48"></a></td>
 <td><strong>Economy-grade omens</strong></td>
-<td>- Requires 950 chancemakers</td>
+<td>Requires 950 chancemakers</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1705.png"><img src="assets/generated-icons/SheetCustom1705.png" alt="Serendipity engineering" width="48" height="48"></a></td>
 <td><strong>Serendipity engineering</strong></td>
-<td>- Requires 1000 chancemakers</td>
+<td>Requires 1000 chancemakers</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Chancemakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1706.png"><img src="assets/generated-icons/SheetCustom1706.png" alt="Volunteer augury nights" width="48" height="48"></a></td>
 <td><strong>Volunteer augury nights</strong></td>
-<td>- Requires 1050 chancemakers</td>
+<td>Requires 1050 chancemakers</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1707.png"><img src="assets/generated-icons/SheetCustom1707.png" alt="Random enhancement" width="48" height="48"></a></td>
 <td><strong>Random enhancement</strong></td>
-<td>- Requires 1100 chancemakers</td>
+<td>Requires 1100 chancemakers</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Chancemakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1708.png"><img src="assets/generated-icons/SheetCustom1708.png" alt="Lottery board matching" width="48" height="48"></a></td>
 <td><strong>Lottery board matching</strong></td>
-<td>- Requires 1150 chancemakers</td>
+<td>Requires 1150 chancemakers</td>
 <td><strong>50 quattuorvigintillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1709.png"><img src="assets/generated-icons/SheetCustom1709.png" alt="Luck amplification" width="48" height="48"></a></td>
 <td><strong>Luck amplification</strong></td>
-<td>- Requires 1200 chancemakers</td>
+<td>Requires 1200 chancemakers</td>
 <td><strong>5 quinvigintillion cookies</strong></td>
 <td>Chancemakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1710.png"><img src="assets/generated-icons/SheetCustom1710.png" alt="Lucky district waivers" width="48" height="48"></a></td>
 <td><strong>Lucky district waivers</strong></td>
-<td>- Requires 1250 chancemakers</td>
+<td>Requires 1250 chancemakers</td>
 <td><strong>500 quinvigintillion cookies</strong></td>
 <td>Chancemakers cost <strong>5%</strong> less</td>
 </tr>
@@ -4670,77 +4670,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1800.png"><img src="assets/generated-icons/SheetCustom1800.png" alt="Iteration liquidation" width="48" height="48"></a></td>
 <td><strong>Iteration liquidation</strong></td>
-<td>- Requires 750 fractal engines</td>
+<td>Requires 750 fractal engines</td>
 <td><strong>500 novemdecillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1801.png"><img src="assets/generated-icons/SheetCustom1801.png" alt="Infinite recursion" width="48" height="48"></a></td>
 <td><strong>Infinite recursion</strong></td>
-<td>- Requires 800 fractal engines</td>
+<td>Requires 800 fractal engines</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Fractal engines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1802.png"><img src="assets/generated-icons/SheetCustom1802.png" alt="Self-similar spare parts" width="48" height="48"></a></td>
 <td><strong>Self-similar spare parts</strong></td>
-<td>- Requires 850 fractal engines</td>
+<td>Requires 850 fractal engines</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1803.png"><img src="assets/generated-icons/SheetCustom1803.png" alt="Self-similar baking" width="48" height="48"></a></td>
 <td><strong>Self-similar baking</strong></td>
-<td>- Requires 900 fractal engines</td>
+<td>Requires 900 fractal engines</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Fractal engines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1804.png"><img src="assets/generated-icons/SheetCustom1804.png" alt="Recursion rebates" width="48" height="48"></a></td>
 <td><strong>Recursion rebates</strong></td>
-<td>- Requires 950 fractal engines</td>
+<td>Requires 950 fractal engines</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1805.png"><img src="assets/generated-icons/SheetCustom1805.png" alt="Fractal optimization" width="48" height="48"></a></td>
 <td><strong>Fractal optimization</strong></td>
-<td>- Requires 1000 fractal engines</td>
+<td>Requires 1000 fractal engines</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Fractal engines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1806.png"><img src="assets/generated-icons/SheetCustom1806.png" alt="Autogenerator residencies" width="48" height="48"></a></td>
 <td><strong>Autogenerator residencies</strong></td>
-<td>- Requires 1050 fractal engines</td>
+<td>Requires 1050 fractal engines</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1807.png"><img src="assets/generated-icons/SheetCustom1807.png" alt="Recursive enhancement" width="48" height="48"></a></td>
 <td><strong>Recursive enhancement</strong></td>
-<td>- Requires 1100 fractal engines</td>
+<td>Requires 1100 fractal engines</td>
 <td><strong>50 quattuorvigintillion cookies</strong></td>
 <td>Fractal engines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1808.png"><img src="assets/generated-icons/SheetCustom1808.png" alt="Grant-funded proofs" width="48" height="48"></a></td>
 <td><strong>Grant-funded proofs</strong></td>
-<td>- Requires 1150 fractal engines</td>
+<td>Requires 1150 fractal engines</td>
 <td><strong>5 quinvigintillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1809.png"><img src="assets/generated-icons/SheetCustom1809.png" alt="Fractal gastronomy" width="48" height="48"></a></td>
 <td><strong>Fractal gastronomy</strong></td>
-<td>- Requires 1200 fractal engines</td>
+<td>Requires 1200 fractal engines</td>
 <td><strong>500 quinvigintillion cookies</strong></td>
 <td>Fractal engines are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1810.png"><img src="assets/generated-icons/SheetCustom1810.png" alt="Infinite-lot variances" width="48" height="48"></a></td>
 <td><strong>Infinite-lot variances</strong></td>
-<td>- Requires 1250 fractal engines</td>
+<td>Requires 1250 fractal engines</td>
 <td><strong>50 sexvigintillion cookies</strong></td>
 <td>Fractal engines cost <strong>5%</strong> less</td>
 </tr>
@@ -4763,77 +4763,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1900.png"><img src="assets/generated-icons/SheetCustom1900.png" alt="Refurb dev boards" width="48" height="48"></a></td>
 <td><strong>Refurb dev boards</strong></td>
-<td>- Requires 750 javascript consoles</td>
+<td>Requires 750 javascript consoles</td>
 <td><strong>50 vigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1901.png"><img src="assets/generated-icons/SheetCustom1901.png" alt="Code optimization" width="48" height="48"></a></td>
 <td><strong>Code optimization</strong></td>
-<td>- Requires 800 javascript consoles</td>
+<td>Requires 800 javascript consoles</td>
 <td><strong>5 unvigintillion cookies</strong></td>
 <td>Javascript consoles are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1902.png"><img src="assets/generated-icons/SheetCustom1902.png" alt="Compiler credit program" width="48" height="48"></a></td>
 <td><strong>Compiler credit program</strong></td>
-<td>- Requires 850 javascript consoles</td>
+<td>Requires 850 javascript consoles</td>
 <td><strong>500 unvigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1903.png"><img src="assets/generated-icons/SheetCustom1903.png" alt="Programmatic baking" width="48" height="48"></a></td>
 <td><strong>Programmatic baking</strong></td>
-<td>- Requires 900 javascript consoles</td>
+<td>Requires 900 javascript consoles</td>
 <td><strong>50 duovigintillion cookies</strong></td>
 <td>Javascript consoles are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1904.png"><img src="assets/generated-icons/SheetCustom1904.png" alt="Idle-friendly runtimes" width="48" height="48"></a></td>
 <td><strong>Idle-friendly runtimes</strong></td>
-<td>- Requires 950 javascript consoles</td>
+<td>Requires 950 javascript consoles</td>
 <td><strong>5 trevigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1905.png"><img src="assets/generated-icons/SheetCustom1905.png" alt="Algorithmic enhancement" width="48" height="48"></a></td>
 <td><strong>Algorithmic enhancement</strong></td>
-<td>- Requires 1000 javascript consoles</td>
+<td>Requires 1000 javascript consoles</td>
 <td><strong>500 trevigintillion cookies</strong></td>
 <td>Javascript consoles are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1906.png"><img src="assets/generated-icons/SheetCustom1906.png" alt="Peer-review co-ops" width="48" height="48"></a></td>
 <td><strong>Peer-review co-ops</strong></td>
-<td>- Requires 1050 javascript consoles</td>
+<td>Requires 1050 javascript consoles</td>
 <td><strong>50 quattuorvigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1907.png"><img src="assets/generated-icons/SheetCustom1907.png" alt="Computational gastronomy" width="48" height="48"></a></td>
 <td><strong>Computational gastronomy</strong></td>
-<td>- Requires 1100 javascript consoles</td>
+<td>Requires 1100 javascript consoles</td>
 <td><strong>5 quinvigintillion cookies</strong></td>
 <td>Javascript consoles are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1908.png"><img src="assets/generated-icons/SheetCustom1908.png" alt="Open-source grants" width="48" height="48"></a></td>
 <td><strong>Open-source grants</strong></td>
-<td>- Requires 1150 javascript consoles</td>
+<td>Requires 1150 javascript consoles</td>
 <td><strong>500 quinvigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1909.png"><img src="assets/generated-icons/SheetCustom1909.png" alt="Digital confectionery" width="48" height="48"></a></td>
 <td><strong>Digital confectionery</strong></td>
-<td>- Requires 1200 javascript consoles</td>
+<td>Requires 1200 javascript consoles</td>
 <td><strong>50 sexvigintillion cookies</strong></td>
 <td>Javascript consoles are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom1910.png"><img src="assets/generated-icons/SheetCustom1910.png" alt="Cloud credit vouchers" width="48" height="48"></a></td>
 <td><strong>Cloud credit vouchers</strong></td>
-<td>- Requires 1250 javascript consoles</td>
+<td>Requires 1250 javascript consoles</td>
 <td><strong>5 septenvigintillion cookies</strong></td>
 <td>Javascript consoles cost <strong>5%</strong> less</td>
 </tr>
@@ -4856,77 +4856,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2000.png"><img src="assets/generated-icons/SheetCustom2000.png" alt="Interdimensional tax breaks" width="48" height="48"></a></td>
 <td><strong>Interdimensional tax breaks</strong></td>
-<td>- Requires 750 idleverses</td>
+<td>Requires 750 idleverses</td>
 <td><strong>6 unvigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2001.png"><img src="assets/generated-icons/SheetCustom2001.png" alt="Reality real estate" width="48" height="48"></a></td>
 <td><strong>Reality real estate</strong></td>
-<td>- Requires 800 idleverses</td>
+<td>Requires 800 idleverses</td>
 <td><strong>600 unvigintillion cookies</strong></td>
 <td>Idleverses are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2002.png"><img src="assets/generated-icons/SheetCustom2002.png" alt="Reality consolidation discounts" width="48" height="48"></a></td>
 <td><strong>Reality consolidation discounts</strong></td>
-<td>- Requires 850 idleverses</td>
+<td>Requires 850 idleverses</td>
 <td><strong>60 duovigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2003.png"><img src="assets/generated-icons/SheetCustom2003.png" alt="Dimensional franchising" width="48" height="48"></a></td>
 <td><strong>Dimensional franchising</strong></td>
-<td>- Requires 900 idleverses</td>
+<td>Requires 900 idleverses</td>
 <td><strong>6 trevigintillion cookies</strong></td>
 <td>Idleverses are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2004.png"><img src="assets/generated-icons/SheetCustom2004.png" alt="Cosmic bulk purchasing" width="48" height="48"></a></td>
 <td><strong>Cosmic bulk purchasing</strong></td>
-<td>- Requires 950 idleverses</td>
+<td>Requires 950 idleverses</td>
 <td><strong>600 trevigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2005.png"><img src="assets/generated-icons/SheetCustom2005.png" alt="Cosmic supply chains" width="48" height="48"></a></td>
 <td><strong>Cosmic supply chains</strong></td>
-<td>- Requires 1000 idleverses</td>
+<td>Requires 1000 idleverses</td>
 <td><strong>60 quattuorvigintillion cookies</strong></td>
 <td>Idleverses are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2006.png"><img src="assets/generated-icons/SheetCustom2006.png" alt="Multiverse supplier networks" width="48" height="48"></a></td>
 <td><strong>Multiverse supplier networks</strong></td>
-<td>- Requires 1050 idleverses</td>
+<td>Requires 1050 idleverses</td>
 <td><strong>6 quinvigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2007.png"><img src="assets/generated-icons/SheetCustom2007.png" alt="Reality marketplaces" width="48" height="48"></a></td>
 <td><strong>Reality marketplaces</strong></td>
-<td>- Requires 1100 idleverses</td>
+<td>Requires 1100 idleverses</td>
 <td><strong>600 quinvigintillion cookies</strong></td>
 <td>Idleverses are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2008.png"><img src="assets/generated-icons/SheetCustom2008.png" alt="Dimensional economies of scale" width="48" height="48"></a></td>
 <td><strong>Dimensional economies of scale</strong></td>
-<td>- Requires 1150 idleverses</td>
+<td>Requires 1150 idleverses</td>
 <td><strong>60 sexvigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2009.png"><img src="assets/generated-icons/SheetCustom2009.png" alt="Multiverse headquarters" width="48" height="48"></a></td>
 <td><strong>Multiverse headquarters</strong></td>
-<td>- Requires 1200 idleverses</td>
+<td>Requires 1200 idleverses</td>
 <td><strong>6 septenvigintillion cookies</strong></td>
 <td>Idleverses are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2010.png"><img src="assets/generated-icons/SheetCustom2010.png" alt="Reality monopoly pricing" width="48" height="48"></a></td>
 <td><strong>Reality monopoly pricing</strong></td>
-<td>- Requires 1250 idleverses</td>
+<td>Requires 1250 idleverses</td>
 <td><strong>600 septenvigintillion cookies</strong></td>
 <td>Idleverses cost <strong>5%</strong> less</td>
 </tr>
@@ -4949,77 +4949,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2100.png"><img src="assets/generated-icons/SheetCustom2100.png" alt="Neural bulk purchasing" width="48" height="48"></a></td>
 <td><strong>Neural bulk purchasing</strong></td>
-<td>- Requires 750 cortex bakers</td>
+<td>Requires 750 cortex bakers</td>
 <td><strong>950 unvigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2101.png"><img src="assets/generated-icons/SheetCustom2101.png" alt="Neural plasticity" width="48" height="48"></a></td>
 <td><strong>Neural plasticity</strong></td>
-<td>- Requires 800 cortex bakers</td>
+<td>Requires 800 cortex bakers</td>
 <td><strong>95 duovigintillion cookies</strong></td>
 <td>Cortex bakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2102.png"><img src="assets/generated-icons/SheetCustom2102.png" alt="Synaptic wholesale networks" width="48" height="48"></a></td>
 <td><strong>Synaptic wholesale networks</strong></td>
-<td>- Requires 850 cortex bakers</td>
+<td>Requires 850 cortex bakers</td>
 <td><strong>9.5 trevigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2103.png"><img src="assets/generated-icons/SheetCustom2103.png" alt="Synaptic pruning" width="48" height="48"></a></td>
 <td><strong>Synaptic pruning</strong></td>
-<td>- Requires 900 cortex bakers</td>
+<td>Requires 900 cortex bakers</td>
 <td><strong>950 trevigintillion cookies</strong></td>
 <td>Cortex bakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2104.png"><img src="assets/generated-icons/SheetCustom2104.png" alt="Cerebral mass production" width="48" height="48"></a></td>
 <td><strong>Cerebral mass production</strong></td>
-<td>- Requires 950 cortex bakers</td>
+<td>Requires 950 cortex bakers</td>
 <td><strong>95 quattuorvigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2105.png"><img src="assets/generated-icons/SheetCustom2105.png" alt="Cognitive load balancing" width="48" height="48"></a></td>
 <td><strong>Cognitive load balancing</strong></td>
-<td>- Requires 1000 cortex bakers</td>
+<td>Requires 1000 cortex bakers</td>
 <td><strong>9.5 quinvigintillion cookies</strong></td>
 <td>Cortex bakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2106.png"><img src="assets/generated-icons/SheetCustom2106.png" alt="Mind monopoly pricing" width="48" height="48"></a></td>
 <td><strong>Mind monopoly pricing</strong></td>
-<td>- Requires 1050 cortex bakers</td>
+<td>Requires 1050 cortex bakers</td>
 <td><strong>950 quinvigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2107.png"><img src="assets/generated-icons/SheetCustom2107.png" alt="Metacognitive awareness" width="48" height="48"></a></td>
 <td><strong>Metacognitive awareness</strong></td>
-<td>- Requires 1100 cortex bakers</td>
+<td>Requires 1100 cortex bakers</td>
 <td><strong>95 sexvigintillion cookies</strong></td>
 <td>Cortex bakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2108.png"><img src="assets/generated-icons/SheetCustom2108.png" alt="Neural economies of scale" width="48" height="48"></a></td>
 <td><strong>Neural economies of scale</strong></td>
-<td>- Requires 1150 cortex bakers</td>
+<td>Requires 1150 cortex bakers</td>
 <td><strong>9.5 septenvigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2109.png"><img src="assets/generated-icons/SheetCustom2109.png" alt="Neural synchronization" width="48" height="48"></a></td>
 <td><strong>Neural synchronization</strong></td>
-<td>- Requires 1200 cortex bakers</td>
+<td>Requires 1200 cortex bakers</td>
 <td><strong>950 septenvigintillion cookies</strong></td>
 <td>Cortex bakers are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2110.png"><img src="assets/generated-icons/SheetCustom2110.png" alt="Synaptic supply dominance" width="48" height="48"></a></td>
 <td><strong>Synaptic supply dominance</strong></td>
-<td>- Requires 1250 cortex bakers</td>
+<td>Requires 1250 cortex bakers</td>
 <td><strong>95 octovigintillion cookies</strong></td>
 <td>Cortex bakers cost <strong>5%</strong> less</td>
 </tr>
@@ -5042,77 +5042,77 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2200.png"><img src="assets/generated-icons/SheetCustom2200.png" alt="Clone factory economies" width="48" height="48"></a></td>
 <td><strong>Clone factory economies</strong></td>
-<td>- Requires 750 You</td>
+<td>Requires 750 You</td>
 <td><strong>27 duovigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2201.png"><img src="assets/generated-icons/SheetCustom2201.png" alt="Mitotic mastery" width="48" height="48"></a></td>
 <td><strong>Mitotic mastery</strong></td>
-<td>- Requires 800 You</td>
+<td>Requires 800 You</td>
 <td><strong>2.7 trevigintillion cookies</strong></td>
 <td>You are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2202.png"><img src="assets/generated-icons/SheetCustom2202.png" alt="Replica production lines" width="48" height="48"></a></td>
 <td><strong>Replica production lines</strong></td>
-<td>- Requires 850 You</td>
+<td>Requires 850 You</td>
 <td><strong>270 trevigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2203.png"><img src="assets/generated-icons/SheetCustom2203.png" alt="Epigenetic programming" width="48" height="48"></a></td>
 <td><strong>Epigenetic programming</strong></td>
-<td>- Requires 900 You</td>
+<td>Requires 900 You</td>
 <td><strong>27 quattuorvigintillion cookies</strong></td>
 <td>You are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2204.png"><img src="assets/generated-icons/SheetCustom2204.png" alt="Mirror manufacturing mastery" width="48" height="48"></a></td>
 <td><strong>Mirror manufacturing mastery</strong></td>
-<td>- Requires 950 You</td>
+<td>Requires 950 You</td>
 <td><strong>2.7 quinvigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2205.png"><img src="assets/generated-icons/SheetCustom2205.png" alt="Cellular differentiation" width="48" height="48"></a></td>
 <td><strong>Cellular differentiation</strong></td>
-<td>- Requires 1000 You</td>
+<td>Requires 1000 You</td>
 <td><strong>270 quinvigintillion cookies</strong></td>
 <td>You are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2206.png"><img src="assets/generated-icons/SheetCustom2206.png" alt="Twin tycoon pricing" width="48" height="48"></a></td>
 <td><strong>Twin tycoon pricing</strong></td>
-<td>- Requires 1050 You</td>
+<td>Requires 1050 You</td>
 <td><strong>27 sexvigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2207.png"><img src="assets/generated-icons/SheetCustom2207.png" alt="Telomere regeneration" width="48" height="48"></a></td>
 <td><strong>Telomere regeneration</strong></td>
-<td>- Requires 1100 You</td>
+<td>Requires 1100 You</td>
 <td><strong>2.7 septenvigintillion cookies</strong></td>
 <td>You are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2208.png"><img src="assets/generated-icons/SheetCustom2208.png" alt="Doppelganger discount networks" width="48" height="48"></a></td>
 <td><strong>Doppelganger discount networks</strong></td>
-<td>- Requires 1150 You</td>
+<td>Requires 1150 You</td>
 <td><strong>270 septenvigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2209.png"><img src="assets/generated-icons/SheetCustom2209.png" alt="Quantum entanglement" width="48" height="48"></a></td>
 <td><strong>Quantum entanglement</strong></td>
-<td>- Requires 1200 You</td>
+<td>Requires 1200 You</td>
 <td><strong>27 octovigintillion cookies</strong></td>
 <td>You are <strong>8%</strong> more efficient</td>
 </tr>
 <tr>
 <td width="48"><a href="assets/generated-icons/SheetCustom2210.png"><img src="assets/generated-icons/SheetCustom2210.png" alt="Clone supply dominance" width="48" height="48"></a></td>
 <td><strong>Clone supply dominance</strong></td>
-<td>- Requires 1250 You</td>
+<td>Requires 1250 You</td>
 <td><strong>2.7 novemvigintillion cookies</strong></td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
