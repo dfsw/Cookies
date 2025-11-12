@@ -5152,6 +5152,85 @@ Don’t be discouraged if a puzzle doesn’t fall immediately. Like the rest of 
 ### Achievements
 There are six new Achievements for working your way through *Mysteries of the Cookie Age*, they respect the toggle settings for Shadow Achievements so they only effect milk levels if you have them turned on. They will also disappear from your stats if you disable *Mysteries of the Cookie Age*. 
 
+
+## Javascript Console Minigame: Terminal 
+
+Reaching Level 1 Javascript Consoles unlocks the Terminal minigame, the pinnacle of cookie automation technology. Inside, you’ll piece together powerful functions to make your bakery run smoother than a perfectly buttered script. Choose from 10 unique functions, each with its own quirks and parameters. Every line of “code” takes up an execution slot, and leveling up your Consoles (up to 10) expands your capacity for cookie-fueled creativity.
+
+Write clean, think fast, flawless execution unleashes cookies straight from the mainframe, while a single bad call can send your setup crumbling. There’s no time to debug; only those who can see the logic behind the madness will prevail. After every run, the mainframe needs 8 hours to cool back down to operating temperatures.
+
+Master the system, optimize your scripts, and ascend as Cookie Clicker’s ultimate pseudo-programmer.
+
+### API Documentation
+
+```js
+/**
+ * property_Exchange_Daemon()
+ * @description Buy and sell buildings
+ */
+property_Exchange_Daemon();
+
+/**
+ * divine_Thread_Swapper()
+ * @description Swap gods in the Pantheon
+ */
+divine_Thread_Swapper();
+
+/**
+ * spellcast_Process_Handler()
+ * @description Cast spells from the Grimoire
+ */
+spellcast_Process_Handler();
+
+/**
+ * garden_Task_Executor()
+ * @description Harvest and plant seeds in the Garden
+ */
+garden_Task_Executor();
+
+/**
+ * aura_Heap_Controller()
+ * @description Change Dragon Auras
+ */
+aura_Heap_Controller();
+
+/**
+ * async_Sleep_Thread()
+ * @description Pause execution to perform human actions
+ */
+async_Sleep_Thread();
+
+/**
+ * click_Pulse_Generator(level)
+ * @description Click the Big Cookie 5 times per Javascript Console level (up to 20)
+ */
+click_Pulse_Generator(level);
+
+/**
+ * credit_Cycle_Routine()
+ * @description Take out stock market loans
+ */
+credit_Cycle_Routine();
+
+/**
+ * toggle_Switcher_Module()
+ * @description Toggle switches (Golden Switch, Elder Pact, Seasons, etc.)
+ */
+toggle_Switcher_Module();
+
+/**
+ * sweet_Runtime_Swizzler()
+ * @description Spend sugar to activate Sugar Frenzy, refresh cooldowns,
+ *              harvest lumps, or click on-screen golden cookies
+ */
+sweet_Runtime_Swizzler();
+
+### Terminal Minigame Achievements
+10x Full-Stack Rockstar Ninja Wizard Engineer - Execute 100 Programs in the Terminal Minigame. “Achieved total synergy with the mainframe. Human Resources is adding another adjective to your job title as we speak.”
+
+Agile Hacker Samurai Engineer Jedi-Craftsman - Execute 500 programs in the Terminal Minigame “Your LinkedIn job history reads like the opening chapter of a J.R.R. Tolkien novel.”
+
+
 ## Changelog
 
 ### Version 0.1.2
