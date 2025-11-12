@@ -5224,6 +5224,7 @@ toggle_Switcher_Module();
  *              harvest lumps, or click on-screen golden cookies
  */
 sweet_Runtime_Swizzler();
+```
 
 ### Terminal Minigame Achievements
 10x Full-Stack Rockstar Ninja Wizard Engineer - Execute 100 Programs in the Terminal Minigame. “Achieved total synergy with the mainframe. Human Resources is adding another adjective to your job title as we speak.”
