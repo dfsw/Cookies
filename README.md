@@ -5162,7 +5162,7 @@ Write clean, think fast, flawless execution unleashes cookies straight from the 
 
 Master the system, optimize your scripts, and ascend as Cookie Clicker’s ultimate pseudo-programmer.
 
-### API Documentation
+### Terminal API Developer Documentation
 
 ```js
 /**
@@ -5244,7 +5244,7 @@ sweet_Runtime_Swizzler();
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1910.png"><img src="./assets/generated-icons/SheetCustom1910.png" alt="Emperor of Runtime" width="48" height="48"></a></td>
-<td><strong>Agile Hacker Samurai Engineer Jedi-Craftsman</strong></td>
+<td><strong>Agile Hacker Samurai Jedi-Craftsman Engineer</strong></td>
 <td>Execute <strong>500 Programs</strong> in the Terminal minigame.</td>
 </tr>
 </tbody>
