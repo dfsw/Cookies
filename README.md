@@ -5227,9 +5227,27 @@ sweet_Runtime_Swizzler();
 ```
 
 ### Terminal Minigame Achievements
-10x Full-Stack Rockstar Ninja Wizard Engineer - Execute 100 Programs in the Terminal Minigame. “Achieved total synergy with the mainframe. Human Resources is adding another adjective to your job title as we speak.”
-
-Agile Hacker Samurai Engineer Jedi-Craftsman - Execute 500 programs in the Terminal Minigame “Your LinkedIn job history reads like the opening chapter of a J.R.R. Tolkien novel.”
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Achievement</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1909.png"><img src="./assets/generated-icons/SheetCustom1909.png" alt="Single-threaded, single-minded" width="48" height="48"></a></td>
+<td><strong>10x Full-Stack Rockstar Ninja Wizard Engineer</strong></td>
+<td>Execute <strong>100 Programs</strong> in the Terminal Minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1910.png"><img src="./assets/generated-icons/SheetCustom1910.png" alt="Emperor of Runtime" width="48" height="48"></a></td>
+<td><strong>Agile Hacker Samurai Engineer Jedi-Craftsman</strong></td>
+<td>Execute <strong>500 Programs</strong> in the Terminal Minigame.</td>
+</tr>
+</tbody>
+</table>
 
 
 ## Changelog
