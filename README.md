@@ -5239,12 +5239,12 @@ sweet_Runtime_Swizzler();
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1909.png"><img src="./assets/generated-icons/SheetCustom1909.png" alt="Single-threaded, single-minded" width="48" height="48"></a></td>
 <td><strong>10x Full-Stack Rockstar Ninja Wizard Engineer</strong></td>
-<td>Execute <strong>100 Programs</strong> in the Terminal Minigame.</td>
+<td>Execute <strong>100 Programs</strong> in the Terminal minigame.</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1910.png"><img src="./assets/generated-icons/SheetCustom1910.png" alt="Emperor of Runtime" width="48" height="48"></a></td>
 <td><strong>Agile Hacker Samurai Engineer Jedi-Craftsman</strong></td>
-<td>Execute <strong>500 Programs</strong> in the Terminal Minigame.</td>
+<td>Execute <strong>500 Programs</strong> in the Terminal minigame.</td>
 </tr>
 </tbody>
 </table>
