@@ -7,6 +7,7 @@
 * [New Achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-achievements)
 * [New Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-upgrades)
 * [Mysteries of the Cookie Age](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#Mysteries-of-the-Cookie-Age)
+* [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal)
 * [Changelog](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#changelog)
 
 **The Just Natural Expansion Mod** enhances the Cookie Clicker endgame without disrupting core gameplay, staying true to the spirit of the vanilla experience. It introduces over **450 achievements**, **250 upgrades**, new goals, new stories, and deeply rooted hidden elements, all specifically designed for late-game progression, so early or mid-game players may not immediately notice changes. 
