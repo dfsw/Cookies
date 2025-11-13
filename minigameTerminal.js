@@ -9,10 +9,7 @@ var terminalAchievementNames = [
     'Agile hacker samurai jedi-craftsman engineer'
 ];
 
-var terminalAchievementThresholds = [
-    100,
-    500
-];
+var terminalAchievementThresholds = [100,500]; //programs run for our two achievements
 
 var terminalAchievementState = {
     achievementsCreated: false
@@ -22,7 +19,7 @@ M.launch = function () {
     var M = this;
     M.name = M.parent.minigameName;
     M.maxSlots = 10;
-    M.absoluteMaxSlots = M.maxSlots + 1;
+    M.absoluteMaxSlots = M.maxSlots + 1; //for the aura bonus 
 
     const TERMINAL_BACKGROUND_URL = 'https://raw.githubusercontent.com/dfsw/Cookies/main/TerminalBG.png';
     const TERMINAL_DIRECTIONAL_URL = 'https://raw.githubusercontent.com/dfsw/Cookies/main/directional.png';
@@ -284,6 +281,7 @@ M.launch = function () {
         return list;
     }
 
+    //orteil and his mini icons, annoying, just put them centered in a full size slot dude, come on.
     function getPantheonSlotOptions() {
         return [
             { value: 0, label: 'Diamond slot', icon: [23, 15, null, 24, 24] },
@@ -676,6 +674,7 @@ M.launch = function () {
                     valueType: 'number',
                     options: function () {
                         return [
+                            //these are backwards from what most reasonable people would expect, I refuse to catch grief from it though
                             { value: 0, label: 'Primary slot', icon: [0, 10] },
                             { value: 1, label: 'Secondary slot', icon: [1, 10] }
                         ];
@@ -879,9 +878,6 @@ M.launch = function () {
             try {
                 return field.options.call(field, M, program, config) || [];
             } catch (err) {
-                if (typeof console !== 'undefined' && console.error) {
-                    console.error('[Terminal] Failed to resolve options for field', field.id, err);
-                }
                 return [];
             }
         }
@@ -1012,9 +1008,6 @@ M.launch = function () {
             var normalized = M.normalizeConfig(program, config || {}, true);
             return program.summarizeConfig.call(program, normalized || {});
         } catch (err) {
-            if (typeof console !== 'undefined' && console.error) {
-                console.error('[Terminal] Failed to summarize program config for', program.key, err);
-            }
         }
         return '';
     };
@@ -1096,9 +1089,6 @@ M.launch = function () {
         try {
             result = handler.call(M, config, { slotIndex: slotIndex, program: program });
         } catch (e) {
-            if (typeof console !== 'undefined' && console.error) {
-                console.error('[Terminal] Program handler failed for', program.key, e);
-            }
             result = err(program.name + ': error while executing.');
         }
         if (!result || typeof result !== 'object') {
@@ -1166,7 +1156,7 @@ M.launch = function () {
         var amount = Math.min(9999, Math.max(0, rawAmount));
         var buildingId = parseInt(config.building, 10);
         var building = (typeof buildingId === 'number' && !isNaN(buildingId) && Game && Game.ObjectsById) ? Game.ObjectsById[buildingId] : null;
-        if (!building) return err('Selected building is not available.');
+        if (!building) return err('Building is not available.');
 
         var changed = 0;
         var cookiesBefore = Game.cookies;
@@ -1226,7 +1216,7 @@ M.launch = function () {
         var slotIndex = parseInt(config.slot, 10);
         if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 2) return err('Invalid Pantheon slot.');
         var god = resolvePantheonGod(temple, config.god);
-        if (!god) return err('Unknown spirit.');
+        if (!god) return err('Unknown god.');
 
         var currentSlot = (god.slot !== undefined) ? god.slot : -1;
         var slotLabel = getPantheonSlotLabel(slotIndex);
@@ -1373,7 +1363,7 @@ M.launch = function () {
                 else garden.toCompute = true;
                 return ok('Harvested ' + Beautify(harvested) + ' ' + messageLabel + (harvested === 1 ? '' : 's') + '.');
             }
-            return err('No plants matched the harvest criteria.');
+            return err('No plants matched the harvest parameters.');
         }
 
         if (action === 'swapSoil') {
@@ -1399,7 +1389,7 @@ M.launch = function () {
                     }
                 }
             }
-            return ok('Swapped soil to ' + soil.name + '.');
+            return ok('Changed garden soil type to ' + soil.name + '.');
         }
         return err('Unknown garden action.');
     });
@@ -1438,7 +1428,7 @@ M.launch = function () {
             if (!onUpgrade.canBuy()) costMessage = 'Need ' + formatPrice(onUpgrade.getPrice()) + ' cookies to disable the ' + displayName.toLowerCase() + '.';
             else candidate = onUpgrade;
         }
-        if (!candidate) return err(costMessage || displayName + ' cannot be toggled right now.');
+        if (!candidate) return err(costMessage || displayName + ' cannot be toggled.');
         if (typeof candidate.click === 'function') candidate.click();
         else candidate.buy();
         var nowOn = Game.Has(baseName + ' [off]');
@@ -1524,7 +1514,7 @@ M.launch = function () {
         if (!upgrade) return err('Sugar frenzy is unavailable.');
         if (!upgrade.unlocked) return err('Sugar frenzy is not unlocked yet.');
         if (upgrade.bought) return err('Sugar frenzy has already been used this ascension.');
-        if (!haveSugarLumps(1)) return err('Not enough sugar lumps.');
+        if (!haveSugarLumps(1)) return err('Not enough sugar lumps to activate Sugar frenzy.');
         spendSugarLumps(1);
         upgrade.buy(1);
         Game.gainBuff('sugar frenzy', 60 * 60, 3);
@@ -1536,8 +1526,8 @@ M.launch = function () {
         var grimoire = getMinigame('Wizard tower');
         if (!grimoire) return err('Grimoire unavailable.');
         if (grimoire.magic >= grimoire.magicM) return err('Mana already full.');
-        if (!Game.canRefillLump()) return err('Sugar lump refill is on cooldown.');
-        if (!haveSugarLumps(1)) return err('Not enough sugar lumps.');
+        if (!Game.canRefillLump()) return err('Grimoire lump refill is on cooldown.');
+        if (!haveSugarLumps(1)) return err('Not enough sugar lumps to refill Grimoire.');
         spendSugarLumps(1);
         if (!Game.sesame) Game.lumpRefill = Game.getLumpRefillMax();
         grimoire.magic = Math.min(grimoire.magic + 100, grimoire.magicM);
@@ -1563,24 +1553,30 @@ M.launch = function () {
     function harvestSugarLump() {
         if (!Game.canLumps()) return err('Sugar lumps are not available yet.');
         var age = Date.now() - Game.lumpT;
-        if (age < Game.lumpRipeAge) {
-            var remaining = Math.max(0, Game.lumpRipeAge - age);
-            return err('Sugar lump is not ready. Remaining time: ' + Game.sayTime(Math.ceil(remaining / 1000) * Game.fps, -1) + '.');
+        if (age < Game.lumpMatureAge) {
+            var remaining = Math.max(0, Game.lumpMatureAge - age);
+            return err('Sugar lump is not ready to harvest. Remaining time: ' + Game.sayTime(Math.ceil(remaining / 1000) * Game.fps, -1) + '.');
         }
         var before = Game.lumps;
+        var warningMsg = '';
+        if (age < Game.lumpRipeAge) {
+            var remaining = Math.max(0, Game.lumpRipeAge - age);
+            warningMsg = ' (Warning: still needs ' + Game.sayTime(Math.ceil(remaining / 1000) * Game.fps, -1) + ', 50% failure to harvest chance)';
+        }
         Game.clickLump();
         var diff = (Game.lumps || 0) - before;
         if (diff > 0) return ok('Harvested ' + Beautify(diff) + ' sugar lump' + (diff === 1 ? '' : 's') + '.');
-        return err('Sugar lump was not ready to harvest.');
+        return err('Sugar lump harvest failed' + (age < Game.lumpRipeAge ? ' (50% failure to harvest chance when not fully ripe)' : '') + '.');
     }
 
     function clickAllGoldenCookies() {
-        if (!Game.shimmers || !Game.shimmers.length) return err('No golden cookies to click.');
+        if (!Game.shimmers || !Game.shimmers.length) return err('No golden cookies were found to click.');
         var popped = 0;
         var snapshot = Game.shimmers.slice();
         for (var i = 0; i < snapshot.length; i++) {
             var shimmer = snapshot[i];
             if (shimmer && shimmer.type === 'golden' && typeof shimmer.pop === 'function') {
+                //This prevents the function from harvesting cookie storm drops outside of the spell effect ones, but it can be triggered after the buff is over and pop them all at once, its an edge case I dont feel like solving right now.
                 if ((Game.hasBuff && Game.hasBuff('Cookie storm')) && shimmer.force === 'cookie storm drop') continue;
                 if (typeof shimmer.x === 'number' && typeof shimmer.y === 'number') {
                     Game.mouseX = shimmer.x;
@@ -1591,7 +1587,7 @@ M.launch = function () {
                 popped++;
             }
         }
-        return popped > 0 ? ok('Clicked ' + Beautify(popped) + ' golden cookie' + (popped === 1 ? '' : 's') + '.') : err('No golden cookies to click.');
+        return popped > 0 ? ok('Clicked ' + Beautify(popped) + ' golden cookie' + (popped === 1 ? '' : 's') + '.') : err('No golden cookies were found to click.');
     }
 
     M.registerProgramHandler('sweetRuntimeSwizzle', function (config) {
@@ -1638,7 +1634,7 @@ M.launch = function () {
         if (sacrificeNeeded) {
             highestBuilding.sacrifice(1);
             var buildingName = highestBuilding.bsingle || highestBuilding.single || highestBuilding.name || 'building';
-            sacrificeNote = ' Sacrificed 1 ' + buildingName + '.';
+            sacrificeNote = ' Sacrificed one ' + buildingName + '.';
         }
 
         if (typeof Game.ToggleSpecialMenu === 'function') {
@@ -1692,10 +1688,12 @@ M.launch = function () {
         }
         var effectiveLevel = Math.min(level, 20);
         var clicks = effectiveLevel * 5;
-        if (clicks <= 0) return ok('No clicks performed (Javascript Console level too low).');
+        if (clicks <= 0) return ok('No clicks performed (Javascript Console level too low).'); //how did they do this, pretty impressive really
         var interval = 35, targetX = null, targetY = null;
         var bigCookie = (typeof l === 'function') ? l('bigCookie') : null;
         if (bigCookie && typeof bigCookie.getBounds === 'function') {
+            
+            //make sure the click popups appear on the cookie not on the terminal
             var bounds = bigCookie.getBounds();
             if (bounds) {
                 targetX = bounds.left + bounds.width / 2;
@@ -1714,7 +1712,7 @@ M.launch = function () {
                 else if (typeof Game.Earn === 'function') Game.Earn(Game.cookiesPs / Game.fps);
             }, i * interval);
         }
-        return { success: true, message: 'Clicked the big cookie ' + Beautify(clicks) + ' times.', delay: clicks * interval + 20 };
+        return { success: true, message: 'Clicked the big cookie ' + Beautify(clicks) + ' times.', delay: clicks * interval + 50 }; //an extra 50ms to account for lagging
     });
 
     M.slot = [];
@@ -2980,9 +2978,6 @@ M.launch = function () {
                 window.TerminalMinigame.writeCache(cacheString);
             }
         } catch (e) {
-            if (typeof console !== 'undefined' && console.error) {
-                console.error('[Terminal] Failed to load save data:', e);
-            }
             M.slot.length = 0;
             M.slotSettings.length = 0;
             M.programsRun = 0;
@@ -3164,9 +3159,6 @@ function checkAndAwardTerminalAchievements() {
                             Game.Win(achievementName);
                         }
                     } catch (e) {
-                        if (typeof console !== 'undefined' && console.error) {
-                            console.error('[Terminal] Error awarding achievement:', e);
-                        }
                     }
                 }
             }
@@ -3214,7 +3206,9 @@ if (Game.Objects && Game.Objects['Javascript console']) {
         if (!jsConsole.minigameLoaded) {
             jsConsole.minigameLoaded = true;
             jsConsole.minigameName = jsConsole.minigameName || 'Terminal';
-            // CRITICAL: Clear minigameLoading flag to allow vanilla saves to work The vanilla game checks me.minigameLoading for all buildings before saving Vanilla sets this to true when Game.LoadMinigames() is called, but since our minigame loads inline (not via script tag), vanilla never clears it automatically classic cookie clicker stuff
+            if (!jsConsole.minigameUrl || jsConsole.minigameUrl === '') {
+                jsConsole.minigameUrl = 'data:text/javascript,//inline-minigame';
+            }
             jsConsole.minigameLoading = false;
             try {
                 if (!jsConsole.minigameDiv) {
@@ -3235,11 +3229,12 @@ if (Game.Objects && Game.Objects['Javascript console']) {
                 }
                 createTerminalAchievements();
                 checkAndAwardTerminalAchievements();
+                if (!jsConsole.minigameUrl || jsConsole.minigameUrl === '') {
+                    jsConsole.minigameUrl = 'data:text/javascript,//inline-minigame';
+                }
                 jsConsole.refresh();
             } catch (e) {
-                // If initialization fails, ensure minigameLoading is cleared so saves still work
                 jsConsole.minigameLoading = false;
-                console.error('Terminal minigame initialization failed:', e);
                 throw e;
             }
             // Ensure minigameLoading stays false after successful initialization
@@ -3251,17 +3246,12 @@ if (Game.Objects && Game.Objects['Javascript console']) {
                 createTerminalAchievements();
                 checkAndAwardTerminalAchievements();
             } catch (e) {
-                // If launch fails, ensure minigameLoading is cleared
                 jsConsole.minigameLoading = false;
-                console.error('Terminal minigame launch failed:', e);
                 throw e;
             }
-            // Ensure minigameLoading is false
             jsConsole.minigameLoading = false;
         }
     } else {
-        // When disabled, ensure minigameLoading is cleared
-        // This handles cases where the minigame was partially loaded or failed to load
         var jsConsole = Game.Objects['Javascript console'];
         if (jsConsole) {
             jsConsole.minigameLoading = false;
