@@ -5253,6 +5253,9 @@ sweet_Runtime_Swizzler();
 
 ## Changelog
 
+### **Major Version 0.2.0 - Terminal a Javascript Console Minigame**
+* Introducing a whole new minigame for Cookie Clicker@ [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal) allows the player to write programs for Cookie Clicker to automate actions and create perfect combos or crash the system and ruin their setups. Unlocked at Level 1 Javascript Consoles and toggled on/off in the Options Menu. 
+
 ### Version 0.1.2
 * Updated pricing on building upgrades.
 * Fixed some kitten icons to be less melty and sad.
