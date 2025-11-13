@@ -3214,32 +3214,58 @@ if (Game.Objects && Game.Objects['Javascript console']) {
         if (!jsConsole.minigameLoaded) {
             jsConsole.minigameLoaded = true;
             jsConsole.minigameName = jsConsole.minigameName || 'Terminal';
-            if (!jsConsole.minigameDiv) {
-                var existingDiv = l('rowSpecial' + jsConsole.id);
-                if (existingDiv) {
-                    jsConsole.minigameDiv = existingDiv;
-                } else {
-                    jsConsole.minigameDiv = document.createElement('div');
-                    jsConsole.minigameDiv.id = 'rowSpecial' + jsConsole.id;
-                    jsConsole.minigameDiv.className = 'rowSpecial';
-                    if (jsConsole.l) jsConsole.l.appendChild(jsConsole.minigameDiv);
+            // CRITICAL: Clear minigameLoading flag to allow vanilla saves to work The vanilla game checks me.minigameLoading for all buildings before saving Vanilla sets this to true when Game.LoadMinigames() is called, but since our minigame loads inline (not via script tag), vanilla never clears it automatically classic cookie clicker stuff
+            jsConsole.minigameLoading = false;
+            try {
+                if (!jsConsole.minigameDiv) {
+                    var existingDiv = l('rowSpecial' + jsConsole.id);
+                    if (existingDiv) {
+                        jsConsole.minigameDiv = existingDiv;
+                    } else {
+                        jsConsole.minigameDiv = document.createElement('div');
+                        jsConsole.minigameDiv.id = 'rowSpecial' + jsConsole.id;
+                        jsConsole.minigameDiv.className = 'rowSpecial';
+                        if (jsConsole.l) jsConsole.l.appendChild(jsConsole.minigameDiv);
+                    }
                 }
+                M.launch();
+                M.init(jsConsole.minigameDiv);
+                if (Game.JNE && Game.JNE.terminalSavedData) {
+                    M.load(Game.JNE.terminalSavedData);
+                }
+                createTerminalAchievements();
+                checkAndAwardTerminalAchievements();
+                jsConsole.refresh();
+            } catch (e) {
+                // If initialization fails, ensure minigameLoading is cleared so saves still work
+                jsConsole.minigameLoading = false;
+                console.error('Terminal minigame initialization failed:', e);
+                throw e;
             }
-            M.launch();
-            M.init(jsConsole.minigameDiv);
-            if (Game.JNE && Game.JNE.terminalSavedData) {
-                M.load(Game.JNE.terminalSavedData);
-            }
-            createTerminalAchievements();
-            checkAndAwardTerminalAchievements();
-            jsConsole.refresh();
+            // Ensure minigameLoading stays false after successful initialization
+            jsConsole.minigameLoading = false;
         } else if (jsConsole.minigameLoaded && !M.launched) {
-            M.launch();
-            M.launched = true;
-            createTerminalAchievements();
-            checkAndAwardTerminalAchievements();
+            try {
+                M.launch();
+                M.launched = true;
+                createTerminalAchievements();
+                checkAndAwardTerminalAchievements();
+            } catch (e) {
+                // If launch fails, ensure minigameLoading is cleared
+                jsConsole.minigameLoading = false;
+                console.error('Terminal minigame launch failed:', e);
+                throw e;
+            }
+            // Ensure minigameLoading is false
+            jsConsole.minigameLoading = false;
         }
     } else {
+        // When disabled, ensure minigameLoading is cleared
+        // This handles cases where the minigame was partially loaded or failed to load
+        var jsConsole = Game.Objects['Javascript console'];
+        if (jsConsole) {
+            jsConsole.minigameLoading = false;
+        }
         removeTerminalAchievements();
     }
 }
