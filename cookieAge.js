@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.0';
+    var expansionVersion = '1.0.1';
     var debugMode = false; // Set to true for testing
   
     var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
@@ -21,7 +21,7 @@
     var debugStartInvestigate = null; // Set to investigate puzzle ID, 'complete' to mark all as done, or null to start from beginning
     var debugStartInfiltrate = null;  // Set to infiltrate puzzle ID, 'complete' to mark all as done, or null to start from beginning
     var debugStartChoose = null;  // Set to choose puzzle ID, 'complete' to mark all as done, or null to start from beginning
-    var debugExposePathPicked = null;  // Set to true for "Expose the Order", false for "Stand with the Order", or null to not set (when testing schism_choice)
+    var debugExposePathPicked = null;  // Set to true for "Expose the Order", false for "Stand with the Order", or null to not set
    
     // ===== DETERMINISTIC TRACK ORDER SYSTEM =====
     // Define explicit puzzle order arrays to ensure consistent track ordering
@@ -89,7 +89,7 @@
     ];
 
     // ===== PUZZLE ORDER UTILITIES =====
-    // Get puzzle index based on registry definition order (still needed for validation)
+    // Get puzzle index based on registry definition order
     function getPuzzleIndex(puzzleId) {
         var index = 0;
         for (var id in cookieAgeData.puzzles.registry) {
@@ -1063,7 +1063,7 @@
                 name: 'Proving your patience',
                 description: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>You kept still. You listened. And in the hush, eyes turned toward you.</q>',
                 clue: 'Pay close attention to the world, something new is afoot, but it requires patience and a watchful eye.',
-                hint: '• Keep an eye on the news ticker(clicking it can speed up your journey).<br>• There is only one type of Lily in Cookie Clicker.<br>• Make sure there is nothing else besides a lily.',
+                hint: '• Keep an eye on the news ticker(clicking it can speed up your journey).<br>• There is only one type of Lily in Cookie Clicker.<br>• Make sure there is nothing else besides a lily.<br>• You must have even more patience than the lily itself.',
                 puzzleClass: ProvingPatiencePuzzle,
                 mainIcon: [10, 12, customSpriteSheetUrl],
                 completionMessage: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>The mystery has begun. Return to the stats menu to track progress and review your clues.</q>',
@@ -1119,7 +1119,7 @@
                 name: 'Blessing from the creator',
                 description: 'Orteil himself turned his gaze toward you, a fleeting sign of favor amid growing suspicion. The Brotherhood whispers more loudly now, and even your friend cannot shield you for long.<q>You\'ll need every ounce of luck from here on. Their eyes are sharper, and our reach cannot save you forever.</q>',
                 clue: 'Return to the first spark, the place of beginnings. There the Creator inscribed a rite to beg favor against the Brotherhood. Do it swiftly, for you will need every ounce of fortune on the path ahead.<q>You\'ll need all the luck you can get after all. Things will continue to become more difficult the longer you remain on this path.</q>',
-                hint: '• Where has Orteil (the Game Creator) provided dated information to the user? <br>• Is there a beginning to that information? Maybe you should read it.',
+                hint: '• Where has Orteil (the Game Creator) provided dated information to the user? <br>• Is there a beginning to that information? Maybe you should read it.<br>• Where else have you seen the word leprechaun in Cookie Clicker?',
                 puzzleClass: BlessingCreatorPuzzle,
                 mainIcon: [4, 17, customSpriteSheetUrl],
                 completionMessage: 'You curried favor with the Creator. The blessing lingers, but so does the risk.',
@@ -1385,7 +1385,7 @@
                 name: 'The pattern of the altars',
                 description: 'You counted what cannot be broken and took the first five in their sacred order. One raised, the next cast down, ever climbing, never the same twice. The hall felt the older mathematics stir, and the Brothers watched without blinking.<q>The further you go, the thinner the margin. Precision is no longer a courtesy; it is cover.</q>',
                 clue: 'Count the altars where the spirits rest.<br>Seek the numbers that cannot be broken,<br>save by themselves and the One.<br>Take the first five in their divine order.<br>Raise one, then cast the next down,<br>ever climbing, never the same twice.<br>Each count a vow, each altar a hymn.',
-                hint: '• Where do the spirits reside?<br>• What numbers cannot be divided by anything but themselves and one?',
+                hint: '• Where do the spirits reside? Is there a building associated with them?<br>• What is the name of numbers cannot be divided by anything but themselves and one?',
                 puzzleClass: PatternAltarsPuzzle,
                 mainIcon: [13, 16, customSpriteSheetUrl],
                 completionMessage: 'Altars align and the prime vow answers.<q>Eyes linger longer now. One misstep is all it takes.</q>',
@@ -1650,7 +1650,7 @@
                 'six_jars_ledger': {
                 name: 'The six jars ledger',
                 puzzleClass: SixJarsLedgerPuzzle,
-                description: 'They opened the shelves, balances only the faithful may touch. You set the jars to their hidden sums, and the page closed as though your hand had always belonged there.<q>You did not hesitate. Only after, you asked yourself why. The Order of the Eternal Cookie is proud of the mathematical wit you demostrated.</q>',
+                description: 'They opened the shelves, balances only the faithful may touch. You set the jars to their hidden sums, and the page closed as though your hand had always belonged there.<q>You did not hesitate. Only after, you asked yourself why. The Order of the Eternal Cookie is proud of the mathematical wit you demonstrated.</q>',
                 clue: 'Set six jars upon the shelf.<br>The bitter dark jar holds twice the churned jar. <br>The pale flower keeps a dozen fewer than the darkness. <br>A third-pinch fills the salt from the pale flower.<br>The churn is nine shy of the wheat.<br>The fragile shells hold the wheat and the briny stones together.<br>And the tally of all six must be three gross less nine.<br>Leave every other jar bare, and only then will the page balance.',
                 hint: '• Bitter dark sounds like something you put in a cookie, so do the rest of these in fact. Where have you seen a list of ingredients before?<br>• Pale flowers might make dark seed pods. <br>• Cream isn\'t churned but something else is.',
                 mainIcon: [11, 12, customSpriteSheetUrl],
@@ -7857,7 +7857,8 @@
             }
             tracking.consecutiveCastCount++;
             
-            if (tracking.consecutiveCastCount === 3 && (currentTime - tracking.firstCastTime) <= 30000) {
+            //all spells cast within 60 seconds (updated from 30 seconds in earlier versions)
+            if (tracking.consecutiveCastCount === 3 && (currentTime - tracking.firstCastTime) <= 60000) {
                 tracking.completed = true;
                 this.complete();
             } else if (tracking.consecutiveCastCount > 3) {
@@ -9825,6 +9826,36 @@
                         },
                         purchasedHints: {}
                     };
+                }
+
+                // CRITICAL: Clean up any currently active puzzles BEFORE clearing state
+                // This prevents hooks/listeners from old puzzles interfering with new save data
+                var currentActivePuzzles = [];
+                if (cookieAgeData.puzzles.tracks) {
+                    if (cookieAgeData.puzzles.tracks.investigate && cookieAgeData.puzzles.tracks.investigate.active) {
+                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.investigate.active);
+                    }
+                    if (cookieAgeData.puzzles.tracks.infiltrate && cookieAgeData.puzzles.tracks.infiltrate.active) {
+                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.infiltrate.active);
+                    }
+                    if (cookieAgeData.puzzles.tracks.choose && cookieAgeData.puzzles.tracks.choose.active) {
+                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.choose.active);
+                    }
+                }
+                
+                // Clean up each active puzzle
+                for (var i = 0; i < currentActivePuzzles.length; i++) {
+                    var puzzleId = currentActivePuzzles[i];
+                    try {
+                        cleanupPuzzle(puzzleId);
+                        // Also mark puzzle as inactive
+                        var puzzle = cookieAgeData.puzzles.registry[puzzleId];
+                        if (puzzle) {
+                            puzzle.isActive = false;
+                        }
+                    } catch (e) {
+                        try { errorLog('Error cleaning up puzzle during save load:', puzzleId, e); } catch (_) {}
+                    }
                 }
 
                 // Clear current derived state
