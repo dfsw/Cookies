@@ -5608,6 +5608,13 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td>Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.</td>
 </tr>
 <tr>
+<td width="48"><a href="/assets/generated-icons/SheetCustom2019.png"><img src="/assets/generated-icons/SheetCustom2019.png" alt="Gilded allure" width="48" height="48"></a></td>
+<td><strong>Gilded allure</strong></td>
+<td>Wizardly accomplishments</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 150 quadrillion</td>
+<td>Adds a new spell to the Grimoire minigame.</td>
+</tr>
+<tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2124.png"><img src="/assets/generated-icons/SheetCustom2124.png" alt="Water cooled processors" width="48" height="48"></a></td>
 <td><strong>Water cooled processors</strong></td>
 <td>Gilded allure, Aerated soil</td>
