@@ -5964,21 +5964,21 @@ Just Natural Expansion adds 97 new Heavenly Upgrades to your ascensions. These a
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla1018.png"><img src="/assets/generated-icons/SheetVanilla1018.png" alt="Hearty farm biscuit" width="48" height="48"></a></td>
 <td><strong>Hearty farm biscuit</strong></td>
-<td>Randomly dropped by harvesting mature Magic Mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushrooms</td>
 <td>Scales with CpS</td>
 <td>Farms are <b>twice</b> as efficient.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla2116.png"><img src="/assets/generated-icons/SheetVanilla2116.png" alt="Astronaut cookie" width="48" height="48"></a></td>
 <td><strong>Astronaut cookie</strong></td>
-<td>Randomly dropped by harvesting mature Magic Mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushrooms</td>
 <td>Scales with CpS</td>
 <td>Shipments are <b>twice</b> as efficient.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla2417.png"><img src="/assets/generated-icons/SheetVanilla2417.png" alt="The chemist cookie" width="48" height="48"></a></td>
 <td><strong>The chemist cookie</strong></td>
-<td>Randomly dropped by harvesting mature Magic Mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushrooms</td>
 <td>Scales with CpS</td>
 <td>Alchemy labs are <b>twice</b> as efficient.</td>
 </tr>
@@ -5998,12 +5998,12 @@ Just Natural Expansion adds 97 new Heavenly Upgrades to your ascensions. These a
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2120.png"><img src="/assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
 <td><strong>Morrowen, Spirit of Procrastination</strong></td>
-<td><b>Jade Slot (Slot 1):</b> <span class="green">CpS increases noticeably over time.</span><br><b>Ruby Slot (Slot 2):</b> <span class="green">CpS increases moderately over time.</span><br><b>Diamond Slot (Slot 3):</b> <span class="green">CpS increases slightly over time.</span><br><b>Effect:</b> CpS increases over time based on how long this spirit has been slotted. Changing slots resets CpS gain.</td>
+<td><b>Jade Slot:</b> <span class="green">CpS increases noticeably over time.</span><br><b>Ruby Slot:</b> <span class="green">CpS increases moderately over time.</span><br><b>Diamond Slot:</b> <span class="green">CpS increases slightly over time.</span><br><b>Effect:</b> CpS increases over time based on how long this spirit has been slotted. Changing slots resets CpS gain.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2020.png"><img src="/assets/generated-icons/SheetCustom2020.png" alt="Solgreth, Spirit of Selfishness" width="48" height="48"></a></td>
 <td><strong>Solgreth, Spirit of Selfishness</strong></td>
-<td><b>Jade Slot (Slot 1):</b> <span class="green">Golden cookies appear twice as often.</span> <span class="red">Each golden cookie clicked reduces CpS by 3% additively.</span><br><b>Ruby Slot (Slot 2):</b> <span class="green">Golden cookies appear 50% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 2% additively.</span><br><b>Diamond Slot (Slot 3):</b> <span class="green">Golden cookies appear 25% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 1% additively.</span><br><b>Effect:</b> When this spirit is unslotted, all beneficial golden cookie buffs are ended. When CpS penalty reaches -100% golden cookies will no longer spawn.</td>
+<td><b>Jade Slot:</b> <span class="green">Golden cookies appear twice as often.</span> <span class="red">Each golden cookie clicked reduces CpS by 3% additively.</span><br><b>Ruby Slot:</b> <span class="green">Golden cookies appear 50% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 2% additively.</span><br><b>Diamond Slot:</b> <span class="green">Golden cookies appear 25% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 1% additively.</span><br><b>Effect:</b> When this spirit is unslotted, all beneficial golden cookie buffs are ended. When CpS penalty reaches -100% golden cookies will no longer spawn.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom0424.png"><img src="/assets/generated-icons/SheetCustom0424.png" alt="Sparkling sugar cane" width="48" height="48"></a></td>
