@@ -5145,7 +5145,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla1507.png"><img src="/assets/generated-icons/SheetVanilla1507.png" alt="Just natural expansion heavenly upgrades" width="48" height="48"></a></td>
 <td><strong>Just natural expansion heavenly upgrades</strong></td>
-<td>—</td>
+<td>Available when Unshackled You from the Vanilla Heavenly Upgrades is owned</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 20 quadrillion</td>
 <td>Cookie production multiplier <b>+5%</b>. Also unlocks the Just Natural Expansion heavenly upgrade tree.</td>
 </tr>
