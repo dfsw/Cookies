@@ -6011,12 +6011,12 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2120.png"><img src="/assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
 <td><strong>Morrowen, Spirit of Procrastination</strong></td>
-<td><b>Jade Slot:</b> <span class="green">CpS increases noticeably over time.</span><br><b>Ruby Slot:</b> <span class="green">CpS increases moderately over time.</span><br><b>Diamond Slot:</b> <span class="green">CpS increases slightly over time.</span><br><b>Effect:</b> CpS increases over time based on how long this spirit has been slotted. Changing slots resets CpS gain.</td>
+<td><b>Diamond Slot:</b> <span class="green">CpS increases noticeably over time.</span><br><b>Ruby Slot:</b> <span class="green">CpS increases moderately over time.</span><br><b> Jade Slot:</b> <span class="green">CpS increases slightly over time.</span><br><b>Effect:</b> CpS increases over time based on how long this spirit has been slotted. Changing slots resets CpS gain.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2020.png"><img src="/assets/generated-icons/SheetCustom2020.png" alt="Solgreth, Spirit of Selfishness" width="48" height="48"></a></td>
 <td><strong>Solgreth, Spirit of Selfishness</strong></td>
-<td><b>Jade Slot:</b> <span class="green">Golden cookies appear twice as often.</span> <span class="red">Each golden cookie clicked reduces CpS by 3% additively.</span><br><b>Ruby Slot:</b> <span class="green">Golden cookies appear 50% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 2% additively.</span><br><b>Diamond Slot:</b> <span class="green">Golden cookies appear 25% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 1% additively.</span><br><b>Effect:</b> When this spirit is unslotted, all beneficial golden cookie buffs are ended. When CpS penalty reaches -100% golden cookies will no longer spawn.</td>
+<td><b>Diamond Slot:</b> <span class="green">Golden cookies appear twice as often.</span> <span class="red">Each golden cookie clicked reduces CpS by 3% additively.</span><br><b>Ruby Slot:</b> <span class="green">Golden cookies appear 50% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 2% additively.</span><br><b>Jade Slot:</b> <span class="green">Golden cookies appear 25% more often.</span> <span class="red">Each golden cookie clicked reduces CpS by 1% additively.</span><br><b>Effect:</b> When this spirit is unslotted, all beneficial golden cookie buffs are ended. When CpS penalty reaches -100% golden cookies will no longer spawn.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom0424.png"><img src="/assets/generated-icons/SheetCustom0424.png" alt="Sparkling sugar cane" width="48" height="48"></a></td>
@@ -6036,12 +6036,13 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom1524.png"><img src="/assets/generated-icons/SheetCustom1524.png" alt="Aerated soil" width="48" height="48"></a></td>
 <td><strong>Aerated soil</strong></td>
-<td>Tick every <b>10 minutes</b>. Plant aging variance <b>-50%</b>. Weed growth <b>+25%</b>.</td>
+<td>Garden ticks every <b>10 minutes</b>. Plant aging variance <b>-50%</b>. Weed growth <b>+25%</b>.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2019.png"><img src="/assets/generated-icons/SheetCustom2019.png" alt="Gilded allure" width="48" height="48"></a></td>
 <td><strong>Gilded allure</strong></td>
-<td>Golden Cookies appear <b>30%</b> more often for the next <b>10 minutes</b>. On backfire: Golden Cookies appear <b>75%</b> less often for the next <b>hour</b>.</td>
+<td>Golden Cookies appear <b>30%</b> more often for the next <b>10 minutes</b>.
+	On backfire: Golden Cookies appear <b>75%</b> less often for the next <b>hour</b>.</td>
 </tr>
 </tbody>
 </table>
