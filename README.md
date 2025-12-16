@@ -5041,6 +5041,22 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tr>
 </thead>
 <tbody>
+</tbody>
+</table>
+
+
+##### You
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Base Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2200.png"><img src="./assets/generated-icons/SheetCustom2200.png" alt="Clone factory economies" width="48" height="48"></a></td>
 <td><strong>Clone factory economies</strong></td>
@@ -5118,6 +5134,24 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>2.7 novemvigintillion cookies</td>
 <td>You cost <strong>5%</strong> less</td>
 </tr>
+</tbody>
+</table>
+
+
+## Heavenly Upgrades
+
+### Tree 2: Building and Upgrade Discounts
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 </tbody>
 </table>
 
@@ -5362,6 +5396,21 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tr>
 </thead>
 <tbody>
+</tbody>
+</table>
+
+### Tree 6: Wrinkler Enhancements
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2113.png"><img src="./assets/generated-icons/SheetCustom2113.png" alt="Rare game hunter" width="48" height="48"></a></td>
 <td><strong>Rare game hunter</strong></td>
@@ -5461,13 +5510,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla0209.png"><img src="./assets/generated-icons/SheetVanilla0209.png" alt="Frenziered elders" width="48" height="48"></a></td>
-<td><strong>Frenziered elders</strong></td>
-<td>Pink stuff</td>
-<td><img src="./assets/hcicon.png" width="16" height="16"> 150 quintillion</td>
-<td>Your elder frenzies last <b>25%</b> longer.</td>
-</tr>
-<tr>
 <td width="48"><a href="./assets/generated-icons/SheetVanilla3005.png"><img src="./assets/generated-icons/SheetVanilla3005.png" alt="Slimy pheromones" width="48" height="48"></a></td>
 <td><strong>Slimy pheromones</strong></td>
 <td>Alakazoodle evil noodle, Species bounceback</td>
@@ -5480,6 +5522,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Alakazoodle evil noodle</td>
 <td><img src="./assets/hcicon.png" width="16" height="16"> 50 quintillion</td>
 <td>Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0209.png"><img src="./assets/generated-icons/SheetVanilla0209.png" alt="Frenziered elders" width="48" height="48"></a></td>
+<td><strong>Frenziered elders</strong></td>
+<td>Pink stuff</td>
+<td><img src="./assets/hcicon.png" width="16" height="16"> 150 quintillion</td>
+<td>Your elder frenzies last <b>25%</b> longer.</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Infestation" width="48" height="48"></a></td>
@@ -5495,6 +5544,21 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td><img src="./assets/hcicon.png" width="16" height="16"> 750 quintillion</td>
 <td>Add slot machines for your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
 </tr>
+</tbody>
+</table>
+
+### Tree 5: Golden Cookie Enhancements
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 </tbody>
 </table>
 
@@ -5537,13 +5601,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Improved cookie chains</td>
 <td><img src="./assets/hcicon.png" width="16" height="16"> 250 quadrillion</td>
 <td><b>1%</b> chance to auto click a fading golden cookie.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2317.png"><img src="./assets/generated-icons/SheetCustom2317.png" alt="Unlucky luckier" width="48" height="48"></a></td>
-<td><strong>Unlucky luckier</strong></td>
-<td>Mail in sweepstake winner</td>
-<td><img src="./assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
-<td>Lucky Golden Cookies are <b>5%</b> less common.</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2302.png"><img src="./assets/generated-icons/SheetCustom2302.png" alt="Lucky fading payout" width="48" height="48"></a></td>
@@ -5623,13 +5680,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Show the expected result of a <b>Golden Cookie 50%</b> of the time.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom0917.png"><img src="./assets/generated-icons/SheetCustom0917.png" alt="Perfected golden cookie predictor" width="48" height="48"></a></td>
-<td><strong>Perfected golden cookie predictor</strong></td>
-<td>Improved golden cookie predictor</td>
-<td><img src="./assets/hcicon.png" width="16" height="16"> 80 sextillion</td>
-<td>Show the expected result of a <b>Golden Cookie 65%</b> of the time.</td>
-</tr>
-<tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1414.png"><img src="./assets/generated-icons/SheetCustom1414.png" alt="All is well" width="48" height="48"></a></td>
 <td><strong>All is well</strong></td>
 <td>Perfected golden cookie predictor</td>
@@ -5657,6 +5707,21 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td><img src="./assets/hcicon.png" width="16" height="16"> 1 septillion</td>
 <td>Each golden cookie clicked this ascension increases <b>CpS</b> by <b>0.05%</b>.</td>
 </tr>
+</tbody>
+</table>
+
+### Tree 3: Sugar Management
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 </tbody>
 </table>
 
@@ -5757,13 +5822,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tr>
 </thead>
 <tbody>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2318.png"><img src="./assets/generated-icons/SheetVanilla2318.png" alt="Godzmak's Headstart" width="48" height="48"></a></td>
-<td><strong>Godzmak's Headstart</strong></td>
-<td>Divine uninspiration</td>
-<td><img src="./assets/hcicon.png" width="16" height="16"> 50 quintillion</td>
-<td>Godzmak buffs last <b>10%</b> longer.</td>
-</tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2300.png"><img src="./assets/generated-icons/SheetCustom2300.png" alt="Wallstreet bets" width="48" height="48"></a></td>
 <td><strong>Wallstreet bets</strong></td>
@@ -5868,6 +5926,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Water cooled processors</td>
 <td><img src="./assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
 <td>Terminal minigame has one extra slot.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2318.png"><img src="./assets/generated-icons/SheetVanilla2318.png" alt="Godzmak's Headstart" width="48" height="48"></a></td>
+<td><strong>Godzmak's Headstart</strong></td>
+<td>Divine uninspiration</td>
+<td><img src="./assets/hcicon.png" width="16" height="16"> 50 quintillion</td>
+<td>Godzmak buffs last <b>10%</b> longer.</td>
 </tr>
 </tbody>
 </table>
@@ -5996,19 +6061,16 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Scales with CpS</td>
 <td>Alchemy labs are <b>twice</b> as efficient.</td>
 </tr>
-</tbody>
-</table>
-
-### Garden Plants, Soil, Spell, and Pantheon Gods
-<table>
-<thead>
 <tr>
-<th width="48">Icon</th>
-<th>Name</th>
-<th>Description</th>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1909.png"><img src="./assets/generated-icons/SheetCustom1909.png" alt="Single-threaded, single-minded" width="48" height="48"></a></td>
+<td><strong>10x Full-Stack Rockstar Ninja Wizard Engineer</strong></td>
+<td>Execute <strong>100 Programs</strong> in the Terminal minigame.</td>
 </tr>
-</thead>
-<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1910.png"><img src="./assets/generated-icons/SheetCustom1910.png" alt="Emperor of Runtime" width="48" height="48"></a></td>
+<td><strong>Agile Hacker Samurai Jedi-Craftsman Engineer</strong></td>
+<td>Execute <strong>500 Programs</strong> in the Terminal minigame.</td>
+</tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2120.png"><img src="./assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
 <td><strong>Morrowen, Spirit of Procrastination</strong></td>
@@ -6043,136 +6105,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td width="48"><a href="./assets/generated-icons/SheetCustom2019.png"><img src="./assets/generated-icons/SheetCustom2019.png" alt="Gilded allure" width="48" height="48"></a></td>
 <td><strong>Gilded allure</strong></td>
 <td>Golden Cookies appear <b>30%</b> more often for the next <b>10 minutes</b>. On backfire: Golden Cookies appear <b>75%</b> less often for the next <b>hour</b>.</td>
-</tr>
-</tbody>
-</table>
-
-
-## Mysteries of the Cookie Age
-
-*Slip a note under the door. Burn a secret message. Unearth hidden treasures and buried truths. Decode secret ciphers. Count the lamps when the watchman passes. You may even do the unforgivable to stay alive. The Orders are ancient and powerful. Their eyes are everywhere, their actions are sinister. Uncover what they hide—before they decide who you are, and what you're really doing.*
-
-This story add-on layers an occult mystery over your Cookie Clicker run: riddles to solve, ciphers to break, puzzles to test your wits, and secret rites to perform—**all inside the world you're already playing**.
-
-### What to expect *(spoiler-free)*
-- **Diegetic puzzles:** Clues arrive in-world and puzzles are solved in game, no separated gameplay or isolated minigames, just careful observation and precise actions.
-- **Escalating difficulty:** As the story unfolds, puzzles grow sharper and more demanding. Some will click; others will test your patience.
-- **Intrigue and mystery:** Early nudges become hard asks. Your cover tightens; your choices start to matter. 
-- **Unfolding lore:** The signs, taboos, and symbols of an ancient and mystical Order emerge piece by piece, if you're paying attention.
-- **Deep gameplay:** With dozens of puzzles, ciphers, riddles, and tasks to carry out, days, weeks, even months of mystery adventure awaits you. There *is* an end to the mystery, but not everyone will make it. 
-
-### How to begin
-1. Open **Options** → toggle **"Mysteries of the Cookie"** to **ON**.  
-2. Play as normal, but keep a **watchful eye**—things may seem ordinary at first, but everything is different now. Track progress in **Stats**.  
-3. Read carefully, observe everything. Act precisely and diligently. Everything has meaning, no word, clue, or mark is incidental. Trust no one, not even me. 
-
-### Hints
-Hints can be purchased with sugar lumps; each hint you reveal increases the cost of the next by +1 lump. You may reveal one hint every 24 hours (global cooldown). A hint for a puzzle won't be available until that puzzle has been unlocked for at least 2 hours, so you get a fair shot first. Hints are nudges, not walkthroughs: we can't know exactly where you're stuck, but we've targeted the most common snags. Later puzzles are harder than early ones, so buy hints sparingly.
-
-### A note on game design
-Cookie Clicker has natural downtime while you wait for cycles, combos, and the occasional shiny wrinkler. *Mysteries of the Cookie Age* is designed to be **lightweight and in-world**, giving you a parallel mystery to unravel between bursts of action. Some steps may ask for temporary, even disruptive changes, but nothing breaks your save or playstyle, you can return to normal once a puzzle is complete. There are **no time limits**, and you can tackle clues at your pace.
-
-Don't be discouraged if a puzzle doesn't fall immediately. Like the rest of **Just Natural Expansion**, this isn't meant to be finished in a day. It's weeks of discovery. Resist the urge to seek help right away; try to solve it yourself (or with a friend). If you do get stuck, help exists—but your victories will mean more if you earn them.
-
-### How much progress do you need
-*Mysteries of the Cookie Age* is designed as a late-game expansion. When you activate it, the game will warn you if you haven't progressed far enough to complete all the puzzles, and it will outline the milestones you still need to reach. You might be able to tackle some puzzles early, but without the right tools, the experience can quickly become frustrating.
-
-### Achievements
-There are six new Achievements for working your way through *Mysteries of the Cookie Age*, they respect the toggle settings for Shadow Achievements so they only effect milk levels if you have them turned on. They will also disappear from your stats if you disable *Mysteries of the Cookie Age*. 
-
-
-## Javascript Console Minigame: Terminal 
-
-Reaching Level 1 Javascript Consoles unlocks the Terminal minigame, the pinnacle of cookie automation technology. Inside, you'll piece together powerful functions to make your bakery run smoother than a perfectly buttered script. Choose from 10 unique functions, each with its own quirks and parameters. Every line of "code" takes up an execution slot, and leveling up your Consoles (up to 10) expands your capacity for cookie-fueled creativity.
-
-Write clean, think fast, flawless execution unleashes cookies straight from the mainframe, while a single bad call can send your setup crumbling. There's no time to debug; only those who can see the logic behind the madness will prevail. After every run, the mainframe needs 8 hours to cool back down to operating temperatures.
-
-Master the system, optimize your scripts, and ascend as Cookie Clicker's ultimate pseudo-programmer.
-
-### Terminal API Developer Documentation
-
-```js
-/**
- * property_Exchange_Daemon()
- * @description Buy and sell buildings
- */
-property_Exchange_Daemon();
-
-/**
- * divine_Thread_Swapper()
- * @description Swap gods in the Pantheon
- */
-divine_Thread_Swapper();
-
-/**
- * spellcast_Process_Handler()
- * @description Cast spells from the Grimoire
- */
-spellcast_Process_Handler();
-
-/**
- * garden_Task_Executor()
- * @description Harvest and plant seeds in the Garden
- */
-garden_Task_Executor();
-
-/**
- * aura_Heap_Controller()
- * @description Change Dragon Auras
- */
-aura_Heap_Controller();
-
-/**
- * async_Sleep_Thread()
- * @description Pause execution to perform human actions
- */
-async_Sleep_Thread();
-
-/**
- * click_Pulse_Generator(level)
- * @description Click the Big Cookie 5 times per Javascript Console level (up to 20)
- */
-click_Pulse_Generator(level);
-
-/**
- * credit_Cycle_Routine()
- * @description Take out stock market loans
- */
-credit_Cycle_Routine();
-
-/**
- * toggle_Switcher_Module()
- * @description Toggle switches (Golden Switch, Elder Pact, Seasons, etc.)
- */
-toggle_Switcher_Module();
-
-/**
- * sweet_Runtime_Swizzler()
- * @description Spend sugar to activate Sugar Frenzy, refresh cooldowns,
- *              harvest lumps, or click on-screen golden cookies
- */
-sweet_Runtime_Swizzler();
-```
-
-### Terminal Minigame Achievements
-<table>
-<thead>
-<tr>
-<th width="48">Icon</th>
-<th>Achievement</th>
-<th>Requirement</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1909.png"><img src="./assets/generated-icons/SheetCustom1909.png" alt="Single-threaded, single-minded" width="48" height="48"></a></td>
-<td><strong>10x Full-Stack Rockstar Ninja Wizard Engineer</strong></td>
-<td>Execute <strong>100 Programs</strong> in the Terminal minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1910.png"><img src="./assets/generated-icons/SheetCustom1910.png" alt="Emperor of Runtime" width="48" height="48"></a></td>
-<td><strong>Agile Hacker Samurai Jedi-Craftsman Engineer</strong></td>
-<td>Execute <strong>500 Programs</strong> in the Terminal minigame.</td>
 </tr>
 </tbody>
 </table>
