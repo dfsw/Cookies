@@ -4,8 +4,9 @@
 ## Table of Contents
 * [Installation Directions](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#installation-directions)
 * [Mod Compatibility](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#mod-compatibility)
-* [New Achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-achievements)
-* [New Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-upgrades)
+* [Achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-achievements)
+* [Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-upgrades)
+* [Heavenly Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-upgrades)
 * [Mysteries of the Cookie Age](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#Mysteries-of-the-Cookie-Age)
 * [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal)
 * [Changelog](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#changelog)
@@ -1130,17 +1131,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0021.png"><img src="./assets/generated-icons/SheetCustom0021.png" alt="Click II: the sequel" width="48" height="48"></a></td>
 <td><strong>Click II: the sequel</strong></td>
-<td>Make <strong>1 septendecillion cookies</strong> just from cursors</td>
+<td>Make <strong>100 sexdecillion cookies</strong> just from cursors</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0022.png"><img src="./assets/generated-icons/SheetCustom0022.png" alt="Click III: we couldn't get Adam so it stars Jerry Seinfeld for some reason" width="48" height="48"></a></td>
 <td><strong>Click III: we couldn't get Adam so it stars Jerry Seinfeld for some reason</strong></td>
-<td>Make <strong>1 quindecillion cookies</strong> just from cursors</td>
+<td>Make <strong>100 novemdecillion cookies</strong> just from cursors</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0023.png"><img src="./assets/generated-icons/SheetCustom0023.png" alt="Click IV: 3% on rotten tomatoes" width="48" height="48"></a></td>
 <td><strong>Click IV: 3% on rotten tomatoes</strong></td>
-<td>Make <strong>1 sexdecillion cookies</strong> just from cursors</td>
+<td>Make <strong>100 vigintillion cookies</strong> just from cursors</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0019.png"><img src="./assets/generated-icons/SheetCustom0019.png" alt="Rowdy shadow puppets" width="48" height="48"></a></td>
@@ -1223,17 +1224,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0121.png"><img src="./assets/generated-icons/SheetCustom0121.png" alt="Scone with the wind" width="48" height="48"></a></td>
 <td><strong>Scone with the wind</strong></td>
-<td>Make <strong>1 septendecillion cookies</strong> just from grandmas</td>
+<td>Make <strong>100 sexdecillion cookies</strong> just from grandmas</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0122.png"><img src="./assets/generated-icons/SheetCustom0122.png" alt="The flour of youth" width="48" height="48"></a></td>
 <td><strong>The flour of youth</strong></td>
-<td>Make <strong>1 quindecillion cookies</strong> just from grandmas</td>
+<td>Make <strong>100 novemdecillion cookies</strong> just from grandmas</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0123.png"><img src="./assets/generated-icons/SheetCustom0123.png" alt="Bake-ageddon" width="48" height="48"></a></td>
 <td><strong>Bake-ageddon</strong></td>
-<td>Make <strong>1 sexdecillion cookies</strong> just from grandmas</td>
+<td>Make <strong>100 vigintillion cookies</strong> just from grandmas</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0119.png"><img src="./assets/generated-icons/SheetCustom0119.png" alt="Loaf &amp; behold" width="48" height="48"></a></td>
@@ -1316,17 +1317,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0221.png"><img src="./assets/generated-icons/SheetCustom0221.png" alt="Rake in the greens" width="48" height="48"></a></td>
 <td><strong>Rake in the greens</strong></td>
-<td>Make <strong>1 quattuordecillion cookies</strong> just from farms</td>
+<td>Make <strong>1 quindecillion cookies</strong> just from farms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0222.png"><img src="./assets/generated-icons/SheetCustom0222.png" alt="The great threshering" width="48" height="48"></a></td>
 <td><strong>The great threshering</strong></td>
-<td>Make <strong>1 quindecillion cookies</strong> just from farms</td>
+<td>Make <strong>1 octodecillion cookies</strong> just from farms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0223.png"><img src="./assets/generated-icons/SheetCustom0223.png" alt="Bushels of burden" width="48" height="48"></a></td>
 <td><strong>Bushels of burden</strong></td>
-<td>Make <strong>1 sexdecillion cookies</strong> just from farms</td>
+<td>Make <strong>1 novemdecillion cookies</strong> just from farms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0219.png"><img src="./assets/generated-icons/SheetCustom0219.png" alt="Huge-er tracts of land" width="48" height="48"></a></td>
@@ -1409,17 +1410,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0321.png"><img src="./assets/generated-icons/SheetCustom0321.png" alt="Ore d'oeuvres" width="48" height="48"></a></td>
 <td><strong>Ore d'oeuvres</strong></td>
-<td>Make <strong>10 quattuordecillion cookies</strong> just from mines</td>
+<td>Make <strong>10 quindecillion cookies</strong> just from mines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0322.png"><img src="./assets/generated-icons/SheetCustom0322.png" alt="Seismic yield" width="48" height="48"></a></td>
 <td><strong>Seismic yield</strong></td>
-<td>Make <strong>10 quindecillion cookies</strong> just from mines</td>
+<td>Make <strong>10 octodecillion cookies</strong> just from mines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0323.png"><img src="./assets/generated-icons/SheetCustom0323.png" alt="Billionaire's bedrock" width="48" height="48"></a></td>
 <td><strong>Billionaire's bedrock</strong></td>
-<td>Make <strong>10 sexdecillion cookies</strong> just from mines</td>
+<td>Make <strong>10 novemdecillion cookies</strong> just from mines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0319.png"><img src="./assets/generated-icons/SheetCustom0319.png" alt="Cave-in king" width="48" height="48"></a></td>
@@ -1502,17 +1503,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0421.png"><img src="./assets/generated-icons/SheetCustom0421.png" alt="Sweatshop symphony" width="48" height="48"></a></td>
 <td><strong>Sweatshop symphony</strong></td>
-<td>Make <strong>100 quattuordecillion cookies</strong> just from factories</td>
+<td>Make <strong>100 quindecillion cookies</strong> just from factories</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0422.png"><img src="./assets/generated-icons/SheetCustom0422.png" alt="Cookieconomics 101" width="48" height="48"></a></td>
 <td><strong>Cookieconomics 101</strong></td>
-<td>Make <strong>100 quindecillion cookies</strong> just from factories</td>
+<td>Make <strong>100 octodecillion cookies</strong> just from factories</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0423.png"><img src="./assets/generated-icons/SheetCustom0423.png" alt="Mass production messiah" width="48" height="48"></a></td>
 <td><strong>Mass production messiah</strong></td>
-<td>Make <strong>100 sexdecillion cookies</strong> just from factories</td>
+<td>Make <strong>100 novemdecillion cookies</strong> just from factories</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0419.png"><img src="./assets/generated-icons/SheetCustom0419.png" alt="Boilerplate overlord" width="48" height="48"></a></td>
@@ -1595,17 +1596,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1521.png"><img src="./assets/generated-icons/SheetCustom1521.png" alt="Compound interest, compounded" width="48" height="48"></a></td>
 <td><strong>Compound interest, compounded</strong></td>
-<td>Make <strong>1 quindecillion cookies</strong> just from banks</td>
+<td>Make <strong>1 sexdecillion cookies</strong> just from banks</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1522.png"><img src="./assets/generated-icons/SheetCustom1522.png" alt="Arbitrage avalanche" width="48" height="48"></a></td>
 <td><strong>Arbitrage avalanche</strong></td>
-<td>Make <strong>1 sexdecillion cookies</strong> just from banks</td>
+<td>Make <strong>1 novemdecillion cookies</strong> just from banks</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1523.png"><img src="./assets/generated-icons/SheetCustom1523.png" alt="Ponzi à la mode" width="48" height="48"></a></td>
 <td><strong>Ponzi à la mode</strong></td>
-<td>Make <strong>1 septendecillion cookies</strong> just from banks</td>
+<td>Make <strong>1 vigintillion cookies</strong> just from banks</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1119.png"><img src="./assets/generated-icons/SheetCustom1119.png" alt="Credit conjurer" width="48" height="48"></a></td>
@@ -1688,17 +1689,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1621.png"><img src="./assets/generated-icons/SheetCustom1621.png" alt="Temple treasury overflow" width="48" height="48"></a></td>
 <td><strong>Temple treasury overflow</strong></td>
-<td>Make <strong>10 quindecillion cookies</strong> just from temples</td>
+<td>Make <strong>10 sexdecillion cookies</strong> just from temples</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1622.png"><img src="./assets/generated-icons/SheetCustom1622.png" alt="Pantheon payout" width="48" height="48"></a></td>
 <td><strong>Pantheon payout</strong></td>
-<td>Make <strong>10 sexdecillion cookies</strong> just from temples</td>
+<td>Make <strong>10 novemdecillion cookies</strong> just from temples</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1623.png"><img src="./assets/generated-icons/SheetCustom1623.png" alt="Sacred surplus" width="48" height="48"></a></td>
 <td><strong>Sacred surplus</strong></td>
-<td>Make <strong>10 septendecillion cookies</strong> just from temples</td>
+<td>Make <strong>10 vigintillion cookies</strong> just from temples</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1219.png"><img src="./assets/generated-icons/SheetCustom1219.png" alt="Acolyte ascendant" width="48" height="48"></a></td>
@@ -1781,17 +1782,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1721.png"><img src="./assets/generated-icons/SheetCustom1721.png" alt="Rabbits per minute" width="48" height="48"></a></td>
 <td><strong>Rabbits per minute</strong></td>
-<td>Make <strong>100 quindecillion cookies</strong> just from wizard towers</td>
+<td>Make <strong>100 sexdecillion cookies</strong> just from wizard towers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1722.png"><img src="./assets/generated-icons/SheetCustom1722.png" alt="Hocus bonus" width="48" height="48"></a></td>
 <td><strong>Hocus bonus</strong></td>
-<td>Make <strong>100 sexdecillion cookies</strong> just from wizard towers</td>
+<td>Make <strong>100 novemdecillion cookies</strong> just from wizard towers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1723.png"><img src="./assets/generated-icons/SheetCustom1723.png" alt="Magic dividends" width="48" height="48"></a></td>
 <td><strong>Magic dividends</strong></td>
-<td>Make <strong>100 septendecillion cookies</strong> just from wizard towers</td>
+<td>Make <strong>100 vigintillion cookies</strong> just from wizard towers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1319.png"><img src="./assets/generated-icons/SheetCustom1319.png" alt="Archmage of Meringue" width="48" height="48"></a></td>
@@ -1874,17 +1875,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0521.png"><img src="./assets/generated-icons/SheetCustom0521.png" alt="Cargo cult classic" width="48" height="48"></a></td>
 <td><strong>Cargo cult classic</strong></td>
-<td>Make <strong>1 sexdecillion cookies</strong> just from shipments</td>
+<td>Make <strong>1 septendecillion cookies</strong> just from shipments</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0522.png"><img src="./assets/generated-icons/SheetCustom0522.png" alt="Universal basic shipping" width="48" height="48"></a></td>
 <td><strong>Universal basic shipping</strong></td>
-<td>Make <strong>1 septendecillion cookies</strong> just from shipments</td>
+<td>Make <strong>1 vigintillion cookies</strong> just from shipments</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0523.png"><img src="./assets/generated-icons/SheetCustom0523.png" alt="Comet-to-consumer" width="48" height="48"></a></td>
 <td><strong>Comet-to-consumer</strong></td>
-<td>Make <strong>1 octodecillion cookies</strong> just from shipments</td>
+<td>Make <strong>1 unvigintillion cookies</strong> just from shipments</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0519.png"><img src="./assets/generated-icons/SheetCustom0519.png" alt="Quartermaster of Orbits" width="48" height="48"></a></td>
@@ -1967,17 +1968,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0621.png"><img src="./assets/generated-icons/SheetCustom0621.png" alt="Lead into bread" width="48" height="48"></a></td>
 <td><strong>Lead into bread</strong></td>
-<td>Make <strong>10 sexdecillion cookies</strong> just from alchemy labs</td>
+<td>Make <strong>10 septendecillion cookies</strong> just from alchemy labs</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0622.png"><img src="./assets/generated-icons/SheetCustom0622.png" alt="Philosopher's yield" width="48" height="48"></a></td>
 <td><strong>Philosopher's yield</strong></td>
-<td>Make <strong>10 septendecillion cookies</strong> just from alchemy labs</td>
+<td>Make <strong>10 vigintillion cookies</strong> just from alchemy labs</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0623.png"><img src="./assets/generated-icons/SheetCustom0623.png" alt="Auronomical returns" width="48" height="48"></a></td>
 <td><strong>Auronomical returns</strong></td>
-<td>Make <strong>10 octodecillion cookies</strong> just from alchemy labs</td>
+<td>Make <strong>10 unvigintillion cookies</strong> just from alchemy labs</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0619.png"><img src="./assets/generated-icons/SheetCustom0619.png" alt="Retort wrangler" width="48" height="48"></a></td>
@@ -2060,17 +2061,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0721.png"><img src="./assets/generated-icons/SheetCustom0721.png" alt="Spacetime surcharge" width="48" height="48"></a></td>
 <td><strong>Spacetime surcharge</strong></td>
-<td>Make <strong>100 sexdecillion cookies</strong> just from portals</td>
+<td>Make <strong>100 septendecillion cookies</strong> just from portals</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0722.png"><img src="./assets/generated-icons/SheetCustom0722.png" alt="Interdimensional yield farming" width="48" height="48"></a></td>
 <td><strong>Interdimensional yield farming</strong></td>
-<td>Make <strong>100 septendecillion cookies</strong> just from portals</td>
+<td>Make <strong>100 vigintillion cookies</strong> just from portals</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0723.png"><img src="./assets/generated-icons/SheetCustom0723.png" alt="Event-horizon markup" width="48" height="48"></a></td>
 <td><strong>Event-horizon markup</strong></td>
-<td>Make <strong>100 octodecillion cookies</strong> just from portals</td>
+<td>Make <strong>100 unvigintillion cookies</strong> just from portals</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0719.png"><img src="./assets/generated-icons/SheetCustom0719.png" alt="Non-Euclidean doorman" width="48" height="48"></a></td>
@@ -2153,17 +2154,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0821.png"><img src="./assets/generated-icons/SheetCustom0821.png" alt="Future Profits, Past Tense" width="48" height="48"></a></td>
 <td><strong>Future Profits, Past Tense</strong></td>
-<td>Make <strong>1 septendecillion cookies</strong> just from time machines</td>
+<td>Make <strong>1 octodecillion cookies</strong> just from time machines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0822.png"><img src="./assets/generated-icons/SheetCustom0822.png" alt="Infinite Loop, Infinite Loot" width="48" height="48"></a></td>
 <td><strong>Infinite Loop, Infinite Loot</strong></td>
-<td>Make <strong>1 octodecillion cookies</strong> just from time machines</td>
+<td>Make <strong>1 unvigintillion cookies</strong> just from time machines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0823.png"><img src="./assets/generated-icons/SheetCustom0823.png" alt="Back Pay from the Big Bang" width="48" height="48"></a></td>
 <td><strong>Back Pay from the Big Bang</strong></td>
-<td>Make <strong>1 novemdecillion cookies</strong> just from time machines</td>
+<td>Make <strong>1 duovigintillion cookies</strong> just from time machines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0819.png"><img src="./assets/generated-icons/SheetCustom0819.png" alt="Minute handler" width="48" height="48"></a></td>
@@ -2246,17 +2247,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1321.png"><img src="./assets/generated-icons/SheetCustom1321.png" alt="Pair production payout" width="48" height="48"></a></td>
 <td><strong>Pair production payout</strong></td>
-<td>Make <strong>10 septendecillion cookies</strong> just from antimatter condensers</td>
+<td>Make <strong>10 octodecillion cookies</strong> just from antimatter condensers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1322.png"><img src="./assets/generated-icons/SheetCustom1322.png" alt="Cross-section surplus" width="48" height="48"></a></td>
 <td><strong>Cross-section surplus</strong></td>
-<td>Make <strong>10 octodecillion cookies</strong> just from antimatter condensers</td>
+<td>Make <strong>10 unvigintillion cookies</strong> just from antimatter condensers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1323.png"><img src="./assets/generated-icons/SheetCustom1323.png" alt="Powers of crumbs" width="48" height="48"></a></td>
 <td><strong>Powers of crumbs</strong></td>
-<td>Make <strong>10 novemdecillion cookies</strong> just from antimatter condensers</td>
+<td>Make <strong>10 duovigintillion cookies</strong> just from antimatter condensers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom0919.png"><img src="./assets/generated-icons/SheetCustom0919.png" alt="Quark wrangler" width="48" height="48"></a></td>
@@ -2339,17 +2340,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1421.png"><img src="./assets/generated-icons/SheetCustom1421.png" alt="Photons pay dividends" width="48" height="48"></a></td>
 <td><strong>Photons pay dividends</strong></td>
-<td>Make <strong>100 septendecillion cookies</strong> just from prisms</td>
+<td>Make <strong>100 octodecillion cookies</strong> just from prisms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1422.png"><img src="./assets/generated-icons/SheetCustom1422.png" alt="Spectral surplus" width="48" height="48"></a></td>
 <td><strong>Spectral surplus</strong></td>
-<td>Make <strong>100 octodecillion cookies</strong> just from prisms</td>
+<td>Make <strong>100 unvigintillion cookies</strong> just from prisms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1423.png"><img src="./assets/generated-icons/SheetCustom1423.png" alt="Dawn of plenty" width="48" height="48"></a></td>
 <td><strong>Dawn of plenty</strong></td>
-<td>Make <strong>100 novemdecillion cookies</strong> just from prisms</td>
+<td>Make <strong>100 duovigintillion cookies</strong> just from prisms</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1019.png"><img src="./assets/generated-icons/SheetCustom1019.png" alt="Master of refraction" width="48" height="48"></a></td>
@@ -2432,17 +2433,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1821.png"><img src="./assets/generated-icons/SheetCustom1821.png" alt="Against all odds &amp; ends" width="48" height="48"></a></td>
 <td><strong>Against all odds & ends</strong></td>
-<td>Make <strong>1 octodecillion cookies</strong> just from chancemakers</td>
+<td>Make <strong>1 novemdecillion cookies</strong> just from chancemakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1822.png"><img src="./assets/generated-icons/SheetCustom1822.png" alt="Monte Carlo windfall" width="48" height="48"></a></td>
 <td><strong>Monte Carlo windfall</strong></td>
-<td>Make <strong>1 novemdecillion cookies</strong> just from chancemakers</td>
+<td>Make <strong>1 duovigintillion cookies</strong> just from chancemakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1823.png"><img src="./assets/generated-icons/SheetCustom1823.png" alt="Fate-backed securities" width="48" height="48"></a></td>
 <td><strong>Fate-backed securities</strong></td>
-<td>Make <strong>1 vigintillion cookies</strong> just from chancemakers</td>
+<td>Make <strong>1 trevigintillion cookies</strong> just from chancemakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1419.png"><img src="./assets/generated-icons/SheetCustom1419.png" alt="Seedkeeper of Fortune" width="48" height="48"></a></td>
@@ -2525,17 +2526,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1921.png"><img src="./assets/generated-icons/SheetCustom1921.png" alt="Infinite series surplus" width="48" height="48"></a></td>
 <td><strong>Infinite series surplus</strong></td>
-<td>Make <strong>10 octodecillion cookies</strong> just from fractal engines</td>
+<td>Make <strong>10 novemdecillion cookies</strong> just from fractal engines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1922.png"><img src="./assets/generated-icons/SheetCustom1922.png" alt="Geometric mean feast" width="48" height="48"></a></td>
 <td><strong>Geometric mean feast</strong></td>
-<td>Make <strong>10 novemdecillion cookies</strong> just from fractal engines</td>
+<td>Make <strong>10 duovigintillion cookies</strong> just from fractal engines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1923.png"><img src="./assets/generated-icons/SheetCustom1923.png" alt="Fractal jackpot" width="48" height="48"></a></td>
 <td><strong>Fractal jackpot</strong></td>
-<td>Make <strong>10 vigintillion cookies</strong> just from fractal engines</td>
+<td>Make <strong>10 trevigintillion cookies</strong> just from fractal engines</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1519.png"><img src="./assets/generated-icons/SheetCustom1519.png" alt="Archfractal" width="48" height="48"></a></td>
@@ -2618,17 +2619,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2021.png"><img src="./assets/generated-icons/SheetCustom2021.png" alt="Cookies per second()++" width="48" height="48"></a></td>
 <td><strong>Cookies per second()++</strong></td>
-<td>Make <strong>100 octodecillion cookies</strong> just from javascript consoles</td>
+<td>Make <strong>100 novemdecillion cookies</strong> just from javascript consoles</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2022.png"><img src="./assets/generated-icons/SheetCustom2022.png" alt="Promise.all(paydays)" width="48" height="48"></a></td>
 <td><strong>Promise.all(paydays)</strong></td>
-<td>Make <strong>100 novemdecillion cookies</strong> just from javascript consoles</td>
+<td>Make <strong>100 duovigintillion cookies</strong> just from javascript consoles</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2023.png"><img src="./assets/generated-icons/SheetCustom2023.png" alt="Async and ye shall receive" width="48" height="48"></a></td>
 <td><strong>Async and ye shall receive</strong></td>
-<td>Make <strong>100 vigintillion cookies</strong> just from javascript consoles</td>
+<td>Make <strong>100 trevigintillion cookies</strong> just from javascript consoles</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1619.png"><img src="./assets/generated-icons/SheetCustom1619.png" alt="Stack tracer" width="48" height="48"></a></td>
@@ -2711,17 +2712,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2121.png"><img src="./assets/generated-icons/SheetCustom2121.png" alt="Crossover dividends" width="48" height="48"></a></td>
 <td><strong>Crossover dividends</strong></td>
-<td>Make <strong>1 novemdecillion cookies</strong> just from idleverses</td>
+<td>Make <strong>1 vigintillion cookies</strong> just from idleverses</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2122.png"><img src="./assets/generated-icons/SheetCustom2122.png" alt="Many-Worlds ROI" width="48" height="48"></a></td>
 <td><strong>Many-Worlds ROI</strong></td>
-<td>Make <strong>100 vigintillion cookies</strong> just from idleverses</td>
+<td>Make <strong>1 trevigintillion cookies</strong> just from idleverses</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2123.png"><img src="./assets/generated-icons/SheetCustom2123.png" alt="Continuity bonus" width="48" height="48"></a></td>
 <td><strong>Continuity bonus</strong></td>
-<td>Make <strong>10 duovigintillion cookies</strong> just from idleverses</td>
+<td>Make <strong>1 quattuorvigintillion cookies</strong> just from idleverses</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1719.png"><img src="./assets/generated-icons/SheetCustom1719.png" alt="Canon custodian" width="48" height="48"></a></td>
@@ -2804,17 +2805,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2221.png"><img src="./assets/generated-icons/SheetCustom2221.png" alt="Brainstorm dividend" width="48" height="48"></a></td>
 <td><strong>Brainstorm dividend</strong></td>
-<td>Make <strong>10 novemdecillion cookies</strong> just from cortex bakers</td>
+<td>Make <strong>10 vigintillion cookies</strong> just from cortex bakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2222.png"><img src="./assets/generated-icons/SheetCustom2222.png" alt="Thought economy boom" width="48" height="48"></a></td>
 <td><strong>Thought economy boom</strong></td>
-<td>Make <strong>10 vigintillion cookies</strong> just from cortex bakers</td>
+<td>Make <strong>10 trevigintillion cookies</strong> just from cortex bakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2223.png"><img src="./assets/generated-icons/SheetCustom2223.png" alt="Neural net worth" width="48" height="48"></a></td>
 <td><strong>Neural net worth</strong></td>
-<td>Make <strong>10 unvigintillion cookies</strong> just from cortex bakers</td>
+<td>Make <strong>10 quattuorvigintillion cookies</strong> just from cortex bakers</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1819.png"><img src="./assets/generated-icons/SheetCustom1819.png" alt="Chief Thinker Officer" width="48" height="48"></a></td>
@@ -2897,17 +2898,17 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2321.png"><img src="./assets/generated-icons/SheetCustom2321.png" alt="Personal growth" width="48" height="48"></a></td>
 <td><strong>Personal growth</strong></td>
-<td>Make <strong>100 novemdecillion cookies</strong> just from You</td>
+<td>Make <strong>100 vigintillion cookies</strong> just from You</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2322.png"><img src="./assets/generated-icons/SheetCustom2322.png" alt="Economies of selves" width="48" height="48"></a></td>
 <td><strong>Economies of selves</strong></td>
-<td>Make <strong>100 vigintillion cookies</strong> just from You</td>
+<td>Make <strong>100 trevigintillion cookies</strong> just from You</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom2323.png"><img src="./assets/generated-icons/SheetCustom2323.png" alt="Self-sustaining singularity" width="48" height="48"></a></td>
 <td><strong>Self-sustaining singularity</strong></td>
-<td>Make <strong>100 unvigintillion cookies</strong> just from You</td>
+<td>Make <strong>100 quattuorvigintillion cookies</strong> just from You</td>
 </tr>
 <tr>
 <td width="48"><a href="./assets/generated-icons/SheetCustom1919.png"><img src="./assets/generated-icons/SheetCustom1919.png" alt="Identity custodian" width="48" height="48"></a></td>
@@ -5121,6 +5122,898 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
+## Heavenly Upgrades
+
+### Tree 1: Stock Market, Pantheon, Garden, and Wizard
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2300.png"><img src="./assets/generated-icons/SheetCustom2300.png" alt="Wallstreet bets" width="48" height="48"></a></td>
+<td><strong>Wallstreet bets</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>15 quadrillion cookies</strong></td>
+<td><b>+50% base</b> warehouse space for all goods in the Stock Market minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1924.png"><img src="./assets/generated-icons/SheetCustom1924.png" alt="Cyclius swatch" width="48" height="48"></a></td>
+<td><strong>Cyclius swatch</strong></td>
+<td>Wallstreet bets</td>
+<td><strong>20 quadrillion cookies</strong></td>
+<td>Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2120.png"><img src="./assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
+<td><strong>Morrowen, Spirit of Procrastination</strong></td>
+<td>Cyclius swatch</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Adds a new god to the Pantheon.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2020.png"><img src="./assets/generated-icons/SheetCustom2020.png" alt="Solgreth, Spirit of Selfishness" width="48" height="48"></a></td>
+<td><strong>Solgreth, Spirit of Selfishness</strong></td>
+<td>Cyclius swatch</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Adds a new god to the Pantheon.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0008.png"><img src="./assets/generated-icons/SheetVanilla0008.png" alt="Divine uninspiration" width="48" height="48"></a></td>
+<td><strong>Divine uninspiration</strong></td>
+<td>Solgreth, Spirit of Selfishness, Morrowen, Spirit of Procrastination</td>
+<td><strong>400 quadrillion cookies</strong></td>
+<td>CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2318.png"><img src="./assets/generated-icons/SheetVanilla2318.png" alt="Godzmak's Headstart" width="48" height="48"></a></td>
+<td><strong>Godzmak's Headstart</strong></td>
+<td>Divine uninspiration</td>
+<td><strong>50 quintillion cookies</strong></td>
+<td>Godzmak buffs last <b>10%</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetGarden0335.png"><img src="./assets/generated-icons/SheetGarden0335.png" alt="Soil inspector" width="48" height="48"></a></td>
+<td><strong>Soil inspector</strong></td>
+<td>Wallstreet bets</td>
+<td><strong>20 quadrillion cookies</strong></td>
+<td>The tooltip for an empty soil spot will <b>reveal the odds</b> of each plant growing there.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1116.png"><img src="./assets/generated-icons/SheetCustom1116.png" alt="Plant all" width="48" height="48"></a></td>
+<td><strong>Plant all</strong></td>
+<td>Soil inspector</td>
+<td><strong>25 quadrillion cookies</strong></td>
+<td>Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0424.png"><img src="./assets/generated-icons/SheetCustom0424.png" alt="Sparkling sugar cane" width="48" height="48"></a></td>
+<td><strong>Sparkling sugar cane</strong></td>
+<td>Plant all</td>
+<td><strong>85 quadrillion cookies</strong></td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0924.png"><img src="./assets/generated-icons/SheetCustom0924.png" alt="Krazy kudzu" width="48" height="48"></a></td>
+<td><strong>Krazy kudzu</strong></td>
+<td>Plant all</td>
+<td><strong>90 quadrillion cookies</strong></td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1424.png"><img src="./assets/generated-icons/SheetCustom1424.png" alt="Magic mushroom" width="48" height="48"></a></td>
+<td><strong>Magic mushroom</strong></td>
+<td>Plant all</td>
+<td><strong>95 quadrillion cookies</strong></td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1524.png"><img src="./assets/generated-icons/SheetCustom1524.png" alt="Aerated soil" width="48" height="48"></a></td>
+<td><strong>Aerated soil</strong></td>
+<td>Plant all</td>
+<td><strong>100 quadrillion cookies</strong></td>
+<td>Adds a new soil to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1615.png"><img src="./assets/generated-icons/SheetCustom1615.png" alt="Wizardly accomplishments" width="48" height="48"></a></td>
+<td><strong>Wizardly accomplishments</strong></td>
+<td>Wallstreet bets</td>
+<td><strong>100 quadrillion cookies</strong></td>
+<td>Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2019.png"><img src="./assets/generated-icons/SheetCustom2019.png" alt="Gilded allure" width="48" height="48"></a></td>
+<td><strong>Gilded allure</strong></td>
+<td>Wizardly accomplishments</td>
+<td><strong>150 quadrillion cookies</strong></td>
+<td>Adds a new spell to the Grimoire minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2124.png"><img src="./assets/generated-icons/SheetCustom2124.png" alt="Water cooled processors" width="48" height="48"></a></td>
+<td><strong>Water cooled processors</strong></td>
+<td>Gilded allure, Aerated soil</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Terminal minigame cooldown is reduced by 1 hour.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2024.png"><img src="./assets/generated-icons/SheetCustom2024.png" alt="Overclocked GPUs" width="48" height="48"></a></td>
+<td><strong>Overclocked GPUs</strong></td>
+<td>Water cooled processors</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>Terminal minigame has one extra slot.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3412.png"><img src="./assets/generated-icons/SheetVanilla3412.png" alt="Creative tax evasion" width="48" height="48"></a></td>
+<td><strong>Creative tax evasion</strong></td>
+<td>Wallstreet bets</td>
+<td><strong>75 quadrillion cookies</strong></td>
+<td>Negative loan effects don't last as long.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 2: Building and Upgrade Discounts
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1215.png"><img src="./assets/generated-icons/SheetCustom1215.png" alt="Erasable pens" width="48" height="48"></a></td>
+<td><strong>Erasable pens</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>5 quadrillion cookies</strong></td>
+<td>Edit <b>permanent upgrade slots</b> between ascensions.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1014.png"><img src="./assets/generated-icons/SheetCustom1014.png" alt="Self employed realtor" width="48" height="48"></a></td>
+<td><strong>Self employed realtor</strong></td>
+<td>Erasable pens</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Buildings are <b>10%</b> cheaper.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1607.png"><img src="./assets/generated-icons/SheetVanilla1607.png" alt="Wholesale discount club" width="48" height="48"></a></td>
+<td><strong>Wholesale discount club</strong></td>
+<td>Erasable pens</td>
+<td><strong>30 quadrillion cookies</strong></td>
+<td>Upgrades are <b>10%</b> cheaper.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1317.png"><img src="./assets/generated-icons/SheetCustom1317.png" alt="Turtles all the way down" width="48" height="48"></a></td>
+<td><strong>Turtles all the way down</strong></td>
+<td>Self employed realtor, Wholesale discount club</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1025.png"><img src="./assets/generated-icons/SheetVanilla1025.png" alt="Improved sugar crystal cookies" width="48" height="48"></a></td>
+<td><strong>Improved sugar crystal cookies</strong></td>
+<td>Turtles all the way down</td>
+<td><strong>250 quintillion cookies</strong></td>
+<td>You gain <b>1% CpS</b> for each building <b>level 15</b> or higher.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1014.png"><img src="./assets/generated-icons/SheetVanilla1014.png" alt="Gilded sugar crystal cookies" width="48" height="48"></a></td>
+<td><strong>Gilded sugar crystal cookies</strong></td>
+<td>Improved sugar crystal cookies</td>
+<td><strong>500 quintillion cookies</strong></td>
+<td>You gain <b>1% CpS</b> for each building <b>level 20</b> or higher.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0033.png"><img src="./assets/generated-icons/SheetVanilla0033.png" alt="Weakest link" width="48" height="48"></a></td>
+<td><strong>Weakest link</strong></td>
+<td>Turtles all the way down</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Your <b>least productive</b> building is <b>16x</b> more powerful.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0933.png"><img src="./assets/generated-icons/SheetVanilla0933.png" alt="The next weakest link" width="48" height="48"></a></td>
+<td><strong>The next weakest link</strong></td>
+<td>Weakest link</td>
+<td><strong>70 quadrillion cookies</strong></td>
+<td>Your <b>second least productive</b> building is <b>12x</b> more powerful.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1033.png"><img src="./assets/generated-icons/SheetVanilla1033.png" alt="No more weak links" width="48" height="48"></a></td>
+<td><strong>No more weak links</strong></td>
+<td>The next weakest link</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>Your <b>third least productive</b> building is <b>8x</b> more powerful.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2729.png"><img src="./assets/generated-icons/SheetVanilla2729.png" alt="Box of overpriced donuts" width="48" height="48"></a></td>
+<td><strong>Box of overpriced donuts</strong></td>
+<td>Self employed realtor, Wholesale discount club</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Contains an assortment of overpriced donuts.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1135.png"><img src="./assets/generated-icons/SheetVanilla1135.png" alt="Mega clicks" width="48" height="48"></a></td>
+<td><strong>Mega clicks</strong></td>
+<td>Box of overpriced donuts</td>
+<td><strong>500 sextillion cookies</strong></td>
+<td><b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0909.png"><img src="./assets/generated-icons/SheetCustom0909.png" alt="Lucky mega clicks" width="48" height="48"></a></td>
+<td><strong>Lucky mega clicks</strong></td>
+<td>Mega clicks</td>
+<td><strong>5 septillion cookies</strong></td>
+<td>Mega clicks are now <b>50%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0910.png"><img src="./assets/generated-icons/SheetCustom0910.png" alt="Extreme mega clicks" width="48" height="48"></a></td>
+<td><strong>Extreme mega clicks</strong></td>
+<td>Lucky mega clicks</td>
+<td><strong>50 septillion cookies</strong></td>
+<td>Mega clicks are now <b>50%</b> more powerful.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 3: Sugar Management
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2217.png"><img src="./assets/generated-icons/SheetVanilla2217.png" alt="Sugar frenzy II" width="48" height="48"></a></td>
+<td><strong>Sugar frenzy II</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>100 quadrillion cookies</strong></td>
+<td>Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost one additional sugar lump.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2117.png"><img src="./assets/generated-icons/SheetVanilla2117.png" alt="Sugar for sugar trading" width="48" height="48"></a></td>
+<td><strong>Sugar for sugar trading</strong></td>
+<td>Sugar frenzy II</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>. May be used once per ascension.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2916.png"><img src="./assets/generated-icons/SheetVanilla2916.png" alt="Sugar insight" width="48" height="48"></a></td>
+<td><strong>Sugar insight</strong></td>
+<td>Sugar frenzy II</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>Shows what type of sugar lump is currently growing instantly.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1907.png"><img src="./assets/generated-icons/SheetVanilla1907.png" alt="Sugar predictor" width="48" height="48"></a></td>
+<td><strong>Sugar predictor</strong></td>
+<td>Sugar insight</td>
+<td><strong>850 quadrillion cookies</strong></td>
+<td>Predict your <b>next sugar lump</b>. Get clear guidance on the simplest changes needed to guarantee each of the 4 specialty lump types.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2224.png"><img src="./assets/generated-icons/SheetCustom2224.png" alt="The checkbox" width="48" height="48"></a></td>
+<td><strong>The checkbox</strong></td>
+<td>Sugar predictor</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>This upgrade doesn't do anything.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1036.png"><img src="./assets/generated-icons/SheetVanilla1036.png" alt="Sugar baking II" width="48" height="48"></a></td>
+<td><strong>Sugar baking II</strong></td>
+<td>Sugar predictor, Sugar for sugar trading</td>
+<td><strong>300 quadrillion cookies</strong></td>
+<td>Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1035.png"><img src="./assets/generated-icons/SheetVanilla1035.png" alt="Sugar baking III" width="48" height="48"></a></td>
+<td><strong>Sugar baking III</strong></td>
+<td>Sugar baking II</td>
+<td><strong>400 quadrillion cookies</strong></td>
+<td>Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1807.png"><img src="./assets/generated-icons/SheetVanilla1807.png" alt="Sugar baking IV" width="48" height="48"></a></td>
+<td><strong>Sugar baking IV</strong></td>
+<td>Sugar baking III</td>
+<td><strong>1 sextillion cookies</strong></td>
+<td>Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1707.png"><img src="./assets/generated-icons/SheetVanilla1707.png" alt="Sugar baking V" width="48" height="48"></a></td>
+<td><strong>Sugar baking V</strong></td>
+<td>Sugar baking IV</td>
+<td><strong>5 sextillion cookies</strong></td>
+<td>Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2007.png"><img src="./assets/generated-icons/SheetVanilla2007.png" alt="Sugar baking VI" width="48" height="48"></a></td>
+<td><strong>Sugar baking VI</strong></td>
+<td>Sugar baking V</td>
+<td><strong>25 sextillion cookies</strong></td>
+<td>Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 4: Seasonal and Display
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1709.png"><img src="./assets/generated-icons/SheetVanilla1709.png" alt="Blackfriday special" width="48" height="48"></a></td>
+<td><strong>Blackfriday special</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>10 quadrillion cookies</strong></td>
+<td>Changing seasons is <b>25%</b> cheaper.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1210.png"><img src="./assets/generated-icons/SheetVanilla1210.png" alt="Peaking under the tree" width="48" height="48"></a></td>
+<td><strong>Peaking under the tree</strong></td>
+<td>Blackfriday special</td>
+<td><strong>50 quadrillion cookies</strong></td>
+<td>Random drops are <b>10%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1609.png"><img src="./assets/generated-icons/SheetVanilla1609.png" alt="Regifting" width="48" height="48"></a></td>
+<td><strong>Regifting</strong></td>
+<td>Peaking under the tree</td>
+<td><strong>75 quadrillion cookies</strong></td>
+<td>Seasonal drops have a <b>30%</b> chance to carry over between ascensions.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1410.png"><img src="./assets/generated-icons/SheetVanilla1410.png" alt="Seasonal hours" width="48" height="48"></a></td>
+<td><strong>Seasonal hours</strong></td>
+<td>Blackfriday special</td>
+<td><strong>5 quadrillion cookies</strong></td>
+<td>Seasons last <b>6 hours</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1510.png"><img src="./assets/generated-icons/SheetVanilla1510.png" alt="Seasonal overtime" width="48" height="48"></a></td>
+<td><strong>Seasonal overtime</strong></td>
+<td>Seasonal hours</td>
+<td><strong>8 quadrillion cookies</strong></td>
+<td>Seasons last <b>12 hours</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1804.png"><img src="./assets/generated-icons/SheetVanilla1804.png" alt="Seasonal time off" width="48" height="48"></a></td>
+<td><strong>Seasonal time off</strong></td>
+<td>Seasonal overtime</td>
+<td><strong>15 quadrillion cookies</strong></td>
+<td>Seasons last <b>18 hours</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1610.png"><img src="./assets/generated-icons/SheetVanilla1610.png" alt="Seasonal retirement" width="48" height="48"></a></td>
+<td><strong>Seasonal retirement</strong></td>
+<td>Seasonal time off</td>
+<td><strong>20 quadrillion cookies</strong></td>
+<td>Seasons <b>twice</b> as long.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3409.png"><img src="./assets/generated-icons/SheetVanilla3409.png" alt="Toy box" width="48" height="48"></a></td>
+<td><strong>Toy box</strong></td>
+<td>Seasonal retirement</td>
+<td><strong>350 quadrillion cookies</strong></td>
+<td>Adds a switch to toggle <b>Toy mode</b> on and off.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0209.png"><img src="./assets/generated-icons/SheetVanilla0209.png" alt="Frenziered elders" width="48" height="48"></a></td>
+<td><strong>Frenziered elders</strong></td>
+<td>Toy box</td>
+<td><strong>150 septillion cookies</strong></td>
+<td>Your elder frenzies last <b>25%</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1110.png"><img src="./assets/generated-icons/SheetVanilla1110.png" alt="Cookie calculations" width="48" height="48"></a></td>
+<td><strong>Cookie calculations</strong></td>
+<td>Blackfriday special</td>
+<td><strong>25 quadrillion cookies</strong></td>
+<td>Display <b>CpS</b> in minutes, hours, or days.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3108.png"><img src="./assets/generated-icons/SheetVanilla3108.png" alt="Annualized returns" width="48" height="48"></a></td>
+<td><strong>Annualized returns</strong></td>
+<td>Cookie calculations</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Display cookie bank in <b>years of CpS</b> in stats.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2333.png"><img src="./assets/generated-icons/SheetVanilla2333.png" alt="Fish tank" width="48" height="48"></a></td>
+<td><strong>Fish tank</strong></td>
+<td>Annualized returns</td>
+<td><strong>100 quadrillion cookies</strong></td>
+<td>Cookie fish have found their way into your milk.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0715.png"><img src="./assets/generated-icons/SheetCustom0715.png" alt="Sunken treasure" width="48" height="48"></a></td>
+<td><strong>Sunken treasure</strong></td>
+<td>Fish tank</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>You can now collect your milk fish for a small reward.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0125.png"><img src="./assets/generated-icons/SheetCustom0125.png" alt="Aquaculturist" width="48" height="48"></a></td>
+<td><strong>Aquaculturist</strong></td>
+<td>Sunken treasure</td>
+<td><strong>2 quintillion cookies</strong></td>
+<td>Fish appear <b>25%</b> more often.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0225.png"><img src="./assets/generated-icons/SheetCustom0225.png" alt="Hatchery effect" width="48" height="48"></a></td>
+<td><strong>Hatchery effect</strong></td>
+<td>Aquaculturist</td>
+<td><strong>30 quintillion cookies</strong></td>
+<td>Fish have a <b>10%</b> chance to appear in pairs.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0503.png"><img src="./assets/generated-icons/SheetVanilla0503.png" alt="Big cookie image selector" width="48" height="48"></a></td>
+<td><strong>Big cookie image selector</strong></td>
+<td>Annualized returns, Seasonal retirement, Regifting</td>
+<td><strong>750 quadrillion cookies</strong></td>
+<td>Change the image of the <b>Big Cookie</b>.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 5: Golden Cookie Enhancements
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0305.png"><img src="./assets/generated-icons/SheetVanilla0305.png" alt="Improved cookie chains" width="48" height="48"></a></td>
+<td><strong>Improved cookie chains</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>35 quadrillion cookies</strong></td>
+<td>Cookie chains last longer, especially at higher levels.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1506.png"><img src="./assets/generated-icons/SheetVanilla1506.png" alt="Fading payout" width="48" height="48"></a></td>
+<td><strong>Fading payout</strong></td>
+<td>Improved cookie chains</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td><b>1%</b> chance to auto click a fading golden cookie.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2302.png"><img src="./assets/generated-icons/SheetCustom2302.png" alt="Lucky fading payout" width="48" height="48"></a></td>
+<td><strong>Lucky fading payout</strong></td>
+<td>Fading payout</td>
+<td><strong>1 quintillion cookies</strong></td>
+<td><b>2%</b> chance to auto click a fading golden cookie.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2712.png"><img src="./assets/generated-icons/SheetVanilla2712.png" alt="Distilled essence of retripled luck" width="48" height="48"></a></td>
+<td><strong>Distilled essence of retripled luck</strong></td>
+<td>Improved cookie chains</td>
+<td><strong>5 quintillion cookies</strong></td>
+<td>Golden Cookies have a <b>2% chance of being doubled.</b></td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1415.png"><img src="./assets/generated-icons/SheetCustom1415.png" alt="Golden stopwatch" width="48" height="48"></a></td>
+<td><strong>Golden stopwatch</strong></td>
+<td>Distilled essence of retripled luck, Lucky fading payout</td>
+<td><strong>50 quintillion cookies</strong></td>
+<td>Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1624.png"><img src="./assets/generated-icons/SheetCustom1624.png" alt="Countdown complications" width="48" height="48"></a></td>
+<td><strong>Countdown complications</strong></td>
+<td>Golden stopwatch</td>
+<td><strong>35 quintillion cookies</strong></td>
+<td>Shows the remaining duration of buffs in your golden stopwatch.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0317.png"><img src="./assets/generated-icons/SheetCustom0317.png" alt="Golden cookie predictor" width="48" height="48"></a></td>
+<td><strong>Golden cookie predictor</strong></td>
+<td>Golden stopwatch</td>
+<td><strong>500 quintillion cookies</strong></td>
+<td>Show the expected result of a <b>Golden Cookie 10%</b> of the time.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0417.png"><img src="./assets/generated-icons/SheetCustom0417.png" alt="Tweaked golden cookie predictor" width="48" height="48"></a></td>
+<td><strong>Tweaked golden cookie predictor</strong></td>
+<td>Golden cookie predictor</td>
+<td><strong>5 sextillion cookies</strong></td>
+<td>Show the expected result of a <b>Golden Cookie 25%</b> of the time.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1023.png"><img src="./assets/generated-icons/SheetCustom1023.png" alt="Improved golden cookie predictor" width="48" height="48"></a></td>
+<td><strong>Improved golden cookie predictor</strong></td>
+<td>Tweaked golden cookie predictor</td>
+<td><strong>50 sextillion cookies</strong></td>
+<td>Show the expected result of a <b>Golden Cookie 50%</b> of the time.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0917.png"><img src="./assets/generated-icons/SheetCustom0917.png" alt="Perfected golden cookie predictor" width="48" height="48"></a></td>
+<td><strong>Perfected golden cookie predictor</strong></td>
+<td>Improved golden cookie predictor</td>
+<td><strong>800 sextillion cookies</strong></td>
+<td>Show the expected result of a <b>Golden Cookie 65%</b> of the time.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1414.png"><img src="./assets/generated-icons/SheetCustom1414.png" alt="All is well" width="48" height="48"></a></td>
+<td><strong>All is well</strong></td>
+<td>Perfected golden cookie predictor</td>
+<td><strong>100 septillion cookies</strong></td>
+<td>A golden cookie spawns at the <b>top</b> of every hour.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1717.png"><img src="./assets/generated-icons/SheetCustom1717.png" alt="Six bells" width="48" height="48"></a></td>
+<td><strong>Six bells</strong></td>
+<td>All is well</td>
+<td><strong>200 septillion cookies</strong></td>
+<td>A golden cookie spawns at the <b>bottom</b> of every hour.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2320.png"><img src="./assets/generated-icons/SheetCustom2320.png" alt="Fortune tolls for you" width="48" height="48"></a></td>
+<td><strong>Fortune tolls for you</strong></td>
+<td>Improved cookie chains</td>
+<td><strong>50 quadrillion cookies</strong></td>
+<td>Fortune cookies make <b>noise</b> when they appear.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1724.png"><img src="./assets/generated-icons/SheetCustom1724.png" alt="Chinese leftovers" width="48" height="48"></a></td>
+<td><strong>Chinese leftovers</strong></td>
+<td>Fortune tolls for you</td>
+<td><strong>100 quadrillion cookies</strong></td>
+<td>Consumable Fortune Cookies regenerate once every <b>3 days</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3109.png"><img src="./assets/generated-icons/SheetVanilla3109.png" alt="Second day takeout" width="48" height="48"></a></td>
+<td><strong>Second day takeout</strong></td>
+<td>Chinese leftovers</td>
+<td><strong>2.5 quintillion cookies</strong></td>
+<td>Consumable Fortune Cookies regenerate once every <b>2 days</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2830.png"><img src="./assets/generated-icons/SheetVanilla2830.png" alt="Doordashing every day" width="48" height="48"></a></td>
+<td><strong>Doordashing every day</strong></td>
+<td>Second day takeout</td>
+<td><strong>50 quintillion cookies</strong></td>
+<td>Consumable Fortune Cookies regenerate once every <b>day</b>.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 6: Wrinkler Enhancements
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2113.png"><img src="./assets/generated-icons/SheetCustom2113.png" alt="Rare game hunter" width="48" height="48"></a></td>
+<td><strong>Rare game hunter</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td><strong>10 quadrillion cookies</strong></td>
+<td>Shiny Wrinklers are <b>25%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2116.png"><img src="./assets/generated-icons/SheetCustom2116.png" alt="Hellish hunger" width="48" height="48"></a></td>
+<td><strong>Hellish hunger</strong></td>
+<td>Rare game hunter</td>
+<td><strong>15 quadrillion cookies</strong></td>
+<td>Wrinklers suck <b>10%</b> more.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2117.png"><img src="./assets/generated-icons/SheetCustom2117.png" alt="Ravenous leeches" width="48" height="48"></a></td>
+<td><strong>Ravenous leeches</strong></td>
+<td>Hellish hunger</td>
+<td><strong>15 quadrillion cookies</strong></td>
+<td>Wrinklers suck <b>20%</b> more.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2119.png"><img src="./assets/generated-icons/SheetCustom2119.png" alt="Unlocked gates of hell" width="48" height="48"></a></td>
+<td><strong>Unlocked gates of hell</strong></td>
+<td>Rare game hunter</td>
+<td><strong>20 quadrillion cookies</strong></td>
+<td>Wrinklers spawn <b>10%</b> faster.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2219.png"><img src="./assets/generated-icons/SheetCustom2219.png" alt="Wide open door of hell" width="48" height="48"></a></td>
+<td><strong>Wide open door of hell</strong></td>
+<td>Unlocked gates of hell</td>
+<td><strong>20 quadrillion cookies</strong></td>
+<td>Wrinklers spawn <b>20%</b> faster.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2114.png"><img src="./assets/generated-icons/SheetCustom2114.png" alt="Indigenous tracker" width="48" height="48"></a></td>
+<td><strong>Indigenous tracker</strong></td>
+<td>Ravenous leeches, Wide open door of hell</td>
+<td><strong>25 quadrillion cookies</strong></td>
+<td>Shiny Wrinklers are <b>50%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2115.png"><img src="./assets/generated-icons/SheetCustom2115.png" alt="Species bounceback" width="48" height="48"></a></td>
+<td><strong>Species bounceback</strong></td>
+<td>Indigenous tracker</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Shiny Wrinklers are <b>twice</b> as common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2009.png"><img src="./assets/generated-icons/SheetVanilla2009.png" alt="The prize at the bottom of the box" width="48" height="48"></a></td>
+<td><strong>The prize at the bottom of the box</strong></td>
+<td>Rare game hunter</td>
+<td><strong>80 quadrillion cookies</strong></td>
+<td>Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3303.png"><img src="./assets/generated-icons/SheetVanilla3303.png" alt="Double box prize" width="48" height="48"></a></td>
+<td><strong>Double box prize</strong></td>
+<td>The prize at the bottom of the box</td>
+<td><strong>150 quadrillion cookies</strong></td>
+<td>Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3408.png"><img src="./assets/generated-icons/SheetVanilla3408.png" alt="Mail in sweepstake winner" width="48" height="48"></a></td>
+<td><strong>Mail in sweepstake winner</strong></td>
+<td>Double box prize</td>
+<td><strong>250 quadrillion cookies</strong></td>
+<td>Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2317.png"><img src="./assets/generated-icons/SheetCustom2317.png" alt="Unlucky luckier" width="48" height="48"></a></td>
+<td><strong>Unlucky luckier</strong></td>
+<td>Mail in sweepstake winner</td>
+<td><strong>500 quadrillion cookies</strong></td>
+<td>Lucky Golden Cookies are <b>5%</b> less common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2315.png"><img src="./assets/generated-icons/SheetCustom2315.png" alt="Even more unlucky luckier" width="48" height="48"></a></td>
+<td><strong>Even more unlucky luckier</strong></td>
+<td>Unlucky luckier</td>
+<td><strong>8 quintillion cookies</strong></td>
+<td>Lucky Golden Cookies are <b>10%</b> less common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1513.png"><img src="./assets/generated-icons/SheetCustom1513.png" alt="Positive feedback loop" width="48" height="48"></a></td>
+<td><strong>Positive feedback loop</strong></td>
+<td>Six bells, Even more unlucky luckier</td>
+<td><strong>500 septillion cookies</strong></td>
+<td>After earning an achievement golden cookies appear <b>10%</b> more often for an hour.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1029.png"><img src="./assets/generated-icons/SheetVanilla1029.png" alt="Slightly less bitter wrath" width="48" height="48"></a></td>
+<td><strong>Slightly less bitter wrath</strong></td>
+<td>Even more unlucky luckier</td>
+<td><strong>50 quintillion cookies</strong></td>
+<td>Ruin cookies are found <b>5%</b> less often in wrath cookies.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1505.png"><img src="./assets/generated-icons/SheetVanilla1505.png" alt="Flavor enhanced wrath" width="48" height="48"></a></td>
+<td><strong>Flavor enhanced wrath</strong></td>
+<td>Slightly less bitter wrath</td>
+<td><strong>300 quintillion cookies</strong></td>
+<td>Ruin cookies are found <b>10%</b> less often in wrath cookies.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2811.png"><img src="./assets/generated-icons/SheetVanilla2811.png" alt="Skitter skatter skrum ahh" width="48" height="48"></a></td>
+<td><strong>Skitter skatter skrum ahh</strong></td>
+<td>Rare game hunter</td>
+<td><strong>25 quadrillion cookies</strong></td>
+<td>Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0616.png"><img src="./assets/generated-icons/SheetCustom0616.png" alt="Abra-Ka-Wiggle" width="48" height="48"></a></td>
+<td><strong>Abra-Ka-Wiggle</strong></td>
+<td>Skitter skatter skrum ahh</td>
+<td><strong>25 quadrillion cookies</strong></td>
+<td>Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1416.png"><img src="./assets/generated-icons/SheetCustom1416.png" alt="Alakazoodle evil noodle" width="48" height="48"></a></td>
+<td><strong>Alakazoodle evil noodle</strong></td>
+<td>Abra-Ka-Wiggle</td>
+<td><strong>30 quadrillion cookies</strong></td>
+<td>Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Cockroaches" width="48" height="48"></a></td>
+<td><strong>Cockroaches</strong></td>
+<td>Alakazoodle evil noodle</td>
+<td><strong>50 quintillion cookies</strong></td>
+<td>Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Infestation" width="48" height="48"></a></td>
+<td><strong>Infestation</strong></td>
+<td>Cockroaches</td>
+<td><strong>250 quintillion cookies</strong></td>
+<td>Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3005.png"><img src="./assets/generated-icons/SheetVanilla3005.png" alt="Slimy pheromones" width="48" height="48"></a></td>
+<td><strong>Slimy pheromones</strong></td>
+<td>Alakazoodle evil noodle, Species bounceback</td>
+<td><strong>5 quintillion cookies</strong></td>
+<td>If you have a shiny wrinkler on your cookie, you are <b>5x</b> as likely to attract another.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3112.png"><img src="./assets/generated-icons/SheetVanilla3112.png" alt="Bingo center slots" width="48" height="48"></a></td>
+<td><strong>Bingo center slots</strong></td>
+<td>Slimy pheromones</td>
+<td><strong>750 sextillion cookies</strong></td>
+<td>Add slot machines for your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2220.png"><img src="./assets/generated-icons/SheetCustom2220.png" alt="Pink stuff" width="48" height="48"></a></td>
+<td><strong>Pink stuff</strong></td>
+<td>Mail in sweepstake winner, Alakazoodle evil noodle</td>
+<td><strong>800 quadrillion cookies</strong></td>
+<td>Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1236.png"><img src="./assets/generated-icons/SheetVanilla1236.png" alt="Stacks on stacks on stacks" width="48" height="48"></a></td>
+<td><strong>Stacks on stacks on stacks</strong></td>
+<td>Positive feedback loop, Sugar baking VI</td>
+<td><strong>1 septillion cookies</strong></td>
+<td>Each golden cookie clicked this ascension increases <b>CpS</b> by <b>0.05%</b>.</td>
+</tr>
+</tbody>
+</table>
+
+### Heavenly Upgrade Drops
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Parent(s)</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0625.png"><img src="./assets/generated-icons/SheetCustom0625.png" alt="Maple frosted donut" width="48" height="48"></a></td>
+<td><strong>Maple frosted donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0525.png"><img src="./assets/generated-icons/SheetCustom0525.png" alt="Boston creme donut" width="48" height="48"></a></td>
+<td><strong>Boston creme donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2728.png"><img src="./assets/generated-icons/SheetVanilla2728.png" alt="Strawberry jelly donut" width="48" height="48"></a></td>
+<td><strong>Strawberry jelly donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0425.png"><img src="./assets/generated-icons/SheetCustom0425.png" alt="Chocolate frosted donut" width="48" height="48"></a></td>
+<td><strong>Chocolate frosted donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3003.png"><img src="./assets/generated-icons/SheetVanilla3003.png" alt="Donut holes" width="48" height="48"></a></td>
+<td><strong>Donut holes</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1025.png"><img src="./assets/generated-icons/SheetCustom1025.png" alt="Chocolate filled donut" width="48" height="48"></a></td>
+<td><strong>Chocolate filled donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0925.png"><img src="./assets/generated-icons/SheetCustom0925.png" alt="Powdered sugar jelly donut" width="48" height="48"></a></td>
+<td><strong>Powdered sugar jelly donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2828.png"><img src="./assets/generated-icons/SheetVanilla2828.png" alt="Plain glazed donut" width="48" height="48"></a></td>
+<td><strong>Plain glazed donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0325.png"><img src="./assets/generated-icons/SheetCustom0325.png" alt="Blueberry jelly filled donut" width="48" height="48"></a></td>
+<td><strong>Blueberry jelly filled donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3032.png"><img src="./assets/generated-icons/SheetVanilla3032.png" alt="Pink frosted donut" width="48" height="48"></a></td>
+<td><strong>Pink frosted donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0825.png"><img src="./assets/generated-icons/SheetCustom0825.png" alt="Chocolate sprinkle donut" width="48" height="48"></a></td>
+<td><strong>Chocolate sprinkle donut</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2336.png"><img src="./assets/generated-icons/SheetVanilla2336.png" alt="Bear claw" width="48" height="48"></a></td>
+<td><strong>Bear claw</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0725.png"><img src="./assets/generated-icons/SheetCustom0725.png" alt="Chocolate eclair" width="48" height="48"></a></td>
+<td><strong>Chocolate eclair</strong></td>
+<td>Box of overpriced donuts</td>
+<td>Scales with CpS</td>
+<td>Cookie production multiplier <b>+3%</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1018.png"><img src="./assets/generated-icons/SheetVanilla1018.png" alt="Hearty farm biscuit" width="48" height="48"></a></td>
+<td><strong>Hearty farm biscuit</strong></td>
+<td>Magic mushroom</td>
+<td>Scales with CpS</td>
+<td>Farms are <b>twice</b> as efficient.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2116.png"><img src="./assets/generated-icons/SheetVanilla2116.png" alt="Astronaut cookie" width="48" height="48"></a></td>
+<td><strong>Astronaut cookie</strong></td>
+<td>Magic mushroom</td>
+<td>Scales with CpS</td>
+<td>Shipments are <b>twice</b> as efficient.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2417.png"><img src="./assets/generated-icons/SheetVanilla2417.png" alt="The chemist cookie" width="48" height="48"></a></td>
+<td><strong>The chemist cookie</strong></td>
+<td>Magic mushroom</td>
+<td>Scales with CpS</td>
+<td>Alchemy labs are <b>twice</b> as efficient.</td>
+</tr>
+</tbody>
+</table>
+
+
 ## Mysteries of the Cookie Age
 
 *Slip a note under the door. Burn a secret message. Unearth hidden treasures and buried truths. Decode secret ciphers. Count the lamps when the watchman passes. You may even do the unforgivable to stay alive. The Orders are ancient and powerful. Their eyes are everywhere, their actions are sinister. Uncover what they hide—before they decide who you are, and what you’re really doing.*
@@ -5128,11 +6021,11 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 This story add-on layers an occult mystery over your Cookie Clicker run: riddles to solve, ciphers to break, puzzles to test your wits, and secret rites to perform—**all inside the world you’re already playing**.
 
 ### What to expect *(spoiler-free)*
-- **Diegetic puzzles.** Clues arrive in-world and puzzles are solved in game, no seperated gameplay or isolated minigames, just careful observation and precise actions.
-- **Escalating difficulty.** As the story unfolds, puzzles grow sharper and more demanding. Some will click; others will test your patience.
-- **Intrigue and mystery.** Early nudges become hard asks. Your cover tightens; your choices start to matter. 
-- **Unfolding lore.** The signs, taboos, and symbols of an ancient and mystical Order emerge piece by piece, if you’re paying attention.
-- **Deep gameplay.** With dozens of puzzles, ciphers, riddles, and tasks to carry out, days, weeks, even months of mystery adventure awaits you. There *is* an end to the mystery, but not everyone will make it. 
+- **Diegetic puzzles:** Clues arrive in-world and puzzles are solved in game, no separated gameplay or isolated minigames, just careful observation and precise actions.
+- **Escalating difficulty:** As the story unfolds, puzzles grow sharper and more demanding. Some will click; others will test your patience.
+- **Intrigue and mystery:** Early nudges become hard asks. Your cover tightens; your choices start to matter. 
+- **Unfolding lore:** The signs, taboos, and symbols of an ancient and mystical Order emerge piece by piece, if you’re paying attention.
+- **Deep gameplay:** With dozens of puzzles, ciphers, riddles, and tasks to carry out, days, weeks, even months of mystery adventure awaits you. There *is* an end to the mystery, but not everyone will make it. 
 
 ### How to begin
 1. Open **Options** → toggle **“Mysteries of the Cookie”** to **ON**.  
@@ -5252,6 +6145,25 @@ sweet_Runtime_Swizzler();
 
 
 ## Changelog
+
+### **Major Version 0.3.0 - The Heavenly Upgrades Update**
+* Added 97 new heavenly upgrades that are unlocked when you have completed the vanilla heavenly upgrades tree. 
+
+
+### Version 0.2.1
+* Updated several production achievement descriptions to correct the use of wrong notation numbers. The logic was always correct, but the descriptions were incorrect. Thanks to Reddit user mei_ch.
+* Cleaned up some outdated code that was hanging around.
+* Several quality-of-life fixes to the terminal minigame to improve layout and behavior.
+* Terminal minigame: fixed a bug that could cause Shimmering Veil to break if placed after click generators on laggy computers. 
+* Fixed Garden Sacrifice achievements to track the existing sacrifice counter.
+* Fixed an exploit that could award Spellslinger via save-scumming.
+* Fixed a bug with In the Shadows not being awarded due to character encoding mismatches.
+* Holding down the Shift key while viewing a completed Mysteries of the Cookie Age puzzle will now display the original clue you solved. Thanks to CursedSliver for the idea.
+* Various puzzle tweaks in Mysteries of the Cookie Age to reduce tolerance and make things more fair to solve; no puzzle logic has been updated.
+* Fixed the vanilla bug that could corrupt a save file if two spirits are swapped before a save. Many thanks to Fillexs and CursedSliver for the code and guidance on the fix.
+* Fixed a bug that would apply mod upgrades in permanent upgrade slots in Born Again mode when they shouldn’t have been.
+* Many additional small fixes and UI improvements.
+
 
 ### **Major Version 0.2.0 - Terminal a Javascript Console Minigame**
 * Introducing a whole new minigame for Cookie Clicker! The [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal) allows the player to write programs for Cookie Clicker to automate actions and create perfect combos or crash the system and ruin their setups. Unlocked at Level 1 Javascript Consoles are toggled on/off in the Options Menu. 
