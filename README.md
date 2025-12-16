@@ -6041,8 +6041,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2019.png"><img src="/assets/generated-icons/SheetCustom2019.png" alt="Gilded allure" width="48" height="48"></a></td>
 <td><strong>Gilded allure</strong></td>
-<td>Golden Cookies appear <b>30%</b> more often for the next <b>10 minutes</b>.
-	On backfire: Golden Cookies appear <b>75%</b> less often for the next <b>hour</b>.</td>
+<td>Golden Cookies appear <b>30%</b> more often for the next <b>10 minutes</b>.<br>On backfire: Golden Cookies appear <b>75%</b> less often for the next <b>hour</b>.</td>
 </tr>
 </tbody>
 </table>
