@@ -5124,148 +5124,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ## Heavenly Upgrades
 
-### Tree 1: Stock Market, Pantheon, Garden, and Wizard
-<table>
-<thead>
-<tr>
-<th width="48">Icon</th>
-<th>Upgrade Name</th>
-<th>Unlock Condition</th>
-<th>Price</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2318.png"><img src="./assets/generated-icons/SheetVanilla2318.png" alt="Godzmak's Headstart" width="48" height="48"></a></td>
-<td><strong>Godzmak's Headstart</strong></td>
-<td>Divine uninspiration</td>
-<td>50 quintillion cookies</td>
-<td>Godzmak buffs last <b>10%</b> longer.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2300.png"><img src="./assets/generated-icons/SheetCustom2300.png" alt="Wallstreet bets" width="48" height="48"></a></td>
-<td><strong>Wallstreet bets</strong></td>
-<td>Just natural expansion heavenly upgrades</td>
-<td>15 quadrillion cookies</td>
-<td><b>+50% base</b> warehouse space for all goods in the Stock Market minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1924.png"><img src="./assets/generated-icons/SheetCustom1924.png" alt="Cyclius swatch" width="48" height="48"></a></td>
-<td><strong>Cyclius swatch</strong></td>
-<td>Wallstreet bets</td>
-<td>20 quadrillion cookies</td>
-<td>Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetGarden0335.png"><img src="./assets/generated-icons/SheetGarden0335.png" alt="Soil inspector" width="48" height="48"></a></td>
-<td><strong>Soil inspector</strong></td>
-<td>Wallstreet bets</td>
-<td>20 quadrillion cookies</td>
-<td>The tooltip for an empty soil spot will <b>reveal the odds</b> of each plant growing there.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1116.png"><img src="./assets/generated-icons/SheetCustom1116.png" alt="Plant all" width="48" height="48"></a></td>
-<td><strong>Plant all</strong></td>
-<td>Soil inspector</td>
-<td>25 quadrillion cookies</td>
-<td>Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2120.png"><img src="./assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
-<td><strong>Morrowen, Spirit of Procrastination</strong></td>
-<td>Cyclius swatch</td>
-<td>35 quadrillion cookies</td>
-<td>Adds a new god to the Pantheon.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2020.png"><img src="./assets/generated-icons/SheetCustom2020.png" alt="Solgreth, Spirit of Selfishness" width="48" height="48"></a></td>
-<td><strong>Solgreth, Spirit of Selfishness</strong></td>
-<td>Cyclius swatch</td>
-<td>35 quadrillion cookies</td>
-<td>Adds a new god to the Pantheon.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla3412.png"><img src="./assets/generated-icons/SheetVanilla3412.png" alt="Creative tax evasion" width="48" height="48"></a></td>
-<td><strong>Creative tax evasion</strong></td>
-<td>Wallstreet bets</td>
-<td>75 quadrillion cookies</td>
-<td>Negative loan effects don't last as long.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom0424.png"><img src="./assets/generated-icons/SheetCustom0424.png" alt="Sparkling sugar cane" width="48" height="48"></a></td>
-<td><strong>Sparkling sugar cane</strong></td>
-<td>Plant all</td>
-<td>85 quadrillion cookies</td>
-<td>Adds a new seed to the garden minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom0924.png"><img src="./assets/generated-icons/SheetCustom0924.png" alt="Krazy kudzu" width="48" height="48"></a></td>
-<td><strong>Krazy kudzu</strong></td>
-<td>Plant all</td>
-<td>90 quadrillion cookies</td>
-<td>Adds a new seed to the garden minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1424.png"><img src="./assets/generated-icons/SheetCustom1424.png" alt="Magic mushroom" width="48" height="48"></a></td>
-<td><strong>Magic mushroom</strong></td>
-<td>Plant all</td>
-<td>95 quadrillion cookies</td>
-<td>Adds a new seed to the garden minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1524.png"><img src="./assets/generated-icons/SheetCustom1524.png" alt="Aerated soil" width="48" height="48"></a></td>
-<td><strong>Aerated soil</strong></td>
-<td>Plant all</td>
-<td>100 quadrillion cookies</td>
-<td>Adds a new soil to the garden minigame.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1615.png"><img src="./assets/generated-icons/SheetCustom1615.png" alt="Wizardly accomplishments" width="48" height="48"></a></td>
-<td><strong>Wizardly accomplishments</strong></td>
-<td>Wallstreet bets</td>
-<td>100 quadrillion cookies</td>
-<td>Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2124.png"><img src="./assets/generated-icons/SheetCustom2124.png" alt="Water cooled processors" width="48" height="48"></a></td>
-<td><strong>Water cooled processors</strong></td>
-<td>Gilded allure, Aerated soil</td>
-<td>250 quadrillion cookies</td>
-<td>Terminal minigame cooldown is reduced by 1 hour.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla0008.png"><img src="./assets/generated-icons/SheetVanilla0008.png" alt="Divine uninspiration" width="48" height="48"></a></td>
-<td><strong>Divine uninspiration</strong></td>
-<td>Solgreth, Spirit of Selfishness, Morrowen, Spirit of Procrastination</td>
-<td>400 quadrillion cookies</td>
-<td>CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2024.png"><img src="./assets/generated-icons/SheetCustom2024.png" alt="Overclocked GPUs" width="48" height="48"></a></td>
-<td><strong>Overclocked GPUs</strong></td>
-<td>Water cooled processors</td>
-<td>500 quadrillion cookies</td>
-<td>Terminal minigame has one extra slot.</td>
-</tr>
-</tbody>
-</table>
-
-### Tree 2: Building and Upgrade Discounts
-<table>
-<thead>
-<tr>
-<th width="48">Icon</th>
-<th>Upgrade Name</th>
-<th>Unlock Condition</th>
-<th>Price</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
 ### Tree 2: Building and Upgrade Discounts
 <table>
 <thead>
@@ -5368,106 +5226,6 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Lucky mega clicks</td>
 <td>50 sextillion cookies</td>
 <td>Mega clicks are now <b>50%</b> more powerful.</td>
-</tr>
-</tbody>
-</table>
-
-### Tree 3: Sugar Management
-<table>
-<thead>
-<tr>
-<th width="48">Icon</th>
-<th>Upgrade Name</th>
-<th>Unlock Condition</th>
-<th>Price</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-### Tree 3: Sugar Management
-<table>
-<thead>
-<tr>
-<th width="48">Icon</th>
-<th>Upgrade Name</th>
-<th>Unlock Condition</th>
-<th>Price</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2217.png"><img src="./assets/generated-icons/SheetVanilla2217.png" alt="Sugar frenzy II" width="48" height="48"></a></td>
-<td><strong>Sugar frenzy II</strong></td>
-<td>Just natural expansion heavenly upgrades</td>
-<td>100 quadrillion cookies</td>
-<td>Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost one additional sugar lump.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2117.png"><img src="./assets/generated-icons/SheetVanilla2117.png" alt="Sugar for sugar trading" width="48" height="48"></a></td>
-<td><strong>Sugar for sugar trading</strong></td>
-<td>Sugar frenzy II</td>
-<td>250 quadrillion cookies</td>
-<td>Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>. May be used once per ascension.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2916.png"><img src="./assets/generated-icons/SheetVanilla2916.png" alt="Sugar insight" width="48" height="48"></a></td>
-<td><strong>Sugar insight</strong></td>
-<td>Sugar frenzy II</td>
-<td>500 quadrillion cookies</td>
-<td>Shows what type of sugar lump is currently growing instantly.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1907.png"><img src="./assets/generated-icons/SheetVanilla1907.png" alt="Sugar predictor" width="48" height="48"></a></td>
-<td><strong>Sugar predictor</strong></td>
-<td>Sugar insight</td>
-<td>850 quadrillion cookies</td>
-<td>Predict your <b>next sugar lump</b>. Get clear guidance on the simplest changes needed to guarantee each of the 4 specialty lump types.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1036.png"><img src="./assets/generated-icons/SheetVanilla1036.png" alt="Sugar baking II" width="48" height="48"></a></td>
-<td><strong>Sugar baking II</strong></td>
-<td>Sugar predictor, Sugar for sugar trading</td>
-<td>300 quadrillion cookies</td>
-<td>Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1035.png"><img src="./assets/generated-icons/SheetVanilla1035.png" alt="Sugar baking III" width="48" height="48"></a></td>
-<td><strong>Sugar baking III</strong></td>
-<td>Sugar baking II</td>
-<td>400 quadrillion cookies</td>
-<td>Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2224.png"><img src="./assets/generated-icons/SheetCustom2224.png" alt="The checkbox" width="48" height="48"></a></td>
-<td><strong>The checkbox</strong></td>
-<td>Sugar predictor</td>
-<td>500 quadrillion cookies</td>
-<td>This upgrade doesn't do anything.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1807.png"><img src="./assets/generated-icons/SheetVanilla1807.png" alt="Sugar baking IV" width="48" height="48"></a></td>
-<td><strong>Sugar baking IV</strong></td>
-<td>Sugar baking III</td>
-<td>1 sextillion cookies</td>
-<td>Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1707.png"><img src="./assets/generated-icons/SheetVanilla1707.png" alt="Sugar baking V" width="48" height="48"></a></td>
-<td><strong>Sugar baking V</strong></td>
-<td>Sugar baking IV</td>
-<td>5 sextillion cookies</td>
-<td>Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2007.png"><img src="./assets/generated-icons/SheetVanilla2007.png" alt="Sugar baking VI" width="48" height="48"></a></td>
-<td><strong>Sugar baking VI</strong></td>
-<td>Sugar baking V</td>
-<td>25 sextillion cookies</td>
-<td>Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.</td>
 </tr>
 </tbody>
 </table>
@@ -5588,6 +5346,154 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <td>Aquaculturist</td>
 <td>30 quintillion cookies</td>
 <td>Fish have a <b>10%</b> chance to appear in pairs.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 6: Wrinkler Enhancements
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2113.png"><img src="./assets/generated-icons/SheetCustom2113.png" alt="Rare game hunter" width="48" height="48"></a></td>
+<td><strong>Rare game hunter</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td>10 quadrillion cookies</td>
+<td>Shiny Wrinklers are <b>25%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2116.png"><img src="./assets/generated-icons/SheetCustom2116.png" alt="Hellish hunger" width="48" height="48"></a></td>
+<td><strong>Hellish hunger</strong></td>
+<td>Rare game hunter</td>
+<td>15 quadrillion cookies</td>
+<td>Wrinklers suck <b>10%</b> more.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2117.png"><img src="./assets/generated-icons/SheetCustom2117.png" alt="Ravenous leeches" width="48" height="48"></a></td>
+<td><strong>Ravenous leeches</strong></td>
+<td>Hellish hunger</td>
+<td>15 quadrillion cookies</td>
+<td>Wrinklers suck <b>20%</b> more.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2119.png"><img src="./assets/generated-icons/SheetCustom2119.png" alt="Unlocked gates of hell" width="48" height="48"></a></td>
+<td><strong>Unlocked gates of hell</strong></td>
+<td>Rare game hunter</td>
+<td>20 quadrillion cookies</td>
+<td>Wrinklers spawn <b>10%</b> faster.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2219.png"><img src="./assets/generated-icons/SheetCustom2219.png" alt="Wide open door of hell" width="48" height="48"></a></td>
+<td><strong>Wide open door of hell</strong></td>
+<td>Unlocked gates of hell</td>
+<td>20 quadrillion cookies</td>
+<td>Wrinklers spawn <b>20%</b> faster.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2114.png"><img src="./assets/generated-icons/SheetCustom2114.png" alt="Indigenous tracker" width="48" height="48"></a></td>
+<td><strong>Indigenous tracker</strong></td>
+<td>Ravenous leeches, Wide open door of hell</td>
+<td>25 quadrillion cookies</td>
+<td>Shiny Wrinklers are <b>50%</b> more common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2811.png"><img src="./assets/generated-icons/SheetVanilla2811.png" alt="Skitter skatter skrum ahh" width="48" height="48"></a></td>
+<td><strong>Skitter skatter skrum ahh</strong></td>
+<td>Rare game hunter</td>
+<td>25 quadrillion cookies</td>
+<td>Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0616.png"><img src="./assets/generated-icons/SheetCustom0616.png" alt="Abra-Ka-Wiggle" width="48" height="48"></a></td>
+<td><strong>Abra-Ka-Wiggle</strong></td>
+<td>Skitter skatter skrum ahh</td>
+<td>25 quadrillion cookies</td>
+<td>Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1416.png"><img src="./assets/generated-icons/SheetCustom1416.png" alt="Alakazoodle evil noodle" width="48" height="48"></a></td>
+<td><strong>Alakazoodle evil noodle</strong></td>
+<td>Abra-Ka-Wiggle</td>
+<td>30 quadrillion cookies</td>
+<td>Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2009.png"><img src="./assets/generated-icons/SheetVanilla2009.png" alt="The prize at the bottom of the box" width="48" height="48"></a></td>
+<td><strong>The prize at the bottom of the box</strong></td>
+<td>Rare game hunter</td>
+<td>80 quadrillion cookies</td>
+<td>Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3303.png"><img src="./assets/generated-icons/SheetVanilla3303.png" alt="Double box prize" width="48" height="48"></a></td>
+<td><strong>Double box prize</strong></td>
+<td>The prize at the bottom of the box</td>
+<td>150 quadrillion cookies</td>
+<td>Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2115.png"><img src="./assets/generated-icons/SheetCustom2115.png" alt="Species bounceback" width="48" height="48"></a></td>
+<td><strong>Species bounceback</strong></td>
+<td>Indigenous tracker</td>
+<td>250 quadrillion cookies</td>
+<td>Shiny Wrinklers are <b>twice</b> as common.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3408.png"><img src="./assets/generated-icons/SheetVanilla3408.png" alt="Mail in sweepstake winner" width="48" height="48"></a></td>
+<td><strong>Mail in sweepstake winner</strong></td>
+<td>Double box prize</td>
+<td>250 quadrillion cookies</td>
+<td>Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2220.png"><img src="./assets/generated-icons/SheetCustom2220.png" alt="Pink stuff" width="48" height="48"></a></td>
+<td><strong>Pink stuff</strong></td>
+<td>Mail in sweepstake winner, Alakazoodle evil noodle</td>
+<td>800 quadrillion cookies</td>
+<td>Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0209.png"><img src="./assets/generated-icons/SheetVanilla0209.png" alt="Frenziered elders" width="48" height="48"></a></td>
+<td><strong>Frenziered elders</strong></td>
+<td>Pink stuff</td>
+<td>150 quintillion cookies</td>
+<td>Your elder frenzies last <b>25%</b> longer.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3005.png"><img src="./assets/generated-icons/SheetVanilla3005.png" alt="Slimy pheromones" width="48" height="48"></a></td>
+<td><strong>Slimy pheromones</strong></td>
+<td>Alakazoodle evil noodle, Species bounceback</td>
+<td>5 quintillion cookies</td>
+<td>If you have a shiny wrinkler on your cookie, you are <b>5x</b> as likely to attract another.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Cockroaches" width="48" height="48"></a></td>
+<td><strong>Cockroaches</strong></td>
+<td>Alakazoodle evil noodle</td>
+<td>50 quintillion cookies</td>
+<td>Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Infestation" width="48" height="48"></a></td>
+<td><strong>Infestation</strong></td>
+<td>Cockroaches</td>
+<td>250 quintillion cookies</td>
+<td>Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3112.png"><img src="./assets/generated-icons/SheetVanilla3112.png" alt="Bingo center slots" width="48" height="48"></a></td>
+<td><strong>Bingo center slots</strong></td>
+<td>Slimy pheromones</td>
+<td>750 quintillion cookies</td>
+<td>Add slot machines for your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
 </tr>
 </tbody>
 </table>
@@ -5754,7 +5660,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 6: Wrinkler Enhancements
+### Tree 3: Sugar Management
 <table>
 <thead>
 <tr>
@@ -5767,137 +5673,201 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </thead>
 <tbody>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2113.png"><img src="./assets/generated-icons/SheetCustom2113.png" alt="Rare game hunter" width="48" height="48"></a></td>
-<td><strong>Rare game hunter</strong></td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2217.png"><img src="./assets/generated-icons/SheetVanilla2217.png" alt="Sugar frenzy II" width="48" height="48"></a></td>
+<td><strong>Sugar frenzy II</strong></td>
 <td>Just natural expansion heavenly upgrades</td>
-<td>10 quadrillion cookies</td>
-<td>Shiny Wrinklers are <b>25%</b> more common.</td>
+<td>100 quadrillion cookies</td>
+<td>Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost one additional sugar lump.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2116.png"><img src="./assets/generated-icons/SheetCustom2116.png" alt="Hellish hunger" width="48" height="48"></a></td>
-<td><strong>Hellish hunger</strong></td>
-<td>Rare game hunter</td>
-<td>15 quadrillion cookies</td>
-<td>Wrinklers suck <b>10%</b> more.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2117.png"><img src="./assets/generated-icons/SheetCustom2117.png" alt="Ravenous leeches" width="48" height="48"></a></td>
-<td><strong>Ravenous leeches</strong></td>
-<td>Hellish hunger</td>
-<td>15 quadrillion cookies</td>
-<td>Wrinklers suck <b>20%</b> more.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2119.png"><img src="./assets/generated-icons/SheetCustom2119.png" alt="Unlocked gates of hell" width="48" height="48"></a></td>
-<td><strong>Unlocked gates of hell</strong></td>
-<td>Rare game hunter</td>
-<td>20 quadrillion cookies</td>
-<td>Wrinklers spawn <b>10%</b> faster.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2219.png"><img src="./assets/generated-icons/SheetCustom2219.png" alt="Wide open door of hell" width="48" height="48"></a></td>
-<td><strong>Wide open door of hell</strong></td>
-<td>Unlocked gates of hell</td>
-<td>20 quadrillion cookies</td>
-<td>Wrinklers spawn <b>20%</b> faster.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2114.png"><img src="./assets/generated-icons/SheetCustom2114.png" alt="Indigenous tracker" width="48" height="48"></a></td>
-<td><strong>Indigenous tracker</strong></td>
-<td>Ravenous leeches, Wide open door of hell</td>
-<td>25 quadrillion cookies</td>
-<td>Shiny Wrinklers are <b>50%</b> more common.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2811.png"><img src="./assets/generated-icons/SheetVanilla2811.png" alt="Skitter skatter skrum ahh" width="48" height="48"></a></td>
-<td><strong>Skitter skatter skrum ahh</strong></td>
-<td>Rare game hunter</td>
-<td>25 quadrillion cookies</td>
-<td>Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom0616.png"><img src="./assets/generated-icons/SheetCustom0616.png" alt="Abra-Ka-Wiggle" width="48" height="48"></a></td>
-<td><strong>Abra-Ka-Wiggle</strong></td>
-<td>Skitter skatter skrum ahh</td>
-<td>25 quadrillion cookies</td>
-<td>Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom1416.png"><img src="./assets/generated-icons/SheetCustom1416.png" alt="Alakazoodle evil noodle" width="48" height="48"></a></td>
-<td><strong>Alakazoodle evil noodle</strong></td>
-<td>Abra-Ka-Wiggle</td>
-<td>30 quadrillion cookies</td>
-<td>Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla2009.png"><img src="./assets/generated-icons/SheetVanilla2009.png" alt="The prize at the bottom of the box" width="48" height="48"></a></td>
-<td><strong>The prize at the bottom of the box</strong></td>
-<td>Rare game hunter</td>
-<td>80 quadrillion cookies</td>
-<td>Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla3303.png"><img src="./assets/generated-icons/SheetVanilla3303.png" alt="Double box prize" width="48" height="48"></a></td>
-<td><strong>Double box prize</strong></td>
-<td>The prize at the bottom of the box</td>
-<td>150 quadrillion cookies</td>
-<td>Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
-</tr>
-<tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2115.png"><img src="./assets/generated-icons/SheetCustom2115.png" alt="Species bounceback" width="48" height="48"></a></td>
-<td><strong>Species bounceback</strong></td>
-<td>Indigenous tracker</td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2117.png"><img src="./assets/generated-icons/SheetVanilla2117.png" alt="Sugar for sugar trading" width="48" height="48"></a></td>
+<td><strong>Sugar for sugar trading</strong></td>
+<td>Sugar frenzy II</td>
 <td>250 quadrillion cookies</td>
-<td>Shiny Wrinklers are <b>twice</b> as common.</td>
+<td>Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>. May be used once per ascension.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla3408.png"><img src="./assets/generated-icons/SheetVanilla3408.png" alt="Mail in sweepstake winner" width="48" height="48"></a></td>
-<td><strong>Mail in sweepstake winner</strong></td>
-<td>Double box prize</td>
-<td>250 quadrillion cookies</td>
-<td>Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2916.png"><img src="./assets/generated-icons/SheetVanilla2916.png" alt="Sugar insight" width="48" height="48"></a></td>
+<td><strong>Sugar insight</strong></td>
+<td>Sugar frenzy II</td>
+<td>500 quadrillion cookies</td>
+<td>Shows what type of sugar lump is currently growing instantly.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetCustom2220.png"><img src="./assets/generated-icons/SheetCustom2220.png" alt="Pink stuff" width="48" height="48"></a></td>
-<td><strong>Pink stuff</strong></td>
-<td>Mail in sweepstake winner, Alakazoodle evil noodle</td>
-<td>800 quadrillion cookies</td>
-<td>Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).</td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1907.png"><img src="./assets/generated-icons/SheetVanilla1907.png" alt="Sugar predictor" width="48" height="48"></a></td>
+<td><strong>Sugar predictor</strong></td>
+<td>Sugar insight</td>
+<td>850 quadrillion cookies</td>
+<td>Predict your <b>next sugar lump</b>. Get clear guidance on the simplest changes needed to guarantee each of the 4 specialty lump types.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla0209.png"><img src="./assets/generated-icons/SheetVanilla0209.png" alt="Frenziered elders" width="48" height="48"></a></td>
-<td><strong>Frenziered elders</strong></td>
-<td>Pink stuff</td>
-<td>150 quintillion cookies</td>
-<td>Your elder frenzies last <b>25%</b> longer.</td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1036.png"><img src="./assets/generated-icons/SheetVanilla1036.png" alt="Sugar baking II" width="48" height="48"></a></td>
+<td><strong>Sugar baking II</strong></td>
+<td>Sugar predictor, Sugar for sugar trading</td>
+<td>300 quadrillion cookies</td>
+<td>Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla3005.png"><img src="./assets/generated-icons/SheetVanilla3005.png" alt="Slimy pheromones" width="48" height="48"></a></td>
-<td><strong>Slimy pheromones</strong></td>
-<td>Alakazoodle evil noodle, Species bounceback</td>
-<td>5 quintillion cookies</td>
-<td>If you have a shiny wrinkler on your cookie, you are <b>5x</b> as likely to attract another.</td>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1035.png"><img src="./assets/generated-icons/SheetVanilla1035.png" alt="Sugar baking III" width="48" height="48"></a></td>
+<td><strong>Sugar baking III</strong></td>
+<td>Sugar baking II</td>
+<td>400 quadrillion cookies</td>
+<td>Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Cockroaches" width="48" height="48"></a></td>
-<td><strong>Cockroaches</strong></td>
-<td>Alakazoodle evil noodle</td>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2224.png"><img src="./assets/generated-icons/SheetCustom2224.png" alt="The checkbox" width="48" height="48"></a></td>
+<td><strong>The checkbox</strong></td>
+<td>Sugar predictor</td>
+<td>500 quadrillion cookies</td>
+<td>This upgrade doesn't do anything.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1807.png"><img src="./assets/generated-icons/SheetVanilla1807.png" alt="Sugar baking IV" width="48" height="48"></a></td>
+<td><strong>Sugar baking IV</strong></td>
+<td>Sugar baking III</td>
+<td>1 sextillion cookies</td>
+<td>Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla1707.png"><img src="./assets/generated-icons/SheetVanilla1707.png" alt="Sugar baking V" width="48" height="48"></a></td>
+<td><strong>Sugar baking V</strong></td>
+<td>Sugar baking IV</td>
+<td>5 sextillion cookies</td>
+<td>Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2007.png"><img src="./assets/generated-icons/SheetVanilla2007.png" alt="Sugar baking VI" width="48" height="48"></a></td>
+<td><strong>Sugar baking VI</strong></td>
+<td>Sugar baking V</td>
+<td>25 sextillion cookies</td>
+<td>Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.</td>
+</tr>
+</tbody>
+</table>
+
+### Tree 1: Stock Market, Pantheon, Garden, and Wizard
+<table>
+<thead>
+<tr>
+<th width="48">Icon</th>
+<th>Upgrade Name</th>
+<th>Unlock Condition</th>
+<th>Price</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla2318.png"><img src="./assets/generated-icons/SheetVanilla2318.png" alt="Godzmak's Headstart" width="48" height="48"></a></td>
+<td><strong>Godzmak's Headstart</strong></td>
+<td>Divine uninspiration</td>
 <td>50 quintillion cookies</td>
-<td>Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.</td>
+<td>Godzmak buffs last <b>10%</b> longer.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla1512.png"><img src="./assets/generated-icons/SheetVanilla1512.png" alt="Infestation" width="48" height="48"></a></td>
-<td><strong>Infestation</strong></td>
-<td>Cockroaches</td>
-<td>250 quintillion cookies</td>
-<td>Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.</td>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2300.png"><img src="./assets/generated-icons/SheetCustom2300.png" alt="Wallstreet bets" width="48" height="48"></a></td>
+<td><strong>Wallstreet bets</strong></td>
+<td>Just natural expansion heavenly upgrades</td>
+<td>15 quadrillion cookies</td>
+<td><b>+50% base</b> warehouse space for all goods in the Stock Market minigame.</td>
 </tr>
 <tr>
-<td width="48"><a href="./assets/generated-icons/SheetVanilla3112.png"><img src="./assets/generated-icons/SheetVanilla3112.png" alt="Bingo center slots" width="48" height="48"></a></td>
-<td><strong>Bingo center slots</strong></td>
-<td>Slimy pheromones</td>
-<td>750 quintillion cookies</td>
-<td>Add slot machines for your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1924.png"><img src="./assets/generated-icons/SheetCustom1924.png" alt="Cyclius swatch" width="48" height="48"></a></td>
+<td><strong>Cyclius swatch</strong></td>
+<td>Wallstreet bets</td>
+<td>20 quadrillion cookies</td>
+<td>Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetGarden0335.png"><img src="./assets/generated-icons/SheetGarden0335.png" alt="Soil inspector" width="48" height="48"></a></td>
+<td><strong>Soil inspector</strong></td>
+<td>Wallstreet bets</td>
+<td>20 quadrillion cookies</td>
+<td>The tooltip for an empty soil spot will <b>reveal the odds</b> of each plant growing there.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1116.png"><img src="./assets/generated-icons/SheetCustom1116.png" alt="Plant all" width="48" height="48"></a></td>
+<td><strong>Plant all</strong></td>
+<td>Soil inspector</td>
+<td>25 quadrillion cookies</td>
+<td>Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2120.png"><img src="./assets/generated-icons/SheetCustom2120.png" alt="Morrowen, Spirit of Procrastination" width="48" height="48"></a></td>
+<td><strong>Morrowen, Spirit of Procrastination</strong></td>
+<td>Cyclius swatch</td>
+<td>35 quadrillion cookies</td>
+<td>Adds a new god to the Pantheon.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2020.png"><img src="./assets/generated-icons/SheetCustom2020.png" alt="Solgreth, Spirit of Selfishness" width="48" height="48"></a></td>
+<td><strong>Solgreth, Spirit of Selfishness</strong></td>
+<td>Cyclius swatch</td>
+<td>35 quadrillion cookies</td>
+<td>Adds a new god to the Pantheon.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla3412.png"><img src="./assets/generated-icons/SheetVanilla3412.png" alt="Creative tax evasion" width="48" height="48"></a></td>
+<td><strong>Creative tax evasion</strong></td>
+<td>Wallstreet bets</td>
+<td>75 quadrillion cookies</td>
+<td>Negative loan effects don't last as long.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0424.png"><img src="./assets/generated-icons/SheetCustom0424.png" alt="Sparkling sugar cane" width="48" height="48"></a></td>
+<td><strong>Sparkling sugar cane</strong></td>
+<td>Plant all</td>
+<td>85 quadrillion cookies</td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom0924.png"><img src="./assets/generated-icons/SheetCustom0924.png" alt="Krazy kudzu" width="48" height="48"></a></td>
+<td><strong>Krazy kudzu</strong></td>
+<td>Plant all</td>
+<td>90 quadrillion cookies</td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1424.png"><img src="./assets/generated-icons/SheetCustom1424.png" alt="Magic mushroom" width="48" height="48"></a></td>
+<td><strong>Magic mushroom</strong></td>
+<td>Plant all</td>
+<td>95 quadrillion cookies</td>
+<td>Adds a new seed to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1524.png"><img src="./assets/generated-icons/SheetCustom1524.png" alt="Aerated soil" width="48" height="48"></a></td>
+<td><strong>Aerated soil</strong></td>
+<td>Plant all</td>
+<td>100 quadrillion cookies</td>
+<td>Adds a new soil to the garden minigame.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom1615.png"><img src="./assets/generated-icons/SheetCustom1615.png" alt="Wizardly accomplishments" width="48" height="48"></a></td>
+<td><strong>Wizardly accomplishments</strong></td>
+<td>Wallstreet bets</td>
+<td>100 quadrillion cookies</td>
+<td>Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2124.png"><img src="./assets/generated-icons/SheetCustom2124.png" alt="Water cooled processors" width="48" height="48"></a></td>
+<td><strong>Water cooled processors</strong></td>
+<td>Gilded allure, Aerated soil</td>
+<td>250 quadrillion cookies</td>
+<td>Terminal minigame cooldown is reduced by 1 hour.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetVanilla0008.png"><img src="./assets/generated-icons/SheetVanilla0008.png" alt="Divine uninspiration" width="48" height="48"></a></td>
+<td><strong>Divine uninspiration</strong></td>
+<td>Solgreth, Spirit of Selfishness, Morrowen, Spirit of Procrastination</td>
+<td>400 quadrillion cookies</td>
+<td>CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.</td>
+</tr>
+<tr>
+<td width="48"><a href="./assets/generated-icons/SheetCustom2024.png"><img src="./assets/generated-icons/SheetCustom2024.png" alt="Overclocked GPUs" width="48" height="48"></a></td>
+<td><strong>Overclocked GPUs</strong></td>
+<td>Water cooled processors</td>
+<td>500 quadrillion cookies</td>
+<td>Terminal minigame has one extra slot.</td>
 </tr>
 </tbody>
 </table>
