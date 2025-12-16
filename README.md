@@ -5122,7 +5122,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ## Heavenly Upgrades
 
-Just Natural Expansion adds 97 new Heavenly Upgrades to your ascensions. These are designed to be completed once you have completed the vanilla heavenly upgrade tree, with prices continuing from roughly that point. Some upgrades may seem cheap and some may seem excessively expensive, as with all things Just Natural Expansion the goal is to provide not just a one off quick freebies but to meaningfully expand the end game. Also as is tradition with Just Natural Expansion these heavenly upgrades are designed to be balanced and not game breaking. They are broken up into 6 trees which are detailed below. 
+Just Natural Expansion introduces 97 new Heavenly Upgrades, extending progression beyond the completion of the vanilla heavenly upgrade tree. These upgrades are intended for late-game ascensions, with costs scaling naturally from where vanilla leaves off.
+
+As with the rest of the mod, these upgrades are not designed as quick, disposable bonuses. Some are intentionally inexpensive, others deliberately punishingly expensive. This is by design. The goal is to meaningfully extend long-term progression and decision-making in the endgame, not to trivialize it.
+
+All Heavenly Upgrades in Just Natural Expansion are balanced to avoid breaking the game. They expand existing systems, reinforce long-term strategies, and reward sustained investment rather than short-term optimization exploits.
+
+The upgrades are organized into six distinct trees, each focusing on a different aspect of late-game growth. These trees are outlined in detail below.
 
 #### Buildings and Upgrades
 <table>
