@@ -5143,6 +5143,13 @@ The upgrades are organized into six distinct trees, each focusing on a different
 </thead>
 <tbody>
 <tr>
+<td width="48"><a href="/assets/generated-icons/SheetVanilla1507.png"><img src="/assets/generated-icons/SheetVanilla1507.png" alt="Just natural expansion heavenly upgrades" width="48" height="48"></a></td>
+<td><strong>Just natural expansion heavenly upgrades</strong></td>
+<td>—</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 20 quadrillion</td>
+<td>Cookie production multiplier <b>+5%</b>. Also unlocks the Just Natural Expansion heavenly upgrade tree.</td>
+</tr>
+<tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom1215.png"><img src="/assets/generated-icons/SheetCustom1215.png" alt="Erasable pens" width="48" height="48"></a></td>
 <td><strong>Erasable pens</strong></td>
 <td>Just natural expansion heavenly upgrades</td>
@@ -5499,7 +5506,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td><strong>Bingo center slots</strong></td>
 <td>Slimy pheromones</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 750 quintillion</td>
-<td>Add slot machines for your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
+<td>Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!</td>
 </tr>
 </tbody>
 </table>
@@ -5838,7 +5845,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td><strong>The checkbox</strong></td>
 <td>Sugar predictor</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
-<td>This upgrade doesn't do anything.</td>
+<td>This upgrade doesn't do anything. (or does it…)</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla1807.png"><img src="/assets/generated-icons/SheetVanilla1807.png" alt="Sugar baking IV" width="48" height="48"></a></td>
