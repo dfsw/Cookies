@@ -5467,13 +5467,6 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td>Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.</td>
 </tr>
 <tr>
-<td width="48"><a href="/assets/generated-icons/SheetCustom2317.png"><img src="/assets/generated-icons/SheetCustom2317.png" alt="Unlucky luckier" width="48" height="48"></a></td>
-<td><strong>Unlucky luckier</strong></td>
-<td>Mail in sweepstake winner</td>
-<td><img src="/assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
-<td>Lucky Golden Cookies are <b>5%</b> less common.</td>
-</tr>
-<tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2220.png"><img src="/assets/generated-icons/SheetCustom2220.png" alt="Pink stuff" width="48" height="48"></a></td>
 <td><strong>Pink stuff</strong></td>
 <td>Mail in sweepstake winner, Alakazoodle evil noodle</td>
@@ -5705,6 +5698,13 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td>Chinese leftovers</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 2.5 quintillion</td>
 <td>Consumable Fortune Cookies regenerate once every <b>2 days</b>.</td>
+</tr>
+<tr>
+<td width="48"><a href="/assets/generated-icons/SheetCustom2317.png"><img src="/assets/generated-icons/SheetCustom2317.png" alt="Unlucky luckier" width="48" height="48"></a></td>
+<td><strong>Unlucky luckier</strong></td>
+<td>Mail in sweepstake winner</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
+<td>Lucky Golden Cookies are <b>5%</b> less common.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2315.png"><img src="/assets/generated-icons/SheetCustom2315.png" alt="Even more unlucky luckier" width="48" height="48"></a></td>
