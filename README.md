@@ -5756,6 +5756,13 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td>Show the expected result of a <b>Golden Cookie 50%</b> of the time.</td>
 </tr>
 <tr>
+<td width="48"><a href="/assets/generated-icons/SheetCustom0917.png"><img src="/assets/generated-icons/SheetCustom0917.png" alt="Perfected golden cookie predictor" width="48" height="48"></a></td>
+<td><strong>Perfected golden cookie predictor</strong></td>
+<td>Improved golden cookie predictor</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 80 sextillion</td>
+<td>Show the expected result of a <b>Golden Cookie 65%</b> of the time.</td>
+</tr>
+<tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom1414.png"><img src="/assets/generated-icons/SheetCustom1414.png" alt="All is well" width="48" height="48"></a></td>
 <td><strong>All is well</strong></td>
 <td>Perfected golden cookie predictor</td>
