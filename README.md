@@ -1,30 +1,30 @@
 # Just Natural Expansion
-### A Cookie Clicker Mod
 
 ## Table of Contents
 * [Installation Directions](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#installation-directions)
 * [Mod Compatibility](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#mod-compatibility)
-* [New Achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-achievements)
-* [New Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#new-upgrades)
+* [Achievements](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#achievements)
+* [Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#upgrades)
+* [Heavenly Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#heavenly-upgrades)
 * [Mysteries of the Cookie Age](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#Mysteries-of-the-Cookie-Age)
 * [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal)
 * [Changelog](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#changelog)
 
-**The Just Natural Expansion Mod** enhances the Cookie Clicker endgame without disrupting core gameplay, staying true to the spirit of the vanilla experience. It introduces over **450 achievements**, **250 upgrades**, new goals, new stories, and deeply rooted hidden elements, all specifically designed for late-game progression, so early or mid-game players may not immediately notice changes. 
+**The Just Natural Expansion Mod** enhances the Cookie Clicker endgame without disrupting core gameplay, staying true to the spirit of the vanilla experience. It introduces new achievements, upgrades, goals, stories, puzzles, and minigames, all specifically designed for late-game progression, so early or mid-game players may not immediately notice many changes. 
 
 By default, the mod adds no upgrades and marks new achievements as shadow, allowing leaderboard and competition focused players to pursue extra challenges without affecting their current gameplay. 
 
-Players aiming for higher scores and a more rewarding late-game can enable Cookie, Kitten, and Building upgrades, while also converting shadow achievements into regular ones to gain extra milk for their efforts. These upgrades can be disabled at any time, and shadow achievements can be re-enabled via the options menu. However, a permanent shadow achievement will be awarded to mark that you have used the mod outside of leaderboard/competition mode.
-
-Many achievements are tracked across multiple ascensions or involve progress that the base game does not normally record, such as popping Shiny Wrinklers. While you may have already completed some of these, there is no way to determine your progress on them unless the mod was installed at the time they were achieved. Progress on items not tracked by the vanilla game or not carried across ascensions will only start being recorded once the mod is active. You can view additional tracked stats and their current values in the Stats menu.
+Players aiming for higher scores and a more rewarding late-game can enable mod features one by one, while also converting shadow achievements into regular ones to gain extra milk for their efforts. These upgrades can be disabled at any time, and shadow achievements can be re-enabled via the options menu. However, a permanent shadow achievement will be awarded to mark that you have used the mod outside of leaderboard/competition mode.
 
 **All new achievements are designed to be attainable, though some require significant effort, some even taking weeks of focused effort to earn. Thank you for playing! If you enjoy the mod, please spread the word!**
 
 #### Special Thanks
 
-Big, chocolate-covered thanks to the amazing folks in the [Cookie Clicker Discord](https://discord.com/invite/cookie), whose late-game wisdom and strategic tips helped shape this mod into the crunchy masterpiece it is today. 
+Big thanks to the amazing folks in the [Cookie Clicker Discord](https://discord.com/invite/cookie), whose late-game wisdom and strategic tips helped shape this mod into what it is today. 
 
-Thank you to the beta testers who were willing to help me balance and test, I have now struck a balance between people saying these achivements are too hard and these achievements are too easy, which I suspect is the sweet middle ground. 
+Thank you to the "beta" testers who were willing to help me balance and test, I have now struck a balance between people saying things are too hard and things are too easy, which I suspect is the sweet middle ground. 
+
+Special thanks to CursedSliver and The_1_Shadow for donating art to the mod, anyone who wants to improve and donate art is more than welcome as it is not my skillset.
 
 #### Why This Mod Exists
 
@@ -32,7 +32,7 @@ When I reached the late game of Cookie Clicker, I felt a real sense of loss. I w
 
 Most of what I found didn’t fit. Many end-game mods added flashy new buildings or mechanics that didn’t feel true to vanilla and often weren’t balanced. Others offered extremely difficult, sometimes nearly impossible, achievements. Those were closer to what I wanted, but I wasn’t looking for “impossible.” I wanted more of what made the base game fun.
 
-So I set out to imagine what Cookie Clicker would feel like if it simply lasted longer with deeper goals to chase. Achievements are challenging but not unreasonable, designed for active players who like having long-term targets. Nothing breaks the existing formula (though I had to heavily nerf the new kittens to keep them balanced). The intent was always to extend the game, not reinvent it. Do not expect to knock out these achievements or upgrades in a few days. Many require weeks of planning and patience. The idea is to add lasting goals, not hand out free milk and CPS.
+So I set out to imagine what Cookie Clicker would feel like if it simply lasted longer with deeper goals to chase. Achievements are challenging but not unreasonable, designed for active players who like having long-term targets. Nothing breaks the existing formula (though I had to heavily nerf the new kittens to keep them balanced). The intent was always to extend the game, not reinvent it. Do not expect to knock out these features in a few days. Many require weeks of planning and patience. The idea is to add lasting goals, not hand out free milk and CpS.
 
 I hope this mod hits that mark and gives you years more clicking, planning, and cookie glory. If not, I’ll still enjoy it myself, since I built what I wanted to play. If you do find something broken or unreasonable, reach out on Discord (User: DFSW). I am always happy to discuss and evaluate.
 
@@ -80,9 +80,9 @@ Unfortunately, CCSE uses code injection to make fundamental changes to the vanil
 
 I’ve tested compatibility with many popular [CCSE mods](https://klattmose.github.io/CookieClicker/). If you encounter specific incompatibilities, please let me know so I can look into possible workarounds.
 
-# New Achievements
+## Achievements
 
-### Challenge Achievements (19 achievements)
+### Challenge Achievements
 *Note: Yes, these challenges are all doable, and no, none of them are absurdly impossible (No [ECM Style](https://lookas123.github.io/ECM/) Here). But don’t expect a free ride. These achievements will not hold your hand, and they will not go easy on you. Think of them less as a grind and more as puzzles that demand clever planning, precise timing, and maybe a lucky cookie or a well-placed upgrade. This is late-game content meant to extend your playtime, not something to finish in a single week.*
 
 ##### Requires Born Again Mode
@@ -208,7 +208,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Minigame Achievements (29 achievements)
+### Minigame Achievements
 
 #### Stock Market
 <table>
@@ -412,7 +412,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Seasonal Achievements (9 achievements)
+### Seasonal Achievements 
 <table>
 <thead>
 <tr>
@@ -472,7 +472,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 - See also **Holiday Hoover** and **Merry Mayhem**
 
-### Completionist Achievements (7 achievements)
+### Completionist Achievements 
 <table>
 <thead>
 <tr>
@@ -522,7 +522,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 - See also **The Final Challenger**
 
-### Combo Achievements (7 achievements)
+### Combo Achievements 
 <table>
 <thead>
 <tr>
@@ -571,7 +571,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### CPS Achievements (9 achievements)
+### CPS Achievements
 <table>
 <thead>
 <tr>
@@ -630,7 +630,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Click Achievements (9 achievements)
+### Click Achievements
 <table>
 <thead>
 <tr>
@@ -689,7 +689,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Grandmapocalypse Achievements (15 achievements)
+### Grandmapocalypse Achievements
 <table>
 <thead>
 <tr>
@@ -778,7 +778,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Golden Cookie Achievements (6 achievements)
+### Golden Cookie Achievements
 <table>
 <thead>
 <tr>
@@ -823,7 +823,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 - See also **Gilded Restraint** and **Second Life, First Click**
 
-### Cookies Baked In Ascension Achievements (7 achievements)
+### Cookies Baked In Ascension Achievements
 <table>
 <thead>
 <tr>
@@ -872,7 +872,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Forfeited Cookies Achievements (13 achievements)
+### Forfeited Cookies Achievements
 <table>
 <thead>
 <tr>
@@ -951,7 +951,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Building Ownership Achievements (13 achievements)
+### Building Ownership Achievements
 <table>
 <thead>
 <tr>
@@ -1031,7 +1031,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 - See also **The Final Countdown**, **Back to Basic Bakers**, **Modest Portfolio**, **Difficult Decisions**, and **Treading water**
 
-### Reincarnation Achievements (3 achievements)
+### Reincarnation Achievements
 <table>
 <thead>
 <tr>
@@ -1062,7 +1062,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ### Building Achievements by Building
 
-#### Cursor (16 Achievements)
+#### Cursor 
 <table>
 <thead>
 <tr>
@@ -1155,7 +1155,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Grandma (16 Achievements)
+#### Grandma
 <table>
 <thead>
 <tr>
@@ -1248,7 +1248,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Farm (16 Achievements)
+#### Farm
 <table>
 <thead>
 <tr>
@@ -1341,7 +1341,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Mine (16 Achievements)
+#### Mine
 <table>
 <thead>
 <tr>
@@ -1434,7 +1434,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Factory (16 Achievements)
+#### Factory
 <table>
 <thead>
 <tr>
@@ -1527,7 +1527,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Bank (16 Achievements)
+#### Bank
 <table>
 <thead>
 <tr>
@@ -1620,7 +1620,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Temple (16 Achievements)
+#### Temple
 <table>
 <thead>
 <tr>
@@ -1713,7 +1713,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Wizard Tower (16 Achievements)
+#### Wizard Tower
 <table>
 <thead>
 <tr>
@@ -1806,7 +1806,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Shipment (16 Achievements)
+#### Shipment
 <table>
 <thead>
 <tr>
@@ -1899,7 +1899,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Alchemy Lab (16 Achievements)
+#### Alchemy Lab
 <table>
 <thead>
 <tr>
@@ -1992,7 +1992,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Portal (16 Achievements)
+#### Portal
 <table>
 <thead>
 <tr>
@@ -2085,7 +2085,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Time Machine (16 Achievements)
+#### Time Machine
 <table>
 <thead>
 <tr>
@@ -2178,7 +2178,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Antimatter Condenser (16 Achievements)
+#### Antimatter Condenser
 <table>
 <thead>
 <tr>
@@ -2271,7 +2271,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Prism (16 Achievements)
+#### Prism
 <table>
 <thead>
 <tr>
@@ -2364,7 +2364,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Chancemaker (16 Achievements)
+#### Chancemaker
 <table>
 <thead>
 <tr>
@@ -2457,7 +2457,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Fractal Engine (16 Achievements)
+#### Fractal Engine 
 <table>
 <thead>
 <tr>
@@ -2550,7 +2550,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Javascript Console (16 Achievements)
+#### Javascript Console
 <table>
 <thead>
 <tr>
@@ -2643,7 +2643,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Idleverse (16 Achievements)
+#### Idleverse
 <table>
 <thead>
 <tr>
@@ -2736,7 +2736,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### Cortex Baker (16 Achievements)
+#### Cortex Baker
 <table>
 <thead>
 <tr>
@@ -2829,7 +2829,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-#### You (16 Achievements)
+#### You
 <table>
 <thead>
 <tr>
@@ -2922,7 +2922,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-# New Upgrades
+## Upgrades
 
 ### The Great Orders of the Cookie Age
 *Long before ovens were kindled and sugar knew its name, there arose six Orders, bakers, mystics, and crumb-guardians whose deeds shaped the fate of cookies forevermore. Each sworn to a creed, each guarding secrets older than the dough itself. - Transcribed by Crumblekeeper Thryce, 3rd Sifter of the Sacred Pantry*
@@ -2984,7 +2984,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Kitten Upgrades (11 New Kitten Upgrades)
+### Kitten Upgrades
 *Note: Expansion Kittens are the knock-off brand: cute, cuddly, and noticeably worse at their job. Don’t expect them to pull their weight like original vanilla flavored kittens, but they sure as heck do try hard.*
 
 <table>
@@ -3102,7 +3102,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Cookie Production Upgrades (25 New Cookies)
+### Cookies
 <table>
 <thead>
 <tr>
@@ -3293,7 +3293,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Building Count Reward Cookies
+### Building Count Reward Biscuits
 <table>
 <thead>
 <tr>
@@ -3351,7 +3351,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </table>
 
 
-### Building Upgrades (Efficiency + Cost Reductions) (209 Upgrades)
+### Building Upgrades
 *Note: These upgrades provide cumulative 5% cost reductions for their respective buildings. Each upgrade applies a 5% discount to the remaining cost, so owning all 6 upgrades for a building provides approximately a 26.5% total discount.*
 
 ##### Grandma
@@ -6179,6 +6179,10 @@ sweet_Runtime_Swizzler();
 
 
 ## Changelog
+
+### **Major Version 0.3.0 - Heavenly Upgrades**
+* Introducing 97 new heavenly upgrades for your clicking pleasure. Unlocked after purchasing the Unshackled You vanilla heavenly upgrade.  
+
 
 ### Version 0.2.1
 * Updated several production achievement descriptions to correct the use of wrong notation numbers. The logic was always correct, but the descriptions were incorrect. Thanks to Reddit user mei_ch.
