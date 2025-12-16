@@ -5122,7 +5122,9 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 ## Heavenly Upgrades
 
-### Tree 2: Building and Upgrade Discounts
+Just Natural Expansion adds 97 new Heavenly Upgrades to your ascensions. These are designed to be completed once you have completed the vanilla heavenly upgrade tree, with prices continuing from roughly that point. Some upgrades may seem cheap and some may seem excessively expensive, as with all things Just Natural Expansion the goal is to provide not just a one off quick freebies but to meaningfully expand the end game. Also as is tradition with Just Natural Expansion these heavenly upgrades are designed to be balanced and not game breaking. They are broken up into 6 trees which are detailed below. 
+
+#### Buildings and Upgrades
 <table>
 <thead>
 <tr>
@@ -5228,7 +5230,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 4: Seasonal and Display
+#### Seasons and Toys
 <table>
 <thead>
 <tr>
@@ -5348,7 +5350,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 6: Wrinkler Enhancements
+#### Grandmapocalypse
 <table>
 <thead>
 <tr>
@@ -5496,7 +5498,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 1: Stock Market, Pantheon, Garden, and Wizard
+#### Minigames
 <table>
 <thead>
 <tr>
@@ -5623,7 +5625,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 5: Golden Cookie Enhancements
+#### Golden Cookies and Luck
 <table>
 <thead>
 <tr>
@@ -5771,7 +5773,7 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Tree 3: Sugar Management
+#### Sugar Lumps
 <table>
 <thead>
 <tr>
@@ -5856,13 +5858,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 </tbody>
 </table>
 
-### Heavenly Upgrade Drops
+#### Heavenly Upgrade Drops
 <table>
 <thead>
 <tr>
 <th width="48">Icon</th>
-<th>Upgrade Name</th>
-<th>Unlock Condition</th>
+<th>Name</th>
+<th>Origin</th>
 <th>Price</th>
 <th>Description</th>
 </tr>
@@ -5962,28 +5964,28 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla1018.png"><img src="/assets/generated-icons/SheetVanilla1018.png" alt="Hearty farm biscuit" width="48" height="48"></a></td>
 <td><strong>Hearty farm biscuit</strong></td>
-<td>Magic mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushroom</td>
 <td>Scales with CpS</td>
 <td>Farms are <b>twice</b> as efficient.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla2116.png"><img src="/assets/generated-icons/SheetVanilla2116.png" alt="Astronaut cookie" width="48" height="48"></a></td>
 <td><strong>Astronaut cookie</strong></td>
-<td>Magic mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushroom</td>
 <td>Scales with CpS</td>
 <td>Shipments are <b>twice</b> as efficient.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla2417.png"><img src="/assets/generated-icons/SheetVanilla2417.png" alt="The chemist cookie" width="48" height="48"></a></td>
 <td><strong>The chemist cookie</strong></td>
-<td>Magic mushroom</td>
+<td>Randomly dropped by harvesting mature Magic Mushroom</td>
 <td>Scales with CpS</td>
 <td>Alchemy labs are <b>twice</b> as efficient.</td>
 </tr>
 </tbody>
 </table>
 
-### Garden Plants, Soil, Spell, and Pantheon Gods
+#### Additional Specifics
 <table>
 <thead>
 <tr>
