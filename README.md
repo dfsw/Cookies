@@ -5495,7 +5495,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td>Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.</td>
 </tr>
 <tr>
-<td width="48"><a href="/assets/generated-icons/SheetVanilla3112.png"><img src="/assets/generated-icons/SheetVanilla3112.png" alt="Bingo center slots" width="48" height="48"></a></td>
+<td width="48"><a href="/assets/generated-icons/SheetCustom1824.png"><img src="/assets/generated-icons/SheetCustom1824.png" alt="Bingo center slots" width="48" height="48"></a></td>
 <td><strong>Bingo center slots</strong></td>
 <td>Slimy pheromones</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 750 quintillion</td>
@@ -5871,7 +5871,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <th width="48">Icon</th>
 <th>Name</th>
 <th>Origin</th>
-<th>Price</th>
+<th>Base Price</th>
 <th>Description</th>
 </tr>
 </thead>
