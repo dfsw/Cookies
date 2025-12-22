@@ -6113,9 +6113,11 @@ There are six new Achievements for working your way through *Mysteries of the Co
 
 ## Javascript Console Minigame: Terminal 
 
-<div align="center">
-<iframe width="560" height="315" src="https://www.youtube.com/embed/GRSchQBMG5A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-</div>
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=GRSchQBMG5A">
+    <img src="https://img.youtube.com/vi/GRSchQBMG5A/0.jpg" alt="Terminal Minigame Demo" width="560"/>
+  </a>
+</p>
 
 *A brief demo of Terminal Minigame*
 
