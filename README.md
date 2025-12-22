@@ -5126,7 +5126,7 @@ Just Natural Expansion introduces 97 new Heavenly Upgrades, extending progressio
 
 Heavenly upgrades are enabled and disabled via the Options menu, they become available for purchase once you have purchased the Unshackled You upgrade from the Vanilla heavenly upgrades tree. 
 
-As with the rest of the mod, these upgrades are not designed as quick, disposable bonuses. Some are intentionally inexpensive, others deliberately punishingly expensive. This is by design. The goal is to meaningfully extend long-term progression and decision-making in the endgame.
+As with the rest of the mod, these upgrades are not designed as quick, disposable bonuses. Some are intentionally inexpensive, others deliberately punishingly expensive. This of course is by design, the goal is to meaningfully extend long-term gameplay and decision-making in the endgame.
 
 All Heavenly Upgrades in Just Natural Expansion are painstakingly balanced to avoid breaking the game. They expand existing systems, reinforce long-term strategies, reward sustained investment, and hopefully cover a variety of play styles (including some for idle players!).
 
@@ -6113,7 +6113,11 @@ There are six new Achievements for working your way through *Mysteries of the Co
 
 ## Javascript Console Minigame: Terminal 
 
-Reaching Level 1 Javascript Consoles unlocks the Terminal minigame, the pinnacle of cookie automation technology. Inside, you’ll piece together powerful functions to make your bakery run smoother than a perfectly buttered script. Choose from 10 unique functions, each with its own quirks and parameters. Every line of “code” takes up an execution slot, and leveling up your Consoles (up to 10) expands your capacity for cookie-fueled creativity.
+[![Terminal Minigame Demo](https://img.youtube.com/vi/GRSchQBMG5A/0.jpg)](https://www.youtube.com/watch?v=GRSchQBMG5A)
+
+*A brief demo of Terminal Minigame*
+
+Reaching Level 1 Javascript Consoles unlocks the Terminal minigame, the pinnacle of cookie automation technology. Inside, you'll piece together powerful functions to make your bakery run smoother than a perfectly buttered script. Choose from 10 unique functions, each with its own quirks and parameters. Every line of "code" takes up an execution slot, and leveling up your Consoles (up to 10) expands your capacity for cookie-fueled creativity.
 
 Write clean, think fast, flawless execution unleashes cookies straight from the mainframe, while a single bad call can send your setup crumbling. There’s no time to debug; only those who can see the logic behind the madness will prevail. After every run, the mainframe needs 8 hours to cool back down to operating temperatures.
 
