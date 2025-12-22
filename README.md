@@ -5124,11 +5124,13 @@ I’ve tested compatibility with many popular [CCSE mods](https://klattmose.gith
 
 Just Natural Expansion introduces 97 new Heavenly Upgrades, extending progression beyond the completion of the vanilla heavenly upgrade tree. These upgrades are intended for late-game ascensions, with costs scaling naturally from where vanilla leaves off.
 
-As with the rest of the mod, these upgrades are not designed as quick, disposable bonuses. Some are intentionally inexpensive, others deliberately punishingly expensive. This is by design. The goal is to meaningfully extend long-term progression and decision-making in the endgame, not to trivialize it.
+Heavenly upgrades are enabled and disabled via the Options menu, they become available for purchase once you have purchased the Unshackled You upgrade from the Vanilla heavenly upgrades tree. 
 
-All Heavenly Upgrades in Just Natural Expansion are balanced to avoid breaking the game. They expand existing systems, reinforce long-term strategies, and reward sustained investment rather than short-term optimization exploits.
+As with the rest of the mod, these upgrades are not designed as quick, disposable bonuses. Some are intentionally inexpensive, others deliberately punishingly expensive. This is by design. The goal is to meaningfully extend long-term progression and decision-making in the endgame.
 
-The upgrades are organized into six distinct trees, each focusing on a different aspect of late-game growth. These trees are outlined in detail below.
+All Heavenly Upgrades in Just Natural Expansion are painstakingly balanced to avoid breaking the game. They expand existing systems, reinforce long-term strategies, reward sustained investment, and hopefully cover a variety of play styles (including some for idle players!).
+
+The upgrades are organized into six distinct trees, each focusing on a different aspect of the game. These trees are outlined in detail below.
 
 #### Buildings and Upgrades
 <table>
@@ -5288,7 +5290,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td><strong>Seasonal retirement</strong></td>
 <td>Seasonal time off</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 20 quadrillion</td>
-<td>Seasons <b>twice</b> as long.</td>
+<td>Seasons last <b>twice</b> as long.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetVanilla1110.png"><img src="/assets/generated-icons/SheetVanilla1110.png" alt="Cookie calculations" width="48" height="48"></a></td>
@@ -5428,14 +5430,14 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <td width="48"><a href="/assets/generated-icons/SheetCustom0616.png"><img src="/assets/generated-icons/SheetCustom0616.png" alt="Abra-Ka-Wiggle" width="48" height="48"></a></td>
 <td><strong>Abra-Ka-Wiggle</strong></td>
 <td>Skitter skatter skrum ahh</td>
-<td><img src="/assets/hcicon.png" width="16" height="16"> 25 quadrillion</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 250 quadrillion</td>
 <td>Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.</td>
 </tr>
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom1416.png"><img src="/assets/generated-icons/SheetCustom1416.png" alt="Alakazoodle evil noodle" width="48" height="48"></a></td>
 <td><strong>Alakazoodle evil noodle</strong></td>
 <td>Abra-Ka-Wiggle</td>
-<td><img src="/assets/hcicon.png" width="16" height="16"> 30 quadrillion</td>
+<td><img src="/assets/hcicon.png" width="16" height="16"> 750 quadrillion</td>
 <td>Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.</td>
 </tr>
 <tr>
@@ -5709,7 +5711,7 @@ The upgrades are organized into six distinct trees, each focusing on a different
 <tr>
 <td width="48"><a href="/assets/generated-icons/SheetCustom2317.png"><img src="/assets/generated-icons/SheetCustom2317.png" alt="Unlucky luckier" width="48" height="48"></a></td>
 <td><strong>Unlucky luckier</strong></td>
-<td>Mail in sweepstake winner</td>
+<td>Mail in sweepstake winner, Fading payout</td>
 <td><img src="/assets/hcicon.png" width="16" height="16"> 500 quadrillion</td>
 <td>Lucky Golden Cookies are <b>5%</b> less common.</td>
 </tr>
@@ -6209,7 +6211,8 @@ sweet_Runtime_Swizzler();
 ## Changelog
 
 ### **Major Version 0.3.0 - Heavenly Upgrades**
-* Introducing 97 new heavenly upgrades for your clicking pleasure. Unlocked after purchasing the Unshackled You vanilla heavenly upgrade.  
+* Introducing 97 new heavenly upgrades for your clicking pleasure. Unlocked after purchasing the Unshackled You vanilla heavenly upgrade. You can find the new upgrade tree to the left of the existing vanilla tree. Existing players will need to turn on Heavenly Upgrades in options.
+* Fixed an exploit in the terminal minigame that allowed the user to spam execute radpidly to get the program to execute multiple times in a row. 
 
 
 ### Version 0.2.1
