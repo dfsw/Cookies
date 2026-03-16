@@ -8,6 +8,7 @@
 * [Heavenly Upgrades](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#heavenly-upgrades)
 * [Mysteries of the Cookie Age](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#Mysteries-of-the-Cookie-Age)
 * [Javascript Console Minigame: Terminal](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#javascript-console-minigame-terminal)
+* [Fractal Engine Minigame: Downline](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#fractal-engine-minigame-downline)
 * [Changelog](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#changelog)
 
 **The Just Natural Expansion Mod** enhances the Cookie Clicker endgame without disrupting core gameplay, staying true to the spirit of the vanilla experience. It introduces new achievements, upgrades, goals, stories, puzzles, and minigames, all specifically designed for late-game progression, so early or mid-game players may not immediately notice many changes. 
@@ -6118,7 +6119,7 @@ There are six new Achievements for working your way through *Mysteries of the Co
     <img src="https://img.youtube.com/vi/GRSchQBMG5A/0.jpg" alt="Terminal Minigame Demo" width="560"/>
   </a>
   <br>
-  <em>A brief demo of Terminal Minigame</em>
+  <em>A brief video demo of Terminal Minigame</em>
 </p>
 
 Reaching Level 1 Javascript Consoles unlocks the Terminal minigame, the pinnacle of cookie automation technology. Inside, you'll piece together powerful functions to make your bakery run smoother than a perfectly buttered script. Choose from 10 unique functions, each with its own quirks and parameters. Every line of "code" takes up an execution slot, and leveling up your Consoles (up to 10) expands your capacity for cookie-fueled creativity.
@@ -6222,14 +6223,14 @@ sweet_Runtime_Swizzler();
     <img src="https://img.youtube.com/vi/GRSchQBMG5A/0.jpg" alt="Terminal Minigame Demo" width="560"/>
   </a>
   <br>
-  <em>A brief demo of Terminal Minigame</em>
+  <em>A brief video demo of Downline Minigame</em>
 </p>
 
-Reaching Level 1 Fractal Engines unlocks the Downline Minigame. Lorum Ipsum here. 
+Reaching Level 1 Fractal Engines unlocks the Downline minigame, a cutting-edge idle clicker startup simulator poorly disguised as a very bad idea. Here, you are the Cookie Clicker CEO, armed with a stack of highly questionable growth strategies and a dream of total market domination. Build your audience from uncommitted dabblers all the way up to ride-or-die hardcore fanatics, all while juggling Hype, Commitment, Word of Mouth, and Global Reputation. Push too soft and nobody cares, not even your own mother. Push too hard and your community implodes in very public ways. That’s just business, cutthroat, filled with grandmas, and a constant balancing act due to collapse at every slight distraction.
+
+Fill your business plan with promotions, stunts, feature improvements, damage control, and executive decisions that would get a normal company investigated and land you infront of a judge. Fight off player boredom, slam that Sugar Rush when you want to focus, or Freeze the whole machine when it’s time to stop the bleeding and pretend everything is under control. If you can keep the numbers up for long enough, you’ll unlock the ultimate founder fantasy: releasing your own Fractal minigame and turning your success into a self-replicating chain of cookie-fueled entrepreneurship. It’s recursive, it’s irresponsible, and it’s beautiful.  
 
 ### Downline Minigame Achievements
-
-Base order: **61628**.
 
 <table>
 <thead>
@@ -6261,7 +6262,7 @@ Base order: **61628**.
 ## Changelog
 
 ### **Major Version 0.4.0 - Downline a Fractal Engine Minigame**
-* Introducing a whole new minigame for Cookie Clicker! The [Fractal Engine Minigame: Downline](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#fractal-engine-minigame-downline) get to expereince what its like to run your own version of Cookie Clicker, recruit players, release features, market, and hype up your game to make it the best idle game ever. Unlocked at Level 1 Fractal Engines when  Minigames are toggled on/off in the Options Menu. 
+* Introducing a whole new minigame for Cookie Clicker! The [Fractal Engine Minigame: Downline](https://github.com/dfsw/Just-Natural-Expansion?tab=readme-ov-file#fractal-engine-minigame-downline) get to expereince what its like to run your own version of Cookie Clicker, recruit players, release features, market, and hype up your game to make it the best idle game ever. Unlocked at Level 1 Fractal Engines when Minigames are toggled on/off in the Options Menu. 
 
 ### Version 0.3.7
 * Fixed a bug that could miscount total wrinklers and stock totals on ascension. 
