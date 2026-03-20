@@ -10,11 +10,10 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.1';
+    var expansionVersion = '1.0.3';
     var debugMode = false; // Set to true for testing
   
     var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
-  //  var customSpriteSheetUrl = 'http://localhost:8000/updatedSpriteSheet.png?v=' + Date.now();
     var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
     var mainIconsSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/icons.png';
 
@@ -553,7 +552,6 @@
             // Mark as initialized
             expansionState.initialized = true;
                         
-            console.log('[Cookie Age] Expansion initialized successfully!');
             // If base mod stashed save data, apply it now (toggle-aware restore)
             try {
                 if (typeof window !== 'undefined' && window.CookieAge && window.CookieAge.applySaveData && window.Game && Game.JNE && Game.JNE.cookieAgeSavedData) {
@@ -1330,7 +1328,7 @@
                 puzzleClass: RiteShiftingMeasuresPuzzle,
                 description: 'You cast off ships, raised gates, kindled suns, ruined houses, and lifted spires, each crooked measure bound in its turn. The seal held, and The Order watched.<q>Such rites are spoken to test faith as much as skill. You obeyed, and for now, they are satisfied.</q>',
                 clue: 'The Brothers bind their steps in crooked sums,<br>five measures across sea, gate, sun, coin, and sky.<br><br>First, cast off a handful of Ships in Harbor, then raise half a dozen Crimson Gates.<br>Next, kindle thrice three Scattered Suns, then ruin the Houses of Coin by a dozen pieces.<br>Last, let the Spires of the Firmament climb elevenfold, and the ritual seal shall hold.',
-                hint: '• These sound like buildings, don\'t they? What could ships, red gates, scattered light, houses of money, and tall towers be?',
+                hint: '• These sound like buildings, don\'t they? What could ships, red gates, scattered light, houses of money, and tall towers be? How many fingers on a hand sounds like its pretty full no? Despite some common misconceptions a chancemaker is not a casino.',
                 mainIcon: [13, 12, customSpriteSheetUrl],
                 completionMessage: 'The crooked sums are complete, the seal holds firm.<q>The Order marks your obedience in silence.</q>',
                 completionIcon: [4, 14, customSpriteSheetUrl],
@@ -1384,7 +1382,7 @@
                 'pattern_altars': {
                 name: 'The pattern of the altars',
                 description: 'You counted what cannot be broken and took the first five in their sacred order. One raised, the next cast down, ever climbing, never the same twice. The hall felt the older mathematics stir, and the Brothers watched without blinking.<q>The further you go, the thinner the margin. Precision is no longer a courtesy; it is cover.</q>',
-                clue: 'Count the altars where the spirits rest.<br>Seek the numbers that cannot be broken,<br>save by themselves and the One.<br>Take the first five in their divine order.<br>Raise one, then cast the next down,<br>ever climbing, never the same twice.<br>Each count a vow, each altar a hymn.',
+                clue: 'Count the home of the altars where the spirits rest.<br>Seek the numbers that cannot be broken,<br>save by themselves and the One.<br>Take the first five in their divine order.<br>Raise one, then cast the next down,<br>ever climbing, never the same twice.<br>Each count a vow, each altar a hymn.',
                 hint: '• Where do the spirits reside? Is there a building associated with them?<br>• What is the name of numbers cannot be divided by anything but themselves and one?',
                 puzzleClass: PatternAltarsPuzzle,
                 mainIcon: [13, 16, customSpriteSheetUrl],
@@ -5377,8 +5375,7 @@
                     pic = Game.WINKLERS ? 'winterWinkler.png' : 'winterWrinkler.png';
                 }
                 if (!isIdleStep && !tracking._repeatPauseActive && !inLoopPause && forcedSet.indexOf(Number(i)) !== -1 && shouldShowCustomArt) {
-                    var forcedPic = 'winkler.png';
-                    pic = forcedPic;
+                    pic = Game.WINKLERS ? 'wrinkler.png' : 'winkler.png';
                 }
                 ctx.drawImage(Pic(pic), -sw / 2, -10, sw, sh);
                 if (!Game.WINKLERS && Game.prefs.notScary) {
@@ -5945,32 +5942,28 @@
     
     FalseDawnPuzzle.prototype.onSetup = function() {
         var tracking = this.getTracking();
-        // Verify we're in business day season
-        if (Game.season !== 'fools') {
-            tracking.seasonValid = false;
-            return;
-        }
         
-        tracking.seasonValid = true;
-        tracking.initialSeason = 'fools';
-        
-        // Capture all step start counts
-        for (var i = 0; i < tracking.stepTargets.length; i++) {
-            var targetBuilding = tracking.stepTargets[i].building;
-            var buildingObj = Game.Objects[targetBuilding];
-            if (buildingObj) {
-                tracking.stepStartCounts[i] = buildingObj.amount;
+        if (Game.season === 'fools') {
+            tracking.seasonValid = true;
+            tracking.initialSeason = 'fools';
+            
+            for (var i = 0; i < tracking.stepTargets.length; i++) {
+                var targetBuilding = tracking.stepTargets[i].building;
+                var buildingObj = Game.Objects[targetBuilding];
+                if (buildingObj) {
+                    tracking.stepStartCounts[i] = buildingObj.amount;
+                }
             }
-        }
-        // Update initial building counts
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            tracking.initialBuildingCounts[building.name] = building.amount;
+            for (var i = 0; i < Game.ObjectsById.length; i++) {
+                var building = Game.ObjectsById[i];
+                tracking.initialBuildingCounts[building.name] = building.amount;
+            }
+            
+            tracking.initialCountsSet = true;
+        } else {
+            tracking.seasonValid = false;
         }
         
-        tracking.initialCountsSet = true;
-        
-        // Hook into all building buy/sell functions
         this.hookBuildingBuySell();
         
         var self = this;
@@ -5983,23 +5976,41 @@
         var tracking = this.getTracking();
         if (!tracking || tracking.sequenceComplete) {
             if (tracking && tracking.sequenceComplete) {
-                debugLog('[False Dawn] onCheck called but sequence already complete');
+                return;
             }
             return;
         }
         
-        // Check if season has changed from business day
         if (Game.season !== 'fools') {
-            debugLog('[False Dawn] Season changed from fools, resetting sequence');
-            this.resetSequence();
-            tracking.seasonValid = false;
+            if (tracking.seasonValid) {
+                this.resetSequence();
+                tracking.seasonValid = false;
+            }
             return;
         }
         
-        tracking.seasonValid = true;
+        if (!tracking.seasonValid && Game.season === 'fools') {
+            tracking.seasonValid = true;
+            tracking.initialSeason = 'fools';
+            
+            for (var i = 0; i < tracking.stepTargets.length; i++) {
+                var targetBuilding = tracking.stepTargets[i].building;
+                var buildingObj = Game.Objects[targetBuilding];
+                if (buildingObj) {
+                    tracking.stepStartCounts[i] = buildingObj.amount;
+                }
+            }
+            for (var i = 0; i < Game.ObjectsById.length; i++) {
+                var building = Game.ObjectsById[i];
+                tracking.initialBuildingCounts[building.name] = building.amount;
+            }
+            
+            tracking.initialCountsSet = true;
+            tracking.currentStep = 0;
+            tracking.sequenceComplete = false;
+        }
         
         var currentStep = tracking.currentStep;
-        debugLog('[False Dawn] onCheck - currentStep:', currentStep, 'of', tracking.stepTargets.length);
         if (currentStep >= tracking.stepTargets.length) {
             return;
         }
@@ -6011,48 +6022,34 @@
         }
         
         var currentCount = buildingObj.amount;
-        // Initialize stepStartCounts if not set (shouldn't happen, but safety check)
         if (tracking.stepStartCounts[currentStep] === undefined) {
-            tracking.stepStartCounts[currentStep] = currentCount;
+            return;
         }
         var startCount = tracking.stepStartCounts[currentStep];
         var amountToChange = stepTarget.amount;
-        // SPECIAL HANDLING FOR STEP 0 (FARM/KITCHEN):
-        // Buying ANY farm(s) completes step 0 and resets all baselines for remaining steps
         var stepComplete = false;
         
         if (currentStep === 0 && stepTarget.building === 'Farm') {
-            // Step 0: Any farm purchase completes and resets baselines
             stepComplete = (currentCount > startCount);
         } else {
-            // Steps 1-3: Normal requirements
-            var requireExactAmount = (stepTarget.building === 'Mine' || stepTarget.building === 'Fractal engine');
-            
             if (stepTarget.action === 'sell') {
-                // For sell actions: always require exact amount
                 var targetCount = startCount - amountToChange;
                 stepComplete = (currentCount === targetCount);
             } else if (stepTarget.action === 'buy') {
-                if (requireExactAmount) {
-                    // Fractal engine: must buy exactly 1
+                if (stepTarget.building === 'Mine' || stepTarget.building === 'Fractal engine') {
                     var targetCount = startCount + amountToChange;
                     stepComplete = (currentCount === targetCount);
                 } else {
-                    // Alchemy lab (step 3): any increase works
                     stepComplete = (currentCount > startCount);
                 }
             }
         }
         
         if (stepComplete) {
-            debugLog('[False Dawn] Step', currentStep, 'completed:', stepTarget.building, stepTarget.action, '- currentCount:', currentCount, 'startCount:', startCount);
             
-            // Move to next step
             tracking.currentStep++;
             
-            // SPECIAL: If we just completed step 0 (Farm), recapture ALL remaining step baselines
             if (currentStep === 0) {
-                // Recapture step start counts for remaining steps (1, 2, 3)
                 for (var i = 1; i < tracking.stepTargets.length; i++) {
                     var targetBuilding = tracking.stepTargets[i].building;
                     var buildingObj2 = Game.Objects[targetBuilding];
@@ -6060,32 +6057,18 @@
                         tracking.stepStartCounts[i] = buildingObj2.amount;
                     }
                 }
-                debugLog('recaptured baselines after step 0', JSON.stringify({
-                    stepStartCounts: tracking.stepStartCounts.slice()
-                }));
                 
-                // Also update baseline counts for wrong-building detection
                 for (var i = 0; i < Game.ObjectsById.length; i++) {
                     var building = Game.ObjectsById[i];
                     tracking.initialBuildingCounts[building.name] = building.amount;
                 }
             }
             
-            // If we've completed all steps, complete the puzzle
             if (tracking.currentStep >= tracking.stepTargets.length) {
-                debugLog('[False Dawn] All steps completed! Completing puzzle...');
                 tracking.sequenceComplete = true;
                 this.complete();
-            } else {
-                debugLog('[False Dawn] Step', currentStep, 'completed, moving to step', tracking.currentStep);
             }
         } else {
-            // Only check for wrong buildings if the current step didn't complete
-            // This prevents resetting when the user correctly completes a step but also
-            // changes other buildings (e.g., for normal gameplay)
-            var wrongBuildingChanged = false;
-            
-            // Get list of all buildings in the sequence
             var sequenceBuildings = [];
             for (var j = 0; j < tracking.stepTargets.length; j++) {
                 sequenceBuildings.push(tracking.stepTargets[j].building);
@@ -6095,17 +6078,10 @@
                 var building = Game.ObjectsById[i];
                 var initialCount = tracking.initialBuildingCounts[building.name] || 0;
                 
-                // Check if this building changed and it's not in the sequence at all
                 if (sequenceBuildings.indexOf(building.name) === -1 && building.amount !== initialCount) {
-                    wrongBuildingChanged = true;
-                    break;
+                    this.resetSequence();
+                    return;
                 }
-            }
-            
-            if (wrongBuildingChanged) {
-                debugLog('[False Dawn] Wrong building changed - resetting sequence at step', currentStep);
-                this.resetSequence();
-                return;
             }
         }
     };
@@ -6141,15 +6117,14 @@
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
             
-            if (!building._originalBuy) {
-                building._originalBuy = building.buy;
-                building._originalSell = building.sell;
+            if (!building._originalBuyFalseDawn) {
+                building._originalBuyFalseDawn = building.buy;
+                building._originalSellFalseDawn = building.sell;
             }
             
             var self = this;
-            var originalBuy = building._originalBuy;
-            var originalSell = building._originalSell;
-            
+            var originalBuy = building._originalBuyFalseDawn;
+            var originalSell = building._originalSellFalseDawn;
             building.buy = function(amount) {
                 var result = originalBuy.call(this, amount);
                 setTimeout(function() {
@@ -8480,14 +8455,14 @@
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
             
-            if (!building._originalBuy) {
-                building._originalBuy = building.buy;
-                building._originalSell = building.sell;
+            if (!building._originalBuyRiteMeasures) {
+                building._originalBuyRiteMeasures = building.buy;
+                building._originalSellRiteMeasures = building.sell;
             }
             
             var self = this;
-            var originalBuy = building._originalBuy;
-            var originalSell = building._originalSell;
+            var originalBuy = building._originalBuyRiteMeasures;
+            var originalSell = building._originalSellRiteMeasures;
             
             building.buy = function(amount) {
                 var result = originalBuy.call(this, amount);
@@ -8533,8 +8508,7 @@
         var currentCount = buildingObj.amount;
         var stepStartCount = tracking.stepStartCounts[currentStep];
         if (stepStartCount === undefined) {
-            stepStartCount = currentCount;
-            tracking.stepStartCounts[currentStep] = stepStartCount;
+            return;
         }
         
         // Check if they're working on the wrong building type
@@ -8604,14 +8578,13 @@
     };
     
     RiteShiftingMeasuresPuzzle.prototype.onCleanup = function() {
-        // Restore original buy/sell functions
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
-            if (building._originalBuy) {
-                building.buy = building._originalBuy;
-                building.sell = building._originalSell;
-                delete building._originalBuy;
-                delete building._originalSell;
+            if (building._originalBuyRiteMeasures) {
+                building.buy = building._originalBuyRiteMeasures;
+                building.sell = building._originalSellRiteMeasures;
+                delete building._originalBuyRiteMeasures;
+                delete building._originalSellRiteMeasures;
             }
         }
     };
@@ -8745,10 +8718,10 @@
         if (!grandma) return;
         
         if (!this.sellHooked) {
-            grandma._originalCourtesySell = grandma.sell;
+            grandma._originalSpyPurgeSell = grandma.sell;
             grandma.sell = function(amount, bypass) {
                 var countBefore = grandma.amount;
-                var result = grandma._originalCourtesySell.call(grandma, amount, bypass);
+                var result = grandma._originalSpyPurgeSell.call(grandma, amount, bypass);
                 var countAfter = grandma.amount;
                 var isBuy = countAfter > countBefore;
                 setTimeout(function() { self.onGrandmaAction(countAfter, isBuy); }, 0);
@@ -8758,10 +8731,10 @@
         }
         
         if (!this.buyHooked) {
-            grandma._originalCourtesyBuy = grandma.buy;
+            grandma._originalSpyPurgeBuy = grandma.buy;
             grandma.buy = function(amount) {
                 var countBefore = grandma.amount;
-                var result = grandma._originalCourtesyBuy.call(grandma, amount);
+                var result = grandma._originalSpyPurgeBuy.call(grandma, amount);
                 var countAfter = grandma.amount;
                 var isBuy = countAfter > countBefore;
                 setTimeout(function() { self.onGrandmaAction(countAfter, isBuy); }, 0);
@@ -8818,8 +8791,8 @@
         if (this.deferredCheck) clearTimeout(this.deferredCheck);
         var grandma = Game.Objects['Grandma'];
         if (grandma) {
-            if (grandma._originalCourtesySell) { grandma.sell = grandma._originalCourtesySell; delete grandma._originalCourtesySell; }
-            if (grandma._originalCourtesyBuy) { grandma.buy = grandma._originalCourtesyBuy; delete grandma._originalCourtesyBuy; }
+            if (grandma._originalSpyPurgeSell) { grandma.sell = grandma._originalSpyPurgeSell; delete grandma._originalSpyPurgeSell; }
+            if (grandma._originalSpyPurgeBuy) { grandma.buy = grandma._originalSpyPurgeBuy; delete grandma._originalSpyPurgeBuy; }
         }
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
@@ -8855,10 +8828,10 @@
         if (!mine) return;
         
         if (!this.sellHooked) {
-            mine._originalCourtesySell = mine.sell;
+            mine._originalBrotherOntoSell = mine.sell;
             mine.sell = function(amount, bypass) {
                 var countBefore = mine.amount;
-                var result = mine._originalCourtesySell.call(mine, amount, bypass);
+                var result = mine._originalBrotherOntoSell.call(mine, amount, bypass);
                 var countAfter = mine.amount;
                 var isBuy = countAfter > countBefore;
                 setTimeout(function() { self.onMineAction(countAfter, isBuy); }, 0);
@@ -8868,10 +8841,10 @@
         }
         
         if (!this.buyHooked) {
-            mine._originalCourtesyBuy = mine.buy;
+            mine._originalBrotherOntoBuy = mine.buy;
             mine.buy = function(amount) {
                 var countBefore = mine.amount;
-                var result = mine._originalCourtesyBuy.call(mine, amount);
+                var result = mine._originalBrotherOntoBuy.call(mine, amount);
                 var countAfter = mine.amount;
                 var isBuy = countAfter > countBefore;
                 setTimeout(function() { self.onMineAction(countAfter, isBuy); }, 0);
@@ -8926,8 +8899,8 @@
         if (this.deferredCheck) clearTimeout(this.deferredCheck);
         var mine = Game.Objects['Mine'];
         if (mine) {
-            if (mine._originalCourtesySell) { mine.sell = mine._originalCourtesySell; delete mine._originalCourtesySell; }
-            if (mine._originalCourtesyBuy) { mine.buy = mine._originalCourtesyBuy; delete mine._originalCourtesyBuy; }
+            if (mine._originalBrotherOntoSell) { mine.sell = mine._originalBrotherOntoSell; delete mine._originalBrotherOntoSell; }
+            if (mine._originalBrotherOntoBuy) { mine.buy = mine._originalBrotherOntoBuy; delete mine._originalBrotherOntoBuy; }
         }
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
@@ -10322,7 +10295,6 @@
     
     // ===== MAIN INITIALIZATION =====
     function main() {
-        console.log('[Cookie Age] Loading expansion...');
         
         if (!checkBaseModCompatibility()) {
             return;
