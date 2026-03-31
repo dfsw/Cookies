@@ -6185,8 +6185,8 @@
             tracking.originalCastSpell = M.castSpell;
             var self = this;
             
-            M.castSpell = function(spell) {
-                var result = tracking.originalCastSpell.call(this, spell);
+            M.castSpell = function(spell, obj) {
+                var result = tracking.originalCastSpell.call(this, spell, obj);
                 setTimeout(function() {
                     self.checkSpellCast(spell);
                 }, 0);
@@ -6291,8 +6291,8 @@
             tracking.originalCastSpell = M.castSpell;
             var self = this;
             
-            M.castSpell = function(spell) {
-                var result = tracking.originalCastSpell.call(this, spell);
+            M.castSpell = function(spell, obj) {
+                var result = tracking.originalCastSpell.call(this, spell, obj);
                 setTimeout(function() {
                     self.checkSpellCast(spell, result);
                 }, 0);
@@ -7797,8 +7797,8 @@
             var self = this;
             tracking.originalCastSpell = M.castSpell;
             
-            M.castSpell = function(spell) {
-                var result = tracking.originalCastSpell.call(this, spell);
+            M.castSpell = function(spell, obj) {
+                var result = tracking.originalCastSpell.call(this, spell, obj);
                 
                 setTimeout(function() {
                     self.checkSpellCast(spell);
@@ -10067,6 +10067,13 @@
                         cleanupPuzzleHooks(parseInt(match[1], 10));
                     }
                 }
+            }
+            
+            // Reset initialization flags to ensure proper re-initialization on re-enable
+            // CRITICAL: This ensures that when Cookie Age is re-enabled, setupPuzzleSystem
+            // will properly reinitialize tracks and restore saved data
+            if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {
+                cookieAgeData.puzzles.tracks._initialized = false;
             }
             
             expansionState.initialized = false;
