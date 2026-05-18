@@ -1635,7 +1635,7 @@
                 name: 'The rite of nine flames',
                 description: 'They entrusted you with the dragon\'s heart: nine flames, alone or in harmony, never the same. You performed the rite flawlessly, the chamber echoing with your voice as though it had always belonged there.<q>For the first time, you wondered: what if your mission ended here, among them? The thought didn\'t frighten you. It comforted you.</q>',
                 clue: 'Nine steps bind the shadowed wheel,<br>miss one, and the circle shatters, and you must begin again.<br><br>First, call the sickle and the miser, bind hunger and hoarding in false union.<br>Next, break stone beside the changeling\'s blood.<br>Then crown the crooked fruit with the whisper of arcane fire.<br>Let the mirror reflect the distorted image of superior thought.<br>Bind good fortune to the belly of the beast; greed feeds hunger.<br>At the sixth toll, let the glass falsely reflect the clock-thief, illusion clutching time.<br>The black tithe stands in solitude, unshared, unabashed.<br>Place steel alongside chance, forge and dice in solidarity.<br>And to seal the rite let silence fall across the world.',
-                hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.',            
+                hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.<br>• Focus on the items themselves not the buildings they belong to.',            
                 puzzleClass: RiteNineFlamesPuzzle,
                 mainIcon: [14, 16, customSpriteSheetUrl],
                 completionMessage: 'Nine flames tended. The dragon bowed. And part of you bowed with it.',
@@ -8953,7 +8953,7 @@
                 var bPos = bakeberryPos[i];
                 var beforeRow = before[bPos[0]];
                 var beforeName = beforeRow ? beforeRow[bPos[1]] : null;
-                if (beforeName !== 'Bakeberry') {
+                if (beforeName !== 'Bakeberry' && beforeName !== 'Duketater') {
                     return;
                 }
                 var afterPlot = M.plot[bPos[0]][bPos[1]];
