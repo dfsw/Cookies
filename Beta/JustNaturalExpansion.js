@@ -9,7 +9,7 @@
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
     script.src = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@beta/data.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw//Cookies@beta/Beta/data.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/data.js';
     script.onload = function() {
         // Continue initialization after data.js is loaded
@@ -115,19 +115,19 @@
     var boxIcon = [34, 4]; // Static Box of improved cookies icon
 
     var terminalMinigameScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/minigameTerminal.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameTerminal.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameTerminal.js';
     var downlineMinigameScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/minigameDownline.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameDownline.js';
     var potionsMinigameScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/minigamePotions.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigamePotions.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigamePotions.js';
     var cookieAgeScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/cookieAge.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/cookieAge.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/cookieAge.js';
     var heavenlyUpgradesScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/heavenlyUpgrades.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/heavenlyUpgrades.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/heavenlyUpgrades.js';
     var spriteSheets = {
         custom: BETA_MODE 
