@@ -118,7 +118,7 @@
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameTerminal.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameTerminal.js';
     var downlineMinigameScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/minigameDownline.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameDownline.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameDownline.js';
     var potionsMinigameScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigamePotions.js'
@@ -3024,7 +3024,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.eff = wrapper;
     }
 
-    // Inject JNE modifications into the vanilla golden cookie popFunc. MUST run before any external script wraps popFunc,
+    // Inject JNE modifications into the vanilla golden cookie popFunc. MUST run before any external script wraps popFunc.
+    // This is the ONE AND ONLY place where popFunc is modified - all submodules use this central injection.
     function injectGoldenPopFunc() {
         if (!Game.shimmerTypes || !Game.shimmerTypes['golden']) return;
         if (Game.shimmerTypes['golden']._effectInjected) return;
@@ -3035,27 +3036,28 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         try {
             var str = originalPopFunc.toString();
 
-            var wrathTracking = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+            // === JNE CORE MODIFICATIONS ===
+            var wrathTracking = "//JNE_CORE\n" +
                                  "if(me.wrath&&me.type!=='cookie storm drop'){if(!window.JNE_lifetimeData){window.JNE_lifetimeData={wrathCookiesClicked:0};}window.JNE_lifetimeData.wrathCookiesClicked++;}\n" +
-                                 "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
+                                 "//JNE_CORE_END\n";
 
-            var sweetSorcery = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+            var sweetSorcery = "//JNE_CORE\n" +
                                 "if(Game.Achievements['Sweet Sorcery']&&!Game.Achievements['Sweet Sorcery'].won){Game.Win('Sweet Sorcery');}\n" +
-                                "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
+                                "//JNE_CORE_END\n";
 
-            var effectDurMod = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+            var effectDurMod = "//JNE_CORE\n" +
                                 "if(Game.Has('Order of the Shining Spoon')){effectDurMod*=1.05;}\n" +
                                 "if(Game.Has('Order of the Cookie Eclipse')){effectDurMod*=1.05;}\n" +
                                 "if(Game.Has('Order of the Eternal Cookie')){effectDurMod*=1.05;}\n" +
-                                "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
+                                "//JNE_CORE_END\n";
 
-            var mult = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+            var mult = "//JNE_CORE\n" +
                         "if(Game.Has('Order of the Shining Spoon')){mult*=1.05;}\n" +
                         "if(Game.Has('Order of the Cookie Eclipse')){mult*=1.05;}\n" +
                         "if(Game.Has('Order of the Eternal Cookie')){mult*=1.05;}\n" +
-                        "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
+                        "//JNE_CORE_END\n";
 
-            var zodiacGC = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+            var zodiacGC = "//JNE_CORE\n" +
                            "if(Game.season==='lunarnewyear'&&me.wrath===0&&!me._predictionMode){" +
                            "var _jneZodiac=Game.JNE&&Game.JNE.getLunarZodiacYear?Game.JNE.getLunarZodiacYear():null;" +
                            "if(_jneZodiac){" +
@@ -3064,13 +3066,110 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                            "if(_jneZodiac.animal==='Horse'&&Math.random()<0.04*_jneMult){list.push('dragon harvest');}" +
                            "}" +
                            "}\n" +
-                           "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
+                           "//JNE_CORE_END\n";
 
+            // === POTIONS MINIGAME MODIFICATIONS (dormant until buffs exist) ===
+            var potionsMod = "//JNE_POTIONS\n" +
+                // Cordial of Tyche + Vapor of Luck effect pool modification
+                "var _jneTyche=Game.hasBuff('Cordial of Tyche'),_jneTycheCurse=Game.hasBuff('Cordial of Tyche (misbrewed)');" +
+                "var _jneVaporCurse=Game.hasBuff('Vapor of Luck (misbrewed)')&&me.wrath===0&&!me._predictionMode;" +
+                "var _jneModTyche=(_jneTyche||_jneTycheCurse)&&me.wrath===0&&!me._predictionMode;" +
+                "if(_jneModTyche||_jneVaporCurse){" +
+                    "var _jneOrigChoose=window.choose;" +
+                    "window.choose=function(arr){" +
+                        "window.choose=_jneOrigChoose;" +
+                        "if(_jneTyche&&Math.random()<0.3){" +
+                            "var fc=0,mc=0;" +
+                            "for(var i=0;i<arr.length;i++){if(arr[i]==='frenzy')fc++;if(arr[i]==='multiply cookies')mc++;}" +
+                            "if(arr.length-fc-mc>=1){" +
+                                "var fi=arr.indexOf('frenzy');while(fi!==-1){arr.splice(fi,1);fi=arr.indexOf('frenzy');}" +
+                                "var mi=arr.indexOf('multiply cookies');while(mi!==-1){arr.splice(mi,1);mi=arr.indexOf('multiply cookies');}" +
+                            "}" +
+                        "}" +
+                        "if(_jneTycheCurse&&Math.random()<0.3){" +
+                            "if(arr.indexOf('frenzy')!==-1)arr.push('frenzy');" +
+                            "if(arr.indexOf('multiply cookies')!==-1)arr.push('multiply cookies');" +
+                        "}" +
+                        "if(_jneVaporCurse&&Math.random()<0.5){" +
+                            "if(arr.indexOf('frenzy')!==-1)arr.push('frenzy');" +
+                            "if(arr.indexOf('multiply cookies')!==-1)arr.push('multiply cookies');" +
+                        "}" +
+                        "return _jneOrigChoose(arr);" +
+                    "};" +
+                "}" +
+                // Corruption of Sin - Ruin penalty reduction
+                "var _jneCorrupt=Game.hasBuff('Corruption of Sin'),_jneCorruptCurse=Game.hasBuff('Corruption of Sin (misbrewed)');" +
+                "var _jneOrigSpend,_jneOrigPopup,_jnePower=1;" +
+                "if(_jneCorrupt||_jneCorruptCurse){" +
+                    "_jnePower=_jneCorrupt?0.5:1.5;" +
+                    "_jneOrigSpend=Game.Spend;_jneOrigPopup=Game.Popup;" +
+                    "Game.Spend=function(amt){" +
+                        "var expected=Math.min(Game.cookies*0.05,Game.cookiesPs*60*10)+13;" +
+                        "if(Math.abs(amt-expected)<1)amt=amt*_jnePower;" +
+                        "_jneOrigSpend.call(this,amt);" +
+                    "};" +
+                    "Game.Popup=function(txt,x,y){" +
+                        "if(txt&&txt.indexOf('Ruin!')!==-1){" +
+                            "var m=txt.match(/Lost\\s+([\\d.eE+]+)/);" +
+                            "if(m){txt=txt.replace(m[1],Beautify(parseFloat(m[1])*_jnePower));}" +
+                        "}" +
+                        "_jneOrigPopup.call(this,txt,x,y);" +
+                    "};" +
+                "}" +
+                "//JNE_POTIONS_END\n";
+
+            // === SELFISHNESS GOD TRACKING ===
+            var selfishnessMod = "//JNE_SELFISHNESS\n" +
+                "var M=Game.Objects['Temple']&&Game.Objects['Temple'].minigame;" +
+                "if(M&&M.gods&&M.gods['selfishness']&&Game.hasGod('selfishness')&&me&&me.type==='golden'){" +
+                    "if(!(me.force==='cookie storm drop'||(me.forceObj&&me.forceObj.type==='cookie storm drop'))){" +
+                        "if(!me._jneSelfishnessCounted){" +
+                            "me._jneSelfishnessCounted=true;" +
+                            "M._selfishnessClickCount=(M._selfishnessClickCount||0)+1;" +
+                            "Game.recalculateGains=true;" +
+                        "}" +
+                    "}" +
+                "}" +
+                "//JNE_SELFISHNESS_END\n";
+
+            // === COOKIE AGE (STORM DEVOTION) TRACKING ===
+            var stormDevotionMod = "//JNE_STORM_DEVOTION\n" +
+                "var _jneStormSelf=this;" +
+                "var _jneStormTrack=Game.JNE&&Game.JNE._stormDevotionTracking;" +
+                "if(_jneStormTrack&&_jneStormTrack.stormActive&&_jneStormSelf.isValid&&_jneStormSelf.isValid()){" +
+                    "if(me.force==='cookie storm drop'||(Game.hasBuff('Cookie storm')&&me.forceObj&&me.forceObj.type==='cookie storm drop')){" +
+                        "_jneStormTrack.stormCookiesClicked++;" +
+                    "}" +
+                "}" +
+                "//JNE_STORM_DEVOTION_END\n";
+
+            // === PREDICTOR MODE HANDLING ===
+            var predictorMod = "//JNE_PREDICTOR\n" +
+                "if(me._predictionMode){" +
+                    "var _savedLast=this.last,_savedChain=this.chain,_savedTotal=this.totalFromChain;" +
+                    "var _origs={gainBuff:Game.gainBuff,Earn:Game.Earn,Spend:Game.Spend,Popup:Game.Popup,SparkleAt:Game.SparkleAt,DropEgg:Game.DropEgg,Win:Game.Win,Unlock:Game.Unlock,gainLumps:Game.gainLumps,killBuff:Game.killBuff,useSwap:Game.useSwap,PlaySound:typeof PlaySound==='function'?PlaySound:null};" +
+                    "var _noop=function(){};var _noopNull=function(){return null;};" +
+                    "Game.gainBuff=_noopNull;Game.Earn=_noop;Game.Spend=_noop;Game.Popup=_noop;Game.SparkleAt=_noop;Game.DropEgg=_noop;Game.Win=_noop;Game.Unlock=_noop;Game.gainLumps=_noop;Game.killBuff=_noop;if(Game.useSwap)Game.useSwap=_noop;if(_origs.PlaySound)window.PlaySound=_noop;" +
+                    "var _captured=null;" +
+                    "try{me._jneInPrediction=true;_jneOriginalPopFunc.call(this,me);_captured=this.last||null;}catch(e){console.error('[JNE] Prediction error:',e);}finally{" +
+                        "me._jneInPrediction=false;Game.gainBuff=_origs.gainBuff;Game.Earn=_origs.Earn;Game.Spend=_origs.Spend;Game.Popup=_origs.Popup;Game.SparkleAt=_origs.SparkleAt;Game.DropEgg=_origs.DropEgg;Game.Win=_origs.Win;Game.Unlock=_origs.Unlock;Game.gainLumps=_origs.gainLumps;Game.killBuff=_origs.killBuff;if(Game.useSwap)Game.useSwap=_origs.useSwap;if(_origs.PlaySound)window.PlaySound=_origs.PlaySound;" +
+                        "this.last=_savedLast;this.chain=_savedChain;this.totalFromChain=_savedTotal;" +
+                    "}" +
+                    "me._predictedChoice=_captured;return;" +
+                "}" +
+                "//JNE_PREDICTOR_END\n";
+
+            // Apply modifications
             str = str.replace(/(if\s*\(me\.wrath\)\s*Game\.Win\s*\(\s*['"]Wrath cookie['"]\s*\)\s*;)/, "$1\n" + wrathTracking);
             str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
             str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
             str = str.replace(/var mult=1;/, "var mult=1;\n" + mult);
-            str = str.replace(/(if\s*\(Math\.random\(\)<Game\.auraMult\(['"']Dragonflight['"']\)\)\s*list\.push\(['"']dragonflight['"']\)\s*;)/, "$1\n" + zodiacGC);
+            str = str.replace(/(if\s*\(Math\.random\(\)<Game\.auraMult\(['"']Dragonflight['"'])\)\s*list\.push\(['"']dragonflight['"'])\s*;)/, "$1\n" + zodiacGC);
+            
+            // Store reference to original function for predictor mode
+            str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
+                return match + "\nvar _jneOriginalPopFunc=Game.shimmerTypes['golden'].popFunc;" + selfishnessMod + stormDevotionMod + potionsMod + predictorMod;
+            });
 
             Game.shimmerTypes['golden'].popFunc = eval('(' + str + ')');
             window.JNE_lifetimeData = lifetimeData;

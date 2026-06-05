@@ -1,4 +1,4 @@
-//Just Natural Expansion Terminal minigame v1.0.4
+//Terminal minigame
 (function() {
 'use strict';
 

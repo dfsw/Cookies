@@ -1210,25 +1210,10 @@
                 M.slotGod._hooked = true;
             }
 
-            var st = Game.shimmerTypes && Game.shimmerTypes.golden;
-            if (st && !st._hooked) {
-                var o = st.popFunc;
-                st.popFunc = function(me) {
-                    if (M.gods && M.gods['selfishness'] && Game.hasGod('selfishness') && me && me.type === 'golden') {
-                        if (me.force === 'cookie storm drop' || (me.forceObj && me.forceObj.type === 'cookie storm drop')) {
-                            return o.apply(this, arguments);
-                        }
-                        if (!me._jneSelfishnessCounted) {
-                            me._jneSelfishnessCounted = true;
-                            M._selfishnessClickCount = (M._selfishnessClickCount || 0) + 1;
-                            Game.recalculateGains = true;
-                        }
-                    }
-                    return o.apply(this, arguments);
-                };
-                st._hooked = true;
-            }
+            // Selfishness god tracking is now handled centrally in JustNaturalExpansion.js
+            // via injectGoldenPopFunc(). No direct popFunc wrapping needed here.
 
+            var st = Game.shimmerTypes && Game.shimmerTypes.golden;
             if (st && !st._selfishnessSpawnConditionsHooked) {
                 var originalSpawnConditions = st.spawnConditions;
                 st.spawnConditions = function() {
@@ -3379,85 +3364,8 @@
                 return 0;
             }
             
-            function wrapPopFunc() {
-                var shimmerType = Game.shimmerTypes && Game.shimmerTypes['golden'];
-                if (!shimmerType || !shimmerType.popFunc || shimmerType._gcpWrapped) return;
-                
-                var originalPopFunc = shimmerType.popFunc;
-                
-                shimmerType.popFunc = function(me) {
-                    if (me && me._predictionMode) {
-                        var savedLast = this.last;
-                        var savedChain = this.chain;
-                        var savedTotalFromChain = this.totalFromChain;
-                        
-                        var originals = {
-                            gainBuff: Game.gainBuff,
-                            Earn: Game.Earn,
-                            Spend: Game.Spend,
-                            Popup: Game.Popup,
-                            SparkleAt: Game.SparkleAt,
-                            DropEgg: Game.DropEgg,
-                            Win: Game.Win,
-                            Unlock: Game.Unlock,
-                            gainLumps: Game.gainLumps,
-                            killBuff: Game.killBuff,
-                            useSwap: Game.useSwap,
-                            PlaySound: typeof PlaySound === 'function' ? PlaySound : null
-                        };
-                        
-                        Game.gainBuff = noopReturnNull;
-                        Game.Earn = noop;
-                        Game.Spend = noop;
-                        Game.Popup = noop;
-                        Game.SparkleAt = noop;
-                        Game.DropEgg = noop;
-                        Game.Win = noop;
-                        Game.Unlock = noop;
-                        Game.gainLumps = noop;
-                        Game.killBuff = noop;
-                        if (Game.useSwap) Game.useSwap = noop;
-                        if (originals.PlaySound) window.PlaySound = noop;
-                        
-                        var capturedChoice = null;
-                        
-                        try {
-                            originalPopFunc.call(this, me);
-                            capturedChoice = this.last || null;
-                        } catch (e) {
-                            console.error('[Heavenly Upgrades] Error in prediction:', e);
-                        } finally {
-                            Game.gainBuff = originals.gainBuff;
-                            Game.Earn = originals.Earn;
-                            Game.Spend = originals.Spend;
-                            Game.Popup = originals.Popup;
-                            Game.SparkleAt = originals.SparkleAt;
-                            Game.DropEgg = originals.DropEgg;
-                            Game.Win = originals.Win;
-                            Game.Unlock = originals.Unlock;
-                            Game.gainLumps = originals.gainLumps;
-                            Game.killBuff = originals.killBuff;
-                            if (Game.useSwap) Game.useSwap = originals.useSwap;
-                            if (originals.PlaySound) window.PlaySound = originals.PlaySound;
-                            
-                            this.last = savedLast;
-                            this.chain = savedChain;
-                            if (savedTotalFromChain !== undefined) {
-                                this.totalFromChain = savedTotalFromChain;
-                            }
-                        }
-                        
-                        me._predictedChoice = capturedChoice;
-                        return;
-                    }
-                    
-                    return originalPopFunc.call(this, me);
-                };
-                
-                shimmerType._gcpWrapped = true;
-            }
-
-            wrapPopFunc();
+            // Golden cookie predictor mode is now handled centrally in JustNaturalExpansion.js
+            // via injectGoldenPopFunc(). No direct popFunc wrapping needed here.
             
             function predictGoldenCookieResult(shimmer) {
                 if (!shimmer || shimmer.type !== 'golden') return null;
