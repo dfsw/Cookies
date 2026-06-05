@@ -4,7 +4,7 @@
 {
     'use strict';
     
-    var BETA_MODE = false; 
+    var BETA_MODE = true; 
     
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
