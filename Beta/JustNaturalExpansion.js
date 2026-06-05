@@ -9,7 +9,7 @@
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
     script.src = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw//Cookies@beta/Beta/data.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/data.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/data.js';
     script.onload = function() {
         // Continue initialization after data.js is loaded

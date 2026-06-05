@@ -897,7 +897,14 @@ function updatePotionEffects() {
             Game.gainBuff('Suspension of Hallucinogenic', 900, 2.0, 0);
             _suspBuildingKey = null;
             var buff = Game.buffs['Suspension of Hallucinogenic'];
-            if (buff) buff.buildingName = rb;
+            if (buff) {
+                Object.defineProperty(buff, 'buildingName', {
+                    value: rb,
+                    writable: true,
+                    enumerable: false,
+                    configurable: true
+                });
+            }
             Game.Notify(p.name + ' consumed', bn + ' effectiveness doubled for the next 15 minutes.', getIconArray(p), 6);
         },
         function(p) {
@@ -909,7 +916,14 @@ function updatePotionEffects() {
             Game.gainBuff('Suspension of Hallucinogenic (misbrewed)', 3600, 0.5, 0);
             _suspBuildingKey = null;
             var buff = Game.buffs['Suspension of Hallucinogenic (misbrewed)'];
-            if (buff) buff.buildingName = rb;
+            if (buff) {
+                Object.defineProperty(buff, 'buildingName', {
+                    value: rb,
+                    writable: true,
+                    enumerable: false,
+                    configurable: true
+                });
+            }
             Game.Notify(p.name + ' misbrewed', 'The effectiveness of ' + bn + ' is reduced by half for the next hour.', getIconArray(p), 6);
         }
     );
@@ -1748,8 +1762,14 @@ function createPotionBuffType(buffName, potionId, isMisbrewed, options) {
             base[k] = extraProps[k];
         }
         // If arg1 is provided and extraProps has buildingName, use arg1 as buildingName
+        // Make it non-enumerable to prevent conflicts with other mods that iterate over buff properties
         if (arg1 && extraProps.buildingName !== undefined) {
-            base.buildingName = arg1;
+            Object.defineProperty(base, 'buildingName', {
+                value: arg1,
+                writable: true,
+                enumerable: false,
+                configurable: true
+            });
         }
         return base;
     });
@@ -3907,7 +3927,12 @@ PotionsM._restorePendingBuffs = function() {
             if (restored) {
                 restored.maxTime = maxSeconds * (Game.fps || 30);
                 if (bd.bn && (bd.n === 'Suspension of Hallucinogenic' || bd.n === 'Suspension of Hallucinogenic (misbrewed)')) {
-                    restored.buildingName = bd.bn;
+                    Object.defineProperty(restored, 'buildingName', {
+                        value: bd.bn,
+                        writable: true,
+                        enumerable: false,
+                        configurable: true
+                    });
                 }
                 // Apply Venom multiplier on load (modifies wrinkler.sucked directly)
                 if (bd.n === 'Venom of the Basilisk' && Game.wrinklers) {
