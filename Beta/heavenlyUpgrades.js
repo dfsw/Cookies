@@ -3236,7 +3236,9 @@
          */
     function setupImprovedCookieChains() {
         if (!Game.shimmerTypes) return;
-        
+
+        // Note: Improved chains is intentionally handled separately from the central popFunc injection in JustNaturalExpansion.js
+        // (see Game._improvedChainsHandled flag). This is a full behavior replacement for chain cookies, not a simple modification.
         var shimmerType = Game.shimmerTypes['golden'];
         if (!shimmerType || !shimmerType.popFunc || shimmerType._improvedChainsHooked) return;
         

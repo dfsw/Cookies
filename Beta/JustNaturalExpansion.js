@@ -3024,8 +3024,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.eff = wrapper;
     }
 
-    // Inject JNE modifications into the vanilla golden cookie popFunc. MUST run before any external script wraps popFunc.
-    // This is the ONE AND ONLY place where popFunc is modified - all submodules use this central injection.
+    // Inject JNE modifications into the vanilla golden cookie popFunc. must run before any external script wraps popFunc.
     function injectGoldenPopFunc() {
         if (!Game.shimmerTypes || !Game.shimmerTypes['golden']) return;
         if (Game.shimmerTypes['golden']._effectInjected) return;
@@ -3068,7 +3067,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                            "}\n" +
                            "//JNE_CORE_END\n";
 
-            // === POTIONS MINIGAME MODIFICATIONS (dormant until buffs exist) ===
+            // === POTIONS MINIGAME MODIFICATIONS ===
             var potionsMod = "//JNE_POTIONS\n" +
                 // Cordial of Tyche + Vapor of Luck effect pool modification
                 "var _jneTyche=Game.hasBuff('Cordial of Tyche'),_jneTycheCurse=Game.hasBuff('Cordial of Tyche (misbrewed)');" +
@@ -3132,7 +3131,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "}" +
                 "//JNE_SELFISHNESS_END\n";
 
-            // === COOKIE AGE (STORM DEVOTION) TRACKING ===
+            // === COOKIE AGE  TRACKING ===
             var stormDevotionMod = "//JNE_STORM_DEVOTION\n" +
                 "var _jneStormTrack=Game.JNE&&Game.JNE._stormDevotionTracking;" +
                 "if(_jneStormTrack&&_jneStormTrack.stormActive){" +
@@ -3158,21 +3157,21 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "}" +
                 "//JNE_PREDICTOR_END\n";
 
-            // === END-OF-FUNCTION: CLEANUP + REAGENT DROPS ===
+            // === CLEANUP + REAGENT DROPS ===
             var endMod = "//JNE_CLEANUP\n" +
                 "if(_jneOrigSpend)Game.Spend=_jneOrigSpend;" +
                 "if(_jneOrigPopup)Game.Popup=_jneOrigPopup;" +
-                "if(typeof PotionsM!=='undefined'&&PotionsM&&PotionsM.reagentRollOne&&PotionsM.reagents){" +
+                "if(typeof PotionsM!=='undefined'&&PotionsM&&PotionsM.reagentRollOne&&PotionsM.G&&PotionsM.G.reagents&&!me._predictionMode){" +
                     "var _jneIsWrath=me.wrath>0;" +
                     "var _jneSeason=Game.season||'';" +
                     "var _jneCands=[];" +
-                    "if(_jneIsWrath&&(PotionsM.reagents['wrath_sugar']||0)<5)_jneCands.push('wrath_sugar');" +
-                    "if(!_jneIsWrath&&(PotionsM.reagents['golden_flour']||0)<5)_jneCands.push('golden_flour');" +
-                    "if(_jneSeason==='easter'&&(PotionsM.reagents['rabbit_feet']||0)<5)_jneCands.push('rabbit_feet');" +
-                    "if(_jneSeason==='halloween'&&(PotionsM.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
+                    "if(_jneIsWrath&&(PotionsM.G.reagents['wrath_sugar']||0)<5)_jneCands.push('wrath_sugar');" +
+                    "if(!_jneIsWrath&&(PotionsM.G.reagents['golden_flour']||0)<5)_jneCands.push('golden_flour');" +
+                    "if(_jneSeason==='easter'&&(PotionsM.G.reagents['rabbit_feet']||0)<5)_jneCands.push('rabbit_feet');" +
+                    "if(_jneSeason==='halloween'&&(PotionsM.G.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
                     "if(_jneCands.length>0)PotionsM.reagentRollOne(_jneCands,'shimmer');" +
                 "}" +
-                "//JNE_CLEANUP_END\n";
+                "//JNE_END\n";
 
             // Apply modifications
             str = str.replace(/(if\s*\(me\.wrath\)\s*Game\.Win\s*\(\s*['"]Wrath cookie['"]\s*\)\s*;)/, "$1\n" + wrathTracking);
@@ -3192,7 +3191,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.shimmerTypes['golden'].popFunc = eval('(' + str + ')');
             window.JNE_lifetimeData = lifetimeData;
             Game.shimmerTypes['golden']._effectInjected = true;
-            Game._potionsGoldenCookieHooked = true; // Prevent CDN potions from adding its own popFunc wrapper (would break magicCpS closure via shared var)
+            Game._potionsGoldenCookieHooked = true; 
+            Game._improvedChainsHandled = true; 
         } catch (error) {
             console.error('JNE: Error injecting popFunc modifications:', error);
         }
