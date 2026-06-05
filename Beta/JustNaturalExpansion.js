@@ -3134,9 +3134,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
             // === COOKIE AGE (STORM DEVOTION) TRACKING ===
             var stormDevotionMod = "//JNE_STORM_DEVOTION\n" +
-                "var _jneStormSelf=this;" +
                 "var _jneStormTrack=Game.JNE&&Game.JNE._stormDevotionTracking;" +
-                "if(_jneStormTrack&&_jneStormTrack.stormActive&&_jneStormSelf.isValid&&_jneStormSelf.isValid()){" +
+                "if(_jneStormTrack&&_jneStormTrack.stormActive){" +
                     "if(me.force==='cookie storm drop'||(Game.hasBuff('Cookie storm')&&me.forceObj&&me.forceObj.type==='cookie storm drop')){" +
                         "_jneStormTrack.stormCookiesClicked++;" +
                     "}" +
@@ -3151,29 +3150,49 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     "var _noop=function(){};var _noopNull=function(){return null;};" +
                     "Game.gainBuff=_noopNull;Game.Earn=_noop;Game.Spend=_noop;Game.Popup=_noop;Game.SparkleAt=_noop;Game.DropEgg=_noop;Game.Win=_noop;Game.Unlock=_noop;Game.gainLumps=_noop;Game.killBuff=_noop;if(Game.useSwap)Game.useSwap=_noop;if(_origs.PlaySound)window.PlaySound=_noop;" +
                     "var _captured=null;" +
-                    "try{me._jneInPrediction=true;_jneOriginalPopFunc.call(this,me);_captured=this.last||null;}catch(e){console.error('[JNE] Prediction error:',e);}finally{" +
-                        "me._jneInPrediction=false;Game.gainBuff=_origs.gainBuff;Game.Earn=_origs.Earn;Game.Spend=_origs.Spend;Game.Popup=_origs.Popup;Game.SparkleAt=_origs.SparkleAt;Game.DropEgg=_origs.DropEgg;Game.Win=_origs.Win;Game.Unlock=_origs.Unlock;Game.gainLumps=_origs.gainLumps;Game.killBuff=_origs.killBuff;if(Game.useSwap)Game.useSwap=_origs.useSwap;if(_origs.PlaySound)window.PlaySound=_origs.PlaySound;" +
+                    "try{Game.shimmerTypes['golden']._jneOrigPopFunc.call(this,me);_captured=this.last||null;}catch(e){console.error('[JNE] Prediction error:',e);}finally{" +
+                        "Game.gainBuff=_origs.gainBuff;Game.Earn=_origs.Earn;Game.Spend=_origs.Spend;Game.Popup=_origs.Popup;Game.SparkleAt=_origs.SparkleAt;Game.DropEgg=_origs.DropEgg;Game.Win=_origs.Win;Game.Unlock=_origs.Unlock;Game.gainLumps=_origs.gainLumps;Game.killBuff=_origs.killBuff;if(Game.useSwap)Game.useSwap=_origs.useSwap;if(_origs.PlaySound)window.PlaySound=_origs.PlaySound;" +
                         "this.last=_savedLast;this.chain=_savedChain;this.totalFromChain=_savedTotal;" +
                     "}" +
                     "me._predictedChoice=_captured;return;" +
                 "}" +
                 "//JNE_PREDICTOR_END\n";
 
+            // === END-OF-FUNCTION: CLEANUP + REAGENT DROPS ===
+            var endMod = "//JNE_CLEANUP\n" +
+                "if(_jneOrigSpend)Game.Spend=_jneOrigSpend;" +
+                "if(_jneOrigPopup)Game.Popup=_jneOrigPopup;" +
+                "if(typeof PotionsM!=='undefined'&&PotionsM&&PotionsM.reagentRollOne&&PotionsM.reagents){" +
+                    "var _jneIsWrath=me.wrath>0;" +
+                    "var _jneSeason=Game.season||'';" +
+                    "var _jneCands=[];" +
+                    "if(_jneIsWrath&&(PotionsM.reagents['wrath_sugar']||0)<5)_jneCands.push('wrath_sugar');" +
+                    "if(!_jneIsWrath&&(PotionsM.reagents['golden_flour']||0)<5)_jneCands.push('golden_flour');" +
+                    "if(_jneSeason==='easter'&&(PotionsM.reagents['rabbit_feet']||0)<5)_jneCands.push('rabbit_feet');" +
+                    "if(_jneSeason==='halloween'&&(PotionsM.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
+                    "if(_jneCands.length>0)PotionsM.reagentRollOne(_jneCands,'shimmer');" +
+                "}" +
+                "//JNE_CLEANUP_END\n";
+
             // Apply modifications
             str = str.replace(/(if\s*\(me\.wrath\)\s*Game\.Win\s*\(\s*['"]Wrath cookie['"]\s*\)\s*;)/, "$1\n" + wrathTracking);
             str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
             str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
-            str = str.replace(/var mult=1;/, "var mult=1;\n" + mult);
-            str = str.replace(/(if\s*\(Math\.random\(\)<Game\.auraMult\(['"']Dragonflight['"'])\)\s*list\.push\(['"']dragonflight['"'])\s*;)/, "$1\n" + zodiacGC);
+            str = str.replace(/var mu`lt=1;/, "var mult=1;\n" + mult);
+            str = str.replace(/if\s*\(Math\.random\(\)<Game\.auraMult\(['"']Dragonflight['"']\)\)\s*list\.push\(['"']dragonflight['"']\)\s*;/, "$&\n" + zodiacGC);
             
-            // Store reference to original function for predictor mode
+            // Inject at start: selfishness + storm tracking, then predictor (may return early), then potions overrides
             str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
-                return match + "\nvar _jneOriginalPopFunc=Game.shimmerTypes['golden'].popFunc;" + selfishnessMod + stormDevotionMod + potionsMod + predictorMod;
+                return match + "\n" + selfishnessMod + stormDevotionMod + predictorMod + potionsMod;
             });
+            // Inject at end: restore Game.Spend/Popup + reagent drops (skipped if predictor returned early)
+            str = str.replace(/\}\s*$/, '\n' + endMod + '\n}');
 
+            Game.shimmerTypes['golden']._jneOrigPopFunc = originalPopFunc; // Captured before eval for predictor mode
             Game.shimmerTypes['golden'].popFunc = eval('(' + str + ')');
             window.JNE_lifetimeData = lifetimeData;
             Game.shimmerTypes['golden']._effectInjected = true;
+            Game._potionsGoldenCookieHooked = true; // Prevent CDN potions from adding its own popFunc wrapper (would break magicCpS closure via shared var)
         } catch (error) {
             console.error('JNE: Error injecting popFunc modifications:', error);
         }
