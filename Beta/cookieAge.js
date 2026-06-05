@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////
-// Mysteries of the Cookie Age - Just Natural Expansion                             //
+// Mysteries of the Cookie Age v1.0.3 - Just Natural Expansion                       //
 //                                                                                  //
 // Look I cant stop you from digging into the source code but be aware              //
 // that the entire thing is full of spoilers there is no way to hide how puzzles    //
@@ -9721,7 +9721,7 @@
     // ===== PUBLIC API FOR TESTING =====
     // These functions will be available in the console for testing
     window.CookieAge = {
-        version: expansionVersion,
+        VERSION: expansionVersion,
         getMissingPuzzleCompletionRequirements: getMissingPuzzleCompletionRequirements,
         getSaveData: function() {
             try {
