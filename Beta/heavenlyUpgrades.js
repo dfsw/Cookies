@@ -408,10 +408,7 @@
                     }
                     
                     var needsRebuild = false;
-                    // Don't update seed unlock states based on heavenly upgrade ownership
-                    // Unlock state is managed by vanilla garden mechanics (mutation unlocks, sacrifice locks)
-                    // We'll hook M.lockSeed to prevent custom seeds from being locked on sacrifice
-                    
+        
                     // Ensure aerated soil is set up if upgrade is bought
                     if (Game.Has('Aerated soil') && !M._aeratedSoilHooked && M.soils && typeof l === 'function') {
                         setupAeratedSoil();

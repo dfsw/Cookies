@@ -15,6 +15,10 @@
         // Continue initialization after data.js is loaded
         initializeMod();
     };
+    script.onerror = function() {
+        console.error('[JNE] Failed to load data.js from:', script.src);
+        console.error('[JNE] Mod initialization aborted. Check your network connection or try again later.');
+    };
     document.head.appendChild(script); 
     
     function initializeMod() {
@@ -3007,7 +3011,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var wrapper = function(what) {
             var val = wrapper._original.apply(this, arguments);
             if (Game.season !== 'lunarnewyear') return val;
-            var zodiac = Game.JNE && Game.JNE.getLunarZodiacYear ? Game.JNE.getLunarZodiacYear() : null;
+            var zodiac = Game.JNE && Game.JNE.getCurrentLunarZodiac ? Game.JNE.getCurrentLunarZodiac() : null;
             if (!zodiac) return val;
             var mult = Game.JNE && Game.JNE.getZodiacEffectMultiplier ? Game.JNE.getZodiacEffectMultiplier() : 1;
             if (what === 'wrinklerEat'        && zodiac.animal === 'Snake')  val *= 1 + (0.05 * mult);
@@ -3022,6 +3026,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         wrapper._original = Game.eff;
         wrapper._jneZodiacEffHooked = true;
         Game.eff = wrapper;
+        if (Game.registerHook && !Game._jneSeasonEndHooked) {
+            Game.registerHook('check', function() {
+                if (Game._jneWasLNY && Game.season !== 'lunarnewyear') {
+                    Game.storeToRefresh = 1;
+                    Game.upgradesToRebuild = 1;
+                }
+                Game._jneWasLNY = Game.season === 'lunarnewyear';
+            }, 'JNE season end price refresh');
+            Game._jneSeasonEndHooked = true;
+        }
     }
 
     // Inject JNE modifications into the vanilla golden cookie popFunc. must run before any external script wraps popFunc.
@@ -3272,30 +3286,60 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.last.season = 'lunarnewyear';
             Game.last.pool = 'toggle';
             Game.last.order = 24001;
-            
-            // Wire up all season trigger upgrades including ours
+
             Game.computeSeasons();
             Game.computeSeasonPrices();
 
-            // Wrap buyFunction to add zodiac year notification and handle store refresh
-            var originalBuyFunc = Game.Upgrades['Lunar biscuit'].buyFunction;
-            Game.Upgrades['Lunar biscuit'].buyFunction = function() {
+            // Set buyFunction
+            var lunarBiscuit = Game.Upgrades['Lunar biscuit'];
+            lunarBiscuit.buyFunction = function() {
                 var wasLNY = Game.season === 'lunarnewyear';
-                originalBuyFunc.call(this);
+                Game.seasonUses += 1;
+                Game.computeSeasonPrices();
+                for (var i in Game.seasons) {
+                    var me = Game.Upgrades[Game.seasons[i].trigger];
+                    if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
+                }
+                if (Game.season != '' && Game.season != this.season) {
+                    Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', Game.seasons[Game.season].triggerUpgrade.icon, 4);
+                }
+                Game.season = this.season;
+                Game.seasonT = Game.getSeasonDuration();
                 var isLNY = Game.season === 'lunarnewyear';
                 if (isLNY) {
                     var zodiac = getLunarZodiacYear();
-                    Game.Notify('It is the year of the ' + zodiac.animal, '', Game.Upgrades['Lunar biscuit'].icon, 4);
-                    // Reset lantern spawn timer when season starts
+                    Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
                     if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
                         Game.shimmerTypes['lantern'].reset();
                     }
                 }
-                if (wasLNY || isLNY) {
-                    Game.storeToRefresh = 1;
-                    Game.upgradesToRebuild = 1;
-                }
+                Game.storeToRefresh = 1;
+                Game.upgradesToRebuild = 1;
             };
+
+            // Add clickFunction to allow exiting LNY when clicked again (like vanilla biscuits)
+            lunarBiscuit.clickFunction = function(me) {
+                return function() {
+                    if (me.bought && Game.season && me == Game.seasons[Game.season].triggerUpgrade) {
+                        me.lose();
+                        Game.Notify(Game.seasons[Game.season].over, '', Game.seasons[Game.season].triggerUpgrade.icon);
+                        if (Game.Has('Season switcher')) {
+                            Game.Unlock(Game.seasons[Game.season].trigger);
+                            Game.seasons[Game.season].triggerUpgrade.bought = 0;
+                        }
+                        Game.storeToRefresh = 1;
+                        Game.upgradesToRebuild = 1;
+                    }
+                };
+            }(lunarBiscuit);
+
+            // Add to Game.customUpgrades for CCSE recognition (separate copy with array-wrapped buyFunction)
+            if (typeof CCSE !== 'undefined' && Game.customUpgrades) {
+                Game.customUpgrades['Lunar biscuit'] = {
+                    name: lunarBiscuit.name,
+                    buyFunction: [lunarBiscuit.buyFunction]
+                };
+            }
 
             Game.Upgrades['Lunar biscuit'].descFunc = function() {
                 var zodiacStr = '';
@@ -4057,6 +4101,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         return lunarZodiac[index];
     }
 
+    function getCurrentLunarZodiac() {
+        if (Game.season !== 'lunarnewyear') return null;
+        if (Game._jneCachedZodiacSeasonUses === Game.seasonUses) {
+            return Game._jneCachedZodiac;
+        }
+        Game._jneCachedZodiacSeasonUses = Game.seasonUses;
+        Game._jneCachedZodiac = getLunarZodiacYear();
+        return Game._jneCachedZodiac;
+    }
+
     function getZodiacEffectMultiplier() {
         if (Game.hasGod) {
             var godLvl = Game.hasGod('seasons');
@@ -4068,14 +4122,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     if (!Game.JNE) Game.JNE = {};
     Game.JNE.getLunarZodiacYear = getLunarZodiacYear;
+    Game.JNE.getCurrentLunarZodiac = getCurrentLunarZodiac;
     Game.JNE.getZodiacEffectMultiplier = getZodiacEffectMultiplier;
-
-    function getCurrentLunarZodiac() {
-        if (Game.season === 'lunarnewyear') {
-            return getLunarZodiacYear();
-        }
-        return null;
-    }
 
     function isLunarNewYearSeason() {
         var year = new Date().getFullYear();
@@ -6032,11 +6080,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 return Math.ceil(Game.fps * 60 * m);
             },
             getMinTime: function(me) {
-                var m = 10 / 60; // 10 seconds for testing 3 min
+                var m = 20 / 60; // 10 seconds for testing 3 min
                 return this.getTimeMod(me, m);
             },
             getMaxTime: function(me) {
-                var m = 10 / 60; // 10 seconds for testing 5 min
+                var m = 30 / 60; // 10 seconds for testing 5 min
                 return this.getTimeMod(me, m);
             }
         };
