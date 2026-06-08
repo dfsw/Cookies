@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.0.1';
+const POTIONS_VERSION = '1.0.2';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -2061,7 +2061,7 @@ PotionsM._registerHooks = function() {
             
             // Pantheon spirit swap divine_extraction
             var PM = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
-            if (PM && PM.slot) {
+            if (PM && PM.slot && Array.isArray(PM.slot) && PM.slot.length >= 3) {
                 var changed = false;
                 for (var s = 0; s < 3; s++) {
                     if (PM.slot[s] !== PotionsM._lastPantheonSlots[s]) { changed = true; break; }
@@ -3507,45 +3507,53 @@ PotionsM.logic = function() {
 };
 
 PotionsM._updateEffs = function() {
+    // Guard against recursive calls that can cause exponential setTimeout loops with CookieMonster
+    if (PotionsM._updatingEffs) return;
+    PotionsM._updatingEffs = true;
+
     var effs = {};
     var changed = false;
     var b;
-    
-    if ((b = Game.hasBuff('Serum of Progress'))) { effs.upgradeCost = (effs.upgradeCost || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Serum of Progress (misbrewed)'))) { effs.upgradeCost = (effs.upgradeCost || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Concoction of the Mason'))) { effs.buildingCost = (effs.buildingCost || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Concoction of the Mason (misbrewed)'))) { effs.buildingCost = (effs.buildingCost || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Arcana of the Finger'))) { effs.cursorCps = (effs.cursorCps || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Arcana of the Finger (misbrewed)'))) { effs.cursorCps = (effs.cursorCps || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Mercury of Age'))) { effs.grandmaCps = (effs.grandmaCps || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Mercury of Age (misbrewed)'))) { effs.grandmaCps = (effs.grandmaCps || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Ambrosia of the Leech'))) { effs.wrinklerEat = (effs.wrinklerEat || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Ambrosia of the Leech (misbrewed)'))) { effs.wrinklerEat = (effs.wrinklerEat || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Nectar of Summoning'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Nectar of Summoning (misbrewed)'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Philter of Worms (misbrewed)'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Vitae of the Mother'))) { effs.milk = (effs.milk || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Vitae of the Mother (misbrewed)'))) { effs.milk = (effs.milk || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Infusion of Chance'))) { effs.itemDrops = (effs.itemDrops || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Infusion of Chance (misbrewed)'))) { effs.itemDrops = (effs.itemDrops || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Decoction of Winter'))) { effs.reindeerFreq = (effs.reindeerFreq || 1) * b.power; effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Decoction of Winter (misbrewed)'))) { effs.reindeerFreq = 0; changed = true; }
-    if ((b = Game.hasBuff('Tonic of Ebisu'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Tonic of Ebisu (misbrewed)'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Distillate of Kala'))) { effs.goldenCookieEffDur = (effs.goldenCookieEffDur || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Distillate of Kala (misbrewed)'))) { effs.goldenCookieEffDur = (effs.goldenCookieEffDur || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Poison of the Matriarchs (misbrewed)'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Toxin of Elders'))) { effs.wrathCookieFreq = (effs.wrathCookieFreq || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Toxin of Elders (misbrewed)'))) { effs.wrathCookieFreq = (effs.wrathCookieFreq || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Venom of the Basilisk'))) { effs.wrinklerPop = (effs.wrinklerPop || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Ember of Dragon Fire'))) { effs.goldenCookieGain = (effs.goldenCookieGain || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Ember of Dragon Fire (misbrewed)'))) { effs.goldenCookieGain = (effs.goldenCookieGain || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Whisper of Boreas'))) { effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
-    if ((b = Game.hasBuff('Whisper of Boreas (misbrewed)'))) { effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
-    
-    PotionsM.effs = effs;
-    if (changed) {
-        Game.recalculateGains = 1;
+
+    try {
+        if ((b = Game.hasBuff('Serum of Progress'))) { effs.upgradeCost = (effs.upgradeCost || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Serum of Progress (misbrewed)'))) { effs.upgradeCost = (effs.upgradeCost || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Concoction of the Mason'))) { effs.buildingCost = (effs.buildingCost || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Concoction of the Mason (misbrewed)'))) { effs.buildingCost = (effs.buildingCost || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Arcana of the Finger'))) { effs.cursorCps = (effs.cursorCps || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Arcana of the Finger (misbrewed)'))) { effs.cursorCps = (effs.cursorCps || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Mercury of Age'))) { effs.grandmaCps = (effs.grandmaCps || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Mercury of Age (misbrewed)'))) { effs.grandmaCps = (effs.grandmaCps || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Ambrosia of the Leech'))) { effs.wrinklerEat = (effs.wrinklerEat || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Ambrosia of the Leech (misbrewed)'))) { effs.wrinklerEat = (effs.wrinklerEat || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Nectar of Summoning'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Nectar of Summoning (misbrewed)'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Philter of Worms (misbrewed)'))) { effs.wrinklerSpawn = (effs.wrinklerSpawn || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Vitae of the Mother'))) { effs.milk = (effs.milk || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Vitae of the Mother (misbrewed)'))) { effs.milk = (effs.milk || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Infusion of Chance'))) { effs.itemDrops = (effs.itemDrops || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Infusion of Chance (misbrewed)'))) { effs.itemDrops = (effs.itemDrops || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Decoction of Winter'))) { effs.reindeerFreq = (effs.reindeerFreq || 1) * b.power; effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Decoction of Winter (misbrewed)'))) { effs.reindeerFreq = 0; changed = true; }
+        if ((b = Game.hasBuff('Tonic of Ebisu'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Tonic of Ebisu (misbrewed)'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Distillate of Kala'))) { effs.goldenCookieEffDur = (effs.goldenCookieEffDur || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Distillate of Kala (misbrewed)'))) { effs.goldenCookieEffDur = (effs.goldenCookieEffDur || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Poison of the Matriarchs (misbrewed)'))) { effs.goldenCookieFreq = (effs.goldenCookieFreq || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Toxin of Elders'))) { effs.wrathCookieFreq = (effs.wrathCookieFreq || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Toxin of Elders (misbrewed)'))) { effs.wrathCookieFreq = (effs.wrathCookieFreq || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Venom of the Basilisk'))) { effs.wrinklerPop = (effs.wrinklerPop || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Ember of Dragon Fire'))) { effs.goldenCookieGain = (effs.goldenCookieGain || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Ember of Dragon Fire (misbrewed)'))) { effs.goldenCookieGain = (effs.goldenCookieGain || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Whisper of Boreas'))) { effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
+        if ((b = Game.hasBuff('Whisper of Boreas (misbrewed)'))) { effs.reindeerGain = (effs.reindeerGain || 1) * b.power; changed = true; }
+
+        PotionsM.effs = effs;
+        if (changed) {
+            Game.recalculateGains = 1;
+        }
+    } finally {
+        PotionsM._updatingEffs = false;
     }
 };
 

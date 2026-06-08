@@ -3178,12 +3178,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
             str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
             str = str.replace(/var mu`lt=1;/, "var mult=1;\n" + mult);
-            str = str.replace(/if\s*\(Math\.random\(\)<Game\.auraMult\(['"']Dragonflight['"']\)\)\s*list\.push\(['"']dragonflight['"']\)\s*;/, "$&\n" + zodiacGC);
+            // zodiacGC will be injected at start with other mods (not after dragonflight aura check, which is conditional)
             
             // Inject at start: selfishness + storm tracking, then predictor (may return early), then potions overrides
             str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
                 return match + "\n" + selfishnessMod + stormDevotionMod + predictorMod + potionsMod;
             });
+            // Inject zodiacGC after var list=[] is defined (runs on every golden cookie pop)
+            str = str.replace(/var list=\[\];/, "var list=[];\n" + zodiacGC);
             // Inject at end: restore Game.Spend/Popup + reagent drops (skipped if predictor returned early)
             str = str.replace(/\}\s*$/, '\n' + endMod + '\n}');
 
@@ -7420,7 +7422,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function continueModInitialization() {
         // This function is now only called during save loading, not during mod initialization
         // The mod initialization is handled by initializeModWithSaveData() in the init() function
-        
         debugLog('continueModInitialization: starting');
         
         // For mod installation (no save data), initialize with empty state
@@ -7566,8 +7567,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     var saveData = Game.JNE.heavenlyUpgradesSavedData;
                     if (saveData && typeof saveData === 'object' && (saveData.version || saveData.upgrades || saveData.pantheon || saveData.garden)) {
                         Game.JNE.HeavenlyUpgrades.load(saveData);
-                                            } else {
-                                            }
+                    }
                 } else {
                     // Module not loaded yet - preserve data for later
                 }
@@ -7875,7 +7875,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         // Initialize mod
         initializeMod: function() {
-            new Game.Notify(modName + ' v' + modVersion + ' Mod Loaded!', 'Use the options menu to configure settings for ' + modName + '.', modIcon);
+            var versionDisplay = modVersion + (BETA_MODE ? ' BETA' : '');
+            new Game.Notify(modName + ' v' + versionDisplay + ' Mod Loaded!', 'Use the options menu to configure settings for ' + modName + '.', modIcon);
             
             // Set flags BEFORE syncing minigames
             if (!Game.JNE) Game.JNE = {};
