@@ -3798,17 +3798,18 @@
             return false;
         }
         
+        var original = M[funcName];
         var hookKey = '_original' + funcName.charAt(0).toUpperCase() + funcName.slice(1) + '_' + this.puzzleId;
         var hookFlag = '_' + this.puzzleId + 'Hooked';
         
         // Store original and wrap if not already hooked
         if (!M[hookKey]) {
-            M[hookKey] = M[funcName];
+            M[hookKey] = original;
             M[funcName] = function(...args) {
                 if (wrapper) {
-                    return wrapper.call(this, M[hookKey], ...args);
+                    return wrapper.call(this, original, ...args);
                 }
-                return M[hookKey].apply(this, args);
+                return original.apply(this, args);
             };
             M[hookFlag] = true;
             
@@ -3818,7 +3819,7 @@
                 funcName: funcName,
                 hookKey: hookKey,
                 hookFlag: hookFlag,
-                original: M[hookKey]
+                original: original
             });
             
             return true;
@@ -4200,8 +4201,11 @@
             templeObj[hookKey] = templeObj.buy;
             templeObj[sellHookKey] = templeObj.sell;
             
+            var originalBuy = templeObj[hookKey];
+            var originalSell = templeObj[sellHookKey];
+            
             templeObj.buy = function(amount) {
-                var result = templeObj[hookKey].call(this, amount);
+                var result = originalBuy.call(this, amount);
                 setTimeout(function() {
                     self.onCheck();
                 }, 0);
@@ -4209,7 +4213,7 @@
             };
             
             templeObj.sell = function(amount, bypass) {
-                var result = templeObj[sellHookKey].call(this, amount, bypass);
+                var result = originalSell.call(this, amount, bypass);
                 setTimeout(function() {
                     self.onCheck();
                 }, 0);
@@ -5151,16 +5155,14 @@
         
         // Hook into the game's drawing system to update our custom particles
         if (!tracking.drawingHookAdded) {
-            if (!Game._originalDrawWrinklers) {
-                Game._originalDrawWrinklers = Game.DrawWrinklers;
-            }
-            if (Game._originalDrawWrinklers) {
+            var originalDrawWrinklers = Game.DrawWrinklers;
+            if (originalDrawWrinklers) {
                 // Store original function for cleanup
-                tracking.originalDrawWrinklers = Game._originalDrawWrinklers;
+                tracking.originalDrawWrinklers = originalDrawWrinklers;
                 
                 Game.DrawWrinklers = function() {
                     // Call original function first
-                    Game._originalDrawWrinklers.call(this);
+                    originalDrawWrinklers.call(this);
                     
                     // Update message decay timer
                     updateMessageDecay();

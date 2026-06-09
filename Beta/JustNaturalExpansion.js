@@ -3289,11 +3289,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer']) {
             var originalReindeerPop = Game.shimmerTypes['reindeer'].popFunc;
             if (originalReindeerPop && !Game.shimmerTypes['reindeer']._seasonalReindeerHooked) {
-                if (!Game.shimmerTypes['reindeer']._originalPopFunc) {
-                    Game.shimmerTypes['reindeer']._originalPopFunc = originalReindeerPop;
-                }
                 Game.shimmerTypes['reindeer'].popFunc = function(me) {
-                    Game.shimmerTypes['reindeer']._originalPopFunc.call(this, me);
+                    originalReindeerPop.call(this, me);
                     
                     var season = Game.season;
                     if (seasonalReindeerData[season] && !seasonalReindeerData[season].popped) {
@@ -3310,10 +3307,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 var M = Game.Objects['Farm'].minigame;
                 
                 // Hook into the harvest all function if not already hooked
-                if (M.harvestAll && typeof M.harvestAll === 'function' && !M._harvestAllHooked) {
-                    if (!M._originalHarvestAll) {
-                        M._originalHarvestAll = M.harvestAll;
-                    }
+                if (M.harvestAll && typeof M.harvestAll === 'function' && !M.harvestAll._jneDuketaterHooked) {
+                    var originalHarvestAll = M.harvestAll;
                     M.harvestAll = function() {
                         // Check for duketater plants BEFORE harvesting them
                         var duketaterCount = 0;
@@ -3337,7 +3332,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                         
                         // Now call the original function to harvest the plants
-                        var result = M._originalHarvestAll.apply(this, arguments);
+                        var result = originalHarvestAll.apply(this, arguments);
                         
                         // Check if achievement should be unlocked
                         if (duketaterCount >= 12) {
@@ -3349,7 +3344,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         
                         return result;
                     };
-                    M._harvestAllHooked = true;
+                    M.harvestAll._jneDuketaterHooked = true;
                 }
             }
         }
@@ -3359,10 +3354,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         // Also try to hook when the game loads (in case garden loads later)
         registerHook('check', function() {
-            if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame && 
-                Game.Objects['Farm'].minigame.plot && 
-                Game.Objects['Farm'].minigame.plantsById && 
-                !Game.Objects['Farm'].minigame._harvestAllHooked) {
+            var _M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+            if (_M && _M.harvestAll && _M.plot && _M.plantsById && !_M.harvestAll._jneDuketaterHooked) {
                 hookGardenHarvestAll();
             }
         }, 'Check if garden is ready for harvest all hook');
@@ -3659,14 +3652,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Hook into Grimoire spell casting to track Spell Slinger
         registerHook('logic', function() {
             if (!grimoireHookApplied && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-                var M = Game.Objects['Wizard tower'].minigame;
-                if (!M._originalCastSpell) {
-                    M._originalCastSpell = M.castSpell;
-                }
-                if (M._originalCastSpell) {
-                    M.castSpell = function(spell, obj) {
+                var originalCastSpell = Game.Objects['Wizard tower'].minigame.castSpell;
+                if (originalCastSpell) {
+                    Game.Objects['Wizard tower'].minigame.castSpell = function(spell, obj) {
                         // Call the original function first to get the result
-                        var result = M._originalCastSpell.call(this, spell, obj);
+                        var result = originalCastSpell.call(this, spell, obj);
 
                         // Only track successful spell casts (when result is true)
                         if (result === true) {
@@ -3728,22 +3718,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         injectGoldenPopFunc();
         
         if (Game.Upgrades && Game.Upgrades['Elder Covenant']) {
-            if (!Game.Upgrades['Elder Covenant']._originalBuy) {
-                Game.Upgrades['Elder Covenant']._originalBuy = Game.Upgrades['Elder Covenant'].buy;
-            }
+            var originalElderCovenantFunc = Game.Upgrades['Elder Covenant'].buy;
             Game.Upgrades['Elder Covenant'].buy = function() {
-                Game.Upgrades['Elder Covenant']._originalBuy.call(this);
+                originalElderCovenantFunc.call(this);
                 lifetimeData.elderCovenantToggles++;
             };
         }
         
         if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            if (!M._originalConvert) {
-                M._originalConvert = M.convert;
-            }
-            M.convert = function() {
-                M._originalConvert.call(this);
+            var originalConvertFunc = Game.Objects['Farm'].minigame.convert;
+            Game.Objects['Farm'].minigame.convert = function() {
+                originalConvertFunc.call(this);
                 lifetimeData.lastGardenSacrificeTime = Date.now();
                 setTimeout(function() {
                     checkModAchievements();
@@ -7869,13 +7854,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }, 1000);
           
             // Hook into the vanilla game's upgrade purchase process to check for newly unlockable upgrades
-            if (!Game.Upgrades.__proto__._originalBuy) {
-                Game.Upgrades.__proto__._originalBuy = Game.Upgrades.__proto__.buy || Game.Upgrades.__proto__.Buy;
-            }
-            if (Game.Upgrades.__proto__._originalBuy) {
+            var originalBuyFunction = Game.Upgrades.__proto__.buy || Game.Upgrades.__proto__.Buy;
+            if (originalBuyFunction) {
                 Game.Upgrades.__proto__.buy = function() {
                     // Call the original buy function
-                    var result = Game.Upgrades.__proto__._originalBuy.apply(this, arguments);
+                    var result = originalBuyFunction.apply(this, arguments);
                     
                     // Check unlock states after purchase (some upgrades may now be unlockable)
                     setTimeout(function() {
