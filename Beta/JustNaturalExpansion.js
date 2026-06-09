@@ -3015,11 +3015,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (!zodiac) return val;
             var mult = Game.JNE && Game.JNE.getZodiacEffectMultiplier ? Game.JNE.getZodiacEffectMultiplier() : 1;
             if (what === 'wrinklerEat'        && zodiac.animal === 'Snake')  val *= 1 + (0.05 * mult);
-            if (what === 'upgradeCost'        && zodiac.animal === 'Ox')     val *= 1 - (0.02 * mult);
-            if (what === 'buildingCost'       && zodiac.animal === 'Ox')     val *= 1 - (0.02 * mult);
-            if (what === 'itemDrops'          && zodiac.animal === 'Rat')    val *= 1 + (0.10 * mult);
-            if (what === 'click'              && zodiac.animal === 'Tiger')  val *= 1 + (0.05 * mult);
-            if (what === 'goldenCookieFreq'   && zodiac.animal === 'Pig')    val *= 1 + (0.05 * mult);
+            if (what === 'upgradeCost'        && zodiac.animal === 'Ox')     val *= 1 - (0.05 * mult);
+            if (what === 'buildingCost'       && zodiac.animal === 'Ox')     val *= 1 - (0.05 * mult);
+            if (what === 'itemDrops'          && zodiac.animal === 'Rat')    val *= 1 + (0.15 * mult);
+            if (what === 'click'              && zodiac.animal === 'Tiger')  val *= 1 + (0.10 * mult);
+            if (what === 'goldenCookieFreq'   && zodiac.animal === 'Pig')    val *= 1 + (0.07 * mult);
             if (what === 'milk'               && zodiac.animal === 'Rabbit') val *= 1 + (0.01 * mult);
             return val;
         };
@@ -3265,106 +3265,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 }
             }
         }, 'Monitor all minigame states');
-        
-        // Inject Lunar New Year into baseSeason calculation
-        registerHook('logic', function() {
-            
-            // Only inject once and only if Extra Seasons is enabled
-            if (Game.seasons['lunarnewyear']) return;
-            if (!Game.JNE || !Game.JNE.enableExtraSeasons) return;
-            
-            // Add Lunar New Year season definition
-            Game.seasons['lunarnewyear'] = {
-                name: 'Lunar New Year',
-                start: 'Lunar New Year season has started!',
-                over: 'Lunar New Year season is over.',
-                trigger: 'Lunar biscuit'
-            };
-            
-            // Create the trigger upgrade (exactly like vanilla biscuits)
-            new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, [9, 12, getSpriteSheet('custom')]);
-            Game.last.season = 'lunarnewyear';
-            Game.last.pool = 'toggle';
-            Game.last.order = 24001;
-
-            Game.computeSeasons();
-            Game.computeSeasonPrices();
-
-            // Set buyFunction
-            var lunarBiscuit = Game.Upgrades['Lunar biscuit'];
-            lunarBiscuit.buyFunction = function() {
-                var wasLNY = Game.season === 'lunarnewyear';
-                Game.seasonUses += 1;
-                Game.computeSeasonPrices();
-                for (var i in Game.seasons) {
-                    var me = Game.Upgrades[Game.seasons[i].trigger];
-                    if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
-                }
-                if (Game.season != '' && Game.season != this.season) {
-                    Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', Game.seasons[Game.season].triggerUpgrade.icon, 4);
-                }
-                Game.season = this.season;
-                Game.seasonT = Game.getSeasonDuration();
-                var isLNY = Game.season === 'lunarnewyear';
-                if (isLNY) {
-                    var zodiac = getLunarZodiacYear();
-                    Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
-                    if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
-                        Game.shimmerTypes['lantern'].reset();
-                    }
-                }
-                Game.storeToRefresh = 1;
-                Game.upgradesToRebuild = 1;
-            };
-
-            // Add clickFunction to allow exiting LNY when clicked again (like vanilla biscuits)
-            lunarBiscuit.clickFunction = function(me) {
-                return function() {
-                    if (me.bought && Game.season && me == Game.seasons[Game.season].triggerUpgrade) {
-                        me.lose();
-                        Game.Notify(Game.seasons[Game.season].over, '', Game.seasons[Game.season].triggerUpgrade.icon);
-                        if (Game.Has('Season switcher')) {
-                            Game.Unlock(Game.seasons[Game.season].trigger);
-                            Game.seasons[Game.season].triggerUpgrade.bought = 0;
-                        }
-                        Game.storeToRefresh = 1;
-                        Game.upgradesToRebuild = 1;
-                    }
-                };
-            }(lunarBiscuit);
-
-            // Add to Game.customUpgrades for CCSE recognition (separate copy with array-wrapped buyFunction)
-            if (typeof CCSE !== 'undefined' && Game.customUpgrades) {
-                Game.customUpgrades['Lunar biscuit'] = {
-                    name: lunarBiscuit.name,
-                    buyFunction: [lunarBiscuit.buyFunction]
-                };
-            }
-
-            Game.Upgrades['Lunar biscuit'].descFunc = function() {
-                var zodiacStr = '';
-                if (Game.season === 'lunarnewyear') {
-                    var zodiac = getLunarZodiacYear();
-                    zodiacStr = '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
-                }
-                return zodiacStr + '<div style="text-align:center;">' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.desc;
-            };
-            if (Game.Has('Season switcher')) Game.Unlock('Lunar biscuit');
-
-            // Set baseSeason if in LNY window
-            if (isLunarNewYearSeason()) Game.baseSeason = 'lunarnewyear';
-
-            // Restore bought state after load: if season is active with time remaining, mark biscuit as bought
-            if (Game.season === 'lunarnewyear' && Game.seasonT > 0) {
-                var mb = Game.Upgrades['Lunar biscuit'];
-                if (mb && !mb.bought) {
-                    mb.bought = 1;
-                    Game.UpgradesOwned++;
-                    Game.upgradesToRebuild = 1;
-                    Game.storeToRefresh = 1;
-                }
-            }
-        }, 'Inject Lunar New Year season');
 
         // Track zodiac hour timer for "Everything everywhere all at once" achievement
         registerHook('check', function() {
@@ -4080,10 +3980,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
 
     var lunarZodiac = [
-        {animal: 'Rat',     effect: 'Random Drops are 10% more common'},
-        {animal: 'Ox',      effect: 'Buildings and Upgrades are 2% cheaper'},
-        {animal: 'Tiger',   effect: 'Clicking is 5% more powerful'},
-        {animal: 'Rabbit',  effect: 'Milk is 1% more effective'},
+        {animal: 'Rat',     effect: 'Random Drops are 15% more common'},
+        {animal: 'Ox',      effect: 'Buildings and Upgrades are 5% cheaper'},
+        {animal: 'Tiger',   effect: 'Clicking is 10% more powerful'},
+        {animal: 'Rabbit',  effect: 'Kittens are 1% more effective'},
         {animal: 'Dragon',  effect: 'Golden Cookies have a small chance to award a Dragon Flight'},
         {animal: 'Snake',   effect: 'Wrinklers suck 5% more'},
         {animal: 'Horse',   effect: 'Golden Cookies have a small chance to award a Dragon Harvest'},
@@ -4091,7 +3991,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         {animal: 'Monkey',  effect: 'Lanterns move 20% slower, are 20% more valuable, and appear 20% more often'},
         {animal: 'Rooster', effect: 'Lanterns are 50% more valuable'},
         {animal: 'Dog',     effect: 'Lanterns appear 50% more often'},
-        {animal: 'Pig',     effect: 'Golden Cookies appear 5% more often'}
+        {animal: 'Pig',     effect: 'Golden Cookies appear 7% more often'}
     ];
 
     function getLunarZodiacYear() {
@@ -4177,31 +4077,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     window.JustNaturalExpansionInitialized = true;
 
-    // Helper to find last vanilla achievement by name
-    function findLastVanillaAchievement(targetName) {
-        if (!Game || !Game.Achievements) {
-            console.warn('Game or Game.Achievements not available');
-            return { order: 0, icon: [0, 0] };
-        }
-        
-        var lastOrder = 0;
-        var lastIcon = [0, 0];
-        var lastAchievement = null;
-        for (var achId in Game.Achievements) {
-            var ach = Game.Achievements[achId];
-            if (ach && ach.name === targetName && ach.order > lastOrder) {
-                lastOrder = ach.order;
-                lastIcon = ach.icon;
-                lastAchievement = ach;
-            }
-        }
-        
-        if (lastOrder === 0) {
-            console.warn('Vanilla achievement not found:', targetName);
-        }
-        
-        return { order: lastOrder, icon: lastIcon, achievement: lastAchievement };
-    }
     
     function createAchievement(name, desc, icon, order, requirement, customIcon) {
         if (!Game || !Game.Achievements) {
@@ -4731,6 +4606,113 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 });
         }
 
+        // ===== EXTRA SEASONS: LUNAR NEW YEAR =====
+            // Create Lunar biscuit upgrade if Extra Seasons is enabled
+            if (modSettings.enableExtraSeasons && !Game.Upgrades['Lunar biscuit']) {
+                // Add Lunar New Year season definition
+                Game.seasons['lunarnewyear'] = {
+                    name: 'Lunar New Year',
+                    start: 'Lunar New Year season has started!',
+                    over: 'Lunar New Year season is over.',
+                    trigger: 'Lunar biscuit'
+                };
+
+                // Create the trigger upgrade (exactly like vanilla biscuits)
+                new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, [9, 12, getSpriteSheet('custom')]);
+                Game.last.season = 'lunarnewyear';
+                Game.last.pool = 'toggle';
+                Game.last.order = 24001;
+                Game.last.ddesc = Game.last.desc;
+
+                Game.computeSeasons();
+                Game.computeSeasonPrices();
+
+                // Set custom buyFunction AFTER computeSeasons to override vanilla's generic buyFunction
+                var lunarBiscuit = Game.Upgrades['Lunar biscuit'];
+                lunarBiscuit.buyFunction = function() {
+                    var wasLNY = Game.season === 'lunarnewyear';
+                    Game.seasonUses += 1;
+                    Game.computeSeasonPrices();
+                    for (var i in Game.seasons) {
+                        var me = Game.Upgrades[Game.seasons[i].trigger];
+                        if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
+                    }
+                    if (Game.season != '' && Game.season != this.season) {
+                        Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', Game.seasons[Game.season].triggerUpgrade.icon, 4);
+                    }
+                    Game.season = this.season;
+                    Game.seasonT = Game.getSeasonDuration();
+                    var isLNY = Game.season === 'lunarnewyear';
+                    if (isLNY) {
+                        var zodiac = getLunarZodiacYear();
+                        Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
+                        if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
+                            Game.shimmerTypes['lantern'].reset();
+                        }
+                    }
+                    Game.storeToRefresh = 1;
+                    Game.upgradesToRebuild = 1;
+                };
+
+                // Add clickFunction to allow exiting LNY when clicked again (like vanilla biscuits)
+                lunarBiscuit.clickFunction = function(me) {
+                    return function() {
+                        if (me.bought && Game.season && me == Game.seasons[Game.season].triggerUpgrade) {
+                            me.lose();
+                            Game.Notify(Game.seasons[Game.season].over, '', Game.seasons[Game.season].triggerUpgrade.icon);
+                            if (Game.Has('Season switcher')) {
+                                Game.Unlock(Game.seasons[Game.season].trigger);
+                                Game.seasons[Game.season].triggerUpgrade.bought = 0;
+                            }
+                            Game.storeToRefresh = 1;
+                            Game.upgradesToRebuild = 1;
+                            Game.recalculateGains = 1;
+                            Game.season = Game.baseSeason;
+                            Game.seasonT = -1;
+                            PlaySound('snd/tick.mp3');
+                            return false;
+                        }
+                        return true;
+                    };
+                }(lunarBiscuit);
+
+                // Add to Game.customUpgrades for CCSE recognition (separate copy with array-wrapped buyFunction)
+                if (typeof CCSE !== 'undefined' && Game.customUpgrades) {
+                    Game.customUpgrades['Lunar biscuit'] = {
+                        name: lunarBiscuit.name,
+                        buyFunction: [lunarBiscuit.buyFunction]
+                    };
+                }
+
+                Game.Upgrades['Lunar biscuit'].descFunc = function() {
+                    var zodiacStr = '';
+                    if (Game.season === 'lunarnewyear') {
+                        var zodiac = getLunarZodiacYear();
+                        zodiacStr = '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
+                    }
+                    return zodiacStr + '<div style="text-align:center;">' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.desc;
+                };
+
+                lunarBiscuit.displayFuncWhenOwned = function() {
+                    return '<div style="text-align:center;">Time remaining:<br><b>' + (Game.Has('Eternal seasons') ? 'forever' : Game.sayTime(Game.seasonT, -1)) + '</b><div style="font-size:80%;">(Click again to cancel season)</div></div>';
+                };
+                if (Game.Has('Season switcher')) Game.Unlock('Lunar biscuit');
+
+                // Set baseSeason if in LNY window
+                if (isLunarNewYearSeason()) Game.baseSeason = 'lunarnewyear';
+
+                // Restore bought state after load: if season is active with time remaining, mark biscuit as bought
+                if (Game.season === 'lunarnewyear' && Game.seasonT > 0) {
+                    var mb = Game.Upgrades['Lunar biscuit'];
+                    if (mb && !mb.bought) {
+                        mb.bought = 1;
+                        Game.UpgradesOwned++;
+                        Game.upgradesToRebuild = 1;
+                        Game.storeToRefresh = 1;
+                    }
+                }
+            }
+
         // ===== SECTION 10: FINAL SETUP =====
             dedupeCookieUpgradePool();
         // Force store refresh
@@ -4747,34 +4729,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var cachedModUpgradeNameSet = null;
     var cachedModCookieUpgradeNameSet = null;
 
-    //this fixes old saves from corrupting the game after we changed how we handle perm slot upgrades this is safe to remove down the road a ways.
-    function cleanupOldPermanentSlotFormat() {
-        if (!Game || !Game.permanentUpgrades || !Game.UpgradesById) return;
-        if (modSettings && modSettings.permanentSlotBackup && Object.keys(modSettings.permanentSlotBackup).length > 0) return;
 
-        var nameSet = getModUpgradeNameSet();
-        var migrated = 0;
-
-        for (var slot = 0; slot < Game.permanentUpgrades.length; slot++) {
-            var upgradeId = Game.permanentUpgrades[slot];
-            if (typeof upgradeId !== 'number' || upgradeId < 0) continue;
-
-            var upgrade = Game.UpgradesById[upgradeId];
-            
-            if (upgrade && nameSet[upgrade.name]) {
-                if (!modPermanentSlotBackup) modPermanentSlotBackup = {};
-                modPermanentSlotBackup[slot] = upgrade.name;
-                Game.permanentUpgrades[slot] = -1;
-                migrated++;
-            } else if (!upgrade) {
-                Game.permanentUpgrades[slot] = -1;
-            }
-        }
-
-        if (migrated > 0 && Object.keys(modPermanentSlotBackup).length > 0) {
-            modSettings.permanentSlotBackup = Object.assign({}, modPermanentSlotBackup);
-        }
-    }
 
     function getModUpgradeNameSet() {
         if (!cachedModUpgradeNameSet) {
@@ -5317,7 +5272,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     // Helper: Create building achievements
-    function createBuildingAchievements(buildingType, names, thresholds, baseOrder, baseIcon, customIcons) {
+    function createBuildingAchievements(buildingType, names, thresholds, baseOrder, baseIcon, customIcons, buildingOrders) {
         var achievements = [];
         var building = Game.ObjectsById[buildingType];
         if (!building) return achievements;
@@ -5338,7 +5293,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             })(buildingType, amount);
             
             var customIcon = customIcons && customIcons[i] ? customIcons[i] : null;
-            var ach = createAchievement(name, desc, baseIcon, baseOrder + (i + 1) * 0.01, requirement, customIcon);
+            var order = (buildingOrders && buildingOrders[i] !== undefined) ? buildingOrders[i] : (baseOrder + (i + 1) * 0.01);
+            var ach = createAchievement(name, desc, baseIcon, order, requirement, customIcon);
             if (ach) {
                 achievements.push(ach);
             }
@@ -5376,54 +5332,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Use vanilla game's built-in counters
         return { unlocked: M.plantsUnlockedN || 0, total: M.plantsN || 0 };
     }
-    
-    // Helper function to output garden status for debugging
-    function logGardenStatus() {
-        if (!debugMode) return;
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            console.log('Garden not available');
-            return;
-        }
-
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            console.log('Garden plot or plants data not available');
-            return;
-        }
-
-        console.log('=== GARDEN STATUS ===');
-        console.log('Plot size:', M.plot.length + 'x' + (M.plot[0] ? M.plot[0].length : 0));
-        console.log('Soil type:', M.soil || 'none');
-        console.log('');
-
-        // Output each plot position with plant and maturity info
-        for (var y = 0; y < M.plot.length; y++) {
-            var row = 'Row ' + y + ': ';
-            for (var x = 0; x < M.plot[y].length; x++) {
-                var plotData = M.plot[y][x];
-                if (plotData && plotData[0] > 0) {
-                    var plantId = plotData[0] - 1; // Plant IDs are 1-indexed
-                    var plantAge = plotData[1];
-                    var plant = M.plantsById[plantId];
-
-                    if (plant) {
-                        var isMature = plantAge >= plant.mature;
-                        var maturityStatus = isMature ? 'MATURE' : (plantAge + '/' + plant.mature);
-                        row += plant.name + '(' + maturityStatus + ') ';
-                    } else {
-                        row += 'UnknownPlant(' + plantId + ') ';
-                    }
-                } else {
-                    row += 'EMPTY ';
-                }
-            }
-            console.log(row);
-        }
-        console.log('=== END GARDEN STATUS ===');
-    }
-    
-    // Make logGardenStatus available globally
-    window.logGardenStatus = logGardenStatus;
     
     // Centralized function to count challenge achievements won
     function countChallengeAchievements() {
@@ -5925,17 +5833,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Create seasonal reindeer achievements
     function createSeasonalReindeerAchievements() {
-        var vanilla = findLastVanillaAchievement("Eldeer");
+        var seasonalData = achievementData.other.seasonalReindeer;
+        if (!seasonalData || !seasonalData.orders) return;
         
-        if (vanilla.order > 0) {
-            var seasonalData = achievementData.other.seasonalReindeer;
-            
+        if (true) {
             for (var i = 0; i < seasonalData.names.length; i++) {
+                var srOrder = seasonalData.orders[i];
                 createAchievement(
                     seasonalData.names[i],
                     seasonalData.descs[i],
-                    vanilla.icon,
-                    vanilla.order + (i + 1) * 0.01,
+                    null,
+                    srOrder,
                     (function(seasonName) {
                         return function() {
                             return seasonalReindeerData[seasonName] && seasonalReindeerData[seasonName].popped;
@@ -7150,7 +7058,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
     
-    // Save function for upgrades (simple approach from upgrades.js)
+    // Save function for upgrades
     function saveUpgradesData() {
         const modData = {
             version: modVersion,
@@ -7163,15 +7071,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             upgrades: {}
         };
 
-         // Save the purchase state of each of our custom upgrades
-        // Always include states even if upgrades are currently removed (use persisted snapshot)
+         // Save the purchase state of each of our custom upgrades Always include states even if upgrades are currently removed
         var modUpgradeNames = getModUpgradeNames();
         
         // Check upgrade counts during save
         var upgradesInGame = modUpgradeNames.filter(name => Game.Upgrades[name]);
         var upgradesBought = upgradesInGame.filter(name => Game.Upgrades[name] && Game.Upgrades[name].bought > 0);
         
-        // Debug: Compare created upgrades vs hardcoded arrays
         var createdUpgrades = [];
         if (upgradeData && typeof upgradeData === 'object') {
             if (upgradeData.generic && Array.isArray(upgradeData.generic)) {
@@ -7481,7 +7387,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         
         loadSettingsFromSaveData();
-        cleanupOldPermanentSlotFormat();
         
         // Sync mod settings to ensure they're applied BEFORE creating upgrades
         if (modSettings.shadowAchievements !== undefined) {
@@ -8555,122 +8460,27 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
             if (!buildingData) continue;
             
-            var vanilla = findLastVanillaAchievement(buildingData.vanillaTarget);
-            
-            // Only create achievements if we found the vanilla achievement
-            if (vanilla.order > 0) {
-                createBuildingAchievements(buildingName, buildingData.names, buildingData.thresholds, vanilla.order, vanilla.icon, buildingData.customIcons);
-            }
+            if (!buildingData.orders) continue;
+            createBuildingAchievements(buildingName, buildingData.names, buildingData.thresholds, 0, null, buildingData.customIcons, buildingData.orders);
         }
         
         // Create other achievements
         for (var type in achievementData.other) {
             var data = achievementData.other[type];
             
-            var vanilla = findLastVanillaAchievement(data.vanillaTarget);
-            
-            if (vanilla.order > 0) {
-                for (var i = 0; i < data.names.length; i++) {
+            if (!data.orders) continue;
+            for (var i = 0; i < data.names.length; i++) {
                     var actualRequirementType = (type === 'completionism') ? data.thresholds[i] : type;
                     var requirement = createRequirementFunction(actualRequirementType, data.thresholds[i]);
-                    
-                    var orderOffset = (type === 'seedlog') ? (i + 1) * 0.00001 : (i + 1) * 0.01;
-                    
-                    var achievementOrder;
-                    if (type === 'completionism') {
-                        achievementOrder = 400000.3;
-                    } else {
-                        achievementOrder = vanilla.order + orderOffset;
-                    }
-                    
-                    if (type === 'buildingsSold') {
-                        orderOffset = (i + 1) * 0.01 + 0.1; // Add extra offset to ensure they come after totalBuildings
-                    }
-                    
-                    var finalOrder = achievementOrder;
-                    if (data.names[i] === 'Faithless Loyalty') {
-                        finalOrder = 61490;
-                    }
-                    
-                    if (data.names[i] === 'God of All Gods') {
-                        finalOrder = 61490.01;
-                    }
-                    
-                    if (data.names[i] === 'I feel the need for seed') {
-                        finalOrder = 61515.430;
-                    } else if (data.names[i] === 'Botanical Perfection') {
-                        finalOrder = 61515.431;
-                    } else if (data.names[i] === 'Duketater Salad') {
-                        finalOrder = 61515.44;
-                    } else if (data.names[i] === 'Fifty Shades of Clay') {
-                        finalOrder = 61515.433;
-                    }
-                    
-                    if (data.names[i] === 'Golden wrinkler') {
-                        finalOrder = 21000.168;
-                    }
-                    
-                    if (data.names[i] === 'Wrinkler Windfall') {
-                        finalOrder = 21000.169;
-        
-                    }
-                    
-                    if (data.names[i] === 'Sweet Sorcery') {
-                        finalOrder = 61496.004;
-                    }
-                    
-                    if (data.names[i] === 'The Final Challenger') {
-                        finalOrder = 30501;
-                    }
-                    
-                    if (data.names[i] === 'Broiler room') {
-                        finalOrder = 61616.358;
-                    }
-                    
-                    if (data.names[i] === 'Wrinkler Rush') {
-                        finalOrder = 21000.17;
-                    }
-                    
-                    if (data.names[i] === 'Buff Finger') {
-                        finalOrder = 7003;
-                    }
-                    
-                    if (data.names[i] === 'Click of the Titans') {
-                        finalOrder = 7004;
-                    }
-                    
-                    if (data.names[i] === 'Greener, aching thumb') {
-                        finalOrder = 61515.3791;
-                    } else if (data.names[i] === 'Greenest, aching thumb') {
-                        finalOrder = 61515.3792;
-                    } else if (data.names[i] === 'Photosynthetic prodigy') {
-                        finalOrder = 61515.3793;
-                    } else if (data.names[i] === 'Garden master') {
-                        finalOrder = 61515.3794;
-                    } else if (data.names[i] === 'Plant whisperer') {
-                        finalOrder = 61515.3795;
-                    }
-                    
-                    if (type === 'buildingsSold') {
-                        if (data.names[i] === 'Asset Liquidator') {
-                            finalOrder = 5001.1;
-                        } else if (data.names[i] === 'Flip City') {
-                            finalOrder = 5001.11;
-                        } else if (data.names[i] === 'Ghost Town Tycoon') {
-                            finalOrder = 5001.12;
-                        }
-                    }
-
                     var customIcon = data.customIcons && data.customIcons[i] ? data.customIcons[i] : null;
                     createAchievement(
                         data.names[i],
                         data.descs[i],
-                        vanilla.icon,
-                        finalOrder,
+                        null,
+                        data.orders[i],
                         requirement,
                         customIcon
                     );
-                }
             }
         }
         
@@ -8680,27 +8490,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
         var levelAchievements = window.JNEData ? window.JNEData.levelAchievements : [];
         
+        var buildingToSpriteIndex = {
+                'Cursor': 0, 'Grandma': 1, 'Farm': 2, 'Mine': 3, 'Factory': 4,
+                'Shipment': 5, 'Alchemy lab': 6, 'Portal': 7, 'Time machine': 8,
+                'Antimatter condenser': 9, 'Prism': 10, 'Bank': 11, 'Temple': 12,
+                'Wizard tower': 13, 'Chancemaker': 14, 'Fractal engine': 15,
+                'Javascript console': 16, 'Idleverse': 17, 'Cortex baker': 18, 'You': 19
+            };
         for (var i = 0; i < levelAchievements.length; i++) {
             var ach = levelAchievements[i];
-            var vanilla = findLastVanillaAchievement(ach.level10);
+            if (!ach.level15Order || !ach.level20Order) continue;
+            var spriteIndex = buildingToSpriteIndex[ach.building] || 0;
             
-            if (vanilla.order > 0) {
-                // Map building names to custom sprite sheet indices
-                var buildingToSpriteIndex = {
-                    'Cursor': 0, 'Grandma': 1, 'Farm': 2, 'Mine': 3, 'Factory': 4,
-                    'Shipment': 5, 'Alchemy lab': 6, 'Portal': 7, 'Time machine': 8,
-                    'Antimatter condenser': 9, 'Prism': 10, 'Bank': 11, 'Temple': 12,
-                    'Wizard tower': 13, 'Chancemaker': 14, 'Fractal engine': 15,
-                    'Javascript console': 16, 'Idleverse': 17, 'Cortex baker': 18, 'You': 19
-                };
-                var spriteIndex = buildingToSpriteIndex[ach.building] || 0;
-                
                 // Level 15 achievement
                 createAchievement(
                     ach.level15,
                     "Reach Level <b>15</b> " + ach.building.toLowerCase() + "s.",
                     [spriteIndex, 19, getSpriteSheet('custom')],
-                    vanilla.order + 0.01,
+                    ach.level15Order,
                     (function(buildingName) {
                         return function() { 
                             var building = Game.Objects[buildingName];
@@ -8714,7 +8521,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     ach.level20,
                     "Reach Level <b>20</b> " + ach.building.toLowerCase() + "s.",
                     [spriteIndex, 20, getSpriteSheet('custom')],
-                    vanilla.order + 0.02,
+                    ach.level20Order,
                     (function(buildingName) {
                         return function() { 
                             var building = Game.Objects[buildingName];
@@ -8722,7 +8529,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         };
                     })(ach.building)
                 );
-            }
         }
 
         // Create extended production achievements for each building (tier 4, 5, 6)
@@ -8730,10 +8536,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         for (var i = 0; i < productionAchievements.length; i++) {
             var ach = productionAchievements[i];
-            var vanilla = findLastVanillaAchievement(ach.vanillaTarget);
-            
-            if (vanilla.order > 0) {
-                var building = Game.Objects[ach.building];
+            if (!ach.tier4Order) continue;
+            var building = Game.Objects[ach.building];
+            if (true) {
                 if (!building) {
                     continue;
                 }
@@ -8761,9 +8566,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 // Create production achievements for tiers 4, 5, and 6
                 var tiers = [
-                    { name: ach.tier4Name, desc: ach.tier4Desc, spriteY: 21, orderOffset: 0.00001, thresholdOffset: 17 },
-                    { name: ach.tier5Name, desc: ach.tier5Desc, spriteY: 22, orderOffset: 0.00002, thresholdOffset: 20 },
-                    { name: ach.tier6Name, desc: ach.tier6Desc, spriteY: 23, orderOffset: 0.00003, thresholdOffset: 23 }
+                    { name: ach.tier4Name, desc: ach.tier4Desc, spriteY: 21, orderOffset: 0.00001, thresholdOffset: 17, order: ach.tier4Order },
+                    { name: ach.tier5Name, desc: ach.tier5Desc, spriteY: 22, orderOffset: 0.00002, thresholdOffset: 20, order: ach.tier5Order },
+                    { name: ach.tier6Name, desc: ach.tier6Desc, spriteY: 23, orderOffset: 0.00003, thresholdOffset: 23, order: ach.tier6Order }
                 ];
                 
                 tiers.forEach(function(tier) {
@@ -8772,7 +8577,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         tier.name,
                         tier.desc,
                         [spriteIndex, tier.spriteY, getSpriteSheet('custom')],
-                        vanilla.order + tier.orderOffset,
+                        tier.order,
                     (function(buildingName, threshold) {
                         return function() { 
                             return Game.Objects[buildingName] && 
