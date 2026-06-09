@@ -631,11 +631,9 @@
         
         if (Game.UpdateMenu && !Game.UpdateMenu._erasablePensHooked) {
             Game.UpdateMenu._erasablePensHooked = true;
-            if (!Game.UpdateMenu._originalUpdateMenu) {
-                Game.UpdateMenu._originalUpdateMenu = Game.UpdateMenu;
-            }
+            var originalUpdateMenu = Game.UpdateMenu;
             Game.UpdateMenu = function() {
-                var result = Game.UpdateMenu._originalUpdateMenu.apply(this, arguments);
+                var result = originalUpdateMenu.apply(this, arguments);
                 if (Game.Has('Erasable pens')) {
                     setTimeout(function() {
                         var slotNames = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V'];
@@ -689,11 +687,9 @@
         
         function setupSeasonalDuration() {
             if (Game.getSeasonDuration && !Game.getSeasonDuration._heavenlyUpgradesHooked) {
-                if (!Game.getSeasonDuration._originalGetSeasonDuration) {
-                    Game.getSeasonDuration._originalGetSeasonDuration = Game.getSeasonDuration;
-                }
+                var originalGetSeasonDuration = Game.getSeasonDuration;
                 Game.getSeasonDuration = function() {
-                    var raw = Game.getSeasonDuration._originalGetSeasonDuration.apply(this, arguments);
+                    var raw = originalGetSeasonDuration.apply(this, arguments);
                     var baseDuration = Number(raw);
                     if (!isFinite(baseDuration) || baseDuration <= 0) return raw;
                     var extraHours = 0;
@@ -721,12 +717,10 @@
                 };
             }
             
-            if (!Game.modifyBuildingPrice._originalModifyBuildingPrice) {
-                Game.modifyBuildingPrice._originalModifyBuildingPrice = Game.modifyBuildingPrice;
-            }
+            var originalModifyBuildingPrice = Game.modifyBuildingPrice;
             
             Game.modifyBuildingPrice = function(building, price) {
-                var modifiedPrice = Game.modifyBuildingPrice._originalModifyBuildingPrice.call(this, building, price);
+                var modifiedPrice = originalModifyBuildingPrice.call(this, building, price);
                 
                 // Apply Turtles discount (level-based max 25%)
                 if (Game.Has('Turtles all the way down') && building && building.level !== undefined) {
@@ -743,16 +737,14 @@
         function setupCookieDisplayUnit() {
             if (!Game.Draw) return;
             if (Game.Draw._jneCookieDisplayHooked) return;
-            if (!Game.Draw._originalDraw) {
-                Game.Draw._originalDraw = Game.Draw;
-            }
+            var originalDraw = Game.Draw;
             Game.Draw = function() {
                 //  don't draw if game isn't ready
                 if (!Game.ready) return;
                 
                 try {
                     // Call vanilla draw - this may throw if minigame not loaded yet
-                    var result = Game.Draw._originalDraw.apply(this, arguments);
+                    var result = originalDraw.apply(this, arguments);
                     
                     // Only apply our modifications if vanilla draw succeeded
                     try {
@@ -788,12 +780,10 @@
 
         function setupGameEffModifiers() {
         if (!Game.eff || Game.eff._jneAllEffModifiersHooked) return;
-        if (!Game.eff._originalEff) {
-            Game.eff._originalEff = Game.eff;
-        }
+        var originalEff = Game.eff;
         Game.eff = function(what) {
             try {
-                var val = Game.eff._originalEff.apply(this, arguments);
+                var val = originalEff.apply(this, arguments);
                 if (what === 'wrinklerEat') {
                     if (Game.Has('Ravenous leeches')) val *= 1.2;
                     else if (Game.Has('Hellish hunger')) val *= 1.1;
@@ -928,11 +918,9 @@
         function setupShinyWrinklers() {
             if (!Game.SpawnWrinkler) return;
             if (Game.SpawnWrinkler._jneShinyHooked) return;
-            if (!Game.SpawnWrinkler._originalSpawn) {
-                Game.SpawnWrinkler._originalSpawn = Game.SpawnWrinkler;
-            }
+            var originalSpawn = Game.SpawnWrinkler;
             Game.SpawnWrinkler = function() {
-                var me = Game.SpawnWrinkler._originalSpawn.apply(this, arguments);
+                var me = originalSpawn.apply(this, arguments);
                 if (!me) return me;
                 if (me.type === 0) {
                     var base = 0.0001;
@@ -964,12 +952,10 @@
             if (Game._wrinklerPopSpawnHooked || !Game.UpdateGrandmapocalypse) return;
             Game._wrinklerPopSpawnHooked = true;
             Game._jneJamFillingHandled = true;
-            if (!Game.UpdateGrandmapocalypse._originalUpdate) {
-                Game.UpdateGrandmapocalypse._originalUpdate = Game.UpdateGrandmapocalypse;
-            }
+            var originalUpdate = Game.UpdateGrandmapocalypse;
             Game.UpdateGrandmapocalypse = function() {
                 var oldCount = Game.wrinklersPopped || 0;
-                var result = Game.UpdateGrandmapocalypse._originalUpdate.apply(this, arguments);
+                var result = originalUpdate.apply(this, arguments);
                 var newCount = Game.wrinklersPopped || 0;
                 if (newCount > oldCount) {
                     var popped = newCount - oldCount;
@@ -1319,9 +1305,7 @@
         function setupCookieReduction() {
             if (typeof choose !== 'function' || choose._jneCookieReductionHooked) return;
             
-            if (!choose._originalChoose) {
-                choose._originalChoose = choose;
-            }
+            var originalChoose = choose;
                 choose = function(arr) {
                     if (Array.isArray(arr)) {
                         if (arr.indexOf('multiply cookies') !== -1) {
