@@ -3818,7 +3818,7 @@
                 funcName: funcName,
                 hookKey: hookKey,
                 hookFlag: hookFlag,
-                original: original
+                original: M[hookKey]
             });
             
             return true;
