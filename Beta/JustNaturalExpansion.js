@@ -9,7 +9,7 @@
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
     script.src = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/data.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/data.js?v=1'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/data.js';
     script.onload = function() {
         // Continue initialization after data.js is loaded
@@ -2587,7 +2587,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
     
-    // Unified minigame configuration — single source of truth for all per-minigame metadata
+    // Unified minigame configuration 
     var minigameConfigs = [
         {
             buildingName: 'Javascript console', minigameName: 'Terminal',
@@ -2632,7 +2632,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
 
-// ... (rest of the code remains the same)
     function _getMinigameCfg(buildingName) {
         for (var i = 0; i < minigameConfigs.length; i++) {
             if (minigameConfigs[i].buildingName === buildingName) return minigameConfigs[i];
@@ -3192,7 +3191,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
             str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
             str = str.replace(/var mu`lt=1;/, "var mult=1;\n" + mult);
-            // zodiacGC will be injected at start with other mods (not after dragonflight aura check, which is conditional)
             
             // Inject at start: selfishness + storm tracking, then predictor (may return early), then potions overrides
             str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
@@ -3291,8 +3289,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer']) {
             var originalReindeerPop = Game.shimmerTypes['reindeer'].popFunc;
             if (originalReindeerPop && !Game.shimmerTypes['reindeer']._seasonalReindeerHooked) {
+                if (!Game.shimmerTypes['reindeer']._originalPopFunc) {
+                    Game.shimmerTypes['reindeer']._originalPopFunc = originalReindeerPop;
+                }
                 Game.shimmerTypes['reindeer'].popFunc = function(me) {
-                    originalReindeerPop.call(this, me);
+                    Game.shimmerTypes['reindeer']._originalPopFunc.call(this, me);
                     
                     var season = Game.season;
                     if (seasonalReindeerData[season] && !seasonalReindeerData[season].popped) {
@@ -3310,7 +3311,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 // Hook into the harvest all function if not already hooked
                 if (M.harvestAll && typeof M.harvestAll === 'function' && !M._harvestAllHooked) {
-                    var originalHarvestAll = M.harvestAll;
+                    if (!M._originalHarvestAll) {
+                        M._originalHarvestAll = M.harvestAll;
+                    }
                     M.harvestAll = function() {
                         // Check for duketater plants BEFORE harvesting them
                         var duketaterCount = 0;
@@ -3334,7 +3337,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                         
                         // Now call the original function to harvest the plants
-                        var result = originalHarvestAll.apply(this, arguments);
+                        var result = M._originalHarvestAll.apply(this, arguments);
                         
                         // Check if achievement should be unlocked
                         if (duketaterCount >= 12) {
@@ -3656,11 +3659,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Hook into Grimoire spell casting to track Spell Slinger
         registerHook('logic', function() {
             if (!grimoireHookApplied && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-                var originalCastSpell = Game.Objects['Wizard tower'].minigame.castSpell;
-                if (originalCastSpell) {
-                    Game.Objects['Wizard tower'].minigame.castSpell = function(spell, obj) {
+                var M = Game.Objects['Wizard tower'].minigame;
+                if (!M._originalCastSpell) {
+                    M._originalCastSpell = M.castSpell;
+                }
+                if (M._originalCastSpell) {
+                    M.castSpell = function(spell, obj) {
                         // Call the original function first to get the result
-                        var result = originalCastSpell.call(this, spell, obj);
+                        var result = M._originalCastSpell.call(this, spell, obj);
 
                         // Only track successful spell casts (when result is true)
                         if (result === true) {
@@ -3722,17 +3728,22 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         injectGoldenPopFunc();
         
         if (Game.Upgrades && Game.Upgrades['Elder Covenant']) {
-            var originalElderCovenantFunc = Game.Upgrades['Elder Covenant'].buy;
+            if (!Game.Upgrades['Elder Covenant']._originalBuy) {
+                Game.Upgrades['Elder Covenant']._originalBuy = Game.Upgrades['Elder Covenant'].buy;
+            }
             Game.Upgrades['Elder Covenant'].buy = function() {
-                originalElderCovenantFunc.call(this);
+                Game.Upgrades['Elder Covenant']._originalBuy.call(this);
                 lifetimeData.elderCovenantToggles++;
             };
         }
         
         if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var originalConvertFunc = Game.Objects['Farm'].minigame.convert;
-            Game.Objects['Farm'].minigame.convert = function() {
-                originalConvertFunc.call(this);
+            var M = Game.Objects['Farm'].minigame;
+            if (!M._originalConvert) {
+                M._originalConvert = M.convert;
+            }
+            M.convert = function() {
+                M._originalConvert.call(this);
                 lifetimeData.lastGardenSacrificeTime = Date.now();
                 setTimeout(function() {
                     checkModAchievements();
@@ -5787,7 +5798,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         return Game.Has('Order of the Eternal Cookie');
                     
                     // These achievement types are handled by checkModAchievements() instead
-                    // Stub cases to prevent warnings - actual checking happens elsewhere
                     case 'buffs':
                     case 'goldenWrinkler':
                     case 'hardercorest':
@@ -5836,8 +5846,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var seasonalData = achievementData.other.seasonalReindeer;
         if (!seasonalData || !seasonalData.orders) return;
         
-        if (true) {
-            for (var i = 0; i < seasonalData.names.length; i++) {
+        for (var i = 0; i < seasonalData.names.length; i++) {
                 var srOrder = seasonalData.orders[i];
                 createAchievement(
                     seasonalData.names[i],
@@ -5857,7 +5866,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 if (seasonalReindeerData[seasonName]) {
                     seasonalReindeerData[seasonName].achievement = seasonalData.names[i];
                 }
-            }
         }
     }
     
@@ -5988,11 +5996,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 return Math.ceil(Game.fps * 60 * m);
             },
             getMinTime: function(me) {
-                var m = 20 / 60; // 10 seconds for testing 3 min
+                var m = 20 / 60; //FIXME: 10 seconds for testing 3 min
                 return this.getTimeMod(me, m);
             },
             getMaxTime: function(me) {
-                var m = 30 / 60; // 10 seconds for testing 5 min
+                var m = 30 / 60; //FIXME: 10 seconds for testing 5 min
                 return this.getTimeMod(me, m);
             }
         };
@@ -7861,11 +7869,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }, 1000);
           
             // Hook into the vanilla game's upgrade purchase process to check for newly unlockable upgrades
-            var originalBuyFunction = Game.Upgrades.__proto__.buy || Game.Upgrades.__proto__.Buy;
-            if (originalBuyFunction) {
+            if (!Game.Upgrades.__proto__._originalBuy) {
+                Game.Upgrades.__proto__._originalBuy = Game.Upgrades.__proto__.buy || Game.Upgrades.__proto__.Buy;
+            }
+            if (Game.Upgrades.__proto__._originalBuy) {
                 Game.Upgrades.__proto__.buy = function() {
                     // Call the original buy function
-                    var result = originalBuyFunction.apply(this, arguments);
+                    var result = Game.Upgrades.__proto__._originalBuy.apply(this, arguments);
                     
                     // Check unlock states after purchase (some upgrades may now be unlockable)
                     setTimeout(function() {
@@ -8436,16 +8446,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Initialize achievements and other mod features
     function initAchievements() {
         // Prevent recreation of achievements once they've been created and properly restored
-        if (achievementsCreated) {
-            debugLog('initAchievements: achievements already created, skipping');
-            return;
-        }
-        
-        debugLog('initAchievements: creating achievements for the first time');
-        debugLog('initAchievements: modSaveData exists:', !!modSaveData);
-        if (modSaveData && modSaveData.achievements) {
-            debugLog('initAchievements: modSaveData.achievements count:', Object.keys(modSaveData.achievements).length);
-        }
+        if (achievementsCreated) {return;}
         
         // Create building achievements
         for (var buildingName in Game.ObjectsById) {
@@ -8499,7 +8500,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             };
         for (var i = 0; i < levelAchievements.length; i++) {
             var ach = levelAchievements[i];
-            if (!ach.level15Order || !ach.level20Order) continue;
             var spriteIndex = buildingToSpriteIndex[ach.building] || 0;
             
                 // Level 15 achievement
@@ -8536,9 +8536,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         for (var i = 0; i < productionAchievements.length; i++) {
             var ach = productionAchievements[i];
-            if (!ach.tier4Order) continue;
             var building = Game.Objects[ach.building];
-            if (true) {
                 if (!building) {
                     continue;
                 }
@@ -8586,7 +8584,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         })(ach.building, threshold)
                     );
                 });
-            }
         }
         
         var beyondLeaderboardAchievement = createAchievement(
@@ -8594,44 +8591,21 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             'Just Natural Expansion has been used outside of Leaderboard/Competition mode.',
             [26, 30], 
             10000.25, 
-            function() {
-                return false; 
-            },
+            null,
             [26, 30] 
         );
         
-        if (beyondLeaderboardAchievement) {
-            beyondLeaderboardAchievement.pool = 'shadow';
-        }
-        
+        beyondLeaderboardAchievement.pool = 'shadow';
+  
         createAchievement(
             'In the Shadows',
             'Unlock all vanilla shadow achievements, except that one.<q>You know the one I meant.</q>',
             [17, 5], // Custom icon
             400000.2, // Order as requested
             function() {
-    
-                // List of required vanilla shadow achievements (using regular hyphens because that broke things and took forever to find)
-                var requiredAchievements = [
-                    'Four-leaf cookie',
-                    'Seven horseshoes', 
-                    'All-natural cane sugar',
-                    'Endless cycle',
-                    'God complex',
-                    'Third-party',
-                    'When the cookies ascend just right',
-                    'Speed baking I',
-                    'Speed baking II',
-                    'Speed baking III',
-                    'True Neverclick',
-                    'In her likeness',
-                    'Just plain lucky',
-                    'Last Chance to See',
-                    'So much to do so much to see',
-                    'Gaseous assets'
-                ];
+                // List of required vanilla shadow achievements (watch hyphens because that broke things and took forever to find)
+                var requiredAchievements = ['Four-leaf cookie', 'Seven horseshoes', 'All-natural cane sugar', 'Endless cycle', 'God complex', 'Third-party', 'When the cookies ascend just right', 'Speed baking I', 'Speed baking II', 'Speed baking III', 'True Neverclick', 'In her likeness', 'Just plain lucky', 'Last Chance to See', 'So much to do so much to see', 'Gaseous assets'];
                 
-                // Check if all required achievements are unlocked
                 for (var i = 0; i < requiredAchievements.length; i++) {
                     var achievementName = requiredAchievements[i];
                     var achievement = Game.Achievements[achievementName];
@@ -8646,7 +8620,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             [17, 5] // Custom icon
         );
         
-        // Check if we should mark "Beyond the Leaderboard" as won based on current settings
         checkAndMarkBeyondTheLeaderboard();
     
         // Mark achievements as created to prevent recreation

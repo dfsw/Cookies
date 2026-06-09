@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.3';
+    var expansionVersion = '1.0.4';
     var debugMode = false; // Set to true for testing
   
     var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
@@ -3798,18 +3798,17 @@
             return false;
         }
         
-        var original = M[funcName];
         var hookKey = '_original' + funcName.charAt(0).toUpperCase() + funcName.slice(1) + '_' + this.puzzleId;
         var hookFlag = '_' + this.puzzleId + 'Hooked';
         
         // Store original and wrap if not already hooked
         if (!M[hookKey]) {
-            M[hookKey] = original;
+            M[hookKey] = M[funcName];
             M[funcName] = function(...args) {
                 if (wrapper) {
-                    return wrapper.call(this, original, ...args);
+                    return wrapper.call(this, M[hookKey], ...args);
                 }
-                return original.apply(this, args);
+                return M[hookKey].apply(this, args);
             };
             M[hookFlag] = true;
             
@@ -4201,11 +4200,8 @@
             templeObj[hookKey] = templeObj.buy;
             templeObj[sellHookKey] = templeObj.sell;
             
-            var originalBuy = templeObj[hookKey];
-            var originalSell = templeObj[sellHookKey];
-            
             templeObj.buy = function(amount) {
-                var result = originalBuy.call(this, amount);
+                var result = templeObj[hookKey].call(this, amount);
                 setTimeout(function() {
                     self.onCheck();
                 }, 0);
@@ -4213,7 +4209,7 @@
             };
             
             templeObj.sell = function(amount, bypass) {
-                var result = originalSell.call(this, amount, bypass);
+                var result = templeObj[sellHookKey].call(this, amount, bypass);
                 setTimeout(function() {
                     self.onCheck();
                 }, 0);
@@ -4729,7 +4725,9 @@
         tracking.shimmeringVeilOn = Game.Has('Shimmering veil [off]');
         var currentSeason = Game.season || '';
         if (currentSeason !== tracking.lastSeason && currentSeason !== '') {
-            tracking.seasonSequence.push(currentSeason);
+            if (currentSeason !== 'lunarnewyear') {
+                tracking.seasonSequence.push(currentSeason);
+            }
             tracking.lastSeason = currentSeason;
         }
         var elderCovenantComplete = tracking.elderCovenantToggles >= 3 && currentRevokeElderCovenantState;
@@ -5153,14 +5151,16 @@
         
         // Hook into the game's drawing system to update our custom particles
         if (!tracking.drawingHookAdded) {
-            var originalDrawWrinklers = Game.DrawWrinklers;
-            if (originalDrawWrinklers) {
+            if (!Game._originalDrawWrinklers) {
+                Game._originalDrawWrinklers = Game.DrawWrinklers;
+            }
+            if (Game._originalDrawWrinklers) {
                 // Store original function for cleanup
-                tracking.originalDrawWrinklers = originalDrawWrinklers;
+                tracking.originalDrawWrinklers = Game._originalDrawWrinklers;
                 
                 Game.DrawWrinklers = function() {
                     // Call original function first
-                    originalDrawWrinklers.call(this);
+                    Game._originalDrawWrinklers.call(this);
                     
                     // Update message decay timer
                     updateMessageDecay();
