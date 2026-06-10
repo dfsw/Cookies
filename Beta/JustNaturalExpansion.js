@@ -1838,7 +1838,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             <div class="title">${modName} v${modVersion}</div>
                               <div style="margin:10px 0px;color:#ccc;font-size:11px;line-height:1.3;">
 							    The <span style="font-weight:bold;">Just Natural Expansion Mod</span> expands Cookie Clicker's endgame while keeping the core game intact. It adds new upgrades, achievements, minigames, and even an occult puzzle mystery thriller, all designed not to break the vanilla feel and cadence of the game. Every feature can be toggled on or off for leaderboard safe play or tailored to your own style.
-							    <br><br><a href=" https://discord.gg/vTyR5vWhQR" target="_blank" rel="noopener noreferrer" style="color:#03adfc;font-weight:bold;">Join the Just Natural Expansion Discord</a> to discuss with other players, get hints to puzzles, hear news and see sneak peeks from the developer.<br> 
+							    <br><br><a href=" https://discord.gg/vTyR5vWhQR" target="_blank" rel="noopener noreferrer" style="color:#03adfc;font-weight:bold;">Join the Just Natural Expansion Discord</a> to connect with fellow players, swap strategies, get puzzle hints, catch sneak peeks of upcoming releases, and beta test new features before anyone else.<br> 
 							</div>
                             <div class="listing">
                                 <a class="option" id="toggle-shadow-achievements" style="text-decoration:none;color:${modSettings.shadowAchievements ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
@@ -3040,7 +3040,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Inject JNE modifications into the vanilla golden cookie popFunc. must run before any external script wraps popFunc.
     function injectGoldenPopFunc() {
         if (!Game.shimmerTypes || !Game.shimmerTypes['golden']) return;
-        if (Game.shimmerTypes['golden']._effectInjected) return;
+        // Clear flag to allow re-injection after fixes
+        delete Game.shimmerTypes['golden']._effectInjected;
 
         var originalPopFunc = Game.shimmerTypes['golden'].popFunc;
         if (!originalPopFunc) return;
@@ -3049,9 +3050,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             var str = originalPopFunc.toString();
 
             // === JNE CORE MODIFICATIONS ===
-            var wrathTracking = "//JNE_CORE\n" +
-                                 "if(me.wrath&&me.type!=='cookie storm drop'){if(!window.JNE_lifetimeData){window.JNE_lifetimeData={wrathCookiesClicked:0};}window.JNE_lifetimeData.wrathCookiesClicked++;}\n" +
-                                 "//JNE_CORE_END\n";
 
             var sweetSorcery = "//JNE_CORE\n" +
                                 "if(Game.Achievements['Sweet Sorcery']&&!Game.Achievements['Sweet Sorcery'].won){Game.Win('Sweet Sorcery');}\n" +
@@ -3144,6 +3142,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "}" +
                 "//JNE_SELFISHNESS_END\n";
 
+            // === WRATH COOKIE TRACKING ===
+            var wrathMod = "//JNE_WRATH\n" +
+                "if(me.spawnLead&&me.wrath&&me.type!=='cookie storm drop'){" +
+                    "if(!window.JNE_lifetimeData){window.JNE_lifetimeData={wrathCookiesClicked:0};}" +
+                    "window.JNE_lifetimeData.wrathCookiesClicked++;" +
+                "}" +
+                "//JNE_WRATH_END\n";
+
             // === COOKIE AGE  TRACKING ===
             var stormDevotionMod = "//JNE_STORM_DEVOTION\n" +
                 "var _jneStormTrack=Game.JNE&&Game.JNE._stormDevotionTracking;" +
@@ -3187,14 +3193,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "//JNE_END\n";
 
             // Apply modifications
-            str = str.replace(/(if\s*\(me\.wrath\)\s*Game\.Win\s*\(\s*['"]Wrath cookie['"]\s*\)\s*;)/, "$1\n" + wrathTracking);
             str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
             str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
-            str = str.replace(/var mu`lt=1;/, "var mult=1;\n" + mult);
+            str = str.replace(/var mult=1;/, "var mult=1;\n" + mult);
             
-            // Inject at start: selfishness + storm tracking, then predictor (may return early), then potions overrides
+            // Inject at start: selfishness + wrath tracking + storm tracking, then predictor (may return early), then potions overrides
             str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
-                return match + "\n" + selfishnessMod + stormDevotionMod + predictorMod + potionsMod;
+                return match + "\n" + selfishnessMod + wrathMod + stormDevotionMod + predictorMod + potionsMod;
             });
             // Inject zodiacGC after var list=[] is defined (runs on every golden cookie pop)
             str = str.replace(/var list=\[\];/, "var list=[];\n" + zodiacGC);
@@ -7811,8 +7816,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         version: modVersion,
         
         init: function() {
-            injectGoldenPopFunc();
-
             modSaveData = { upgrades: {} };
             setTerminalMinigameSave('');
             
