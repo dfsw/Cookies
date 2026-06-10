@@ -3267,16 +3267,16 @@
             }
         }
         
-    /**
+         /*
          * Improved Cookie Chains
          * 
          * At high cookie counts, vanilla chains end immediately because the starting level
          * (based on log10(cookies)) exceeds maxPayout. This fix calculates a starting level
          * based on maxPayout instead, giving ~7 chain clicks that end with maxPayout. End result is
          * player gets the same amount from the cookie chain but gets more spawns on it feeling more like the vanilla approach
-         */
-    // Improved cookie chains is now handled in JustNaturalExpansion.js via centralized eval injection
-    // This avoids wrapper conflicts and keeps all golden cookie modifications in one place
+   
+         Improved cookie chains is now handled in JustNaturalExpansion.js via centralized eval injection
+        */
 
         function setupGoldenCookiePredictor() {
             if (!Game.registerHook || Game._goldenCookiePredictorHooked) return;
