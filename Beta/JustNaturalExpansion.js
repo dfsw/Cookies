@@ -5880,7 +5880,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                 // Play spawn sound if sound selector is on something that makes sound
                 if (!this.spawned && Game.chimeType != 0 && Game.ascensionMode != 1) {
-                    PlaySound('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/lunarny/lantern.mp3');
+                    PlaySound('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/lunarny/lantern.mp3', 0.5);
                 }
 
                 me.x = Math.floor(Math.random() * Math.max(0, Game.bounds.right - Game.bounds.left - 256) + Game.bounds.left + 128) - 128;
@@ -5912,7 +5912,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 dur *= durMod;
 
                 me.dur = dur;
-                me.life = Math.ceil(Game.fps * me.dur);
+                me.delay = Math.ceil(0.25 * Game.fps);
+                me.life = Math.ceil(Game.fps * me.dur) + me.delay;
                 me.sizeMult = 1;
 
                 me.swayFreq = (0.08 + Math.random() * 0.08) / durMod;   // 0.08-0.16
@@ -5924,6 +5925,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             updateFunc: function(me) {
                 // Allow existing lanterns to finish
                 var t = me.life;
+                
+                // give it 1/4 a second for sound to play
+                if (me.delay > 0) {
+                    me.delay--;
+                    me.life--; 
+                    if (me.life <= 0) { this.missFunc(me); me.die(); }
+                    return; 
+                }
+                
                 var progress = 1 - (t / (Game.fps * me.dur));
                 var curve = 1 - Math.pow(progress * 2 - 1, 12);
                 me.l.style.opacity = curve;
