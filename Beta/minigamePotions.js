@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.0.3';
+const POTIONS_VERSION = '1.0.2';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -3671,6 +3671,7 @@ PotionsM._buildSaveDataImpl = function() {
     // rn/pn: record how many reagents/potions exist at save time.
     // On load, if counts differ a new ingredient/potion was added — safe to ignore extras.
     // Save onMinigame state (0 = closed, 1 = open)
+    var alchemyLab = Game.Objects && Game.Objects['Alchemy lab'];
     var isOpen = alchemyLab && alchemyLab.onMinigame ? 1 : 0;
     return { v: 1, rn: REAGENTS.length, pn: POTIONS.length, r: r, p: p, s: s, b: b, x: x, tb: G.totalPotionsBrewed || 0, pb: G.potionsBrewed || 0, tr: G.totalReagentsCollected || 0, fd: G.totalFailedDiscoveries || 0, aw: aw, o: isOpen };
 };
@@ -3811,6 +3812,7 @@ PotionsM._loadImpl = function(str) {
     PotionsM.updatePotionsBrewedDisplay();
     
     // Restore minigame open/close state
+    var alchemyLab = Game.Objects && Game.Objects['Alchemy lab'];
     if (data.o === 1 && alchemyLab) {
         if (typeof alchemyLab.switchMinigame === 'function') {
             alchemyLab.switchMinigame(true);
