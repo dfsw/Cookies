@@ -125,7 +125,7 @@
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameDownline.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameDownline.js';
     var potionsMinigameScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigamePotions.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@refs/heads/beta/Beta/minigamePotions.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigamePotions.js';
     var cookieAgeScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/cookieAge.js'
@@ -3237,8 +3237,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 var isOpen = !!b.onMinigame;
                 if (cfg) cfg.isOpen = isOpen;
-                // Only update saved state when minigame is loaded to avoid overwriting saved state during boot
-                if (b.minigameLoaded) {
+                // Only update saved state when minigame is loaded and not during save loading
+                if (b.minigameLoaded && !Game.JNE.isLoadingFromSave) {
                     if (!Game.JNE) Game.JNE = {};
                     if (Game.JNE[cfg.jneDataKey + 'IsOpen'] !== isOpen) {
                         Game.JNE[cfg.jneDataKey + 'IsOpen'] = isOpen;
@@ -7550,11 +7550,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             updateMenuButtons();
             
             // Reset the save loading flag after initialization is complete
-            // Ensure Game.JNE exists before resetting the flag
-            if (!Game.JNE) {
-                Game.JNE = {};
-            }
-            Game.JNE.isLoadingFromSave = false;
+            // Delay until after minigame initialization (500ms timeout + buffer)
+            setTimeout(function() {
+                if (!Game.JNE) {
+                    Game.JNE = {};
+                }
+                console.log('[JNE] isLoadingFromSave cleared, potionsSavedDataIsOpen =', Game.JNE.potionsSavedDataIsOpen);
+                Game.JNE.isLoadingFromSave = false;
+            }, 1000);
             
             // Reapply shadow achievement setting
             if (modSettings.shadowAchievements !== undefined) {
@@ -7761,9 +7764,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
             var potionsData = data.pm || '';
             var potionsIsOpen = data.pmo;
+            console.log('[JNE] decompressSaveData: pmo =', potionsIsOpen);
             if (typeof potionsIsOpen === 'boolean') {
                 if (!Game.JNE) Game.JNE = {};
                 Game.JNE.potionsSavedDataIsOpen = potionsIsOpen;
+            }
+            if (potionsData) {
+                try {
+                    var pData = JSON.parse(decodeURIComponent(potionsData));
+                    console.log('[JNE] potions save data has o field:', pData.o);
+                } catch(e) {}
             }
 
             var terminalData = data.t;
@@ -8124,7 +8134,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     // Keep existing Downline minigame cache as-is; there is nothing new to restore.
                     setTerminalMinigameSave('');
                     setHeavenlyUpgradesSave('');
-                    if (Game.JNE) Game.JNE.isLoadingFromSave = false;
+                    // Delay clearing isLoadingFromSave to match the main path
+                    setTimeout(function() {
+                        if (Game.JNE) Game.JNE.isLoadingFromSave = false;
+                    }, 1000);
                     return;
                 }
                 
@@ -9163,7 +9176,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (typeof Game.JNE.enableCookieAgeFromSave === 'undefined') {
             Game.JNE.enableCookieAgeFromSave = false;
         }
-        Game.JNE.isLoadingFromSave = false; // Flag to track save loading state
+        Game.JNE.isLoadingFromSave = true; // Start true so ticker skips updates until first save is loaded
         Game.JNE.cookieAgeProgress = cookieAgeProgress;
         Game.JNE.shadowAchievementMode = shadowAchievementMode;
         Game.JNE.createAchievement = createAchievement;

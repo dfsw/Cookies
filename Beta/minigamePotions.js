@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.0.3';
+const POTIONS_VERSION = '1.0.4';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -3812,7 +3812,8 @@ PotionsM._loadImpl = function(str) {
     PotionsM.updatePotionsBrewedDisplay();
     
     // Restore minigame open/close state
-    if (data.o === 1) {
+    var shouldOpen = data.o === 1 || (data.o === undefined && Game.JNE && Game.JNE.potionsSavedDataIsOpen === true);
+    if (shouldOpen) {
         setTimeout(function() {
             var lab = Game.Objects && Game.Objects['Alchemy lab'];
             if (lab && !lab.onMinigame) {
