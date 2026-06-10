@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.0.2';
+const POTIONS_VERSION = '1.0.3';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -602,7 +602,7 @@ var REAGENTS = [
         icon: [14, 12, 'custom'],
         flavor: "The holy residue of celestial paperwork.",
         gather: "Swap gods in the Pantheon for a chance to capture some divine extraction.",
-        dropChance: 0.43,
+        dropChance: 0.38,
     },
     {
         id: 'rabbit_feet',
@@ -2067,14 +2067,12 @@ PotionsM._registerHooks = function() {
             // Pantheon spirit swap divine_extraction
             var PM = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
             if (PM && PM.slot && Array.isArray(PM.slot) && PM.slot.length >= 3) {
-                var changed = false;
                 for (var s = 0; s < 3; s++) {
-                    if (PM.slot[s] !== PotionsM._lastPantheonSlots[s]) { changed = true; break; }
+                    if (PM.slot[s] !== PotionsM._lastPantheonSlots[s]) {
+                        if (PotionsM.reagentRoll('divine_extraction')) PotionsM._addReagent('divine_extraction', 1, 'pantheon');
+                    }
                 }
-                if (changed) {
-                    if (PotionsM.reagentRoll('divine_extraction')) PotionsM._addReagent('divine_extraction', 1, 'pantheon');
-                    PotionsM._lastPantheonSlots = [PM.slot[0], PM.slot[1], PM.slot[2]];
-                }
+                PotionsM._lastPantheonSlots = [PM.slot[0], PM.slot[1], PM.slot[2]];
             }
         });
         Game._potionsLogicHookRegistered = true;
