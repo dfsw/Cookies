@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.0.2';
+const POTIONS_VERSION = '1.0.3';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -3812,13 +3812,17 @@ PotionsM._loadImpl = function(str) {
     PotionsM.updatePotionsBrewedDisplay();
     
     // Restore minigame open/close state
-    var alchemyLab = Game.Objects && Game.Objects['Alchemy lab'];
-    if (data.o === 1 && alchemyLab) {
-        if (typeof alchemyLab.switchMinigame === 'function') {
-            alchemyLab.switchMinigame(true);
-        } else {
-            alchemyLab.onMinigame = 1;
-        }
+    if (data.o === 1) {
+        setTimeout(function() {
+            var lab = Game.Objects && Game.Objects['Alchemy lab'];
+            if (lab && !lab.onMinigame) {
+                if (typeof lab.switchMinigame === 'function') {
+                    lab.switchMinigame(true);
+                } else {
+                    lab.onMinigame = 1;
+                }
+            }
+        }, 50);
     }
     
     scheduleUnlock();
