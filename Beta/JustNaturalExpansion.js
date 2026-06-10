@@ -3078,6 +3078,44 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                            "}\n" +
                            "//JNE_CORE_END\n";
 
+            var improvedChains = "//JNE_IMPROVED_CHAINS\n" +
+                "if(Game.Has('Improved cookie chains')){" +
+                "if (this.chain==0) this.totalFromChain=0;" +
+                "this.chain++;" +
+                "var digit=me.wrath?6:7;" +
+                "var maxPayout=Math.min(Game.cookiesPs*60*60*6,Game.cookies*0.5)*mult;" +
+                "if (this.chain==1){" +
+                "var finalLevel=Math.floor(Math.log(maxPayout*9/digit/mult)/Math.LN10);" +
+                "var idealStart=Math.max(0,finalLevel-7);" +
+                "var vanillaStart=Math.max(0,Math.ceil(Math.log(Game.cookies)/Math.LN10)-10);" +
+                "this.chain+=Math.min(vanillaStart,idealStart);" +
+                "}" +
+                "var moni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain)*digit*mult),maxPayout));" +
+                "var nextMoni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain+1)*digit*mult),maxPayout));" +
+                "var randomBreak=Math.random()<0.01;" +
+                "var maxPayoutReached=nextMoni>=maxPayout;" +
+                "if (maxPayoutReached&&!randomBreak) moni=maxPayout;" +
+                "this.totalFromChain+=moni;" +
+                "Game.Earn(moni);" +
+                "if (randomBreak||maxPayoutReached){" +
+                "this.chain=0;" +
+                "popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';" +
+                "}else{" +
+                "popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';" +
+                "}" +
+                "Game.Popup(popup,me.x+me.l.offsetWidth/2,me.y);" +
+                "Game.DropEgg(0.9);" +
+                "Game.SparkleAt(me.x+48,me.y+48);" +
+                "PlaySound('snd/shimmerClick.mp3');" +
+                "me.die();" +
+                "if (this.chain>0){" +
+                "this.minTime=this.getMinTime(me);" +
+                "this.maxTime=this.getMaxTime(me);" +
+                "this.time=0;" +
+                "}" +
+                "}" +
+                "//JNE_IMPROVED_CHAINS_END\n";
+
             // === POTIONS MINIGAME MODIFICATIONS ===
             var potionsMod = "//JNE_POTIONS\n" +
                 // Cordial of Tyche + Vapor of Luck effect pool modification
@@ -3192,19 +3230,26 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "}" +
                 "//JNE_END\n";
 
-            // Apply modifications
-            str = str.replace(/(Game\.gainLumps\s*\(\s*1\s*\)\s*;)/, "$1\n" + sweetSorcery);
-            str = str.replace(/var effectDurMod=1;/, "var effectDurMod=1;\n" + effectDurMod);
-            str = str.replace(/var mult=1;/, "var mult=1;\n" + mult);
+            // Apply modifications using exact vanilla patterns
+            str = str.replace("Game.gainLumps(1);", "Game.gainLumps(1);\n" + sweetSorcery);
+            str = str.replace("var effectDurMod=1;", "var effectDurMod=1;\n" + effectDurMod);
+            str = str.replace("var mult=1;", "var mult=1;\n" + mult);
             
-            // Inject at start: selfishness + wrath tracking + storm tracking, then predictor (may return early), then potions overrides
-            str = str.replace(/function\s*\([^)]*\)\s*\{/, function(match) {
-                return match + "\n" + selfishnessMod + wrathMod + stormDevotionMod + predictorMod + potionsMod;
-            });
-            // Inject zodiacGC after var list=[] is defined (runs on every golden cookie pop)
-            str = str.replace(/var list=\[\];/, "var list=[];\n" + zodiacGC);
-            // Inject at end: restore Game.Spend/Popup + reagent drops (skipped if predictor returned early)
-            str = str.replace(/\}\s*$/, '\n' + endMod + '\n}');
+            // Inject at function start after opening brace
+            str = str.replace("function(me){", "function(me){\n" + selfishnessMod + wrathMod + stormDevotionMod + predictorMod + potionsMod);
+            
+            // Inject zodiacGC after var list=[] (exact vanilla pattern)
+            str = str.replace("var list=[];", "var list=[];\n" + zodiacGC);
+            
+            // Replace vanilla chain cookie block (exact known pattern from vanilla source)
+            var vanillaChainBlock = "else if (choice=='chain cookie')\n\t\t\t\t{\n\t\t\t\t\t//fix by Icehawk78\n\t\t\t\t\tif (this.chain==0) this.totalFromChain=0;\n\t\t\t\t\tthis.chain++;\n\t\t\t\t\tvar digit=me.wrath?6:7;\n\t\t\t\t\tif (this.chain==1) this.chain+=Math.max(0,Math.ceil(Math.log(Game.cookies)/Math.LN10)-10);\n\t\t\t\t\t\n\t\t\t\t\tvar maxPayout=Math.min(Game.cookiesPs*60*60*6,Game.cookies*0.5)*mult;\n\t\t\t\t\tvar moni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain)*digit*mult),maxPayout));\n\t\t\t\t\tvar nextMoni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain+1)*digit*mult),maxPayout));\n\t\t\t\t\tthis.totalFromChain+=moni;\n\n\t\t\t\t\t//break the chain if we're above 5 digits AND it's more than 50% of our bank, it grants more than 6 hours of our CpS, or just a 1% chance each digit (update : removed digit limit)\n\t\t\t\t\tif (Math.random()<0.01 || nextMoni>=maxPayout)\n\t\t\t\t\t{\n\t\t\t\t\t\tthis.chain=0;\n\t\t\t\t\t\tpopup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tpopup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';\n\t\t\t\t\t}\n\t\t\t\t\tGame.Earn(moni);";
+            str = str.replace(vanillaChainBlock, "else if (choice=='chain cookie'){" + improvedChains);
+            
+            // Inject at function end before closing brace (find the last brace in the function)
+            var lastBraceIndex = str.lastIndexOf('}');
+            if (lastBraceIndex !== -1) {
+                str = str.substring(0, lastBraceIndex) + '\n' + endMod + '\n' + str.substring(lastBraceIndex);
+            }
 
             Game.shimmerTypes['golden']._jneOrigPopFunc = originalPopFunc; // Captured before eval for predictor mode
             Game.shimmerTypes['golden'].popFunc = eval('(' + str + ')');

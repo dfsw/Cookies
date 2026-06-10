@@ -77,7 +77,7 @@
                     { id: 'Seasonal duration', owned: function() { return true; }, ready: function() { return !!Game.getSeasonDuration; }, done: function() { return !!(Game.getSeasonDuration && Game.getSeasonDuration._heavenlyUpgradesHooked); }, setup: setupSeasonalDuration },
                     { id: 'Cookie display unit', owned: function() { return true; }, ready: function() { return !!Game.Draw; }, done: function() { return !!(Game.Draw && Game.Draw._jneCookieDisplayHooked); }, setup: setupCookieDisplayUnit },
                     { id: 'Shiny wrinklers spawn', owned: function() { return true; }, ready: function() { return !!Game.SpawnWrinkler; }, done: function() { return !!(Game.SpawnWrinkler && Game.SpawnWrinkler._jneShinyHooked); }, setup: setupShinyWrinklers },
-                    { id: 'Improved cookie chains', owned: function() { return Game.Has('Improved cookie chains'); }, ready: function() { var st = Game.shimmerTypes && Game.shimmerTypes['golden']; return !!(st && st.popFunc); }, done: function() { var st = Game.shimmerTypes && Game.shimmerTypes['golden']; return !!(st && st._improvedChainsHooked); }, setup: setupImprovedCookieChains },
+                    { id: 'Improved cookie chains', owned: function() { return Game.Has('Improved cookie chains'); }, ready: function() { return true; }, done: function() { return !!Game._improvedChainsHandled; }, setup: function() { /* Handled in JustNaturalExpansion.js */ } },
                     { id: 'Pantheon spirit effects', owned: function() { return true; }, ready: function() { var M = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame; var st = Game.shimmerTypes && Game.shimmerTypes.golden; return !!(M && M.slotGod && st && st.popFunc && st.spawnConditions); }, done: function() { var M = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame; return !!(M && M._spiritEffectsSetup); }, setup: setupPantheonSpiritEffects },
                     { id: 'Cyclius swatch', owned: function() { return Game.Has('Cyclius swatch'); }, ready: function() { var M = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame; return !!(Game.registerHook && M && M.gods && M.gods['ages']); }, done: function() { return !!Game._cycliusSwatchHooked; }, setup: setupCycliusSwatch },
                     { id: 'Shiny wrinkler spell', owned: function() { return Game.Has('Skitter skatter skrum ahh') || Game.Has('Abra-Ka-Wiggle') || Game.Has('Alakazoodle evil noodle'); }, ready: function() { var M = Game.Objects && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame; return !!(M && M.castSpell); }, done: function() { var M = Game.Objects && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame; return !!(M && M._shinyWrinklerHooked); }, setup: setupShinyWrinklerSpell },
@@ -3275,97 +3275,8 @@
          * based on maxPayout instead, giving ~7 chain clicks that end with maxPayout. End result is
          * player gets the same amount from the cookie chain but gets more spawns on it feeling more like the vanilla approach
          */
-    function setupImprovedCookieChains() {
-        if (!Game.shimmerTypes) return;
-        
-        var shimmerType = Game.shimmerTypes['golden'];
-        if (!shimmerType || !shimmerType.popFunc || shimmerType._improvedChainsHooked) return;
-        
-        var originalPopFunc = shimmerType.popFunc;
-        
-        shimmerType.popFunc = function(me) {
-            if (!Game.Has || !Game.Has('Improved cookie chains')) { //we dont have upgrade let vanilla do everything
-                return originalPopFunc.call(this, me);
-            }
-            
-            var isChainCookie = this.chain > 0 || me.force === 'chain cookie'; //This isnt a cookie chain let vanilla do everything
-            if (!isChainCookie) {
-                return originalPopFunc.call(this, me);
-            }
-            
-            // Vanilla logic to award achievements and such
-            if (me.spawnLead) {
-                Game.goldenClicks++;
-                Game.goldenClicksLocal++;
-                if (Game.goldenClicks >= 1) Game.Win('Golden cookie');
-                if (Game.goldenClicks >= 7) Game.Win('Lucky cookie');
-                if (Game.goldenClicks >= 27) Game.Win('A stroke of luck');
-                if (Game.goldenClicks >= 77) Game.Win('Fortune');
-                if (Game.goldenClicks >= 777) Game.Win('Leprechaun');
-                if (Game.goldenClicks >= 7777) Game.Win('Black cat\'s paw');
-                if (Game.goldenClicks >= 27777) Game.Win('Seven horseshoes');
-                if (Game.goldenClicks >= 7) Game.Unlock('Lucky day');
-                if (Game.goldenClicks >= 27) Game.Unlock('Serendipity');
-                if (Game.goldenClicks >= 77) Game.Unlock('Get lucky');
-                if ((me.life / Game.fps) > (me.dur - 1)) Game.Win('Early bird');
-                if (me.life < Game.fps) Game.Win('Fading luck');
-                if (me.wrath) Game.Win('Wrath cookie');
-            }
-            if (Game.forceUnslotGod && Game.forceUnslotGod('asceticism')) Game.useSwap(1000000);
-            
-            // Effect multiplier
-            var mult = 1;
-            if (me.wrath > 0) mult *= 1 + Game.auraMult('Unholy Dominion') * 0.1;
-            else mult *= 1 + Game.auraMult('Ancestral Metamorphosis') * 0.1;
-            if (Game.Has('Green yeast digestives')) mult *= 1.01;
-            if (Game.Has('Dragon fang')) mult *= 1.03;
-            mult *= me.wrath ? Game.eff('wrathCookieGain') : Game.eff('goldenCookieGain');
-            
-            if (this.chain === 0) this.totalFromChain = 0;
-            this.chain++;
-            var digit = me.wrath ? 6 : 7;
-            var maxPayout = Math.min(Game.cookiesPs * 60 * 60 * 6, Game.cookies * 0.5) * mult;
-            
-            if (this.chain === 1) {
-                var finalLevel = Math.floor(Math.log(maxPayout * 9 / digit / mult) / Math.LN10);
-                var idealStart = Math.max(0, finalLevel - 7);
-                var vanillaStart = Math.max(0, Math.ceil(Math.log(Game.cookies) / Math.LN10) - 10);
-                this.chain += Math.min(vanillaStart, idealStart);
-            }
-            
-            var moni = Math.max(digit, Math.min(Math.floor(1 / 9 * Math.pow(10, this.chain) * digit * mult), maxPayout));
-            var nextMoni = Math.max(digit, Math.min(Math.floor(1 / 9 * Math.pow(10, this.chain + 1) * digit * mult), maxPayout));
-            var randomBreak = Math.random() < 0.01;
-            var maxPayoutReached = nextMoni >= maxPayout;
-            
-            if (maxPayoutReached && !randomBreak) moni = maxPayout;
-            
-            this.totalFromChain += moni;
-            Game.Earn(moni);
-            
-            var popup;
-            if (randomBreak || maxPayoutReached) {
-                this.chain = 0;
-                popup = loc("Cookie chain") + '<br><small>' + loc("+%1!", loc("%1 cookie", LBeautify(moni))) + '<br>' + loc("Cookie chain over. You made %1.", loc("%1 cookie", LBeautify(this.totalFromChain))) + '</small>';
-            } else {
-                popup = loc("Cookie chain") + '<br><small>' + loc("+%1!", loc("%1 cookie", LBeautify(moni))) + '</small>';
-            }
-            
-            Game.Popup(popup, me.x + me.l.offsetWidth / 2, me.y);
-            Game.DropEgg(0.9);
-            Game.SparkleAt(me.x + 48, me.y + 48);
-            PlaySound('snd/shimmerClick.mp3');
-            me.die();
-            
-            if (this.chain > 0) {
-                this.minTime = this.getMinTime(me);
-                this.maxTime = this.getMaxTime(me);
-                this.time = 0;
-            }
-        };
-        
-        shimmerType._improvedChainsHooked = true;
-    }
+    // Improved cookie chains is now handled in JustNaturalExpansion.js via centralized eval injection
+    // This avoids wrapper conflicts and keeps all golden cookie modifications in one place
 
         function setupGoldenCookiePredictor() {
             if (!Game.registerHook || Game._goldenCookiePredictorHooked) return;
