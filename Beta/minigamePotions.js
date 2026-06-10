@@ -3672,7 +3672,9 @@ PotionsM._buildSaveDataImpl = function() {
 
     // rn/pn: record how many reagents/potions exist at save time.
     // On load, if counts differ a new ingredient/potion was added — safe to ignore extras.
-    return { v: 1, rn: REAGENTS.length, pn: POTIONS.length, r: r, p: p, s: s, b: b, x: x, tb: G.totalPotionsBrewed || 0, pb: G.potionsBrewed || 0, tr: G.totalReagentsCollected || 0, fd: G.totalFailedDiscoveries || 0, aw: aw };
+    // Save onMinigame state (0 = closed, 1 = open)
+    var isOpen = alchemyLab && alchemyLab.onMinigame ? 1 : 0;
+    return { v: 1, rn: REAGENTS.length, pn: POTIONS.length, r: r, p: p, s: s, b: b, x: x, tb: G.totalPotionsBrewed || 0, pb: G.potionsBrewed || 0, tr: G.totalReagentsCollected || 0, fd: G.totalFailedDiscoveries || 0, aw: aw, o: isOpen };
 };
 
 PotionsM._saveImpl = function() {
@@ -3809,6 +3811,15 @@ PotionsM._loadImpl = function(str) {
     PotionsM._buildCatalog();
     if (PotionsM._updateEffs) PotionsM._updateEffs();
     PotionsM.updatePotionsBrewedDisplay();
+    
+    // Restore minigame open/close state
+    if (data.o === 1 && alchemyLab) {
+        if (typeof alchemyLab.switchMinigame === 'function') {
+            alchemyLab.switchMinigame(true);
+        } else {
+            alchemyLab.onMinigame = 1;
+        }
+    }
     
     scheduleUnlock();
 };
@@ -3953,21 +3964,9 @@ function initializePotionsMinigame() {
         ensureMinigameDiv();
         PotionsM.launch();
         PotionsM.init(alchemyLab.minigameDiv);
+        // Load saved data (includes restoring onMinigame state in _loadImpl)
         if (Game.JNE && Game.JNE.potionsSavedData) PotionsM.load(Game.JNE.potionsSavedData);
         
-        // Restore saved open/close state (delayed to ensure building is ready)
-        var savedIsOpen = Game.JNE && Game.JNE.potionsSavedDataIsOpen;
-        if (typeof savedIsOpen === 'boolean') {
-            setTimeout(function() {
-                if (savedIsOpen) {
-                    if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(true);
-                    else alchemyLab.onMinigame = 1;
-                } else {
-                    if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(false);
-                    else alchemyLab.onMinigame = 0;
-                }
-            }, 500);
-        }
         if (typeof PotionsM.createAchievements === 'function') PotionsM.createAchievements();
         if (!alchemyLab.minigame) alchemyLab.minigame = PotionsM;
         if (!alchemyLab.minigameUrl) {
@@ -3990,21 +3989,8 @@ function initializePotionsMinigame() {
                 PotionsM.launch();
                 ensureMinigameDiv();
                 PotionsM.init(alchemyLab.minigameDiv);
+                // Load saved data (includes restoring onMinigame state in _loadImpl)
                 if (Game.JNE && Game.JNE.potionsSavedData) PotionsM.load(Game.JNE.potionsSavedData);
-                
-                // Restore saved open/close state (delayed to ensure building is ready)
-                var savedIsOpen = Game.JNE && Game.JNE.potionsSavedDataIsOpen;
-                if (typeof savedIsOpen === 'boolean') {
-                    setTimeout(function() {
-                        if (savedIsOpen) {
-                            if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(true);
-                            else alchemyLab.onMinigame = 1;
-                        } else {
-                            if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(false);
-                            else alchemyLab.onMinigame = 0;
-                        }
-                    }, 500);
-                }
             }
         } catch (e) {
             alchemyLab.minigameLoading = false;
