@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const DOWNLINE_VERSION = '1.0.4';
+const DOWNLINE_VERSION = '1.0.5';
 
 var downlineAchievementNames = [
     'Popularity factor',
@@ -66,7 +66,8 @@ var G = {
     frozen: false,
     lumpSpeedBoostEnd: 0,
     lastTickTime: 0,
-    actionDurationMult: 1
+    actionDurationMult: 1,
+    lastPivotTime: 0
 };
 
 var lumpBoostState = {
@@ -1803,7 +1804,7 @@ DownlineM.init = function(div) {
         headline: 'Cookie Clicker the Motion Picture premieres to packed theaters — finishes to half empty theaters' },
 
       { name: 'Pivot!', icon: [15,17], sheet: 'custom', durationSec: 0, costCps: 24 * 60 * 60,
-        desc: 'Immediately stop all actions.',
+        desc: 'Immediately stop all actions, may be used once every hour.',
         flavor: 'Wait this isn\'t really working. CHANGE EVERYTHING RIGHT NOW!',
         unlock: { conditions: [{ stat: 'players', min: 250 }]},
         special: 'pivot',
@@ -2243,6 +2244,17 @@ DownlineM.init = function(div) {
           parts.push('<div class="effects">' + lines.map(function (l) { return '<div class="' + (l.positive ? 'green' : 'red') + '">&bull; ' + escapeTooltipHtml(l.text) + '</div>'; }).join('') + '</div>');
         }
       }
+      if (def && def.special === 'pivot') {
+        var now = Date.now();
+        var cooldownMs = 60 * 60 * 1000; 
+        var cooldownRemaining = 0;
+        if (G.lastPivotTime && now - G.lastPivotTime < cooldownMs) {
+          cooldownRemaining = cooldownMs - (now - G.lastPivotTime);
+        }
+        if (cooldownRemaining > 0) {
+          parts.push('<div class="cooldown"><span class="red">Cooldown remaining: ' + escapeTooltipHtml(formatRemaining(cooldownRemaining / 1000)) + '</span></div>');
+        }
+      }
       if (isChip) {
         var stateIndex = parseInt(el.getAttribute('data-state-index'), 10);
         var action = !isNaN(stateIndex) && G.activeActions[stateIndex];
@@ -2446,6 +2458,12 @@ DownlineM.init = function(div) {
       var name = link.getAttribute('data-name'), def = ACTIONS[name];
       if (!def || !def.isUsable()) return;
       if (def.special === 'pivot') {
+        var now = Date.now();
+        var cooldownMs = 60 * 60 * 1000; 
+        if (G.lastPivotTime && now - G.lastPivotTime < cooldownMs) {
+          return; // Cooldown active
+        }
+        G.lastPivotTime = now;
         G.activeActions.length = 0; renderActiveSlots(); activeCountEl.textContent = 0; return;
       }
       if (def.special === 'rebrand') {
@@ -3155,6 +3173,7 @@ DownlineM.init = function(div) {
         pendingNewPlayers: G.pendingNewPlayers || 0,
         frozen: !!G.frozen,
         lumpSpeedBoostEnd: G.lumpSpeedBoostEnd || 0,
+        lastPivotTime: G.lastPivotTime || 0,
         activeActions: G.activeActions.map(function (a) {
           return { name: a.name, totalSec: a.totalSec, remainSec: a.remainSec };
         })
@@ -3254,6 +3273,9 @@ DownlineM.init = function(div) {
       G.frozen = !!data.frozen;
       if (typeof data.lumpSpeedBoostEnd === 'number') {
         G.lumpSpeedBoostEnd = data.lumpSpeedBoostEnd;
+      }
+      if (typeof data.lastPivotTime === 'number') {
+        G.lastPivotTime = data.lastPivotTime;
       }
 
       G.activeActions = [];

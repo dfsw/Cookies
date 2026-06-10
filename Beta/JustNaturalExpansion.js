@@ -125,7 +125,7 @@
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameDownline.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameDownline.js';
     var potionsMinigameScriptUrl = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@refs/heads/beta/Beta/minigamePotions.js'
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigamePotions.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigamePotions.js';
     var cookieAgeScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/cookieAge.js'
@@ -4610,10 +4610,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     name: 'Lunar New Year',
                     start: 'Lunar New Year season has started!',
                     over: 'Lunar New Year season is over.',
-                    trigger: 'Lunar biscuit'
+                    trigger: 'Lunar biscuit',
+                    endIcon: [6, 13, getSpriteSheet('custom')]
                 };
 
-                // Create the trigger upgrade (exactly like vanilla biscuits)
+                // Create the trigger upgrade
                 new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, [9, 12, getSpriteSheet('custom')]);
                 Game.last.season = 'lunarnewyear';
                 Game.last.pool = 'toggle';
@@ -4634,7 +4635,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
                     }
                     if (Game.season != '' && Game.season != this.season) {
-                        Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', Game.seasons[Game.season].triggerUpgrade.icon, 4);
+                        var endIcon = Game.seasons[Game.season].endIcon || Game.seasons[Game.season].triggerUpgrade.icon;
+                        Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', endIcon, 4);
                     }
                     Game.season = this.season;
                     Game.seasonT = Game.getSeasonDuration();
@@ -4650,12 +4652,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     Game.upgradesToRebuild = 1;
                 };
 
-                // Add clickFunction to allow exiting LNY when clicked again (like vanilla biscuits)
                 lunarBiscuit.clickFunction = function(me) {
                     return function() {
                         if (me.bought && Game.season && me == Game.seasons[Game.season].triggerUpgrade) {
                             me.lose();
-                            Game.Notify(Game.seasons[Game.season].over, '', Game.seasons[Game.season].triggerUpgrade.icon);
+                            var endIcon = Game.seasons[Game.season].endIcon || Game.seasons[Game.season].triggerUpgrade.icon;
+                            Game.Notify(Game.seasons[Game.season].over, '', endIcon);
                             if (Game.Has('Season switcher')) {
                                 Game.Unlock(Game.seasons[Game.season].trigger);
                                 Game.seasons[Game.season].triggerUpgrade.bought = 0;
@@ -5862,7 +5864,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             reset: function() {
                 if (Game.season !== 'lunarnewyear') return; // Skip reset outside season
                 this.n = 0;
-                this.time = 0;
+                this.time = -1;
                 this.spawned = 0;
                 this.minTime = this.getMinTime(this);
                 this.maxTime = this.getMaxTime(this);
@@ -5989,11 +5991,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 return Math.ceil(Game.fps * 60 * m);
             },
             getMinTime: function(me) {
-                var m = 20 / 60; //FIXME: 10 seconds for testing 3 min
+                var m = 2; 
                 return this.getTimeMod(me, m);
             },
             getMaxTime: function(me) {
-                var m = 30 / 60; //FIXME: 10 seconds for testing 5 min
+                var m = 4; 
                 return this.getTimeMod(me, m);
             }
         };
@@ -7550,12 +7552,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             updateMenuButtons();
             
             // Reset the save loading flag after initialization is complete
-            // Delay until after minigame initialization (500ms timeout + buffer)
             setTimeout(function() {
                 if (!Game.JNE) {
                     Game.JNE = {};
                 }
-                console.log('[JNE] isLoadingFromSave cleared, potionsSavedDataIsOpen =', Game.JNE.potionsSavedDataIsOpen);
                 Game.JNE.isLoadingFromSave = false;
             }, 1000);
             
@@ -7764,16 +7764,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
             var potionsData = data.pm || '';
             var potionsIsOpen = data.pmo;
-            console.log('[JNE] decompressSaveData: pmo =', potionsIsOpen);
             if (typeof potionsIsOpen === 'boolean') {
                 if (!Game.JNE) Game.JNE = {};
                 Game.JNE.potionsSavedDataIsOpen = potionsIsOpen;
-            }
-            if (potionsData) {
-                try {
-                    var pData = JSON.parse(decodeURIComponent(potionsData));
-                    console.log('[JNE] potions save data has o field:', pData.o);
-                } catch(e) {}
             }
 
             var terminalData = data.t;
