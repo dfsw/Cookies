@@ -3276,7 +3276,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 modTracking.currentZodiacStartTime = 0;
                 return;
             }
-            var zodiac = typeof getLunarZodiacYear === 'function' ? getLunarZodiacYear() : null;
+            var zodiac = Game.JNE && typeof Game.JNE.getLunarZodiacYear === 'function' ? Game.JNE.getLunarZodiacYear() : null;
             if (!zodiac) return;
             var animal = zodiac.animal;
             // If timer is 0 or zodiac changed (detected by recalculating expected zodiac for current seasonUses), reset timer
@@ -4647,7 +4647,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     Game.seasonT = Game.getSeasonDuration();
                     var isLNY = Game.season === 'lunarnewyear';
                     if (isLNY) {
-                        var zodiac = getLunarZodiacYear();
+                        var zodiac = Game.JNE.getLunarZodiacYear();
                         Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
                         if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
                             Game.shimmerTypes['lantern'].reset();
@@ -4690,7 +4690,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 Game.Upgrades['Lunar biscuit'].descFunc = function() {
                     var zodiacStr = '';
                     if (Game.season === 'lunarnewyear') {
-                        var zodiac = getLunarZodiacYear();
+                        var zodiac = Game.JNE.getLunarZodiacYear();
                         zodiacStr = '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
                     }
                     return zodiacStr + '<div style="text-align:center;">' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.desc;
@@ -5903,7 +5903,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 me.l.setAttribute('alt', 'Lantern');
 
                 var dur = 4 + Math.random() * 2; // 4-6s base, randomized
-                var zodiac = getLunarZodiacYear();
+                var zodiac = Game.JNE.getLunarZodiacYear();
                 var zodiacMult = getZodiacEffectMultiplier();
                 var durMod = 1;
                 if (zodiac && zodiac.animal === 'Sheep') durMod = 1.50;
@@ -5944,7 +5944,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 if (Game.hasBuff('Frenzy')) val *= 0.75;
                 var moni = Math.max(168, val);
 
-                var zodiac = getLunarZodiacYear();
+                var zodiac = Game.JNE.getLunarZodiacYear();
                 var zodiacMult = getZodiacEffectMultiplier();
                 var valMod = 1;
                 if (zodiac && zodiac.animal === 'Monkey') valMod = 1.20;
@@ -5974,7 +5974,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             minTime: 0,
             maxTime: 0,
             getTimeMod: function(me, m) {
-                var zodiac = getLunarZodiacYear();
+                var zodiac = Game.JNE.getLunarZodiacYear();
                 var zodiacMult = getZodiacEffectMultiplier();
                 var spawnMod = 1;
                 if (zodiac && zodiac.animal === 'Dog') spawnMod = 0.50;
