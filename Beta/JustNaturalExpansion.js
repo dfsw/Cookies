@@ -5945,6 +5945,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 valMod = 1 + (valMod - 1) * zodiacMult; // Apply seasons god bonus
                 moni *= valMod;
 
+                // Apply potion effects for lantern gains
+                if (Game.hasBuff('Whisper of Boreas')) moni *= 1.2;
+                if (Game.hasBuff('Whisper of Boreas (misbrewed)')) moni *= 0.5;
+
                 Game.Earn(moni);
                 var moniStr = loc('%1 cookie', LBeautify(moni));
                 Game.Notify('You found a lantern!', 'The lantern gives you ' + moniStr + '.', [23, 24, getSpriteSheet('custom')], 6);
@@ -5971,6 +5975,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                 spawnMod = 1 - (1 - spawnMod) * zodiacMult;
                 m *= spawnMod;
+
+                // Apply potion effects for lantern frequency
+                if (Game.hasBuff('Decoction of Winter')) m *= 0.75;
+                if (Game.hasBuff('Decoction of Winter (misbrewed)')) m = Infinity;
               
                 if (zodiacMult > 1) {
                     var godLvl = Game.hasGod && Game.hasGod('seasons') > 0 ? Game.hasGod('seasons') : 0;

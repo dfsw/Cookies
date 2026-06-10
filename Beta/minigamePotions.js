@@ -466,10 +466,10 @@ var POTIONS = [
         name: "Decoction of Winter",
         icon: [21, 26, 'custom'],
         desc: "Winter is coming. What a waste that whole thing ended up being. Is this a good platform to rant about an old TV show on? I don\'t really care if it is or not, I am still bitter and pissed off about the whole thing.",
-        effect: "Reindeer are 25% more common for the next hour.",
+        effect: "Reindeer and lanterns are 25% more common for the next hour.",
         brewTime: 60*15,
         duration: 3600,
-        misbrew: "Reindeer do not spawn for the next hour.",
+        misbrew: "Reindeer and lanterns do not spawn for the next hour.",
         reagents: { reindeer_fur: 1, culture_of_time: 1, captured_auroras: 1 },
     },
     {
@@ -487,10 +487,10 @@ var POTIONS = [
         name: "Whisper of Boreas",
         icon: [19, 26, 'custom'],
         desc: "The North remembers. Okay, thats my seconds Game of Thrones reference in this minigame, I\'m done I promise.",
-        effect: "Reindeer gains are increased by 20% for 30 minutes.",
+        effect: "Reindeer and lantern gains are increased by 20% for 30 minutes.",
         brewTime: 60*45,
         duration: 1800,
-        misbrew: "Reindeer gains are reduced by 50% for an hour.",
+        misbrew: "Reindeer and lantern gains are reduced by 50% for an hour.",
         reagents: { reindeer_fur: 1, flower_petals: 1, roots: 1 },
     },
     {
@@ -1009,8 +1009,8 @@ function updatePotionEffects() {
         }
     );
     def('decoction_of_winter',
-        function(p) { Game.killBuff('Decoction of Winter (misbrewed)'); Game.gainBuff('Decoction of Winter', 3600, 1.25); Game.Notify(p.name + ' consumed', 'Reindeer are 25% more common for the next hour.', getIconArray(p), 6); },
-        function(p) { Game.killBuff('Decoction of Winter'); Game.gainBuff('Decoction of Winter (misbrewed)', 3600, 0); Game.Notify(p.name + ' misbrewed', 'Reindeer do not spawn for the next hour.', getIconArray(p), 6); }
+        function(p) { Game.killBuff('Decoction of Winter (misbrewed)'); Game.gainBuff('Decoction of Winter', 3600, 1.25); Game.Notify(p.name + ' consumed', 'Reindeer and lanterns are 25% more common for the next hour.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Decoction of Winter'); Game.gainBuff('Decoction of Winter (misbrewed)', 3600, 0); Game.Notify(p.name + ' misbrewed', 'Reindeer and lanterns do not spawn for the next hour.', getIconArray(p), 6); }
     );
     def('blood_of_the_craftsman',
         function(p) {
@@ -1249,8 +1249,8 @@ function updatePotionEffects() {
         function(p) { Game.killBuff('Ember of Dragon Fire'); Game.gainBuff('Ember of Dragon Fire (misbrewed)', 3600, 0.7); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Golden cookie gains reduced by 30% for 30 minutes.', getIconArray(p), 6); }
     );
     def('whisper_of_boreas',
-        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Reindeer gains increased by 20% for 30 minutes.', getIconArray(p), 6); },
-        function(p) { Game.killBuff('Whisper of Boreas'); Game.gainBuff('Whisper of Boreas (misbrewed)', 3600, 0.5); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Reindeer gains reduced by 50% for an hour.', getIconArray(p), 6); }
+        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Reindeer and lantern gains increased by 20% for 30 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Whisper of Boreas'); Game.gainBuff('Whisper of Boreas (misbrewed)', 3600, 0.5); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Reindeer and lantern gains reduced by 50% for an hour.', getIconArray(p), 6); }
     );
     def('breath_of_growth',
         function(p) {
@@ -1823,10 +1823,15 @@ createPotionBuffType('Decoction of Winter', 'decoction_of_winter', false);
 createPotionBuffType('Decoction of Winter (misbrewed)', 'decoction_of_winter', true, {
     onDie: function() {
         if (PotionsM._updateEffs) PotionsM._updateEffs();
-        // vanilla really doesnt like shimmer timers to be set to infinite so in order to break it we just force spawn a reindeer onDie. 
+        // vanilla really doesnt like shimmer timers to be set to infinite so in order to break it we just force spawn a reindeer onDie.
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer'] && Game.season === 'christmas') {
             var newShimmer = new Game.shimmer('reindeer');
             newShimmer.spawnLead = 1;
+        }
+        // Also force spawn a lantern if in Lunar New Year season
+        if (Game.shimmerTypes && Game.shimmerTypes['lantern'] && Game.season === 'lunarnewyear') {
+            var newLantern = new Game.shimmer('lantern');
+            newLantern.spawnLead = 1;
         }
     }
 });
@@ -3986,6 +3991,20 @@ function initializePotionsMinigame() {
                 ensureMinigameDiv();
                 PotionsM.init(alchemyLab.minigameDiv);
                 if (Game.JNE && Game.JNE.potionsSavedData) PotionsM.load(Game.JNE.potionsSavedData);
+                
+                // Restore saved open/close state (delayed to ensure building is ready)
+                var savedIsOpen = Game.JNE && Game.JNE.potionsSavedDataIsOpen;
+                if (typeof savedIsOpen === 'boolean') {
+                    setTimeout(function() {
+                        if (savedIsOpen) {
+                            if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(true);
+                            else alchemyLab.onMinigame = 1;
+                        } else {
+                            if (typeof alchemyLab.switchMinigame === 'function') alchemyLab.switchMinigame(false);
+                            else alchemyLab.onMinigame = 0;
+                        }
+                    }, 500);
+                }
             }
         } catch (e) {
             alchemyLab.minigameLoading = false;
