@@ -1874,7 +1874,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 <a class="option" id="toggle-minigames" style="text-decoration:none;color:${modSettings.enableMinigames ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
                                     Minigames<br><b style="font-size:12px;">${modSettings.enableMinigames ? 'ON' : 'OFF'}</b>
                                 </a>
-                                <label>${modSettings.enableMinigames ? '(Enables minigames for JS Consoles (v' + (window.TerminalMinigame ? window.TerminalMinigame.VERSION : '?') + '), Fractal Engines (v' + (window.DownlineMinigame ? window.DownlineMinigame.VERSION : '?') + '), and Alchemy Labs (v' + (window.PotionsMinigame ? window.PotionsMinigame.VERSION : '?') + ')).)' : '(Enables minigames for JS Consoles, Fractal Engines, and Alchemy Labs.)'}</label>
+                                <label>${modSettings.enableMinigames ? '(Enables minigames for JS Consoles (v' + (window.TerminalMinigame ? window.TerminalMinigame.VERSION : '?') + '), Fractal Engines (v' + (window.DownlineMinigame ? window.DownlineMinigame.VERSION : '?') + '), and Alchemy Labs (v' + (window.PotionsMinigame ? window.PotionsMinigame.VERSION : '?') + ').)' : '(Enables minigames for JS Consoles, Fractal Engines, and Alchemy Labs.)'}</label>
                             </div>
                             <div class="listing">
                                 <a class="option" id="toggle-extra-seasons" style="text-decoration:none;color:${modSettings.enableExtraSeasons ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
@@ -3040,11 +3040,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Inject JNE modifications into the vanilla golden cookie popFunc. must run before any external script wraps popFunc.
     function injectGoldenPopFunc() {
         if (!Game.shimmerTypes || !Game.shimmerTypes['golden']) return;
-        // Clear flag to allow re-injection after fixes
-        delete Game.shimmerTypes['golden']._effectInjected;
+        
+        // If already injected, skip to prevent double-injection
+        if (Game.shimmerTypes['golden']._effectInjected) return;
 
         var originalPopFunc = Game.shimmerTypes['golden'].popFunc;
         if (!originalPopFunc) return;
+        
+        // If we have a captured original, use it to prevent re-injecting into modified code
+        if (Game.shimmerTypes['golden']._jneOrigPopFunc) {
+            originalPopFunc = Game.shimmerTypes['golden']._jneOrigPopFunc;
+        }
 
         try {
             var str = originalPopFunc.toString();
@@ -3079,7 +3085,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                            "//JNE_CORE_END\n";
 
             var improvedChains = "//JNE_IMPROVED_CHAINS\n" +
-                "if(Game.Has('Improved cookie chains')){" +
+                "if(Game.Has('Improved cookie chains')&&!me._predictionMode){" +
                 "if (this.chain==0) this.totalFromChain=0;" +
                 "this.chain++;" +
                 "var digit=me.wrath?6:7;" +
@@ -3096,18 +3102,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 "var maxPayoutReached=nextMoni>=maxPayout;" +
                 "if (maxPayoutReached&&!randomBreak) moni=maxPayout;" +
                 "this.totalFromChain+=moni;" +
-                "Game.Earn(moni);" +
                 "if (randomBreak||maxPayoutReached){" +
                 "this.chain=0;" +
-                "popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';" +
-                "}else{" +
-                "popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';" +
                 "}" +
-                "Game.Popup(popup,me.x+me.l.offsetWidth/2,me.y);" +
-                "Game.DropEgg(0.9);" +
-                "Game.SparkleAt(me.x+48,me.y+48);" +
-                "PlaySound('snd/shimmerClick.mp3');" +
-                "me.die();" +
                 "if (this.chain>0){" +
                 "this.minTime=this.getMinTime(me);" +
                 "this.maxTime=this.getMaxTime(me);" +
@@ -3216,8 +3213,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
             // === CLEANUP + REAGENT DROPS ===
             var endMod = "//JNE_CLEANUP\n" +
-                "if(_jneOrigSpend)Game.Spend=_jneOrigSpend;" +
-                "if(_jneOrigPopup)Game.Popup=_jneOrigPopup;" +
+                "if(typeof _jneOrigSpend!=='undefined')Game.Spend=_jneOrigSpend;" +
+                "if(typeof _jneOrigPopup!=='undefined')Game.Popup=_jneOrigPopup;" +
                 "if(typeof PotionsM!=='undefined'&&PotionsM&&PotionsM.reagentRollOne&&PotionsM.G&&PotionsM.G.reagents&&!me._predictionMode){" +
                     "var _jneIsWrath=me.wrath>0;" +
                     "var _jneSeason=Game.season||'';" +
@@ -3236,14 +3233,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             str = str.replace("var mult=1;", "var mult=1;\n" + mult);
             
             // Inject at function start after opening brace
-            str = str.replace("function(me){", "function(me){\n" + selfishnessMod + wrathMod + stormDevotionMod + predictorMod + potionsMod);
+            // Match vanilla format: function(me)\n\t\t\t\t{
+            var funcStartRegex = /function\(me\)\s*\n\s*\{/;
+            str = str.replace(funcStartRegex, "function(me){\n" + selfishnessMod + wrathMod + stormDevotionMod + predictorMod + potionsMod);
             
             // Inject zodiacGC after var list=[] (exact vanilla pattern)
             str = str.replace("var list=[];", "var list=[];\n" + zodiacGC);
             
-            // Replace vanilla chain cookie block (exact known pattern from vanilla source)
-            var vanillaChainBlock = "else if (choice=='chain cookie')\n\t\t\t\t{\n\t\t\t\t\t//fix by Icehawk78\n\t\t\t\t\tif (this.chain==0) this.totalFromChain=0;\n\t\t\t\t\tthis.chain++;\n\t\t\t\t\tvar digit=me.wrath?6:7;\n\t\t\t\t\tif (this.chain==1) this.chain+=Math.max(0,Math.ceil(Math.log(Game.cookies)/Math.LN10)-10);\n\t\t\t\t\t\n\t\t\t\t\tvar maxPayout=Math.min(Game.cookiesPs*60*60*6,Game.cookies*0.5)*mult;\n\t\t\t\t\tvar moni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain)*digit*mult),maxPayout));\n\t\t\t\t\tvar nextMoni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain+1)*digit*mult),maxPayout));\n\t\t\t\t\tthis.totalFromChain+=moni;\n\n\t\t\t\t\t//break the chain if we're above 5 digits AND it's more than 50% of our bank, it grants more than 6 hours of our CpS, or just a 1% chance each digit (update : removed digit limit)\n\t\t\t\t\tif (Math.random()<0.01 || nextMoni>=maxPayout)\n\t\t\t\t\t{\n\t\t\t\t\t\tthis.chain=0;\n\t\t\t\t\t\tpopup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tpopup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';\n\t\t\t\t\t}\n\t\t\t\t\tGame.Earn(moni);";
-            str = str.replace(vanillaChainBlock, "else if (choice=='chain cookie'){" + improvedChains);
+            // Replace vanilla chain cookie block using regex with flexible whitespace
+            // Match entire vanilla chain block from else if to closing brace
+            var chainRegex = /else\s+if\s*\(\s*choice\s*==\s*['"]chain cookie['"]\s*\)\s*\{[\s\S]*?Game\.Earn\(moni\);[\s\S]*?\}/;
+            str = str.replace(chainRegex, "else if (choice=='chain cookie'){" + improvedChains + "if(!Game.Has('Improved cookie chains')||me._predictionMode){if (this.chain==0) this.totalFromChain=0;this.chain++;var digit=me.wrath?6:7;if (this.chain==1)this.chain+=Math.max(0,Math.ceil(Math.log(Game.cookies)/Math.LN10)-10);var maxPayout=Math.min(Game.cookiesPs*60*60*6,Game.cookies*0.5)*mult;var moni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain)*digit*mult),maxPayout));var nextMoni=Math.max(digit,Math.min(Math.floor(1/9*Math.pow(10,this.chain+1)*digit*mult),maxPayout));this.totalFromChain+=moni;if (Math.random()<0.01 || nextMoni>=maxPayout){this.chain=0;popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';}else{popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';}Game.Earn(moni);}else{if (randomBreak||maxPayoutReached){this.chain=0;popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'<br>'+loc(\"Cookie chain over. You made %1.\",loc(\"%1 cookie\",LBeautify(this.totalFromChain)))+'</small>';}else{popup=loc(\"Cookie chain\")+'<br><small>'+loc(\"+%1!\",loc(\"%1 cookie\",LBeautify(moni)))+'</small>';}Game.Earn(moni);}}");
             
             // Inject at function end before closing brace (find the last brace in the function)
             var lastBraceIndex = str.lastIndexOf('}');
@@ -4031,7 +4031,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         {animal: 'Tiger',   effect: 'Clicking is 10% more powerful'},
         {animal: 'Rabbit',  effect: 'Kittens are 1% more effective'},
         {animal: 'Dragon',  effect: 'Golden Cookies have a small chance to award a Dragon Flight'},
-        {animal: 'Snake',   effect: 'Wrinklers suck 5% more'},
+        {animal: 'Snake',   effect: 'Wrinklers\' appetite is 5% greater'},
         {animal: 'Horse',   effect: 'Golden Cookies have a small chance to award a Dragon Harvest'},
         {animal: 'Sheep',   effect: 'Lanterns move 50% slower'},
         {animal: 'Monkey',  effect: 'Lanterns move 20% slower, are 20% more valuable, and appear 20% more often'},

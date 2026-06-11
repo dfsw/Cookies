@@ -1190,18 +1190,14 @@
             }
         }
 
-        function setupPantheonSpiritEffects() {
-            if (!Game.Objects['Temple']?.minigame) return;
-            var M = Game.Objects['Temple'].minigame;
-            if (M._spiritEffectsSetup) return;
-            M._procrastinationSlotTime = M._procrastinationSlotTime || null;
-            M._selfishnessClickCount = M._selfishnessClickCount || 0;
-
+        function applySlotGodHook(M) {
             if (M.slotGod && !M.slotGod._hooked) {
                 var orig = M.slotGod;
                 M.slotGod = function(god, slot) {
                     if (!god) return orig.apply(this, arguments);
-                    var prev = god.slot, result = orig.apply(this, arguments);
+                    var prev = god.slot;
+                    var result = orig.apply(this, arguments);
+                    
                     var proc = M.gods['procrastination'], self = M.gods['selfishness'];
                     
                     if (slot !== prev) {
@@ -1210,7 +1206,17 @@
                     
                     if (proc && god.id === proc.id) {
                         var oldTime = M._procrastinationSlotTime;
-                        var newTime = (slot !== -1 && prev !== slot) ? Date.now() : (slot === -1 ? null : M._procrastinationSlotTime);
+                        var newTime = M._procrastinationSlotTime;
+                        
+                        // Only reset timer when moving between slots or unslotting, not during load
+                        if (slot === -1) {
+                            // Unslotting
+                            newTime = null;
+                        } else if (prev !== -1 && prev !== slot) {
+                            // Moving from one slot to another
+                            newTime = Date.now();
+                        }
+                        
                         if (newTime !== oldTime) {
                             M._procrastinationSlotTime = newTime;
                             Game.recalculateGains = true;
@@ -1232,6 +1238,18 @@
                 };
                 M.slotGod._hooked = true;
             }
+        }
+
+        function setupPantheonSpiritEffects() {
+            if (!Game.Objects['Temple']?.minigame) return;
+            var M = Game.Objects['Temple'].minigame;
+            if (M._spiritEffectsSetup) return;
+            
+            M._procrastinationSlotTime = M._procrastinationSlotTime || null;
+            M._selfishnessClickCount = M._selfishnessClickCount || 0;
+
+            // Apply slotGod hook
+            applySlotGodHook(M);
 
             // Selfishness god tracking is now handled centrally in JustNaturalExpansion.js
             // via injectGoldenPopFunc(). No direct popFunc wrapping needed here.
@@ -3603,8 +3621,9 @@
             if (PM && PM.slotGod && !PM._sugarPredictorSlotHooked) {
                 var origSlotGod = PM.slotGod;
                 PM.slotGod = function() {
-                    origSlotGod.apply(this, arguments);
+                    var result = origSlotGod.apply(this, arguments);
                     Game.calculateLumpPredictions();
+                    return result;
                 };
                 PM._sugarPredictorSlotHooked = true;
             }
@@ -6522,11 +6541,8 @@
                             
                             if (god.upgrade && !Game.Upgrades[god.upgrade]?.bought) continue;
                             
-                            if (god.slot !== -1) {
-                                M.slot[god.slot] = -1;
-                            }
-                            M.slot[i] = god.id;
-                            god.slot = i;
+                            // Use M.slotGod to ensure hooks are called during load
+                            M.slotGod(god, i);
                             
                             var godDiv = l('templeGod' + god.id);
                             var slotDiv = l('templeSlot' + i);
@@ -6539,8 +6555,24 @@
                         Game.recalculateGains = true;
                         if (M.draw) M.draw();
                     }
+                    
+                    // Restore saved data
                     if (saveData.pantheon.procrastinationSlotTime) M._procrastinationSlotTime = saveData.pantheon.procrastinationSlotTime;
                     if (saveData.pantheon.selfishnessClickCount !== undefined) M._selfishnessClickCount = saveData.pantheon.selfishnessClickCount || 0;
+                    
+                    // Reapply hooks since they get overwritten during load
+                    applySlotGodHook(M);
+                    
+                    // Reapply sugar predictor hook if needed
+                    if (Game.Has('Sugar predictor') && !M._sugarPredictorSlotHooked) {
+                        var origSlotGod = M.slotGod;
+                        M.slotGod = function() {
+                            var result = origSlotGod.apply(this, arguments);
+                            Game.calculateLumpPredictions();
+                            return result;
+                        };
+                        M._sugarPredictorSlotHooked = true;
+                    }
                 }
             }
             
