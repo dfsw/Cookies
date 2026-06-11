@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////
-// Mysteries of the Cookie Age - Just Natural Expansion                             //
+// Mysteries of the Cookie Age v1.0.3 - Just Natural Expansion                       //
 //                                                                                  //
 // Look I cant stop you from digging into the source code but be aware              //
 // that the entire thing is full of spoilers there is no way to hide how puzzles    //
@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.3';
+    var expansionVersion = '1.0.4';
     var debugMode = false; // Set to true for testing
   
     var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
@@ -4520,19 +4520,13 @@
     };
     
     StormDevotionPuzzle.prototype.hookStormCookieTracking = function() {
+        // Storm tracking is now handled centrally in JustNaturalExpansion.js
+        // via injectGoldenPopFunc(). This function now just ensures the tracking
+        // object is exposed for the central handler to use.
         var self = this;
-        var tracking = this.getTracking();
-        if (Game.shimmerTypes && Game.shimmerTypes['golden'] && !Game.shimmerTypes['golden']._stormTrackingHooked) {
-            tracking.originalPopFunc = Game.shimmerTypes['golden'].popFunc;
-            Game.shimmerTypes['golden'].popFunc = function(me) {
-                if (self.isValid() && self.getTracking() && self.getTracking().stormActive) {
-                    if (me.force === 'cookie storm drop' || (Game.hasBuff('Cookie storm') && me.forceObj && me.forceObj.type === 'cookie storm drop')) {
-                        self.getTracking().stormCookiesClicked++;
-                    }
-                }
-                return tracking.originalPopFunc.call(this, me);
-            };
-            Game.shimmerTypes['golden']._stormTrackingHooked = true;
+        if (!Game.JNE) Game.JNE = {};
+        if (!Game.JNE._stormDevotionTracking) {
+            Game.JNE._stormDevotionTracking = this.getTracking();
         }
     };
     
@@ -4586,14 +4580,10 @@
             tracking.stormCookiesClicked = 0;
             tracking.stormStartTime = 0;
             tracking.previousWrinklerStates = {};
-            // Restore original shimmer popFunc
-            if (tracking.originalPopFunc && Game.shimmerTypes && Game.shimmerTypes['golden']) {
-                Game.shimmerTypes['golden'].popFunc = tracking.originalPopFunc;
-            }
+            // Note: shimmer popFunc is now handled centrally in JustNaturalExpansion.js
+            // No need to restore original here
         }
-        if (Game.shimmerTypes && Game.shimmerTypes['golden'] && Game.shimmerTypes['golden']._stormTrackingHooked) {
-            delete Game.shimmerTypes['golden']._stormTrackingHooked;
-        }
+        // Note: _stormTrackingHooked flag no longer needed with central injection
     };
     
     function LitanyBrokenVowsPuzzle(puzzleId, puzzleData, registry) {
@@ -4739,7 +4729,9 @@
         tracking.shimmeringVeilOn = Game.Has('Shimmering veil [off]');
         var currentSeason = Game.season || '';
         if (currentSeason !== tracking.lastSeason && currentSeason !== '') {
-            tracking.seasonSequence.push(currentSeason);
+            if (currentSeason !== 'lunarnewyear') {
+                tracking.seasonSequence.push(currentSeason);
+            }
             tracking.lastSeason = currentSeason;
         }
         var elderCovenantComplete = tracking.elderCovenantToggles >= 3 && currentRevokeElderCovenantState;
@@ -9721,7 +9713,7 @@
     // ===== PUBLIC API FOR TESTING =====
     // These functions will be available in the console for testing
     window.CookieAge = {
-        version: expansionVersion,
+        VERSION: expansionVersion,
         getMissingPuzzleCompletionRequirements: getMissingPuzzleCompletionRequirements,
         getSaveData: function() {
             try {
