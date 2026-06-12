@@ -1,15 +1,15 @@
-// Just Natural Expansion v0.5.4 - Cookie Clicker Mod
+// Just Natural Expansion
 
 (function() 
 {
     'use strict';
     
-    var BETA_MODE = false; 
+    var BETA_MODE = true; 
     
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
     script.src = BETA_MODE 
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/data.js?v=' + Date.now()
+            ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/data.js?v=' + Date.now()
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/data.js?v=' + Date.now();
     script.onload = function() {
         // Continue initialization after data.js is loaded
@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.5.4';
+    var modVersion = '0.5.5';
     var debugMode = false; 
     
     function debugLog() {
@@ -147,6 +147,8 @@ var downlineMinigameLoadedOnce = false;
 
 var pendingPotionsMinigameSave = '';
 var potionsMinigameLoadedOnce = false;
+
+var buildingDiscountData = {}; // Store discount upgrade names by building name
 var cookieAgeScriptLoaded = false;
 var heavenlyUpgradesScriptLoaded = false;
 var modInitialized = false; // Track if mod has finished initializing
@@ -6910,6 +6912,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (Game.last) {
                 Game.last.price = upgradeInfo.price;
             }
+            
+            // For discount upgrades, add buyFunction to refresh store after purchase
+            if (upgradeInfo.type === 'discount' && Game.last) {
+                Game.last.buyFunction = function() {
+                    Game.storeToRefresh = 1;
+                    Game.RecalculateUpgrades();
+                };
+            }
         } catch (e) {
             console.error('Error creating building upgrade:', upgradeInfo.name, e);
         }
@@ -9132,28 +9142,41 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Apply building discount based on owned upgrades
     function applyBuildingDiscount(buildingName, discountUpgrades) {
-        if (Game.Objects[buildingName]) {
-            const originalModifyBuildingPrice = Game.modifyBuildingPrice;
-            Game.modifyBuildingPrice = function(building, price) {
-                price = originalModifyBuildingPrice.call(this, building, price);
+        // Store discount upgrade names for this building
+        buildingDiscountData[buildingName] = discountUpgrades;
+    }
+    
+    function setupBuildingDiscountWrapper() {
+        // Only wrap once
+        if (Game._jneModifyBuildingPriceWrapped) return;
+        Game._jneModifyBuildingPriceWrapped = true;
+        
+        const originalModifyBuildingPrice = Game.modifyBuildingPrice;
+        Game.modifyBuildingPrice = function(building, price) {
+            price = originalModifyBuildingPrice.call(this, building, price);
+            
+            var buildingKey = building.name;
+            if (!buildingDiscountData[buildingKey]) {
+                buildingKey = building.id;
+            }
+            
+            if (buildingDiscountData[buildingKey]) {
+                var discountMultiplier = 1.0;
+                var discountUpgrades = buildingDiscountData[buildingKey];
                 
-                if (building.name === buildingName) {
-                    var discountMultiplier = 1.0;
-                    
-                    // Check each discount upgrade for this building
-                    for (var i = 0; i < discountUpgrades.length; i++) {
-                        var upgradeName = discountUpgrades[i];
-                        if (Game.Upgrades[upgradeName] && Game.Upgrades[upgradeName].bought) {
-                            discountMultiplier *= 0.95; // Apply 5% discount cumulatively
-                        }
+                // Check each discount upgrade for this building
+                for (var i = 0; i < discountUpgrades.length; i++) {
+                    var upgradeName = discountUpgrades[i];
+                    if (Game.Upgrades[upgradeName] && Game.Upgrades[upgradeName].bought) {
+                        discountMultiplier *= 0.95; // Apply 5% discount cumulatively
                     }
-                    price *= discountMultiplier;
                 }
-                return price;
-            };
-
-             Game.storeToRefresh = 1
-        }
+                price *= discountMultiplier;
+            }
+            return price;
+        };
+        
+        Game.storeToRefresh = 1;
     }
 
     // Initialize building discounts on slight delay
@@ -9174,12 +9197,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 }
             }
             
-            // Apply discounts for each building
+            // Store discount data for each building
             for (var buildingName in buildingDiscounts) {
                 if (buildingDiscounts.hasOwnProperty(buildingName)) {
                     applyBuildingDiscount(buildingName, buildingDiscounts[buildingName]);
                 }
             }
+            
+            // Setup the wrapper once after all data is populated
+            setupBuildingDiscountWrapper();
         }
     }, 1000);
 
