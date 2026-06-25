@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.4';
+    var expansionVersion = '1.0.5';
     var debugMode = false; // Set to true for testing
   
     var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
@@ -125,7 +125,6 @@
             return false;
         }
         
-        debugLog('Base mod detected');
         return true;
     }
     
@@ -172,6 +171,8 @@
             if (trackingKey && cookieAgeData.puzzles[trackingKey] !== undefined) {
                 delete cookieAgeData.puzzles[trackingKey];
             }
+            // Reset setup complete flag so onSetup runs again
+            registryEntry.instance._setupComplete = false;
         }
     }
 
@@ -390,7 +391,6 @@
     
     function toggleAudio() {
         cookieAgeData.audio.enabled = !cookieAgeData.audio.enabled;
-        debugLog('Audio', cookieAgeData.audio.enabled ? 'enabled' : 'disabled');
         return cookieAgeData.audio.enabled;
     }
     
@@ -492,7 +492,6 @@
                 }
 
                 Game.registerHook(hookType, callback);
-                debugLog('Hook registered successfully:', description);
                 return true;
             } catch (e) {
                 errorLog('Failed to register hook:', hookType, '-', description, e);
@@ -507,25 +506,19 @@
     // ===== EXPANSION INITIALIZATION =====
     function initializeExpansion() {
         if (expansionState.initialized) {
-            debugLog('Expansion already initialized');
             return;
         }
         
         // Check if Cookie Age is enabled in the main mod
         if (typeof Game.JNE.enableCookieAge !== 'undefined') {
             if (!Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age extension is disabled in main mod settings');
                 // Clean up achievements if they were previously created
                 if (expansionState.achievementsCreated) {
                     removeMysteryAchievements();
                 }
                 return;
             }
-        } else {
-            debugLog('Cookie Age extension setting not found in main mod, proceeding with initialization');
         }
-        
-        debugLog('Initializing Cookie Age expansion...');
         
         attachBaseModPuzzleHelpers();
 
@@ -580,26 +573,21 @@
         // Since base mod is guaranteed loaded, Game.JNE.enableCookieAge will always be available
         if (typeof Game.JNE.enableCookieAge !== 'undefined') {
             if (Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age is enabled, initializing...');
-                
                 // Always initialize without audio - audio is only played from button toggle
                 initializeExpansion();
             } else {
-                debugLog('Cookie Age is disabled, skipping initialization');
                 // Clean up achievements if they were previously created
                 if (expansionState.achievementsCreated) {
                     removeMysteryAchievements();
                 }
             }
         } else {
-            debugLog('Cookie Age setting not found in base mod, proceeding with initialization');
             initializeExpansion();
         }
     }
     
     // ===== GAME OBJECT CLEANUP SYSTEM =====
     function cleanupGameObjectModifications() {
-        debugLog('Cleaning up Game object modifications...');
         
         // Restore ClickSpecialPic if we modified it
         if (Game._originalClickSpecialPic) {
@@ -687,8 +675,6 @@
         if (typeof Game.completeActivePuzzles === 'function') {
             delete Game.completeActivePuzzles;
         }
-        
-        debugLog('Game object modifications cleaned up');
     }
     
     // ===== MYSTERY ACHIEVEMENT SYSTEM =====
@@ -702,7 +688,6 @@
         // Only block achievement creation if explicitly disabled
         // If the setting is undefined, it means it hasn't loaded yet and we should proceed
         if (Game.JNE.enableCookieAge === false) {
-            debugLog('Cookie Age is explicitly disabled, not creating mystery achievements');
             return;
         }
         
@@ -729,7 +714,6 @@
                 // Check if achievement is in disabled state (renamed)
                 if (Game.Achievements[hiddenName]) {
                     var ach = Game.Achievements[hiddenName];
-                    debugLog('Restoring achievement from disabled state:', originalName);
                     
                     // Restore to normal pool
                     ach.pool = 'normal';
@@ -737,7 +721,6 @@
                     // Restore won status if it was previously won
                     if (ach._savedWonStatus) {
                         ach.won = 1;
-                        debugLog('Restored won status for:', originalName);
                     }
                     
                     // Restore original name
@@ -1298,7 +1281,7 @@
                 'silent_choir': {
                 name: 'The silent choir',
                 description: 'You stilled every voice until only the digits sang. In that hush, The Order answered, and marked you as a willing initiate.<q>This was the first secret your ally risked everything to deliver. You now stand at the threshold of the Brotherhood.</q>',
-                clue: 'Each hall has its clamor, but only one may sing.<br>Still every voice, save the beckoning digits.<br>Only then in silence, will The Order speak.<q>The order often speaks through riddles and clues guarding their initiation process from outsiders.</q>',
+                clue: 'Each hall has its clamor, but only one may sing.<br>Still every voice, save the beckoning digits.<br>Only then in muted silence, will The Order speak.<q>The order often speaks through riddles and clues guarding their initiation process from outsiders.</q>',
                 hint: '• There are twenty halls in Cookie Clicker. Only one of them has digits though. Quiet the others.',
                 puzzleClass: SilentChoirPuzzle,
                 mainIcon: [17, 17, customSpriteSheetUrl],
@@ -1312,7 +1295,7 @@
                 'spiral_seasons': {
                 name: 'The wheel of seasons',
                 description: 'You turned the crooked wheel, letting each season rise and fall in The Order\'s rhythm. Their cycle is not nature\'s, yet you followed without hesitation.<q>The Brotherhood notes your obedience. To walk their year is to step further inside.</q>',
-                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the herald in scarlet cloak.<br>The jester of ledgers laughs.<br>The hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return.',
+                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the judge in scarlet cloak with his list.<br>The jester of ledgers laughs.<br>Then the hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return to knock.<q>Now is as good as a time as any to remind you that ALL Mysteries of the Cookie Age Puzzles can be done with vanilla game elements only.</q>',
                 hint: '• The wheel of time doesn\'t always turn straight, each season has themes; turn them in the correct order.',
                 puzzleClass: SpiralSeasonsPuzzle,
                 mainIcon: [16, 6, mainIconsSpriteSheetUrl],
@@ -2180,7 +2163,6 @@
         // This must happen BEFORE calling completePuzzle() so subsequent calls see it's already done
         if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
             cookieAgeData.puzzles.completed.push(puzzleId);
-            debugLog('[RACE GUARD] Marked', puzzleId, 'as completed immediately in tryCompletePuzzle');
         }
         
         // Call the actual completion function
@@ -2202,7 +2184,6 @@
             return false;
         }
         
-        debugLog('Completing puzzle', puzzleId, ':', puzzle.name);
         
         // Get track info before any modifications
         var trackType = puzzle.type;
@@ -2213,7 +2194,6 @@
         // Note: already added to completed array in tryCompletePuzzle, but double-check to avoid duplicates
         if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
         cookieAgeData.puzzles.completed.push(puzzleId);
-            debugLog('Marked', puzzleId, 'as completed in completePuzzle (backup)');
         }
         track.progress++;
 
@@ -2959,8 +2939,6 @@
             return false;
         }
         
-        debugLog('Setting up puzzle', puzzleId, ':', puzzle.name);
-        
         // Check if this is a class-based puzzle
         if (puzzle.instance) {
             try {
@@ -3024,8 +3002,6 @@
             return false;
         }
         
-        debugLog('Cleaning up puzzle', puzzleId, ':', puzzle.name);
-        
         // Check if this is a class-based puzzle
         if (puzzle.instance) {
             try {
@@ -3081,7 +3057,7 @@
                 }
             }
         } catch (e) {
-            try { debugLog('Failed extended cleanup for puzzle', numericId, e); } catch (_) {}
+            // Silent fail
         }
     }
     
@@ -3373,7 +3349,6 @@
             }
             
             audioInitialized = true;
-            debugLog('Robust wrinkler audio system initialized with', wrinklerAudioElements.length, 'pre-generated tones');
             return true;
         } catch (e) {
             errorLog('Failed to initialize wrinkler audio system:', e);
@@ -6021,6 +5996,12 @@
         var amountToChange = stepTarget.amount;
         var stepComplete = false;
         
+       // This handles cases where the player starts with fewer buildings than the sell amount.
+        if (stepTarget.action === 'sell' && currentCount > startCount) {
+            tracking.stepStartCounts[currentStep] = currentCount;
+            startCount = currentCount;
+        }
+        
         if (currentStep === 0 && stepTarget.building === 'Farm') {
             stepComplete = (currentCount > startCount);
         } else {
@@ -8502,6 +8483,11 @@
         if (stepStartCount === undefined) {
             return;
         }
+         // This handles cases where the player starts with fewer buildings than the sell amount.
+        if (stepTarget.action === 'sell' && currentCount > stepStartCount) {
+            tracking.stepStartCounts[currentStep] = currentCount;
+            stepStartCount = currentCount;
+        }
         
         // Check if they're working on the wrong building type
         var wrongBuildingChanged = false;
@@ -9541,11 +9527,8 @@
     var newsTickerFunction = null;
    
     function setupNewsTicker() {
-        debugLog('Setting up news ticker for Mysteries of the Cookie...');
-        
         // Don't set up if already active
         if (newsTickerFunction) {
-            debugLog('News ticker already active, skipping setup');
             return;
         }
         
@@ -9688,25 +9671,16 @@
             };
             
             Game.modHooks['ticker'].push(newsTickerFunction);
-        } else {
-            debugLog('News ticker system not available, skipping ticker setup');
         }
     }
     
     function removeNewsTicker() {
-        debugLog('Removing news ticker for Mysteries of the Cookie...');
-        
         if (Game.modHooks && Game.modHooks['ticker'] && newsTickerFunction) {
             var index = Game.modHooks['ticker'].indexOf(newsTickerFunction);
             if (index > -1) {
                 Game.modHooks['ticker'].splice(index, 1);
-                debugLog('News ticker removed successfully');
-            } else {
-                debugLog('News ticker function not found in ticker array');
             }
             newsTickerFunction = null;
-        } else {
-            debugLog('Cannot remove news ticker - system not available or function not set');
         }
     }
     
@@ -9982,21 +9956,15 @@
             });
         },
         reinitialize: function() {
-            debugLog('Reinitializing Cookie Age expansion...');
             expansionState.initialized = false;
             expansionState.achievementsCreated = false;
             
             // Check if Cookie Age is enabled and initialize directly
             if (Game.JNE && Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age is enabled, initializing directly...');
                 initializeExpansion();
-            } else {
-                debugLog('Cookie Age is disabled, skipping initialization');
             }
         },
         enable: function() {
-            debugLog('Enabling Cookie Age expansion...');
-            
             if (!expansionState.initialized) {
                 initializeExpansion();
             } else {
@@ -10011,7 +9979,6 @@
             }
         },
         disable: function() {
-            debugLog('Disabling Cookie Age expansion...');
             this.cleanup();
             console.log('[Cookie Age] Disabled');
         },
@@ -10028,7 +9995,6 @@
             removeNewsTicker();
         },
         cleanup: function() {
-            debugLog('Cleaning up Cookie Age expansion...');
             removeNewsTicker();
             
             // Clean up all Game object modifications
@@ -10074,7 +10040,6 @@
             console.log('[Cookie Age] Cleanup completed');
         },
         forceEnable: function() {
-            debugLog('Force enabling Cookie Age expansion...');
             expansionState.initialized = false;
             initializeExpansion();
         },
@@ -10307,11 +10272,9 @@
     // For console testing, we need to handle the case where this code is pasted directly
     if (typeof window !== 'undefined' && window.Game) {
         // Running in browser console
-        debugLog('Running in console mode');
         main();
     } else {
         // Running as a mod file
-        debugLog('Running as mod file');
         main();
     }
 })();
