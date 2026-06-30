@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.5.5';
+    var modVersion = '0.5.9';
     var debugMode = false; 
     
     function debugLog() {
@@ -509,6 +509,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var isReincarnating = false;
     
     function initializeSessionBaselines() {
+        if (!Game.JNE) Game.JNE = {};
+        Game.JNE.bingoJackpotWins = Game.JNE.bingoJackpotWins || 0;
+        Game.JNE.cookieFishCaught = Game.JNE.cookieFishCaught || 0;
         sessionBaselines.cookieClicks = Game.cookieClicks || 0;
         sessionBaselines.reindeerClicked = Game.reindeerClicked || 0;
         sessionBaselines.wrinklersPopped = Game.wrinklersPopped || 0;
@@ -584,8 +587,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // This prevents achievements from triggering based on previous run's data
         Object.keys(sessionDeltas).forEach(key => sessionDeltas[key] = 0);
         
-        // Reset upgrades to unpurchased state for ascension
-        // Achievements remain won (they persist across ascensions)
+        // Reset upgrades to unpurchased state for ascension, Achievements remain won
         var modUpgradeNames = getModUpgradeNames();
         
         // Build set of upgrade IDs that are in permanent slots
@@ -1769,6 +1771,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.JNE.enableExtraSeasons = enabled;
 
         if (enabled) {
+            // Hook WriteSave once to prevent mod seasons key being written into vanilla's save string (spl[22]). Vanilla crashes on load if it reads an unknown season key.
+            if (Game.WriteSave && !Game.WriteSave._jneSeasonHooked) {
+                var _orig = Game.WriteSave;
+                Game.WriteSave = function(type) {
+                    var s = Game.season, bs = Game.baseSeason, dirty = false;
+                    if (s && Game.seasons && !Game.seasons[s]) { Game.season = ''; Game.baseSeason = ''; dirty = true; }
+                    try { return _orig.call(this, type); } finally { if (dirty) { Game.season = s; Game.baseSeason = bs; } }
+                };
+                Game.WriteSave._jneSeasonHooked = true;
+            }
             // Show Lunar biscuit if Season switcher is owned
             var mb = Game.Upgrades['Lunar biscuit'];
             if (mb && mb.pool === 'toggle' && Game.Has('Season switcher')) {
@@ -2746,7 +2758,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!!modSettings.enableMinigames) {
             _rebuildMinigame(cfg);
         } else {
-            if (b) { b.minigame = null; b.minigameLoaded = false; b.minigameUrl = ''; }
+            if (b) { b.minigame = null; b.minigameLoaded = false; b.minigameUrl = ''; b.onMinigame = 0; }
             if (b && b.id !== undefined && Game.ObjectsById && Game.ObjectsById[b.id] &&
                 typeof Game.ObjectsById[b.id].draw === 'function') {
                 Game.ObjectsById[b.id].draw();
@@ -2929,10 +2941,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         try {
             if (!Game.JNE) Game.JNE = {};
             
-            if (Game.JNE._isRestoringData) {
-                return; // Don't overwrite during restoration
-            }
-            
             // Preserve existing data if we're not getting valid new data
             var existingData = Game.JNE.heavenlyUpgradesSavedData;
             
@@ -3110,8 +3118,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                            "var _jneZodiac=Game.JNE&&Game.JNE.getLunarZodiacYear?Game.JNE.getLunarZodiacYear():null;" +
                            "if(_jneZodiac){" +
                            "var _jneMult=Game.JNE&&Game.JNE.getZodiacEffectMultiplier?Game.JNE.getZodiacEffectMultiplier():1;" +
-                           "if(_jneZodiac.animal==='Dragon'&&Math.random()<0.04*_jneMult){list.push('dragonflight');}" +
-                           "if(_jneZodiac.animal==='Horse'&&Math.random()<0.04*_jneMult){list.push('dragon harvest');}" +
+                           "if(_jneZodiac.animal==='Dragon'&&Math.random()<0.05*_jneMult){list.push('dragonflight');}" +
+                           "if(_jneZodiac.animal==='Horse'&&Math.random()<0.05*_jneMult){list.push('dragon harvest');}" +
                            "}" +
                            "}\n" +
                            "//JNE_CORE_END\n";
@@ -3193,6 +3201,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         "_jneOrigPopup.call(this,txt,x,y);" +
                     "};" +
                 "}" +
+                // Hydrosol of Refraction - golden cookie echo
+                "var _jneHydrosol=Game.hasBuff('Hydrosol of Refraction')&&me.force!=='cookie storm drop'&&!me._predictionMode&&this.chain==0;" +
+                "if(_jneHydrosol&&Math.random()<0.3){" +
+                    "var _jneEcho=new Game.shimmer('golden',{},1);" +
+                "}" +
                 "//JNE_POTIONS_END\n";
 
             // === SELFISHNESS GOD TRACKING ===
@@ -3231,12 +3244,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             var predictorMod = "//JNE_PREDICTOR\n" +
                 "if(me._predictionMode){" +
                     "var _savedLast=this.last,_savedChain=this.chain,_savedTotal=this.totalFromChain;" +
-                    "var _origs={gainBuff:Game.gainBuff,Earn:Game.Earn,Spend:Game.Spend,Popup:Game.Popup,SparkleAt:Game.SparkleAt,DropEgg:Game.DropEgg,Win:Game.Win,Unlock:Game.Unlock,gainLumps:Game.gainLumps,killBuff:Game.killBuff,useSwap:Game.useSwap,PlaySound:typeof PlaySound==='function'?PlaySound:null};" +
+                    "var _origs={gainBuff:Game.gainBuff,Earn:Game.Earn,Spend:Game.Spend,Popup:Game.Popup,SparkleAt:Game.SparkleAt,DropEgg:Game.DropEgg,Win:Game.Win,Unlock:Game.Unlock,gainLumps:Game.gainLumps,killBuff:Game.killBuff,useSwap:Game.useSwap,forceUnslotGod:Game.forceUnslotGod,PlaySound:typeof PlaySound==='function'?PlaySound:null};" +
                     "var _noop=function(){};var _noopNull=function(){return null;};" +
-                    "Game.gainBuff=_noopNull;Game.Earn=_noop;Game.Spend=_noop;Game.Popup=_noop;Game.SparkleAt=_noop;Game.DropEgg=_noop;Game.Win=_noop;Game.Unlock=_noop;Game.gainLumps=_noop;Game.killBuff=_noop;if(Game.useSwap)Game.useSwap=_noop;if(_origs.PlaySound)window.PlaySound=_noop;" +
+                    "Game.gainBuff=_noopNull;Game.Earn=_noop;Game.Spend=_noop;Game.Popup=_noop;Game.SparkleAt=_noop;Game.DropEgg=_noop;Game.Win=_noop;Game.Unlock=_noop;Game.gainLumps=_noop;Game.killBuff=_noop;if(Game.useSwap)Game.useSwap=_noop;if(Game.forceUnslotGod)Game.forceUnslotGod=_noop;if(_origs.PlaySound)window.PlaySound=_noop;" +
                     "var _captured=null;" +
                     "try{Game.shimmerTypes['golden']._jneOrigPopFunc.call(this,me);_captured=this.last||null;}catch(e){console.error('[JNE] Prediction error:',e);}finally{" +
-                        "Game.gainBuff=_origs.gainBuff;Game.Earn=_origs.Earn;Game.Spend=_origs.Spend;Game.Popup=_origs.Popup;Game.SparkleAt=_origs.SparkleAt;Game.DropEgg=_origs.DropEgg;Game.Win=_origs.Win;Game.Unlock=_origs.Unlock;Game.gainLumps=_origs.gainLumps;Game.killBuff=_origs.killBuff;if(Game.useSwap)Game.useSwap=_origs.useSwap;if(_origs.PlaySound)window.PlaySound=_origs.PlaySound;" +
+                        "Game.gainBuff=_origs.gainBuff;Game.Earn=_origs.Earn;Game.Spend=_origs.Spend;Game.Popup=_origs.Popup;Game.SparkleAt=_origs.SparkleAt;Game.DropEgg=_origs.DropEgg;Game.Win=_origs.Win;Game.Unlock=_origs.Unlock;Game.gainLumps=_origs.gainLumps;Game.killBuff=_origs.killBuff;if(Game.useSwap)Game.useSwap=_origs.useSwap;if(Game.forceUnslotGod)Game.forceUnslotGod=_origs.forceUnslotGod;if(_origs.PlaySound)window.PlaySound=_origs.PlaySound;" +
                         "this.last=_savedLast;this.chain=_savedChain;this.totalFromChain=_savedTotal;" +
                     "}" +
                     "me._predictedChoice=_captured;return;" +
@@ -5629,6 +5642,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 // Get the tracked time for this god (default to 0 if never used)
                                 var godTime = modTracking.godUsageTime[godName] || 0;
                                 
+                                // Add current slot time if this god is currently slotted
+                                if (modTracking.currentSlottedGods && modTracking.currentSlottedGods[godName]) {
+                                    var slotStartTime = modTracking.currentSlottedGods[godName];
+                                    if (typeof slotStartTime === 'number' && slotStartTime > 0) {
+                                        godTime += Date.now() - slotStartTime;
+                                    }
+                                }
+                                
                                 if (godTime < requiredTime) {
                                     allGodsUsed = false;
                                     break;
@@ -6556,7 +6577,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return;
         }
 
-        // Guard: reuse existing upgrade object instead of calling new Game.Upgrade().
+        // reuse existing upgrade object 
         if (Game.Upgrades && Game.Upgrades[upgradeInfo.name]) {
             var _existing = Game.Upgrades[upgradeInfo.name];
             if (Game.UpgradesByPool) {
@@ -6568,80 +6589,48 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return;
         }
 
-        try {
-            // Process icon to convert string sprite sheet names to URLs
-            var processedIcon = processIcon(upgradeInfo.icon);
-            var finalIcon = processedIcon;
-            if (Array.isArray(processedIcon) && processedIcon.length === 2) {
-                finalIcon = [processedIcon[0], processedIcon[1], getSpriteSheet('custom')];
-            }
-            
-            // Create kitten upgrade using Game.Upgrade constructor
-            new Game.Upgrade(upgradeInfo.name, upgradeInfo.ddesc, upgradeInfo.price, finalIcon);
-            
-            // Set additional properties
-            // Vanilla kittens sit in the default (empty) pool so permanent slots can see them
-            var kittenPool = (upgradeInfo.pool === 'kitten') ? '' : (upgradeInfo.pool || '');
-            Game.last.pool = kittenPool;
-            Game.last.kitten = upgradeInfo.kitten;
-            
-            // Set order property if provided (similar to achievements)
-            if (upgradeInfo.order !== undefined) {
-                Game.last.order = upgradeInfo.order;
-            }
-            
-            // Set unlockCondition if provided
-            if (upgradeInfo.unlockCondition) {
-                Game.last.unlockCondition = upgradeInfo.unlockCondition;
-                // Force the upgrade to be locked initially
-                Game.last.unlocked = 0;
-                
-                // Debug logging for kitten upgrades (removed)
-                
-                // Start kitten upgrades as locked - our checkAndUnlockOrderUpgrades function will manage unlock state
-                Game.last.unlocked = 0;
-            }
-            
-            Game.last.canBuy = function() {
-                // Check discounted price (uses getPrice when available)
-                var actualPrice = this.getPrice ? this.getPrice() : this.price;
-                return this.unlocked && !this.bought && Game.cookies >= actualPrice;
-            };
-            
-            // Register the upgrade with custom properties
-            registerUpgrade(upgradeInfo, 'kitten', { kitten: upgradeInfo.kitten });
-            
-            // Ensure the price is set correctly
-            if (Game.last) {
-                Game.last.price = upgradeInfo.price;
-            }
-            
-            // Note: addSourceText is already called by registerUpgrade(), no need to call it again
-            
-        } catch (e) {
-            console.error('Error creating kitten upgrade:', upgradeInfo.name, e);
+        var processedIcon = processIcon(upgradeInfo.icon);
+        var finalIcon = processedIcon;
+        if (Array.isArray(processedIcon) && processedIcon.length === 2) {
+            finalIcon = [processedIcon[0], processedIcon[1], getSpriteSheet('custom')];
         }
         
-        // Emit event for any integrations
-        if (typeof Game !== 'undefined' && Game.emit) {
-            Game.emit('upgradeCreated', { upgrade: Game.Upgrades[upgradeInfo.name], type: 'kitten' });
+        new Game.Upgrade(upgradeInfo.name, upgradeInfo.ddesc, upgradeInfo.price, finalIcon);
+        
+        // Vanilla kittens sit in the default pool so permanent slots can see them
+        var kittenPool = (upgradeInfo.pool === 'kitten') ? '' : (upgradeInfo.pool || '');
+        Game.last.pool = kittenPool;
+        Game.last.kitten = upgradeInfo.kitten;
+        Game.last.order = upgradeInfo.order;
+        Game.last.unlocked = 0;
+
+        if (upgradeInfo.unlockCondition) {
+            Game.last.unlockCondition = upgradeInfo.unlockCondition;
         }
-    }
+        
+        Game.last.canBuy = function() {
+            var actualPrice = this.getPrice ? this.getPrice() : this.price;
+            return this.unlocked && !this.bought && Game.cookies >= actualPrice;
+        };
+        
+        registerUpgrade(upgradeInfo, 'kitten', { kitten: upgradeInfo.kitten });
+        Game.last.price = upgradeInfo.price;
     
-    // Helper function to configure upgrades after creation (extracted from original logic)
+    // Emit event for any integrations
+    if (typeof Game !== 'undefined' && Game.emit) {
+        Game.emit('upgradeCreated', { upgrade: Game.Upgrades[upgradeInfo.name], type: 'kitten' });
+    }               
+  }
+    
     function configureUpgradeAfterCreation(upgrade, upgradeInfo) {
-            // Set default canBuy function (will be overridden for upgrades with requirements)
             upgrade.canBuy = function() {
-                // Check discounted price (uses getPrice when available, same as building upgrades)
                 var actualPrice = this.getPrice ? this.getPrice() : this.price;
                 return this.unlocked && !this.bought && Game.cookies >= actualPrice;
             };
             
-            // Set descriptions
             upgrade.desc = upgradeInfo.desc;
             upgrade.ddesc = upgradeInfo.ddesc;
             
-            // Set order property if provided (similar to achievements)
             if (upgradeInfo.order !== undefined) {
                 upgrade.order = upgradeInfo.order;
             }
@@ -6653,7 +6642,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 // Create the unlockCondition function that will control when it unlocks
                 upgrade.unlockCondition = function() {
-                    // Butter biscuit special case: once unlocked, stay unlocked (don't relock if buildings are sold)
+                    // Butter biscuit special case: once unlocked, stay unlocked 
                     if (this.unlocked && upgradeInfo.require.startsWith('butterBiscuit')) {
                         return true;
                     }
@@ -6680,11 +6669,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             if (tempRequirement) {
                                 result = tempRequirement();
                     } else {
-                        // Fallback - assume it's an upgrade and check if owned
                         result = Game.Has(upgradeInfo.require);
                             }
                         } else {
-                            // Fallback - assume it's an upgrade and check if owned
                             result = Game.Has(upgradeInfo.require);
                         }
                     }
@@ -6711,12 +6698,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 };
             }
             
-        // Apply appropriate formatting based on upgrade type
         if (upgradeInfo.isBoxUpgrade) {
-            // Set the isBoxUpgrade property on the actual upgrade object
             upgrade.isBoxUpgrade = true;
             
-            // Use the constant Box icon coordinates - inline to prevent reference corruption
+            // Use the constant Box icon coordinates
             var requireText = '<div style="font-size:80%;text-align:center;">From ' + tinyIcon([34, 4]) + ' Box of improved cookies</div>';
                     var modSourceText = '<div style="font-size:80%;text-align:center;margin-top:2px;">Part of <span style="margin: 0 4px;">' + tinyIcon(modIcon) + '</span> ' + modName + '</div>';
                     var combinedText = requireText + '<div style="height:2px;"></div>' + modSourceText + '<div class="line"></div>';
@@ -6740,8 +6725,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return;
         }
 
-        // Guard: reuse existing object instead of calling new Game.Upgrade() which inflates
-        // Game.UpgradesN and leaves stale UpgradesById entries on every reload/toggle.
+        // Guard: reuse existing object 
         if (Game.Upgrades && Game.Upgrades[upgradeInfo.name]) {
             var _existing = Game.Upgrades[upgradeInfo.name];
             if (Array.isArray(Game.cookieUpgrades) && Game.cookieUpgrades.indexOf(_existing) === -1) {
@@ -6768,7 +6752,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 debugLog('createCookieUpgrade_start', upgradeInfo.name, 'hasUpgrade=', Game.Upgrades && Game.Upgrades[upgradeInfo.name] ? 1 : 0, 'cookiePoolMatches=', cookiePoolMatches);
             }
 
-            // Process icon to convert string sprite sheet names to URLs
             var processedIcon = processIcon(upgradeInfo.icon);
             
             // Create cookie upgrades using direct Game.Upgrade constructor - This avoids CCSE dependency issues
@@ -7523,6 +7506,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }
         } catch (_) {}
 
+        try {
+            var _ss = modSaveData && modSaveData.seasonState;
+            if (_ss && _ss.season && Game.seasons && Game.seasons[_ss.season]) {
+                Game.season = _ss.season;
+                Game.seasonT = _ss.seasonT || 0;
+                if (_ss.baseSeason && Game.seasons[_ss.baseSeason]) Game.baseSeason = _ss.baseSeason;
+            }
+            if (Game.season && Game.seasons && Game.seasons[Game.season] && Game.seasonT > 0) {
+                var _trigUp = Game.seasons[Game.season].triggerUpgrade;
+                if (_trigUp && !_trigUp.bought) {
+                    _trigUp.bought = 1;
+                    Game.UpgradesOwned++;
+                }
+                Game.upgradesToRebuild = 1;
+                Game.storeToRefresh = 1;
+            }
+        } catch (_) {}
+
         // Initialize tracking variables and lifetime data from save data or defaults
         if (modSaveData) {
             debugLog('continueModInitialization: initializing from save data');
@@ -7786,7 +7787,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 } catch (e) {}
             }
             
-            if (huData && huData.upgrades) {
+            if (huData && huData.boughtUpgrades && Array.isArray(huData.boughtUpgrades)) {
+                heavenlyUpgradesArray = huData.boughtUpgrades;
+            } else if (huData && huData.upgrades) {
+                // Legacy object format support
                 heavenlyUpgradesArray = Object.keys(huData.upgrades)
                     .filter(function(k) { return huData.upgrades[k].bought; });
             }
@@ -7867,6 +7871,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }
             
             if (data.h && Array.isArray(data.h)) {
+                if (!heavenlyUpgradesObj.upgrades) heavenlyUpgradesObj.upgrades = {};
                 data.h.forEach(function(name) {
                     heavenlyUpgradesObj.upgrades[name] = {bought: 1};
                 });
@@ -7952,6 +7957,41 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.JNE.enableDownlineMinigame = !!modSettings.enableMinigames;
             Game.JNE.enablePotionsMinigame = !!modSettings.enableMinigames;
 
+            // Hook Game.LoadSave to set _isRestoringData during vanilla buff restoration
+            // This prevents heavenly upgrade buff modifiers from compounding on save load
+            if (Game.LoadSave && !Game.LoadSave._jneHooked) {
+                var origLoadSave = Game.LoadSave;
+                Game.LoadSave = function() {
+                    if (!Game.JNE) Game.JNE = {};
+                    Game.JNE._isRestoringData = true;
+                    try {
+                        return origLoadSave.apply(this, arguments);
+                    } finally {
+                        Game.JNE._isRestoringData = false;
+                    }
+                };
+                Game.LoadSave._jneHooked = true;
+            }
+
+            // Setup buff modifiers hook early 
+            var setupBuffModifiersEarly = function() {
+                if (Game.JNE && Game.JNE.HeavenlyUpgrades && Game.JNE.HeavenlyUpgrades.setupBuffModifiers) {
+                    Game.JNE.HeavenlyUpgrades.setupBuffModifiers();
+                    return true;
+                }
+                return false;
+            };
+            if (!setupBuffModifiersEarly()) {
+                // If HU module not loaded yet, retry periodically
+                var earlySetupInterval = setInterval(function() {
+                    if (setupBuffModifiersEarly()) {
+                        clearInterval(earlySetupInterval);
+                    }
+                }, 100);
+                // Stop trying after 10 seconds
+                setTimeout(function() { clearInterval(earlySetupInterval); }, 10000);
+            }
+
             // Restore saved open/close states from save file
             _restoreMinigameOpenStates();
 
@@ -7963,7 +8003,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }
                         
             // Initial check for all upgrades after achievements are loaded
-            var self = this; // Capture 'this' reference
+            var self = this; // Capture reference
             setTimeout(function() {
                 // Ensure all upgrades have proper properties to prevent save/load errors
                 var modUpgradeNames = getModUpgradeNames ? getModUpgradeNames() : [];
@@ -8128,8 +8168,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     },
                     // Persist Cookie Age progress regardless of toggle state
                     cookieAge: cookieAgeData,
-                    // Persist Heavenly Upgrades data (fortune cookie regeneration timer, etc.)
-                    heavenlyUpgrades: heavenlyUpgradesSaveString
+                    // Persist Heavenly Upgrades data 
+                    heavenlyUpgrades: heavenlyUpgradesSaveString,
+                    // Persist mod season state so it can be restored after the mod registers, sanitized to ''
+                    seasonState: {
+                        season: Game.season || '',
+                        seasonT: Game.seasonT || 0,
+                        baseSeason: Game.baseSeason || ''
+                    }
                 };
                                 
                 // Use compression to reduce save file size by ~50%

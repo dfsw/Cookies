@@ -4,7 +4,7 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.15';
+        const MOD_HU_VERSION = '1.0.19';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const CUSTOM_SPRITE_SHEET_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
@@ -148,24 +148,43 @@
                 var now = jneEvery('_jneBingoCenterSlotsLast', 60000); ///60000 
                 if (now && Game.OnAscend !== 1 && Game.Has('Bingo center/Research facility') && Game.Objects['Grandma']) {
                     var grandmas = Game.Objects['Grandma'].amount;
-                    if (grandmas > 0 && Math.random() < grandmas / 2000000) { //one in 2 million per grandma per minute
+                    if (grandmas > 0 && Math.random() < Math.sqrt(grandmas * 500) / 2000000) { //square root scaling for diminishing returns
                         Game.JNE.bingoJackpotWins = (Game.JNE.bingoJackpotWins || 0) + 1;
+                        if (!Game.JNE.ascensionSpecialJackpots) Game.JNE.ascensionSpecialJackpots = 0;
                         var bingoSlotsIcon = (Game.Upgrades && Game.Upgrades['Bingo center slots'] && Game.Upgrades['Bingo center slots'].icon) ? Game.Upgrades['Bingo center slots'].icon : [31, 12];
                         var roll = Math.random() * 100;
-                        if (roll < 60) {
-                            var exp = Math.floor(Math.log10(Game.cookiesPsRaw || 1));
-                            var cookiesEarned = 7.77 * Math.pow(10, exp + 4);
-                            Game.Earn(cookiesEarned);
-                            new Game.Note('Jackpot!', 'A grandma has hit the jackpot in slots and earned <b>' + Beautify(cookiesEarned) + '</b> cookies!', bingoSlotsIcon, 43200);
-                        } else if (roll < 80) {
-                            new Game.shimmer('golden');
-                            new Game.Note('Jackpot!', 'A grandma won a <b>golden cookie</b> while playing slots!', bingoSlotsIcon, 43200);
-                        } else if (roll < 97) {
-                            Game.Earn(Game.cookies * 0.1);
-                            new Game.Note('Jackpot!', 'A grandma won the mega jackpot while playing slots and your cookie bank has been <b>increased by 10%!</b>', bingoSlotsIcon, 43200);
+                        var specialJackpotsRemaining = 3 - (Game.JNE.ascensionSpecialJackpots || 0);
+                        
+                        if (specialJackpotsRemaining <= 0) {
+                            // Only normal jackpots available after cap reached
+                            if (roll < 75) {
+                                var exp = Math.floor(Math.log10(Game.cookiesPsRaw || 1));
+                                var cookiesEarned = 7.77 * Math.pow(10, exp + 5);
+                                Game.Earn(cookiesEarned);
+                                new Game.Note('Jackpot!', 'A grandma has hit the jackpot in slots and earned <b>' + Beautify(cookiesEarned) + '</b> cookies!', bingoSlotsIcon, 43200);
+                            } else {
+                                new Game.shimmer('golden');
+                                new Game.Note('Jackpot!', 'A grandma won a <b>golden cookie</b> while playing slots!', bingoSlotsIcon, 43200);
+                            }
                         } else {
-                            Game.gainLumps(1);
-                            new Game.Note('Jackpot!', 'A grandma hit the mega sugar jackpot in slots and won a <b>free sugar lump!</b>', bingoSlotsIcon, 43200);
+                            // All jackpots available
+                            if (roll < 60) {
+                                var exp = Math.floor(Math.log10(Game.cookiesPsRaw || 1));
+                                var cookiesEarned = 7.77 * Math.pow(10, exp + 5);
+                                Game.Earn(cookiesEarned);
+                                new Game.Note('Jackpot!', 'A grandma has hit the jackpot in slots and earned <b>' + Beautify(cookiesEarned) + '</b> cookies!', bingoSlotsIcon, 43200);
+                            } else if (roll < 80) {
+                                new Game.shimmer('golden');
+                                new Game.Note('Jackpot!', 'A grandma won a <b>golden cookie</b> while playing slots!', bingoSlotsIcon, 43200);
+                            } else if (roll < 97) {
+                                Game.Earn(Game.cookies * 0.1);
+                                Game.JNE.ascensionSpecialJackpots++;
+                                new Game.Note('Jackpot!', 'A grandma won the mega jackpot while playing slots and your cookie bank has been <b>increased by 10%!</b>', bingoSlotsIcon, 43200);
+                            } else {
+                                Game.gainLumps(1);
+                                Game.JNE.ascensionSpecialJackpots++;
+                                new Game.Note('Jackpot!', 'A grandma hit the mega sugar jackpot in slots and won a <b>free sugar lump!</b>', bingoSlotsIcon, 43200);
+                            }
                         }
                     }
                 }
@@ -488,6 +507,8 @@
                     M._procrastinationSlotTime = null;
                     M._selfishnessClickCount = 0;
                 }
+                // Reset special jackpot counter on ascension
+                if (Game.JNE) Game.JNE.ascensionSpecialJackpots = 0;
                 Game.storeToRefresh = 1;
             }, 'JNE ascension state reset');
 
@@ -870,7 +891,10 @@
                 var alreadyApplying = !!Game._jneApplyingBuffModifiers;
                 if (!alreadyApplying) Game._jneApplyingBuffModifiers = true;
                 try {
-                    if (!alreadyApplying) {
+                    var isLoanInterest = (type === 'loan 1 interest' || type === 'loan 2 interest' || type === 'loan 3 interest');
+                    // Only apply duration modifiers when buff is freshly created, not during save load Also skip if buff already exists (prevents re-applying when onDie recreates)
+                    var buffExists = Game.buffs && Game.buffs[type];
+                    if (!alreadyApplying && !Game.JNE._isRestoringData && !buffExists) {
                         // Frenziered elders - elder frenzy (blood frenzy) buffs last 25% longer
                         if (type === 'blood frenzy' && Game.Has && Game.Has('Frenziered elders')) {
                             time = Math.ceil(time * 1.25);
@@ -880,8 +904,7 @@
                             time = Math.ceil(time * 1.1);
                         }
                         // Creative tax evasion - loan interest buffs last 10% less long
-                        if ((type === 'loan 1 interest' || type === 'loan 2 interest' || type === 'loan 3 interest') && 
-                            Game.Has && Game.Has('Creative tax evasion')) {
+                        if (isLoanInterest && Game.Has && Game.Has('Creative tax evasion')) {
                             time = time * 0.9;
                         }
                     }
@@ -1856,6 +1879,7 @@
                     var savedSoil = savedData && savedData.garden && savedData.garden.soil;
                     if (savedSoil !== undefined && Game.Has('Aerated soil') && M.soils.aerated && M.soilsById[savedSoil]) {
                         M.soil = savedSoil;
+                        if (M.buildPanel && l('gardenSoils')) M.buildPanel();
                     }
                 };
             }
@@ -1897,22 +1921,18 @@
                 }
             }
             
-            if (Game.Has('Aerated soil') && l('gardenSoils')) {
-                if (M.buildPanel && !M._aeratedSoilIconHooked) {
-                    M._aeratedSoilIconHooked = true;
-                    var originalBuildPanel = M.buildPanel;
-                    M.buildPanel = function() {
-                        originalBuildPanel.call(this);
-
-                        if (M.soils.aerated && M.soils.aerated.customIcon && l('gardenSoilIcon-' + M.soils.aerated.id)) {
-                            var iconEl = l('gardenSoilIcon-' + M.soils.aerated.id);
-                            if (iconEl) {
-                                iconEl.style.backgroundImage = 'url(\'' + M.soils.aerated.customIconSheet + '\')';
-                                iconEl.style.backgroundPosition = (-M.soils.aerated.customIcon[0] * 48) + 'px ' + (-M.soils.aerated.customIcon[1] * 48) + 'px';
-                            }
-                        }
-                    };
+            if (Game.Has('Aerated soil')) {
+                if (M.soils.aerated && !document.getElementById('aeratedSoilCSS')) {
+                    var aeratedStyle = document.createElement('style');
+                    aeratedStyle.id = 'aeratedSoilCSS';
+                    var aeratedId = M.soils.aerated.id;
+                    var customSheet = getSpriteSheet('custom');
+                    var bgPos = (-M.soils.aerated.customIcon[0] * 48) + 'px ' + (-M.soils.aerated.customIcon[1] * 48) + 'px';
+                    aeratedStyle.textContent = '#gardenSoilIcon-' + aeratedId + ' { background-image: url(\'' + customSheet + '\') !important; background-position: ' + bgPos + ' !important; }';
+                    document.head.appendChild(aeratedStyle);
                 }
+            }
+            if (Game.Has('Aerated soil') && l('gardenSoils')) {
                 if (M.soilTooltip && !M._aeratedSoilTooltipHooked) {
                     M._aeratedSoilTooltipHooked = true;
                     var originalSoilTooltip = M.soilTooltip;
@@ -2109,7 +2129,7 @@
                     mature: 80,
                     unlocked: 0,
                     children: [],
-                    effsStr: '<div class="green">&bull; sugar lumps have 1% chance to double when gained</div><div class="red">&bull; CpS -2%</div><div class="red">&bull; cannot handle cold climates; 95% chance to die when frozen</div>',
+                    effsStr: '<div class="green">&bull; sugar lumps have 1% chance to double when they are <b>harvested</b></div><div class="red">&bull; CpS -2%</div><div class="red">&bull; cannot handle cold climates; 95% chance to die when frozen</div>',
                     q: 'A tropical variant of sugar cane that produces exceptionally sweet crystals. Its delicate nature makes it vulnerable to cold, but the sugary bounty is worth the risk.'
                 };
             }
@@ -3097,6 +3117,32 @@
             if (!hasUpgrade) return; // Not ready yet
             
             if (typeof l !== 'function' || !l('grimoireSpells')) return;
+            
+            // Remove any existing gilded allure spell to prevent duplicates on save load
+            if (M.spells['gilded allure']) {
+                delete M.spells['gilded allure'];
+            }
+            // Remove from spellsById array and compact it
+            for (var i = 0; i < M.spellsById.length; i++) {
+                if (M.spellsById[i] && (M.spellsById[i].name === loc("Gilded Allure") || M.spellsById[i].name === "Gilded Allure")) {
+                    M.spellsById.splice(i, 1);
+                    i--; // Adjust index since array shifted
+                }
+            }
+            // Remove existing DOM element
+            var existingSpellEl = l('grimoireSpells').querySelector('[id^="grimoireSpell"]');
+            if (existingSpellEl) {
+                for (var i = 0; i < M.spellsById.length; i++) {
+                    var el = l('grimoireSpell' + i);
+                    if (el) {
+                        var tooltip = el.getAttribute('onmouseover') || el.getAttribute('data-tooltip');
+                        if (tooltip && (tooltip.includes('Gilded Allure') || tooltip.includes('gilded allure'))) {
+                            el.remove();
+                        }
+                    }
+                }
+            }
+            
             var me={name:loc("Gilded Allure"),desc:loc("Golden Cookies appear 30% more often for the next 10 minutes."),failDesc:loc("Golden Cookies appear 75% less often for the next hour."),icon:[20,19],customIconSheet:getSpriteSheet('custom'),costMin:15,costPercent:0.5,
                 win:()=>{Game.killBuff('Gilded allure');Game.killBuff('Midas curse');Game.gainBuff('gilded allure',600,1);Game.Popup(loc("Golden allure!"),Game.mouseX,Game.mouseY);},
                 fail:()=>{Game.killBuff('Gilded allure');Game.killBuff('Midas curse');Game.gainBuff('midas curse',3600,1);Game.Popup(loc("Backfire!")+'<br>'+loc("Midas curse!"),Game.mouseX,Game.mouseY);}};
@@ -3569,15 +3615,17 @@
             button.canBuyFunc = function() {
                 return Game.lumps >= 1 && this.bought === 0;
             };
-            button.clickFunction = Game.spendLump(1, "summon a golden cookie", function() {
-                button.buy(1);
-                new Game.shimmer('golden');
-                Game.Notify("Sugar trade", "Summoned a golden cookie.", [21, 17]);
-                Game.storeToRefresh = 1;
-                Game.upgradesToRebuild = 1;
-                if (Game.RefreshStore) { Game.RefreshStore(); }
-                if (Game.RebuildUpgrades) { Game.RebuildUpgrades(); }
-            });
+            button.displayFuncWhenOwned = function() {
+                return '<div style="text-align:center;"><b>Already used this ascension</b></div>';
+            };
+            button.clickFunction = function() {
+                if (this.bought === 1) return;
+                Game.Prompt('<id SugarTradePrompt><h3>Activate the sugar trade?</h3><div class="block">' +
+                    'Spend 1 sugar lump to summon a golden cookie.</div>', [
+                    ['Activate', 'Game.ClosePrompt();Game.lumps-=1;Game.Upgrades["Sugar trade"].buy(1);new Game.shimmer("golden");Game.Notify("Sugar trade","Summoned a golden cookie.",[21,17]);Game.storeToRefresh=1;Game.upgradesToRebuild=1;if(Game.RefreshStore)Game.RefreshStore();if(Game.RebuildUpgrades)Game.RebuildUpgrades();'],
+                    'Cancel'
+                ]);
+            };
         };
 
         var detectRigidelSlot = function() {
@@ -6179,6 +6227,7 @@
                 
                 saveData.stats.cookieFishCaught = Game.JNE.cookieFishCaught || 0;
                 saveData.stats.bingoJackpotWins = Game.JNE.bingoJackpotWins || 0;
+                saveData.stats.ascensionSpecialJackpots = Game.JNE.ascensionSpecialJackpots || 0;
                 
                 // Save farm drop cookies state
                 saveData.farmDropCookies = {};
@@ -6291,6 +6340,34 @@
             // Track this load to prevent duplicates
             Game.JNE._lastLoadData = JSON.stringify(saveData);
             Game.JNE._lastLoadTime = Date.now();
+
+            // Migration: If save file has incomplete heavenly upgrades due to the save bug,
+            // preserve any upgrades that are marked as bought in memory but not in the save
+            var ownedUpgradeNames = (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades)) ? saveData.boughtUpgrades :
+                ((saveData.h && Array.isArray(saveData.h)) ? saveData.h : null);
+            if (ownedUpgradeNames) {
+                var saveBoughtSet = {};
+                for (var i = 0; i < ownedUpgradeNames.length; i++) {
+                    saveBoughtSet[ownedUpgradeNames[i]] = true;
+                }
+                // Check if memory has more heavenly upgrades bought than the save
+                var memoryBoughtCount = 0;
+                var memoryNotInSave = [];
+                for (var name in Game.Upgrades) {
+                    var upgrade = Game.Upgrades[name];
+                    if (upgrade && upgrade._heavenlyUpgrade && upgrade.bought && !saveBoughtSet[name]) {
+                        memoryNotInSave.push(name);
+                        memoryBoughtCount++;
+                    }
+                }
+                // If memory has upgrades not in save, add them to save data (migration from buggy saves)
+                if (memoryBoughtCount > 0) {
+                    if (!saveData.boughtUpgrades) saveData.boughtUpgrades = [];
+                    for (var i = 0; i < memoryNotInSave.length; i++) {
+                        saveData.boughtUpgrades.push(memoryNotInSave[i]);
+                    }
+                }
+            }
 
             // Reset setup function 'ran' flags so vanilla-deleted upgrades/plants can be recreated
             if (Game.JNE._upgradeSetups) {
@@ -6509,6 +6586,7 @@
             if (saveData.stats) {
                 if (saveData.stats.cookieFishCaught !== undefined) Game.JNE.cookieFishCaught = saveData.stats.cookieFishCaught || 0;
                 if (saveData.stats.bingoJackpotWins !== undefined) Game.JNE.bingoJackpotWins = saveData.stats.bingoJackpotWins || 0;
+                if (saveData.stats.ascensionSpecialJackpots !== undefined) Game.JNE.ascensionSpecialJackpots = saveData.stats.ascensionSpecialJackpots || 0;
             }
             
             // Apply big cookie image
@@ -6518,7 +6596,22 @@
                     Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[saveData.bigCookieImage].pic);
                 }
             }
-            
+
+            // Restore  buffs
+            if (saveData.buffs && Array.isArray(saveData.buffs) && Game.gainBuff) {
+                if (typeof setupCustomBuffTypes === 'function') setupCustomBuffTypes();
+                for (var i = 0; i < saveData.buffs.length; i++) {
+                    var savedBuff = saveData.buffs[i];
+                    if (savedBuff && savedBuff.type && savedBuff.time !== undefined) {
+                        try {
+                            Game.gainBuff(savedBuff.type, savedBuff.time, savedBuff.power || 1);
+                        } catch (e) {
+                            console.error('[Heavenly Upgrades] Failed to restore buff:', savedBuff.type, e);
+                        }
+                    }
+                }
+            }
+
             if (saveData.pantheon) {
                 var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
                 if (M && M.slot && M.gods && M.godsById) {
@@ -6718,12 +6811,14 @@
                     initialized: function() { return isInitialized; },
                     getSaveData: getSaveData,
                     load: load,
-                    restoreDonutsNow: restoreDonutsNow
+                    restoreDonutsNow: restoreDonutsNow,
+                    setupBuffModifiers: setupBuffModifiers
                 };
             } else {
                 Game.JNE.HeavenlyUpgrades.getSaveData = getSaveData;
                 Game.JNE.HeavenlyUpgrades.load = load;
                 Game.JNE.HeavenlyUpgrades.restoreDonutsNow = restoreDonutsNow;
+                Game.JNE.HeavenlyUpgrades.setupBuffModifiers = setupBuffModifiers;
             }
         }
     })();
