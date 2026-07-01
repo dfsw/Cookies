@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '2.0.1';
+const POTIONS_VERSION = '2.0.00';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -1611,9 +1611,10 @@ function updatePotionEffects() {
             if (n === 0) { Game.Notify(p.name + ' consumed', 'No positive buffs to remove. Nothing happened.', getIconArray(p), 6); return; }
             for (var i = 0; i < n; i++) Game.killBuff(pos[i]);
             var existing = Game.hasBuff('Nepenthe of Undoing');
-            var prevPower = existing ? (existing.power || 1) : 1;
+            var prevPower = existing ? (existing.multCpS || 1) : 1;
             var prevTime = existing ? (existing.time / (Game.fps || 30)) : 0;
             Game.killBuff('Nepenthe of Undoing');
+            delete Game.buffs['Nepenthe of Undoing'];
             var newPower = prevPower + n;
             var newTime = prevTime + n * 600;
             Game.gainBuff('Nepenthe of Undoing', newTime, newPower);
@@ -2533,8 +2534,9 @@ PotionsM._registerHooks = function() {
     
     // Hook into Game.magicCpS
     if (!Game._potionsMagicCpSHooked) {
+        if (!Game._jneOriginalMagicCpSPotions) Game._jneOriginalMagicCpSPotions = Game.magicCpS;
         var wrapper = function(what) {
-            var mult = wrapper._original.call(this, what);
+            var mult = Game._jneOriginalMagicCpSPotions.call(this, what);
 
             var bloomBuff = Game.hasBuff('Bloom of Industry');
             if (bloomBuff) {
@@ -2556,7 +2558,6 @@ PotionsM._registerHooks = function() {
 
             return mult;
         };
-        wrapper._original = Game.magicCpS;
         Game.magicCpS = wrapper;
         Game._potionsMagicCpSHooked = true;
     }
@@ -2817,6 +2818,7 @@ PotionsM._hookTerminal = function() {
     }
 
     TM.onExecuteComplete = function(count) {
+        var TM = Game.Objects['Javascript console'].minigame;
         var PM = TM.onExecuteComplete._potionsM || PotionsM;
         if (PM._loading) return;
         for (var k = 0; k < count; k++) {
@@ -2843,6 +2845,7 @@ PotionsM._hookDownline = function() {
     // Only set the callback if it's not already our hook
     if (!DM.onActionAdd || DM.onActionAdd.name !== 'potionsDownlineHook') {
         DM.onActionAdd = function potionsDownlineHook(count) {
+            var DM = Game.Objects['Fractal engine'].minigame;
             var PM = DM.onActionAdd._potionsM || PotionsM;
             if (PM._loading) return;
             for (var k = 0; k < count; k++) {
@@ -2869,10 +2872,12 @@ PotionsM._hookGarden = function() {
         Game._potionsGardenHooked = true;
         return;
     }
+    if (!FM._jneOriginalHarvest) FM._jneOriginalHarvest = FM.harvest;
     var wrapper = function(x, y, manual) {
+        var FM = Game.Objects['Farm'].minigame;
         var PM = FM.harvest._potionsM || PotionsM;
         var tile = FM.plot[y][x];
-        var result = wrapper._original.apply(this, arguments);
+        var result = FM._jneOriginalHarvest.apply(this, arguments);
         if (PM._loading) return result;
         if (result && tile[0] > 0) {
             var me = FM.plantsById[tile[0] - 1];
@@ -2890,7 +2895,6 @@ PotionsM._hookGarden = function() {
         }
         return result;
     };
-    wrapper._original = FM.harvest;
     FM.harvest = wrapper;
 
     // Track soil changes for terra
@@ -2925,11 +2929,13 @@ PotionsM._hookMarket = function() {
         return;
     }
 
+    if (!MM._jneOriginalBuyGood) MM._jneOriginalBuyGood = MM.buyGood;
     var wrapperBuy = function(id, n) {
+        var MM = Game.Objects['Bank'].minigame;
         var PM = MM.buyGood._potionsM || PotionsM;
         var me = MM.goodsById[id];
         var before = me ? me.stock : 0;
-        var result = wrapperBuy._original.apply(this, arguments);
+        var result = MM._jneOriginalBuyGood.apply(this, arguments);
         if (PM._loading) return result;
         if (result && me) {
             var shares = me.stock - before;
@@ -2939,16 +2945,17 @@ PotionsM._hookMarket = function() {
         }
         return result;
     };
-    wrapperBuy._original = MM.buyGood;
     wrapperBuy._potionsHooked = true;
     wrapperBuy._potionsM = PotionsM;
     MM.buyGood = wrapperBuy;
 
+    if (!MM._jneOriginalSellGood) MM._jneOriginalSellGood = MM.sellGood;
     var wrapperSell = function(id, n) {
+        var MM = Game.Objects['Bank'].minigame;
         var PM = MM.sellGood._potionsM || PotionsM;
         var me = MM.goodsById[id];
         var before = me ? me.stock : 0;
-        var result = wrapperSell._original.apply(this, arguments);
+        var result = MM._jneOriginalSellGood.apply(this, arguments);
         if (PM._loading) return result;
         if (result && me) {
             var shares = before - me.stock;
@@ -2958,7 +2965,6 @@ PotionsM._hookMarket = function() {
         }
         return result;
     };
-    wrapperSell._original = MM.sellGood;
     wrapperSell._potionsM = PotionsM;
     MM.sellGood = wrapperSell;
 
@@ -2995,9 +3001,11 @@ PotionsM._hookGrimoire = function() {
         return;
     }
     
+    if (!GM._jneOriginalCastSpellPotions) GM._jneOriginalCastSpellPotions = GM.castSpell;
     var wrapper = function(spell, obj) {
+        var GM = Game.Objects['Wizard tower'].minigame;
         var PM = GM.castSpell._potionsM || PotionsM;
-        if (!Game._potionsGrimoireReady) return wrapper._original.apply(this, arguments);
+        if (!Game._potionsGrimoireReady) return GM._jneOriginalCastSpellPotions.apply(this, arguments);
         // Detect misbrew by temporarily wrapping spell.fail and spell.win
         var origFail = spell.fail;
         var origWin  = spell.win;
@@ -3008,7 +3016,7 @@ PotionsM._hookGrimoire = function() {
         if (origWin) {
             spell.win  = function() { PM._grimoireLastFail = false; return origWin.apply(this, arguments); };
         }
-        var result = wrapper._original.apply(this, arguments);
+        var result = GM._jneOriginalCastSpellPotions.apply(this, arguments);
         if (origFail) spell.fail = origFail;
         if (origWin)  spell.win  = origWin;
         if (PM._loading) return result;
@@ -3021,7 +3029,6 @@ PotionsM._hookGrimoire = function() {
         }
         return result;
     };
-    wrapper._original = GM.castSpell;
     PotionsM._grimoireLastFail = null;
     GM.castSpell = wrapper;
     GM.castSpell._potionsHooked = true;
@@ -3031,6 +3038,7 @@ PotionsM._hookGrimoire = function() {
     // Hook into grimoire logic to modify mana regen for Balm of Merlin
     if (GM.logic && !Game._potionsGrimoireLogicHooked) {
         var wrapper2 = function() {
+            var GM = Game.Objects['Wizard tower'].minigame;
             var balmBuff = Game.hasBuff('Balm of Merlin');
             var balmCurse = Game.hasBuff('Balm of Merlin (misbrewed)');
             var multiplier = balmBuff ? 2 : (balmCurse ? 0.5 : 1);
@@ -3079,8 +3087,9 @@ PotionsM._hookWrinklerSpawn = function() {
         return;
     }
 
+    if (!Game._jneOriginalSpawnWrinklerPotions) Game._jneOriginalSpawnWrinklerPotions = Game.SpawnWrinkler;
     var wrapper = function() {
-        var me = wrapper._original.apply(this, arguments);
+        var me = Game._jneOriginalSpawnWrinklerPotions.apply(this, arguments);
         if (me && me.type === 0 && Game.buffs['Emulsion of Sinful Greed']) {
             var base = 0.0001;
             var mult = 1;
@@ -3104,7 +3113,6 @@ PotionsM._hookWrinklerSpawn = function() {
         }
         return me;
     };
-    wrapper._original = Game.SpawnWrinkler;
     wrapper._potionsHooked = true;
     wrapper._potionsM = PotionsM;
     Game.SpawnWrinkler = wrapper;
@@ -3667,12 +3675,7 @@ PotionsM.reagentRollOne = function(candidates, source) {
     }
     if (winners.length === 0) return null;
     var pick = winners[Math.floor(PotionsM._random() * winners.length)];
-    var amount = 1;
-    // Apply Poultice of Overgrowth: double reagent amount on successful drop
-    if (Game.buffs['Poultice of Overgrowth']) {
-        amount = 2;
-    }
-    PotionsM._addReagent(pick, amount, source);
+    PotionsM._addReagent(pick, 1, source);
     return pick;
 };
 
@@ -3685,6 +3688,7 @@ PotionsM._onCookieClick = function() {
 
 PotionsM._addReagent = function(reagentId, amount, source) {
     if (PotionsM._loading) return;
+    if (Game.buffs['Poultice of Overgrowth']) amount *= 2;
     var current = G.reagents[reagentId] || 0;
     var inBrew = G.selectedReagents.filter(function(r) { return r === reagentId; }).length;
     if (current + inBrew >= G.maxReagents) return; // Maxed out (counting staged reagents), suppress
@@ -4497,6 +4501,8 @@ PotionsM._buildSaveDataImpl = function() {
             var buff = Game.buffs[bname];
             if (!buff) continue;
             var entry = { n: bname, t: Math.round(buff.time / (Game.fps || 30)), m: Math.round(buff.maxTime / (Game.fps || 30)) };
+            // Save power for Nepenthe of Undoing (variable multCpS based on buffs consumed)
+            if (bname === 'Nepenthe of Undoing' && typeof buff.multCpS !== 'undefined') entry.pw = buff.multCpS;
             // Save building name for Suspension of Hallucinogenic
             if ((bname === 'Suspension of Hallucinogenic' || bname === 'Suspension of Hallucinogenic (misbrewed)') && buff.buildingName) {
                 entry.bn = buff.buildingName;
@@ -4725,6 +4731,7 @@ PotionsM._restorePendingBuffs = function() {
             var power = 1;
             if (bd.n === 'Suspension of Hallucinogenic') power = 2.0;
             else if (bd.n === 'Suspension of Hallucinogenic (misbrewed)') power = 0.5;
+            else if (bd.n === 'Nepenthe of Undoing') { power = bd.pw || 1; delete Game.buffs['Nepenthe of Undoing']; }
             if (bd.bn && (bd.n === 'Suspension of Hallucinogenic' || bd.n === 'Suspension of Hallucinogenic (misbrewed)')) _suspBuildingKey = bd.bn;
             Game.gainBuff(bd.n, remainSeconds, power, 0);
             _suspBuildingKey = null;

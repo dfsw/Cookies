@@ -1860,9 +1860,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     
     // Combined menu injection function
     function injectMenus() {
-        const originalUpdateMenu = Game.UpdateMenu;
+        if (!Game._jneOriginalUpdateMenuJNE) Game._jneOriginalUpdateMenuJNE = Game.UpdateMenu;
         Game.UpdateMenu = function() {
-            const result = originalUpdateMenu.call(this);
+            const result = Game._jneOriginalUpdateMenuJNE.call(this);
             
             // Handle options menu injection
             if (Game.onMenu === 'prefs') {
@@ -2987,24 +2987,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         window.Spice.settings.patchDiscrepancy = true;
 
         if (Game.loadLumps && !Game.loadLumps._lumpPatchApplied) {
-            var wrapper = function() {
+            if (!Game._jneOriginalLoadLumps) Game._jneOriginalLoadLumps = Game.loadLumps;
+            Game.loadLumps = function() {
                 var hadLumpT = (typeof Game.lumpT !== 'undefined');
                 var savedLumpT = Game.lumpT;
-                var result = wrapper._original.apply(this, arguments);
+                var result = Game._jneOriginalLoadLumps.apply(this, arguments);
                 if (hadLumpT) Game.lumpT = savedLumpT;
                 else if (typeof Game.lumpT !== 'undefined') delete Game.lumpT;
                 return result;
             };
-            wrapper._original = Game.loadLumps;
-            wrapper._lumpPatchApplied = true;
-            Game.loadLumps = wrapper;
+            Game.loadLumps._lumpPatchApplied = true;
         }
 
         if (Game.harvestLumps && !Game._jneLumpDiscrepancyPatched) {
             Game._jneLumpDiscrepancyPatched = true;
-            var wrapper2 = function() {
+            if (!Game._jneOriginalHarvestLumps) Game._jneOriginalHarvestLumps = Game.harvestLumps;
+            Game.harvestLumps = function() {
                 var oldLumpT = Game.lumpT;
-                var result = wrapper2._original.apply(this, arguments);
+                var result = Game._jneOriginalHarvestLumps.apply(this, arguments);
                 if (Game.lumpOverripeAge && Game.lumpOverripeAge > 0 && typeof oldLumpT === 'number') {
                     var harvestedAmount = Math.floor((Date.now() - oldLumpT) / Game.lumpOverripeAge);
                     if (harvestedAmount > 0) {
@@ -3026,20 +3026,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 return result;
             };
-            wrapper2._original = Game.harvestLumps;
-            wrapper2._lumpPatchApplied = true;
-            Game.harvestLumps = wrapper2;
+            Game.harvestLumps._lumpPatchApplied = true;
         }
 
         if (Game.clickLump && !Game.clickLump._lumpPatchApplied) {
-            var wrapper3 = function() {
+            if (!Game._jneOriginalClickLump) Game._jneOriginalClickLump = Game.clickLump;
+            Game.clickLump = function() {
                 var oldLumps = Game.lumps;
-                var result = wrapper3._original.apply(this, arguments);
+                var result = Game._jneOriginalClickLump.apply(this, arguments);
                 return result;
             };
-            wrapper3._original = Game.clickLump;
-            wrapper3._lumpPatchApplied = true;
-            Game.clickLump = wrapper3;
+            Game.clickLump._lumpPatchApplied = true;
         }
         
         return true;
@@ -3047,8 +3044,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     
     function setupZodiacEffModifiers() {
         if (!Game.eff || Game.eff._jneZodiacEffHooked) return;
-        var wrapper = function(what) {
-            var val = wrapper._original.apply(this, arguments);
+        if (!Game._jneZodiacOriginalEff) Game._jneZodiacOriginalEff = Game.eff;
+        Game.eff = function(what) {
+            var val = Game._jneZodiacOriginalEff.apply(this, arguments);
             if (Game.season !== 'lunarnewyear') return val;
             var zodiac = Game.JNE && Game.JNE.getCurrentLunarZodiac ? Game.JNE.getCurrentLunarZodiac() : null;
             if (!zodiac) return val;
@@ -3062,9 +3060,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (what === 'milk'               && zodiac.animal === 'Rabbit') val *= 1 + (0.01 * mult);
             return val;
         };
-        wrapper._original = Game.eff;
-        wrapper._jneZodiacEffHooked = true;
-        Game.eff = wrapper;
+        Game.eff._jneZodiacEffHooked = true;
         if (Game.registerHook && !Game._jneSeasonEndHooked) {
             Game.registerHook('check', function() {
                 if (Game._jneWasLNY && Game.season !== 'lunarnewyear') {
@@ -3386,8 +3382,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer']) {
             var originalReindeerPop = Game.shimmerTypes['reindeer'].popFunc;
             if (originalReindeerPop && !Game.shimmerTypes['reindeer']._seasonalReindeerHooked) {
+                if (!Game.shimmerTypes['reindeer']._jneOriginalReindeerPop) Game.shimmerTypes['reindeer']._jneOriginalReindeerPop = originalReindeerPop;
                 Game.shimmerTypes['reindeer'].popFunc = function(me) {
-                    originalReindeerPop.call(this, me);
+                    Game.shimmerTypes['reindeer']._jneOriginalReindeerPop.call(this, me);
                     
                     var season = Game.season;
                     if (seasonalReindeerData[season] && !seasonalReindeerData[season].popped) {
@@ -3405,8 +3402,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 // Hook into the harvest all function if not already hooked
                 if (M.harvestAll && typeof M.harvestAll === 'function' && !M.harvestAll._jneDuketaterHooked) {
-                    var originalHarvestAll = M.harvestAll;
+                    if (!M._jneOriginalHarvestAll) M._jneOriginalHarvestAll = M.harvestAll;
                     M.harvestAll = function() {
+                        var M = Game.Objects['Farm'].minigame;
                         // Check for duketater plants BEFORE harvesting them
                         var duketaterCount = 0;
                         
@@ -3429,7 +3427,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                         
                         // Now call the original function to harvest the plants
-                        var result = originalHarvestAll.apply(this, arguments);
+                        var result = M._jneOriginalHarvestAll.apply(this, arguments);
                         
                         // Check if achievement should be unlocked
                         if (duketaterCount >= 12) {
@@ -3491,17 +3489,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
             registerHook('logic', function() {
                 if (Game.gainBuff && !Game._gainBuffHooked) {
-                    var wrapper = function(type, time, arg1, arg2, arg3) {
+                    if (!Game._jneOriginalGainBuff) Game._jneOriginalGainBuff = Game.gainBuff;
+                    Game.gainBuff = function(type, time, arg1, arg2, arg3) {
                         if (type === 'click frenzy' || type === 'frenzy' || type === 'blood frenzy') {
                             if (Game.Has('Order of the Enchanted Whisk')) {
                                 arg1 = Math.ceil(arg1 * 1.05);
                             }
                         }
-                        return wrapper._original.call(this, type, time, arg1, arg2, arg3);
+                        return Game._jneOriginalGainBuff.call(this, type, time, arg1, arg2, arg3);
                     };
-                    wrapper._original = Game.gainBuff;
-                    wrapper._jneGainBuffHooked = true;
-                    Game.gainBuff = wrapper;
+                    Game.gainBuff._jneGainBuffHooked = true;
                     Game._gainBuffHooked = true;
                 }
             }, 'Hook into Game.gainBuff for frenzy buff modifications');
@@ -3751,9 +3748,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (!grimoireHookApplied && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
                 var originalCastSpell = Game.Objects['Wizard tower'].minigame.castSpell;
                 if (originalCastSpell) {
+                    if (!Game.Objects['Wizard tower'].minigame._jneOriginalCastSpellSpellSlinger) Game.Objects['Wizard tower'].minigame._jneOriginalCastSpellSpellSlinger = originalCastSpell;
                     Game.Objects['Wizard tower'].minigame.castSpell = function(spell, obj) {
                         // Call the original function first to get the result
-                        var result = originalCastSpell.call(this, spell, obj);
+                        var GM = Game.Objects['Wizard tower'].minigame;
+                        var result = GM._jneOriginalCastSpellSpellSlinger.call(this, spell, obj);
 
                         // Only track successful spell casts (when result is true)
                         if (result === true) {
@@ -3769,8 +3768,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         // Hook into cookie clicking to track Click of the Titans achievement
         if (Game.ClickCookie && !Game.ClickCookie._jneClickCookieHooked) {
-            var wrapper = function(e, amount) {
-                var result = wrapper._original.call(this, e, amount);
+            if (!Game._jneOriginalClickCookie) Game._jneOriginalClickCookie = Game.ClickCookie;
+            Game.ClickCookie = function(e, amount) {
+                var result = Game._jneOriginalClickCookie.call(this, e, amount);
                 if (Game.Achievements['Click of the Titans'] && !Game.Achievements['Click of the Titans'].won) {
                     var clickAmount = amount || Game.computedMouseCps;
                     var currentRawCPS = Game.cookiesPsRaw || 0;
@@ -3781,9 +3781,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 }
                 return result;
             };
-            wrapper._original = Game.ClickCookie;
-            wrapper._jneClickCookieHooked = true;
-            Game.ClickCookie = wrapper;
+            Game.ClickCookie._jneClickCookieHooked = true;
         }
         // Temple swap tracking
         registerHook('check', function() {
@@ -3815,17 +3813,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         injectGoldenPopFunc();
         
         if (Game.Upgrades && Game.Upgrades['Elder Covenant']) {
-            var originalElderCovenantFunc = Game.Upgrades['Elder Covenant'].buy;
+            if (!Game.Upgrades['Elder Covenant']._jneOriginalBuy) Game.Upgrades['Elder Covenant']._jneOriginalBuy = Game.Upgrades['Elder Covenant'].buy;
             Game.Upgrades['Elder Covenant'].buy = function() {
-                originalElderCovenantFunc.call(this);
+                Game.Upgrades['Elder Covenant']._jneOriginalBuy.call(this);
                 lifetimeData.elderCovenantToggles++;
             };
         }
         
         if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var originalConvertFunc = Game.Objects['Farm'].minigame.convert;
+            if (!Game.Objects['Farm'].minigame._jneOriginalConvert) Game.Objects['Farm'].minigame._jneOriginalConvert = Game.Objects['Farm'].minigame.convert;
             Game.Objects['Farm'].minigame.convert = function() {
-                originalConvertFunc.call(this);
+                Game.Objects['Farm'].minigame._jneOriginalConvert.call(this);
                 lifetimeData.lastGardenSacrificeTime = Date.now();
                 setTimeout(function() {
                     checkModAchievements();
@@ -3929,29 +3927,27 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
         // Research speed boost for Bearer of the Cookie Sigil achievement
         if (Game.SetResearch && !Game.SetResearch._modded) {
-            var wrapper2 = function(what, time) {
-                wrapper2._original.call(this, what, time);
+            if (!Game._jneOriginalSetResearch) Game._jneOriginalSetResearch = Game.SetResearch;
+            Game.SetResearch = function(what, time) {
+                Game._jneOriginalSetResearch.call(this, what, time);
                 if (Game.Achievements['Bearer of the Cookie Sigil'] && Game.Achievements['Bearer of the Cookie Sigil'].won) {
                     Game.researchT = Math.ceil(Game.researchT * 0.75);
                 }
             };
-            wrapper2._original = Game.SetResearch;
-            wrapper2._modded = true;
-            Game.SetResearch = wrapper2;
+            Game.SetResearch._modded = true;
         }
 
         // Random drop rate boost for Bearer of the Cookie Sigil achievement
         if (Game.dropRateMult && !Game.dropRateMult._modded) {
-            var wrapper3 = function() {
-                var mult = wrapper3._original.call(this);
+            if (!Game._jneOriginalDropRateMult) Game._jneOriginalDropRateMult = Game.dropRateMult;
+            Game.dropRateMult = function() {
+                var mult = Game._jneOriginalDropRateMult.call(this);
                 if (Game.Achievements['Bearer of the Cookie Sigil'] && Game.Achievements['Bearer of the Cookie Sigil'].won) {
                     mult *= 1.1;
                 }
                 return mult;
             };
-            wrapper3._original = Game.dropRateMult;
-            wrapper3._modded = true;
-            Game.dropRateMult = wrapper3;
+            Game.dropRateMult._modded = true;
         }
 
         // Set up zodiac eff modifiers for Lunar New Year season
@@ -4806,6 +4802,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
 
     var modPermanentSlotBackup = {};
+    window.jneModPermanentSlotBackup = modPermanentSlotBackup;
     var cachedModUpgradeNameSet = null;
     var cachedModCookieUpgradeNameSet = null;
 
@@ -4821,6 +4818,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         return cachedModUpgradeNameSet;
     }
+
+    Game.jneGetModUpgradeNameSet = getModUpgradeNameSet;
 
     function getModCookieUpgradeNameSet() {
         if (!cachedModCookieUpgradeNameSet) {
@@ -5072,13 +5071,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return;
         }
 
-        var wrapper = function() {
+        if (!Game._jneOriginalWriteSave) Game._jneOriginalWriteSave = Game.WriteSave;
+        Game.WriteSave = function() {
             if (!Game.permanentUpgrades || !Game.UpgradesById) {
-                return wrapper._original.apply(this, arguments);
+                return Game._jneOriginalWriteSave.apply(this, arguments);
             }
 
-            var nameSet = getModUpgradeNameSet();
+            var nameSet = Game.jneGetModUpgradeNameSet();
             var savedSlots = [];
+            var backup = window.jneModPermanentSlotBackup;
 
             for (var i = 0; i < Game.permanentUpgrades.length; i++) {
                 var id = Game.permanentUpgrades[i];
@@ -5086,17 +5087,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     var upgrade = Game.UpgradesById[id];
                     if (upgrade && nameSet[upgrade.name]) {
                         savedSlots[i] = id;
-                        modPermanentSlotBackup[i] = upgrade.name;
+                        backup[i] = upgrade.name;
                         Game.permanentUpgrades[i] = -1;
                     }
                 }
             }
 
-            if (Object.keys(modPermanentSlotBackup).length > 0) {
-                modSettings.permanentSlotBackup = Object.assign({}, modPermanentSlotBackup);
+            if (Object.keys(backup).length > 0) {
+                window.modSettings.permanentSlotBackup = Object.assign({}, backup);
             }
 
-            var result = wrapper._original.apply(this, arguments);
+            var result = Game._jneOriginalWriteSave.apply(this, arguments);
 
             for (var i = 0; i < savedSlots.length; i++) {
                 if (savedSlots[i] !== undefined) {
@@ -5106,9 +5107,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
             return result;
         };
-        wrapper._original = Game.WriteSave;
-        wrapper._permanentSlotHooked = true;
-        Game.WriteSave = wrapper;
+        Game.WriteSave._permanentSlotHooked = true;
     }
 
     // This function saves current states before deletion - use only for mod initialization
@@ -6070,7 +6069,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             maxTime: 0,
             getTimeMod: function(me, m) {
                 var zodiac = Game.JNE.getLunarZodiacYear();
-                var zodiacMult = getZodiacEffectMultiplier();
+                var zodiacMult = Game.JNE.getZodiacEffectMultiplier();
                 var spawnMod = 1;
                 if (zodiac && zodiac.animal === 'Dog') spawnMod = 0.50;
                 if (zodiac && zodiac.animal === 'Monkey') spawnMod = 0.80;
@@ -8017,9 +8016,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             // Hook into the vanilla game's upgrade purchase process to check for newly unlockable upgrades
             var originalBuyFunction = Game.Upgrades.__proto__.buy || Game.Upgrades.__proto__.Buy;
             if (originalBuyFunction) {
+                Game.Upgrades.__proto__._jneOriginalBuy = originalBuyFunction;
                 Game.Upgrades.__proto__.buy = function() {
                     // Call the original buy function
-                    var result = originalBuyFunction.apply(this, arguments);
+                    var result = Game.Upgrades.__proto__._jneOriginalBuy.apply(this, arguments);
                     
                     // Check unlock states after purchase (some upgrades may now be unlockable)
                     setTimeout(function() {
@@ -9197,9 +9197,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Game._jneModifyBuildingPriceWrapped) return;
         Game._jneModifyBuildingPriceWrapped = true;
         
-        const originalModifyBuildingPrice = Game.modifyBuildingPrice;
+        if (!Game._jneOriginalModifyBuildingPriceJNE) Game._jneOriginalModifyBuildingPriceJNE = Game.modifyBuildingPrice;
         Game.modifyBuildingPrice = function(building, price) {
-            price = originalModifyBuildingPrice.call(this, building, price);
+            price = Game._jneOriginalModifyBuildingPriceJNE.call(this, building, price);
             
             var buildingKey = building.name;
             if (!buildingDiscountData[buildingKey]) {
