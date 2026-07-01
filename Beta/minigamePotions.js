@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '2.0.0';
+const POTIONS_VERSION = '2.0.1';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -5243,38 +5243,8 @@ function createPotionsAchievements() {
     }
 ];
 
-    var state = getAchievementState();
-    var truffleHunter = state && state.unlockedReagentsCount >= REAGENTS.length;
-    var potionMaster = state && state.unlockedPotionsCount >= POTIONS.length;
-    var transfiguration = state && state.totalPotionsBrewed >= 250;
-    var alchemistCollector = state && state.totalReagentsCollected >= 1000;
-
-    // Advanced Placement Alchemy: discover all 10 prestige potions
-    var prestigeDiscovered = 0;
-    for (var i = 0; i < POTIONS.length; i++) {
-        if (POTIONS[i].prestige && !POTIONS[i].prestigeLocked && POTIONS[i].discovered) {
-            prestigeDiscovered++;
-        }
-    }
-    var advancedPlacement = prestigeDiscovered >= 10;
-
-    // Fever without dawn: unlock 50 potions within 8 hours of fever nightmare
-    var feverWithoutDawn = false;
-    if (G.feverNightmareStart > 0 && state.unlockedPotionsCount >= 50) {
-        var hoursSinceFever = (Date.now() - G.feverNightmareStart) / (1000 * 60 * 60);
-        feverWithoutDawn = hoursSinceFever <= 8;
-    }
-
     for (var index = 0; index < potionsAchievements.length; index++) {
         var achData = potionsAchievements[index];
-        var shouldBeWon = false;
-        if (index === 0) shouldBeWon = !!truffleHunter;
-        else if (index === 1) shouldBeWon = !!potionMaster;
-        else if (index === 2) shouldBeWon = !!transfiguration;
-        else if (index === 3) shouldBeWon = !!alchemistCollector;
-        else if (index === 4) shouldBeWon = !!advancedPlacement;
-        else if (index === 5) shouldBeWon = !!feverWithoutDawn;
-
         var achievement = Game.JNE.createAchievement(
             achData.name,
             achData.desc,
@@ -5285,15 +5255,6 @@ function createPotionsAchievements() {
         );
         if (achievement) {
             achievement.pool = 'normal';
-            if (shouldBeWon) {
-                achievement.won = 1;
-                achievement._restoredFromSave = true;
-                if (!Game.AchievementsOwned) Game.AchievementsOwned = 0;
-                Game.AchievementsOwned++;
-                if (Game.stats && Game.stats['Achievements unlocked']) {
-                    Game.stats['Achievements unlocked']++;
-                }
-            }
         }
     }
     potionsAchievementState.achievementsCreated = true;
@@ -5384,7 +5345,23 @@ function checkAndAwardPotionsAchievements() {
         var transfiguration = state.totalPotionsBrewed >= 250;
         var alchemistCollector = state.totalReagentsCollected >= 1000;
 
-        var conditions = [truffleHunter, potionMaster, transfiguration, alchemistCollector];
+        // Advanced Placement Alchemy: discover all 10 prestige potions
+        var prestigeDiscovered = 0;
+        for (var i = 0; i < POTIONS.length; i++) {
+            if (POTIONS[i].prestige && !POTIONS[i].prestigeLocked && POTIONS[i].discovered) {
+                prestigeDiscovered++;
+            }
+        }
+        var advancedPlacement = prestigeDiscovered >= 10;
+
+        // Fever without dawn: unlock 50 potions within 8 hours of fever nightmare
+        var feverWithoutDawn = false;
+        if (G.feverNightmareStart > 0 && state.unlockedPotionsCount >= 50) {
+            var hoursSinceFever = (Date.now() - G.feverNightmareStart) / (1000 * 60 * 60);
+            feverWithoutDawn = hoursSinceFever <= 8;
+        }
+
+        var conditions = [truffleHunter, potionMaster, transfiguration, alchemistCollector, advancedPlacement, feverWithoutDawn];
         for (var i = 0; i < potionsAchievementNames.length; i++) {
             var achName = potionsAchievementNames[i];
             var ach = Game.Achievements[achName];
