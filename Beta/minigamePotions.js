@@ -1643,11 +1643,16 @@ function updatePotionEffects() {
     def('attar_of_the_gambler',
         function(p) {
             var s = new Game.shimmer('golden', {noWrath: true});
-            s.attarForced = PotionsM._attarPendingForced || 'frenzy';
+            s.force = PotionsM._attarPendingForced || 'frenzy';
             PotionsM._attarPendingForced = null;
             Game.Notify(p.name + ' consumed', 'A golden cookie appears, it is mysterious.', getIconArray(p), 6);
         },
-        null // Same as success
+        function(p) {
+            var s = new Game.shimmer('golden', {noWrath: true});
+            s.force = PotionsM._attarPendingForced || 'frenzy';
+            PotionsM._attarPendingForced = null;
+            Game.Notify(p.name + ' consumed', 'A golden cookie appears, it is mysterious.', getIconArray(p), 6);
+        }
     );
     def('alkahest_of_the_pantry',
         function(p) {
@@ -2556,9 +2561,7 @@ PotionsM._registerHooks = function() {
         Game._potionsMagicCpSHooked = true;
     }
 
-    // Golden cookie modifications are now handled centrally in JustNaturalExpansion.js
-    // via injectGoldenPopFunc(). The central wrapper checks for potion buffs and applies
-    // effects conditionally. No direct popFunc wrapping needed here.
+    // Golden cookie pop modifications are now handled centrally in JustNaturalExpansion
     
     // Consolidated logic hooks
     if (!Game._potionsLogicHookRegistered) {
@@ -2739,8 +2742,60 @@ PotionsM._registerHooks = function() {
             Game.modHooks['ticker'].push(function() {
                 var newsItems = [];
                 var syrupOfInsight = getPotionById('syrup_of_insight');
-                if (syrupOfInsight && !syrupOfInsight.discovered && G.totalFailedDiscoveries > 20) {
-                    newsItems.push('News : Latest recipe to take over social media — take a pinch of whiskers, a scoop of auroras, and top with a sprinkling of divine extract, "will change your life" says alchemist.');
+                if (syrupOfInsight && !syrupOfInsight.discovered) {
+                    var threshold = (G.prestigeCount > 0) ? (25 + (G.prestigeCount * 5)) : 20;
+                    if (G.totalFailedDiscoveries > threshold) {
+                        var reagentIds = Object.keys(syrupOfInsight.reagents);
+                        var reagentQuips = {
+                            'cats_whiskers': 'a pinch of whiskers',
+                            'captured_auroras': 'a scoop of auroras',
+                            'divine_extraction': 'a sprinkling of divine extract',
+                            'nectar_of_effort': 'a dash of nectar',
+                            'dragon_scales': 'some shimmering scales',
+                            'rabbit_feet': 'one lucky rabbit foot',
+                            'golden_flour': 'a cupful of flour',
+                            'pure_cane_sugar': 'a barspoon of pure sugar',
+                            'flower_petals': 'some fragrant petals',
+                            'immortal_essence': 'one immortal drop',
+                            'magical_infusion': 'a touch of magic',
+                            'culture_of_time': 'a few well-aged seconds',
+                            'reindeer_fur': 'a tuft of festive fur',
+                            'distilled_greed': 'a small hint of greed',
+                            'sample_of_goo': 'an ounce of goo',
+                            'wrath_sugar': 'a bitter spoonful of wrath sugar',
+                            'magical_blight': 'just a trace of magical blight',
+                            'fungus_culture': 'one opinionated spore',
+                            'terra': 'a clump of ambitious dirt',
+                            'roots': 'a knot of hardy roots',
+                            'extract_of_entrepreneurship': 'a splash of hustle',
+                            'technojuice': 'a shot of technojuice'
+                        };
+                        var quips = [];
+                        for (var i = 0; i < reagentIds.length; i++) {
+                            var rId = reagentIds[i];
+                            var rDef = PotionsM._getReagentDef(rId);
+                            var quip = reagentQuips[rId] || ('some ' + (rDef ? rDef.name : rId));
+                            quips.push(quip);
+                        }
+                        var recipeText = '';
+                        if (quips.length === 3) {
+                            recipeText = quips[0] + ', ' + quips[1] + ', and topping with ' + quips[2];
+                        } else if (quips.length === 2) {
+                            recipeText = quips[0] + ' and ' + quips[1];
+                        } else if (quips.length === 1) {
+                            recipeText = quips[0];
+                        } else {
+                            recipeText = quips.slice(0, -1).join(', ') + ', and ' + quips[quips.length - 1];
+                        }
+                        
+                        var newsTemplates = [
+                            'News : Latest alchemy craze sweeps blogosphere deemed "mostly edible"; recipe calls for ' + recipeText + '.',
+                            'News : Miracle recipe hits trendy bakeries; officials question the use of ' + recipeText + '.',
+							'News : Bakers alarmed by new potion fad involving ' + recipeText + ' "downright dangerous" claimed by many.',
+                            'News : Alchemists defend controversial recipe involving ' + recipeText + ' "Look someone was going to do it eventually" says unnamed baker.'
+                        ];
+                        newsItems.push(newsTemplates[Math.floor(Math.random() * newsTemplates.length)]);
+                    }
                 }
                 return newsItems;
             });
@@ -3136,13 +3191,13 @@ PotionsM.init = function(div) {
                 }
             }
             var drinkBtnStyle = 'margin:16px;padding:8px 16px;animation:rainbowCycle 5s infinite ease-in-out,pucker 0.2s ease-out;box-shadow:0px 0px 0px 1px #000,0px 0px 1px 2px currentcolor;background:linear-gradient(to bottom,transparent 0%,currentColor 500%);width:auto;text-align:center;';
-            var drinkBtnHtml = '<div class="optionBox"><a class="option smallFancyButton" style="' + drinkBtnStyle + '" onclick="Game.ClosePrompt();if(window.PotionsM)PotionsM._performPrestige();">Drink it</a></div>';
+            var drinkBtnHtml = '<div class="optionBox"><a class="option smallFancyButton" style="' + drinkBtnStyle + '" onclick="Game.ClosePrompt();if(window.PotionsM)PotionsM._performPrestige();">Enter Fever Nightmare</a></div>';
             Game.Prompt(
                 '<h3>Fever Nightmare</h3>'
                 + '<div class="block">'
-                + 'Mix everything together at random: reagents, potions, and whatever you find under the couch. Ignore every safety rule and discard common sense.'
+                + 'Combine everything randomly and chaotically, reagents, potions, and strange debris recovered from beneath the couch. Disregard safety entirely, throw common sense into the nearest fire, and charge ahead with reckless confidence. This is an exceptionally bad idea.'
                 + '<br><br>'
-                + 'You will slip into a deep fever nightmare. When you awaken, all <b>discovered potions will be forgotten</b>, all brewed potions will be lost, and every <b>recipe will be randomized</b>. Your unlocked reagents and stores will remain.'
+                + 'You will slip into a deep fever nightmare. When you awaken, all <b>discovered potions will be forgotten</b>, all brewed potions will be lost, and every <b>recipe will be randomized</b>.<br><br>Your unlocked reagents and stores will remain untouched.'
                 + prestigeNote
                 + drinkBtnHtml
                 + '</div>',
@@ -3930,17 +3985,27 @@ PotionsM._startBrew = function() {
         };
         // Attar of the Gambler: roll forced outcomes at brew-start
         if (matchingPotion.id === 'attar_of_the_gambler') {
-            var normalTable  = ['frenzy','frenzy','frenzy','frenzy','frenzy','frenzy',
-                                'lucky','lucky','lucky','lucky','lucky',
-                                'dragon harvest','dragon harvest','dragon harvest',
-                                'dragonflight','dragonflight','dragonflight',
-                                'building special','cookie storm','chain cookie'];
-            var misbrewTable = ['frenzy','frenzy','frenzy','frenzy','frenzy','frenzy',
-                                'lucky','lucky','lucky','lucky','lucky',
-                                'clot','clot','clot','clot','clot','clot',
-                                'building special','cookie storm','chain cookie'];
-            newSlot.fo  = normalTable[Math.floor(PotionsM._random() * normalTable.length)];
-            newSlot.fom = misbrewTable[Math.floor(PotionsM._random() * misbrewTable.length)];
+            var rollForced = function() {
+                var r = PotionsM._random() * 100;
+                if (r < 25) return 'frenzy';
+                if (r < 50) return 'multiply cookies';
+                if (r < 65) return 'dragonflight';
+                if (r < 80) return 'dragon harvest';
+                if (r < 90) return 'building special';
+                if (r < 95) return 'cookie storm';
+                return 'chain cookie';
+            };
+            var rollMisbrew = function() {
+                var r = PotionsM._random() * 100;
+                if (r < 25) return 'frenzy';
+                if (r < 50) return 'multiply cookies';
+                if (r < 80) return 'clot';
+                if (r < 90) return 'building special';
+                if (r < 95) return 'cookie storm';
+                return 'chain cookie';
+            };
+            newSlot.fo  = rollForced();
+            newSlot.fom = rollMisbrew();
         }
         G.slots[emptySlot] = newSlot;
     } else {
@@ -5195,7 +5260,7 @@ function createPotionsAchievements() {
 
     // Fever without dawn: unlock 50 potions within 8 hours of fever nightmare
     var feverWithoutDawn = false;
-    if (G.feverNightmareStart > 0 && G.potionsBrewed >= 50) {
+    if (G.feverNightmareStart > 0 && state.unlockedPotionsCount >= 50) {
         var hoursSinceFever = (Date.now() - G.feverNightmareStart) / (1000 * 60 * 60);
         feverWithoutDawn = hoursSinceFever <= 8;
     }
