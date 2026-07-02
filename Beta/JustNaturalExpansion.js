@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.5.9';
+    var modVersion = '0.5.91';
     var debugMode = false; 
     
     function debugLog() {
@@ -148,7 +148,6 @@ var downlineMinigameLoadedOnce = false;
 var pendingPotionsMinigameSave = '';
 var potionsMinigameLoadedOnce = false;
 
-var buildingDiscountData = {}; // Store discount upgrade names by building name
 var cookieAgeScriptLoaded = false;
 var heavenlyUpgradesScriptLoaded = false;
 var modInitialized = false; // Track if mod has finished initializing
@@ -1771,16 +1770,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.JNE.enableExtraSeasons = enabled;
 
         if (enabled) {
-            // Hook WriteSave once to prevent mod seasons key being written into vanilla's save string (spl[22]). Vanilla crashes on load if it reads an unknown season key.
-            if (Game.WriteSave && !Game.WriteSave._jneSeasonHooked) {
-                var _orig = Game.WriteSave;
-                Game.WriteSave = function(type) {
-                    var s = Game.season, bs = Game.baseSeason, dirty = false;
-                    if (s && Game.seasons && !Game.seasons[s]) { Game.season = ''; Game.baseSeason = ''; dirty = true; }
-                    try { return _orig.call(this, type); } finally { if (dirty) { Game.season = s; Game.baseSeason = bs; } }
-                };
-                Game.WriteSave._jneSeasonHooked = true;
-            }
             // Show Lunar biscuit if Season switcher is owned
             var mb = Game.Upgrades['Lunar biscuit'];
             if (mb && mb.pool === 'toggle' && Game.Has('Season switcher')) {
@@ -1874,7 +1863,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     settingsDiv.style.cssText = 'padding:0px;margin:0px 4px;margin-top:20px;';
                     settingsDiv.innerHTML = `
                         <div class="subsection" style="padding:0px;">
-                            <div class="title">${modName} v${modVersion}</div>
+                            <div class="title">${Game.JNE.modName} v${Game.JNE.modVersion}</div>
                               <div style="margin:10px 0px;color:#ccc;font-size:11px;line-height:1.3;">
 							    The <span style="font-weight:bold;">Just Natural Expansion Mod</span> expands Cookie Clicker's endgame while keeping the core game intact. It adds new upgrades, achievements, minigames, and even an occult puzzle mystery thriller, all designed not to break the vanilla feel and cadence of the game. Every feature can be toggled on or off for leaderboard safe play or tailored to your own style.
 							    <br><br><a href=" https://discord.gg/vTyR5vWhQR" target="_blank" rel="noopener noreferrer" style="color:#03adfc;font-weight:bold;">Join the Just Natural Expansion Discord</a> to connect with fellow players, swap strategies, get puzzle hints, catch sneak peeks of upcoming releases, and beta test new features before anyone else.<br> 
@@ -2256,7 +2245,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     
                     let lifetimeStatsHTML = '';
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeReindeer(), 
+                        Game.JNE.getLifetimeReindeer(),
                         'Reindeer clicked'
                     );
                     if (modSettings.enableExtraSeasons) {
@@ -2264,7 +2253,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         var lifetimeLanterns = lifetimeData.lanternsClicked || 0;
                         var totalLanterns = currentSessionLanterns + lifetimeLanterns;
                         if (totalLanterns > 0) {
-                            var zodiacCount = getZodiacVisitCount();
+                            var zodiacCount = Game.JNE.getZodiacVisitCount();
                             var lanternDisplayValue = lifetimeLanterns > 0
                                 ? `${currentSessionLanterns} (all time: ${totalLanterns})`
                                 : currentSessionLanterns.toString();
@@ -2275,24 +2264,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                     }
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeStockMarketAssets(), 
+                        Game.JNE.getLifetimeStockMarketAssets(),
                         'Lifetime stock market profit'
                     );
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeShinyWrinklers(), 
+                        Game.JNE.getLifetimeShinyWrinklers(),
                         'Shiny wrinklers burst'
                     );
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeWrathCookies(), 
+                        Game.JNE.getLifetimeWrathCookies(),
                         'Wrath cookies clicked'
                     );
 
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeCookieClicks(), 
+                        Game.JNE.getLifetimeCookieClicks(),
                         'Cookie clicks'
                     );
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeWrinklers(), 
+                        Game.JNE.getLifetimeWrinklers(),
                         'Wrinklers burst',
                         true
                     );
@@ -2345,7 +2334,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     }
                     
                     lifetimeStatsHTML += formatLifetimeStat(
-                        getLifetimeGardenSacrifices(), 
+                        Game.JNE.getLifetimeGardenSacrifices(),
                         'Garden sacrifices'
                     );
                     
@@ -2389,7 +2378,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     var upgradePercentage = totalModUpgrades > 0 ? Math.round((modUpgradesPurchased / totalModUpgrades) * 100) : 0;
                     
                     modStatsDiv.innerHTML = `
-                        <div class="title">${modName} v${modVersion}</div>
+                        <div class="title">${Game.JNE.modName} v${Game.JNE.modVersion}</div>
                         <div id="statsMod">
                             <div class="listing"><b>Mod achievements unlocked:</b> ${modAchievementsUnlocked} / ${totalModAchievements} (${achievementPercentage}%)</div>
                             <div class="listing"><b>Mod upgrades purchased:</b> ${modUpgradesPurchased} / ${totalModUpgrades} (${upgradePercentage}%)</div>
@@ -4110,9 +4099,23 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         return 1.0;
     }
     if (!Game.JNE) Game.JNE = {};
+    Game.JNE.buildingDiscountData = {};
     Game.JNE.getLunarZodiacYear = getLunarZodiacYear;
     Game.JNE.getCurrentLunarZodiac = getCurrentLunarZodiac;
     Game.JNE.getZodiacEffectMultiplier = getZodiacEffectMultiplier;
+    Game.JNE.getZodiacVisitCount = getZodiacVisitCount;
+    Game.JNE.getLifetimeReindeer = getLifetimeReindeer;
+    Game.JNE.getLifetimeLanterns = getLifetimeLanterns;
+    Game.JNE.getLifetimeStockMarketAssets = getLifetimeStockMarketAssets;
+    Game.JNE.getLifetimeShinyWrinklers = getLifetimeShinyWrinklers;
+    Game.JNE.getLifetimeWrathCookies = getLifetimeWrathCookies;
+    Game.JNE.getLifetimeGardenSacrifices = getLifetimeGardenSacrifices;
+    Game.JNE.getLifetimeCookieClicks = getLifetimeCookieClicks;
+    Game.JNE.getLifetimeWrinklers = getLifetimeWrinklers;
+    Game.JNE.getLifetimePledges = getLifetimePledges;
+    Game.JNE.getLifetimeCookieFish = getLifetimeCookieFish;
+    Game.JNE.getLifetimeBingoJackpotWins = getLifetimeBingoJackpotWins;
+    Game.JNE.getBuildingsSoldTotal = getBuildingsSoldTotal;
 
     function isLunarNewYearSeason() {
         var year = new Date().getFullYear();
@@ -4241,11 +4244,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         ach.hide = 0;
         
-        ach.name = name; 
+        ach.name = name;
         ach.icon = finalIcon;
         ach.vanilla = false; // Mark as non-vanilla achievement
-        
+
         // Add source text with mod icon and name
+        var modName = Game.JNE && Game.JNE.modName ? Game.JNE.modName : 'Just Natural Expansion';
         var sourceText = '<div style="font-size:80%;text-align:center;">From <span style="margin: 0 4px;">' + tinyIcon(modIcon) + '</span> ' + modName + '</div><div class="line"></div>';
         ach.ddesc = sourceText + ach.ddesc;
         ach.desc = sourceText + ach.desc;
@@ -4277,6 +4281,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Helper function to add source text to upgrades and achievements
     function addSourceText(item) {
+        var modName = Game.JNE && Game.JNE.modName ? Game.JNE.modName : 'Just Natural Expansion';
         var sourceText = '<div style="font-size:80%;text-align:center;">From <span style="margin: 0 4px;">' + tinyIcon(modIcon) + '</span> ' + modName + '</div><div class="line"></div>';
         item.ddesc = sourceText + item.ddesc;
         item.desc = sourceText + item.desc;
@@ -5067,47 +5072,65 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
 
     function setupPermanentSlotSaveHook() {
-        if (!Game || !Game.WriteSave || Game.WriteSave._permanentSlotHooked) {
+        if (!Game || !Game.WriteSave || Game.WriteSave._jneWriteSaveHooked) {
             return;
         }
 
         if (!Game._jneOriginalWriteSave) Game._jneOriginalWriteSave = Game.WriteSave;
-        Game.WriteSave = function() {
-            if (!Game.permanentUpgrades || !Game.UpgradesById) {
-                return Game._jneOriginalWriteSave.apply(this, arguments);
-            }
-
-            var nameSet = Game.jneGetModUpgradeNameSet();
+        Game.WriteSave = function(type) {
             var savedSlots = [];
             var backup = window.jneModPermanentSlotBackup;
+            var seasonDirty = false;
+            var savedSeason, savedBaseSeason;
 
-            for (var i = 0; i < Game.permanentUpgrades.length; i++) {
-                var id = Game.permanentUpgrades[i];
-                if (typeof id === 'number' && id >= 0) {
-                    var upgrade = Game.UpgradesById[id];
-                    if (upgrade && nameSet[upgrade.name]) {
-                        savedSlots[i] = id;
-                        backup[i] = upgrade.name;
-                        Game.permanentUpgrades[i] = -1;
+            // Permanent slot logic: blank mod upgrade IDs before vanilla serializes
+            if (Game.permanentUpgrades && Game.UpgradesById) {
+                var nameSet = Game.jneGetModUpgradeNameSet();
+                for (var i = 0; i < Game.permanentUpgrades.length; i++) {
+                    var id = Game.permanentUpgrades[i];
+                    if (typeof id === 'number' && id >= 0) {
+                        var upgrade = Game.UpgradesById[id];
+                        if (upgrade && nameSet[upgrade.name]) {
+                            savedSlots[i] = id;
+                            backup[i] = upgrade.name;
+                            Game.permanentUpgrades[i] = -1;
+                        }
                     }
+                }
+
+                if (Object.keys(backup).length > 0) {
+                    window.modSettings.permanentSlotBackup = Object.assign({}, backup);
                 }
             }
 
-            if (Object.keys(backup).length > 0) {
-                window.modSettings.permanentSlotBackup = Object.assign({}, backup);
+            // Season logic: blank mod season key before vanilla serializes
+            if (modSettings.enableExtraSeasons && Game.season && Game.seasons && !Game.seasons[Game.season]) {
+                savedSeason = Game.season;
+                savedBaseSeason = Game.baseSeason;
+                Game.season = '';
+                Game.baseSeason = '';
+                seasonDirty = true;
             }
 
-            var result = Game._jneOriginalWriteSave.apply(this, arguments);
+            try {
+                var result = Game._jneOriginalWriteSave.call(this, type);
+            } finally {
+                // Restore permanent slots
+                for (var i = 0; i < savedSlots.length; i++) {
+                    if (savedSlots[i] !== undefined) {
+                        Game.permanentUpgrades[i] = savedSlots[i];
+                    }
+                }
 
-            for (var i = 0; i < savedSlots.length; i++) {
-                if (savedSlots[i] !== undefined) {
-                    Game.permanentUpgrades[i] = savedSlots[i];
+                if (seasonDirty) {
+                    Game.season = savedSeason;
+                    Game.baseSeason = savedBaseSeason;
                 }
             }
 
             return result;
         };
-        Game.WriteSave._permanentSlotHooked = true;
+        Game.WriteSave._jneWriteSaveHooked = true;
     }
 
     // This function saves current states before deletion - use only for mod initialization
@@ -5438,25 +5461,25 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                         return Game.handmadeCookies >= threshold;
                     case 'wrinkler':
-                        return getLifetimeWrinklers() >= threshold;
+                        return Game.JNE.getLifetimeWrinklers() >= threshold;
                     case 'shinyWrinkler':
                         // Track shiny wrinklers popped (me.type==1)
-                        return getLifetimeShinyWrinklers() >= threshold;
+                        return Game.JNE.getLifetimeShinyWrinklers() >= threshold;
                     case 'reindeer':
-                        return getLifetimeReindeer() >= threshold;
+                        return Game.JNE.getLifetimeReindeer() >= threshold;
                     case 'lanternClicks':
-                        return getLifetimeLanterns() >= threshold;
+                        return Game.JNE.getLifetimeLanterns() >= threshold;
                     case 'zodiacVisits':
-                        return getZodiacVisitCount() >= threshold;
+                        return Game.JNE.getZodiacVisitCount() >= threshold;
                     case 'goldenCookies':
                         return Game.goldenClicks >= threshold;
                     case 'wrathCookies':
-                        return getLifetimeWrathCookies() >= threshold;
+                        return Game.JNE.getLifetimeWrathCookies() >= threshold;
                     // Note: gardenSacrifices case handled by seedlog case below
                     case 'cookieClicks':
-                        return getLifetimeCookieClicks() >= threshold;
+                        return Game.JNE.getLifetimeCookieClicks() >= threshold;
                     case 'stockMarketAssets':
-                        return getLifetimeStockMarketAssets() >= threshold;
+                        return Game.JNE.getLifetimeStockMarketAssets() >= threshold;
                     case 'spell':
                         // Check if the wizard tower minigame exists and has spells cast
                         return Game.Objects['Wizard tower'].minigame && 
@@ -5487,7 +5510,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         }
                         return minAmount >= threshold;
                   case 'seedlog':
-                        var lifetimeGardenSacrifices = getLifetimeGardenSacrifices();
+                        var lifetimeGardenSacrifices = Game.JNE.getLifetimeGardenSacrifices();
                         return lifetimeGardenSacrifices >= threshold;
                     case 'allKittensOwned':
                         var vanillaKittens = ['Kitten helpers', 'Kitten workers', 'Kitten engineers', 'Kitten overseers', 'Kitten managers', 'Kitten accountants', 'Kitten specialists', 'Kitten experts', 'Kitten consultants', 'Kitten assistants to the regional manager', 'Kitten marketeers', 'Kitten analysts', 'Kitten executives', 'Kitten admins', 'Kitten strategists', 'Kitten angels', 'Fortune #103'];
@@ -5516,7 +5539,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             if (!Game.Objects['Bank'].minigame) return false;
                             return Game.Objects['Bank'].minigame.profit <= threshold;
                         } else {
-                            var lifetimeStockMarket = getLifetimeStockMarketAssets();
+                            var lifetimeStockMarket = Game.JNE.getLifetimeStockMarketAssets();
                             return lifetimeStockMarket >= threshold;
                         }
                     case 'stockBrokers':
@@ -5586,9 +5609,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         return easterComplete && halloweenComplete && christmasComplete && valentinesComplete;
                     
                     case 'cookieClicks':
-                        return getLifetimeCookieClicks() >= threshold;
+                        return Game.JNE.getLifetimeCookieClicks() >= threshold;
                     case 'pledges':
-                        var lifetimePledges = getLifetimePledges();
+                        var lifetimePledges = Game.JNE.getLifetimePledges();
                         return lifetimePledges >= threshold;
                     case 'prestigeUpgrades':
                         var prestigeUpgradesOwned = 0;
@@ -5665,13 +5688,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         return (modTracking.soilChangesTotal || 0) >= threshold;
                     case 'buildingsSold':
                         // Calculate total buildings sold using a shared helper
-                        return getBuildingsSoldTotal() >= threshold;
+                        return Game.JNE.getBuildingsSoldTotal() >= threshold;
                     case 'tickerClicks':
                         // Check if ticker clicks count meets threshold
                         return (Game.TickerClicks || 0) >= threshold;
                     case 'wrathCookies':
                         // Check if wrath cookie clicks count meets threshold
-                        return getLifetimeWrathCookies() >= threshold;
+                        return Game.JNE.getLifetimeWrathCookies() >= threshold;
                     case 'goldenCookieTime':
                         // Check if a golden cookie was clicked within the time limit
                         if (!Game.startDate) return false; // No start date means achievement not unlocked
@@ -5746,7 +5769,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             }
                         }
                         
-                        if (getBuildingsSoldTotal() > 0) {
+                        if (Game.JNE.getBuildingsSoldTotal() > 0) {
                             return false;
                         }
                         
@@ -6699,12 +6722,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
         if (upgradeInfo.isBoxUpgrade) {
             upgrade.isBoxUpgrade = true;
-            
+
             // Use the constant Box icon coordinates
             var requireText = '<div style="font-size:80%;text-align:center;">From ' + tinyIcon([34, 4]) + ' Box of improved cookies</div>';
+                    var modName = Game.JNE && Game.JNE.modName ? Game.JNE.modName : 'Just Natural Expansion';
                     var modSourceText = '<div style="font-size:80%;text-align:center;margin-top:2px;">Part of <span style="margin: 0 4px;">' + tinyIcon(modIcon) + '</span> ' + modName + '</div>';
                     var combinedText = requireText + '<div style="height:2px;"></div>' + modSourceText + '<div class="line"></div>';
-                    
+
                     upgrade.ddesc = combinedText + upgradeInfo.ddesc;
                     upgrade.desc = combinedText + upgradeInfo.desc;
                 } else {
@@ -6789,6 +6813,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 };
                 
                 var requireText = '<div style="font-size:80%;text-align:center;">From ' + tinyIcon([34, 4]) + ' Box of improved cookies</div>';
+                var modName = Game.JNE && Game.JNE.modName ? Game.JNE.modName : 'Just Natural Expansion';
                 var modSourceText = '<div style="font-size:80%;text-align:center;margin-top:2px;">Part of <span style="margin: 0 4px;">' + tinyIcon(modIcon) + '</span> ' + modName + '</div>';
                 var combinedText = requireText + '<div style="height:2px;"></div>' + modSourceText + '<div class="line"></div>';
                 upgrade.ddesc = combinedText + upgradeInfo.ddesc;
@@ -7724,7 +7749,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         newsItems.push('News : Stock market profits are soaring. Economists confused. Some traders seem inclined to lose all their money for no apparent reason.');
                     }
                     
-                    if (getLifetimeGardenSacrifices() >= 3) {
+                    if (Game.JNE.getLifetimeGardenSacrifices() >= 3) {
                         newsItems.push('News : Garden sacrifices are on the rise. Plants are nervous, sugar hornets seem pleased.');
                     }
                     
@@ -7951,10 +7976,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             
             // Set flags BEFORE syncing minigames
             if (!Game.JNE) Game.JNE = {};
+            Game.JNE.modName = modName;
+            Game.JNE.modVersion = modVersion;
             Game.JNE.enableMinigames = !!modSettings.enableMinigames;
             Game.JNE.enableJSMiniGame = !!modSettings.enableMinigames;
             Game.JNE.enableDownlineMinigame = !!modSettings.enableMinigames;
             Game.JNE.enablePotionsMinigame = !!modSettings.enableMinigames;
+            Game.JNE.getLifetimeReindeer = getLifetimeReindeer;
+            Game.JNE.getLifetimeLanterns = getLifetimeLanterns;
+            Game.JNE.getZodiacVisitCount = getZodiacVisitCount;
+            Game.JNE.getLifetimeStockMarketAssets = getLifetimeStockMarketAssets;
+            Game.JNE.getLifetimeShinyWrinklers = getLifetimeShinyWrinklers;
+            Game.JNE.getLifetimeWrathCookies = getLifetimeWrathCookies;
+            Game.JNE.getLifetimeGardenSacrifices = getLifetimeGardenSacrifices;
+            Game.JNE.getLifetimeCookieClicks = getLifetimeCookieClicks;
+            Game.JNE.getLifetimeWrinklers = getLifetimeWrinklers;
+            Game.JNE.getLifetimePledges = getLifetimePledges;
+            Game.JNE.getLifetimeCookieFish = getLifetimeCookieFish;
+            Game.JNE.getLifetimeBingoJackpotWins = getLifetimeBingoJackpotWins;
 
             // Hook Game.LoadSave to set _isRestoringData during vanilla buff restoration
             // This prevents heavenly upgrade buff modifiers from compounding on save load
@@ -8897,7 +8936,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         // Check if no more than 20 upgrades owned
                         if ((Game.UpgradesOwned || 0) <= 20) {
                             // Check no buildings sold this run
-                            if (getBuildingsSoldTotal() <= 0) {
+                            if (Game.JNE.getBuildingsSoldTotal() <= 0) {
                                 var achievementName = 'Hardercorest-er';
                                 if (Game.Achievements[achievementName] && !Game.Achievements[achievementName].won) {
                                     markAchievementWon(achievementName);
@@ -8911,7 +8950,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         // Check hardcore no heavenly chips achievement
         if (!Game.Has('Heavenly chip secret')) {
-            if (getBuildingsSoldTotal() <= 0) {
+            if (Game.JNE.getBuildingsSoldTotal() <= 0) {
                 // Check if player has at least 333 of every building type
                 var allBuildingsHave333 = true;
                 for (var buildingName in Game.Objects) {
@@ -8933,7 +8972,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         
         // Check hardcore final countdown achievement
         if ((Game.ascensionMode == 1 || Game.resets == 0)) {
-            if (getBuildingsSoldTotal() <= 0) {
+            if (Game.JNE.getBuildingsSoldTotal() <= 0) {
                 // Check if either Final Countdown set is satisfied
                 if (checkFinalCountdownAchievement()) {
                     var achievementName = 'The Final Countdown';
@@ -9064,7 +9103,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         
         // Check buildings sold achievements
-        var buildingsSoldTotal = getBuildingsSoldTotal();
+        var buildingsSoldTotal = Game.JNE.getBuildingsSoldTotal();
         
         if (buildingsSoldTotal >= 25000) {
             var achievementName = 'Asset Liquidator';
@@ -9096,7 +9135,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         
         // Check wrath cookie achievements
-        var lifetimeWrathCookies = getLifetimeWrathCookies();
+        var lifetimeWrathCookies = Game.JNE.getLifetimeWrathCookies();
         
         if (lifetimeWrathCookies >= 66) {
             var achievementName = 'Warm-Up Ritual';
@@ -9189,7 +9228,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Apply building discount based on owned upgrades
     function applyBuildingDiscount(buildingName, discountUpgrades) {
         // Store discount upgrade names for this building
-        buildingDiscountData[buildingName] = discountUpgrades;
+        Game.JNE.buildingDiscountData[buildingName] = discountUpgrades;
     }
     
     function setupBuildingDiscountWrapper() {
@@ -9200,16 +9239,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!Game._jneOriginalModifyBuildingPriceJNE) Game._jneOriginalModifyBuildingPriceJNE = Game.modifyBuildingPrice;
         Game.modifyBuildingPrice = function(building, price) {
             price = Game._jneOriginalModifyBuildingPriceJNE.call(this, building, price);
-            
+
             var buildingKey = building.name;
-            if (!buildingDiscountData[buildingKey]) {
+            if (!Game.JNE.buildingDiscountData[buildingKey]) {
                 buildingKey = building.id;
             }
-            
-            if (buildingDiscountData[buildingKey]) {
+
+            if (Game.JNE.buildingDiscountData[buildingKey]) {
                 var discountMultiplier = 1.0;
-                var discountUpgrades = buildingDiscountData[buildingKey];
-                
+                var discountUpgrades = Game.JNE.buildingDiscountData[buildingKey];
+
                 // Check each discount upgrade for this building
                 for (var i = 0; i < discountUpgrades.length; i++) {
                     var upgradeName = discountUpgrades[i];

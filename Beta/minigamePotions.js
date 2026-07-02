@@ -221,7 +221,7 @@ var POTIONS = [
         icon: [22, 25, 'custom'],
         desc: "Grandma's dark secret, bottled, labeled, priced, and fit for general consumption, now available at your local megastore.",
         effect: "Summon a random wrath cookie.",
-        brewTime: 60*30,
+        brewTime: 60*90,
         misbrew: "Golden cookies appear 30% less for the next 10 minutes.",
         reagents: { wrath_sugar: 1, sample_of_goo: 1, cats_whiskers: 1 },
     },
@@ -2856,6 +2856,20 @@ PotionsM._hookDownline = function() {
         DM.onActionAdd._potionsM = PotionsM;
     }
     Game._potionsDownlineHooked = true;
+
+    // Register onRelease callback to drop a reagent on release
+    if (!DM.onRelease || !DM.onRelease._potionsHooked) {
+        var existingOnRelease = DM.onRelease;
+        DM.onRelease = function() {
+            if (existingOnRelease) existingOnRelease.apply(this, arguments);
+            var PM = DM.onRelease._potionsM || PotionsM;
+            if (!PM._loading) {
+                PM._addReagent('extract_of_entrepreneurship', 1, 'downline_release');
+            }
+        };
+        DM.onRelease._potionsHooked = true;
+        DM.onRelease._potionsM = PotionsM;
+    }
 };
 
 PotionsM._hookGarden = function() {
@@ -4836,6 +4850,7 @@ PotionsM._resetImpl = function(hard, _calledFromLoad) {
 PotionsM._oxymeltMult = 1.0; // Oxymel of Insanity random CpS multiplier, updated each second
 
 PotionsM._performPrestige = function() {
+    PlaySound('snd/charging.mp3');
     G.prestigeCount = (G.prestigeCount || 0) + 1;
     G.feverNightmareStart = Date.now();
 
@@ -4865,7 +4880,7 @@ PotionsM._performPrestige = function() {
         POTIONS[i].unlocked = false;
         POTIONS[i].discovered = false;
     }
-    // Re-ensure previously unlocked prestige potions stay in the pool (never re-locked)
+    // Re-ensure previously unlocked prestige potions stay unlocked
     for (var upIdx = 0; upIdx < G.unlockedPrestige.length; upIdx++) {
         var upPot = getPotionById(G.unlockedPrestige[upIdx]);
         if (upPot) upPot.prestigeLocked = false;
@@ -4875,18 +4890,6 @@ PotionsM._performPrestige = function() {
     G.triedRecipes = TriedRecipes.create();
     G.highlightedReagents = [];
     G.highlightEndTime = 0;
-    // Preserve G.reagents (stored reagent counts) and G.unlockedReagents - they are not reset on prestige
-
-    // Kill all active potion buffs
-    if (Game.buffs) {
-        for (var i = 0; i < POTIONS.length; i++) {
-            var pn = POTIONS[i].name;
-            if (pn) {
-                if (Game.hasBuff(pn)) Game.killBuff(pn);
-                if (Game.hasBuff(pn + ' (misbrewed)')) Game.killBuff(pn + ' (misbrewed)');
-            }
-        }
-    }
 
     PotionsM._refreshSlots();
     PotionsM._renderSelectedReagents();

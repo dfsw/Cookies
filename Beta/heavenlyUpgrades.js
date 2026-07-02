@@ -4,7 +4,7 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.20';
+        const MOD_HU_VERSION = '1.0.201';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const CUSTOM_SPRITE_SHEET_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
@@ -3198,7 +3198,7 @@
                             if (cost != costBreakdown) costBreakdown = ' <small>(' + costBreakdown + ')</small>'; else costBreakdown = '';
                             var backfire = M.getFailChance(spell);
                             var str = '<div style="padding:8px 4px;min-width:350px;" id="tooltipSpell">' +
-                                '<div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-image:url(\'' + spell.customIconSheet + '\');background-position:' + (-spell.icon[0] * 48) + 'px ' + (-spell.icon[1] * 48) + 'px;"></div>' +
+                                '<div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-image:url(\'' + spell.customIconSheet + '\');' + (spell.icon[2] ? 'background-image:url(' + spell.icon[2] + ');' : '') + 'background-position:' + (-spell.icon[0] * 48) + 'px ' + (-spell.icon[1] * 48) + 'px;"></div>' +
                                 '<div class="name">' + spell.name + '</div>' +
                                 '<div>' + (typeof loc === 'function' ? loc("Magic cost:") : "Magic cost:") + ' <b style="color:#' + (cost <= M.magic ? '6f6' : 'f66') + ';">' + cost + '</b>' + costBreakdown + '</div>' +
                                 (spell.fail ? ('<div><small>' + (typeof loc === 'function' ? loc("Chance to backfire:") : "Chance to backfire:") + ' <b style="color:#f66">' + Math.ceil(100 * backfire) + '%</b></small></div>') : '') +
