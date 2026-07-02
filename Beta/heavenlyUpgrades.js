@@ -96,13 +96,17 @@
                 if (e.ran && (!e.done || e.done())) continue;
                 if (e.ran) e.ran = false;
                 try {
-                    if (e.done && e.done()) { 
-                        e.ran = true; 
-                        continue; 
+                    if (e.done && e.done()) {
+                        e.ran = true;
+                        continue;
                     }
                     // Skip ownership check if forceAll is true (during init/load)
                     if (!forceAll && e.owned && !e.owned()) continue;
                     if (e.ready && !e.ready()) continue;
+
+                    // Skip effect setups in Born Again mode (upgrades remain owned but have no effect)
+                    // Allow basic initialization (Custom buff types, Garden save hook, etc.) to run
+                    if (Game.ascensionMode == 1 && !isToggle && e.id !== 'Custom buff types' && e.id !== 'Garden save hook immediate' && e.id !== 'Heavenly plant unlocks' && e.id !== 'Garden new plants') continue;
 
                     if (e.setup) e.setup();
                     if (!e.done || e.done()) e.ran = true;
@@ -141,8 +145,13 @@
                 [['Frenziered elders', 'Godzmak\'s Headstart', 'Creative tax evasion'], setupBuffModifiers],
                 [['Mega clicks', 'Lucky mega clicks', 'Extreme mega clicks'], setupMegaClicks]
             ];
-            for (var i = 0; i < ownedSetups.length; i++) {
-                if (jneHasAny(ownedSetups[i][0])) ownedSetups[i][1]();
+            // Skip all owned setup functions in Born Again mode (upgrades remain owned but have no effect)
+            if (Game.ascensionMode != 1) {
+                for (var i = 0; i < ownedSetups.length; i++) {
+                    if (jneHasAny(ownedSetups[i][0])) {
+                        ownedSetups[i][1]();
+                    }
+                }
             }
             if (Game.Has('Bingo center slots')) {
                 var now = jneEvery('_jneBingoCenterSlotsLast', 60000); ///60000 
@@ -844,6 +853,8 @@
                 return;
             }
             Game.registerHook('cps', function(cps) {
+                // Skip effect in Born Again mode
+                if (Game.ascensionMode == 1) return cps;
                 var mult = 1;
                 if (Game.Has('Divine uninspiration') && Game.Objects['Temple'] && Game.Objects['Temple'].minigame && Game.Objects['Temple'].minigame.slot) {
                     var s = Game.Objects['Temple'].minigame.slot;
@@ -918,6 +929,8 @@
         function setupMegaClicks() {
             if (Game.registerHook && !Game._megaClicksHookRegistered) {
                 Game.registerHook('click', function() {
+                    // Skip effect in Born Again mode
+                    if (Game.ascensionMode == 1) return;
                     if (Game.Has && Game.Has('Mega clicks')) {
                         var megaClickChance = Game.Has('Lucky mega clicks') ? 0.015 : 0.01;
                         var isMegaClick = jneIndependentRandom() < megaClickChance; 
@@ -1317,6 +1330,8 @@
             if (!Game.registerHook || Game._regiftingHooked) return;
             Game._regiftingHooked = true;
             Game.registerHook('reset', function(hard) {
+                // Skip effect in Born Again mode
+                if (Game.ascensionMode == 1) return;
                 if (hard) return;
 
                 if (!Game.seasonDrops || !Array.isArray(Game.seasonDrops)) return;
@@ -4294,29 +4309,7 @@
             }
             
             var vanillaUpdateShimmers = Game.updateShimmers;
-            
-            function maybeDoubleTimerSpawn(i) {
-                var hasVanillaLuck = Game.Has('Distilled essence of redoubled luck');
-                var hasRetripledLuck = Game.Has('Distilled essence of retripled luck');
-                // cookie chain and break chain behavior — skip all doubling for timer goldens while chain depth > 0.
-                if (i === 'golden' && Game.shimmerTypes && Game.shimmerTypes['golden']) {
-                    var gChain = Game.shimmerTypes['golden'].chain;
-                    if (typeof gChain === 'number' && gChain > 0) return;
-                }
-                // Fish: never double here.
-                if (i === 'fish') return;
-                if (hasRetripledLuck) {
-                    var chance =  0.02;
-                    if (jneIndependentRandom() < chance) {
-                        var rExtra = new Game.shimmer(i, {_retripledLuckExtra: true});
-                        if (rExtra) rExtra.spawnLead = 1;
-                    }
-                } else if (hasVanillaLuck && Math.random() < 0.01) {
-                    var vExtra = new Game.shimmer(i);
-                    if (vExtra) vExtra.spawnLead = 1;
-                }
-            }
-            
+
             Game.updateShimmers = function() {
                 for (var si in Game.shimmers) {
                     Game.shimmers[si].update();
@@ -4337,7 +4330,7 @@
                             if (Math.random() < Math.pow(Math.max(0, (me.time - me.minTime) / (me.maxTime - me.minTime)), 5)) {
                                 var newShimmer = new Game.shimmer(ti);
                                 newShimmer.spawnLead = 1;
-                                maybeDoubleTimerSpawn(ti);
+                                if (Game.JNE && Game.JNE.maybeDoubleTimerSpawn) Game.JNE.maybeDoubleTimerSpawn(ti);
                                 me.spawned = 1;
                             }
                         }
@@ -4360,7 +4353,8 @@
                 Game.specialTabs = [];
                 if (Game.Has('A festive hat')) Game.specialTabs.push('santa');
                 if (Game.Has('A crumbly egg')) Game.specialTabs.push('dragon');
-                Game.specialTabs.push('stopwatch');
+                // Skip stopwatch tab in Born Again mode
+                if (Game.ascensionMode != 1) Game.specialTabs.push('stopwatch');
                 if (Game.specialTabs.length === 0) { Game.ToggleSpecialMenu(0); return; }
                 if (Game.LeftBackground) {
                     Game.specialTabHovered = '';
@@ -4419,6 +4413,10 @@
 
             if (!Game._jneOriginalToggleSpecialMenu) Game._jneOriginalToggleSpecialMenu = Game.ToggleSpecialMenu;
             Game.ToggleSpecialMenu = function(on) {
+                // Skip stopwatch menu in Born Again mode
+                if (on && Game.specialTab === 'stopwatch' && Game.ascensionMode == 1) {
+                    return Game._jneOriginalToggleSpecialMenu.apply(this, arguments);
+                }
                 if (on && Game.specialTab === 'stopwatch') {
                     var up = Game.Upgrades['Golden stopwatch'];
                     if (up && up.icon) {
@@ -4440,6 +4438,8 @@
             Game.ToggleSpecialMenu._goldenStopwatchHooked = true;
             
             Game.registerHook('draw', function() {
+                // Skip effect in Born Again mode
+                if (Game.ascensionMode == 1) return;
                 if (Game.specialTab !== 'stopwatch' || !l('TimerBar')) return;
                 var tb = l('TimerBar'), w = tb.getBoundingClientRect().width - 185;
                 tb.innerHTML = '';
@@ -6855,5 +6855,28 @@
                 Game.JNE.HeavenlyUpgrades.restoreDonutsNow = restoreDonutsNow;
                 Game.JNE.HeavenlyUpgrades.setupBuffModifiers = setupBuffModifiers;
             }
+
+            // Expose maybeDoubleTimerSpawn globally for CCSE compatibility
+            Game.JNE.maybeDoubleTimerSpawn = function(i) {
+                var hasVanillaLuck = Game.Has('Distilled essence of redoubled luck');
+                var hasRetripledLuck = Game.Has('Distilled essence of retripled luck');
+                // cookie chain and break chain behavior — skip all doubling for timer goldens while chain depth > 0.
+                if (i === 'golden' && Game.shimmerTypes && Game.shimmerTypes['golden']) {
+                    var gChain = Game.shimmerTypes['golden'].chain;
+                    if (typeof gChain === 'number' && gChain > 0) return;
+                }
+                // Fish: never double here.
+                if (i === 'fish') return;
+                if (hasRetripledLuck) {
+                    var chance =  0.02;
+                    if (jneIndependentRandom() < chance) {
+                        var rExtra = new Game.shimmer(i, {_retripledLuckExtra: true});
+                        if (rExtra) rExtra.spawnLead = 1;
+                    }
+                } else if (hasVanillaLuck && Math.random() < 0.01) {
+                    var vExtra = new Game.shimmer(i);
+                    if (vExtra) vExtra.spawnLead = 1;
+                }
+            };
         }
     })();

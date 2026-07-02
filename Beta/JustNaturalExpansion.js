@@ -4995,6 +4995,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return;
         }
 
+        // Don't overwrite backup in Born Again mode 
+        if (Game.ascensionMode == 1) return;
+
         var nameSet = getModUpgradeNameSet();
         var newBackup = {};
         var hasEntries = false;
@@ -5023,6 +5026,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
 
     function restoreModPermanentSlots() {
+        // Don't restore permanent slots in Born Again mode 
+        if (Game.ascensionMode == 1) return;
         if (!Game || !Game.permanentUpgrades || !Game.Upgrades) {
             return;
         }

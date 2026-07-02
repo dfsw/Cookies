@@ -1699,6 +1699,7 @@ function updatePotionEffects() {
                     if (Game.elderWrath > 0) Game.SpawnWrinkler();
                 }, k * 300);
             }
+            Game.Notify(p.name + ' consumed', 'Mayhem descends upon you.', getIconArray(p), 6);
         },
         function(p) {
             var pool = [];
@@ -1709,11 +1710,8 @@ function updatePotionEffects() {
                 setTimeout(function(idx) {
                     var info = Game.seasons[picks[idx]];
                     var upgrade = Game.Upgrades[info.trigger];
-                    if (upgrade && upgrade.unlocked && !upgrade.bought && upgrade.canBuy()) {
-                        if (typeof upgrade.click === 'function') upgrade.click();
-                        else upgrade.buy();
-                    }
-                }, i * 100, i);
+                    if (upgrade && !upgrade.bought) upgrade.buy();
+                }, i * 300, i);
             }
             Game.Notify(p.name + ' misbrewed', 'Seasons fly around randomly and chaotically.', getIconArray(p), 6);
         }
@@ -3657,6 +3655,8 @@ PotionsM._getReagentDef = function(reagentId) {
 };
 
 PotionsM.reagentRoll = function(reagentId) {
+    // Don't award reagents if minigame isn't loaded (Born Again mode or not unlocked yet)
+    if (!PotionsM.parent || !PotionsM.parent.minigameLoaded || Game.ascensionMode == 1) return false;
     var rDef = PotionsM._getReagentDef(reagentId);
     if (!rDef) return false;
     var dropChance = rDef.dropChance || 0;
@@ -3701,6 +3701,8 @@ PotionsM._onCookieClick = function() {
 };
 
 PotionsM._addReagent = function(reagentId, amount, source) {
+    // Don't award reagents if minigame isn't loaded (Born Again mode or not unlocked yet)
+    if (!PotionsM.parent || !PotionsM.parent.minigameLoaded || Game.ascensionMode == 1) return;
     if (PotionsM._loading) return;
     if (Game.buffs['Poultice of Overgrowth']) amount *= 2;
     var current = G.reagents[reagentId] || 0;
