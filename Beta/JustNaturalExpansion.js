@@ -3713,27 +3713,20 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 }
             }
             
-            // Check other buff count achievements (3, 6, 9, 12 buffs)
+            // combo achievements 
             var currentBuffs = Object.keys(Game.buffs).length;
-            
-            // Check Trifecta Combo (3 buffs)
-            if (Game.Achievements['Trifecta Combo'] && !Game.Achievements['Trifecta Combo'].won && currentBuffs >= 3) {
-                markAchievementWon('Trifecta Combo');
-            }
-            
-            // Check Combo Initiate (6 buffs)
-            if (Game.Achievements['Combo Initiate'] && !Game.Achievements['Combo Initiate'].won && currentBuffs >= 6) {
-                markAchievementWon('Combo Initiate');
-            }
-            
-            // Check Combo God (9 buffs)
-            if (Game.Achievements['Combo God'] && !Game.Achievements['Combo God'].won && currentBuffs >= 9) {
-                markAchievementWon('Combo God');
-            }
-            
-            // Check Combo Hacker (12 buffs)
-            if (Game.Achievements['Combo Hacker'] && !Game.Achievements['Combo Hacker'].won && currentBuffs >= 12) {
-                markAchievementWon('Combo Hacker');
+            var buffAchievements = [
+                { name: 'Trifecta Combo', threshold: 3 },
+                { name: 'Combo Initiate', threshold: 6 },
+                { name: 'Combo God', threshold: 9 },
+                { name: 'Combo Hacker', threshold: 12 },
+                { name: 'Up Up Down Down, Shame Shame', threshold: 15 }
+            ];
+            for (var i = 0; i < buffAchievements.length; i++) {
+                var ach = buffAchievements[i];
+                if (Game.Achievements[ach.name] && !Game.Achievements[ach.name].won && currentBuffs >= ach.threshold) {
+                    markAchievementWon(ach.name);
+                }
             }
         }, 'Check buff achievements in real-time');
         

@@ -3415,10 +3415,10 @@ window.JNEData = {
     achievementData: {
         buildings: {
             cursor: {
-                names: ["Carpal diem", "Hand over fist", "Finger guns", "Thumbs up, buttercup", "Pointer sisters", "Knuckle sandwich", "Phalanx formation", "Manual override", "Clickbaiter-in-chief", "With flying digits", "Palm before the storm"],
-                thresholds: [1100, 1150, 1250, 1300, 1400, 1450, 1550, 1600, 1700, 1750, 1850],
-                customIcons: [[0, 0, 'custom'], [0, 1, 'custom'], [0, 2, 'custom'], [0, 3, 'custom'], [0, 4, 'custom'], [0, 5, 'custom'], [0, 6, 'custom'], [0, 7, 'custom'], [0, 8, 'custom'], [0, 9, 'custom'], [0, 10, 'custom']],
-                orders: [1050.652, 1050.662, 1050.672, 1050.682, 1050.692, 1050.702, 1050.712, 1050.722, 1050.732, 1050.742, 1050.752]
+                names: ["Carpal diem", "Hand over fist", "Thumbs up, buttercup", "Pointer sisters", "Knuckle sandwich"],
+                thresholds: [1100, 1200, 1300, 1400, 1500],
+                customIcons: [[0, 0, 'custom'], [0, 1, 'custom'], [0, 2, 'custom'], [0, 3, 'custom'], [0, 4, 'custom']],
+                orders: [1050.652, 1050.662, 1050.672, 1050.682, 1050.692]
             },
             'grandma': {
                 names: ["All rise for Nana", "The crinkle collective", "Okay elder", "Wrinkle monarchy", "The wrinkling hour", "Matriarchal meltdown", "Cookies before crones", "Dust to crust", "Bingo bloodbath", "Supreme doughmother", "The last custodian"],
@@ -3545,8 +3545,8 @@ window.JNEData = {
             },
             click: {
                 names: ["Clickbait & Switch", "Click to the Future", "Clickety Clique", "Clickonomicon", "Clicks and Stones", "Click It Till You Make It", "One Does Not Simply Click Once", "Lord of the Clicks", "Click of the Titans"],
-                thresholds: [1e63, 1e69, 1e75, 1e81, 1e84, 1e87, 1e90, 1e93, "clickOfTitans"],
-                descs: ["Make <b>1 vigintillion</b> from clicking.<q>Tired finger yet?</q>", "Make <b>1 duovigintillion</b> from clicking.", "Make <b>1 quattuorvigintillion</b> from clicking.", "Make <b>1 sexvigintillion</b> from clicking.", "Make <b>1 septvigintillion</b> from clicking.", "Make <b>1 octovigintillion</b> from clicking.", "Make <b>1 nonvigintillion</b> from clicking.", "Make <b>1 trigintillion</b> from clicking.", "Generate <b>1 year of raw CpS</b> in a single cookie click.<q>One click to rule them all!</q>"],
+                thresholds: [1e63, 1e66, 1e69, 1e72, 1e75, 1e78, 1e81, 1e84, "clickOfTitans"],
+                descs: ["Make <b>1 vigintillion</b> from clicking.<q>Tired finger yet?</q>", "Make <b>1 unvigintillion</b> from clicking.", "Make <b>1 duovigintillion</b> from clicking.", "Make <b>1 trevigintillion</b> from clicking.", "Make <b>1 quattuorvigintillion</b> from clicking.", "Make <b>1 quinvigintillion</b> from clicking.", "Make <b>1 sexvigintillion</b> from clicking.", "Make <b>1 septvigintillion</b> from clicking.", "Generate <b>1 year of raw CpS</b> in a single cookie click.<q>One click to rule them all!</q>"],
                 customIcons: [[9, 0, 'custom'], [9, 1, 'custom'], [9, 2, 'custom'], [9, 3, 'custom'], [9, 4, 'custom'], [9, 5, 'custom'], [9, 6, 'custom'], [9, 7, 'custom'], [9, 8, 'custom']],
                 orders: [1000.650, 1000.660, 1000.670, 1000.680, 1000.690, 1000.700, 1000.710, 1000.720, 7004]
             },
@@ -3656,23 +3656,22 @@ window.JNEData = {
                 orders: [10000.475, 10000.485]
             },
             stockmarket: {
-                names: ["Doughfolio Debut", "Crumb Fund Manager", "Biscuit Market Baron", "Fortune Cookie Tycoon", "Dough Jones Legend", "The Dough Jones Plunge"],
-                thresholds: [25e6, 100e6, 250e6, 500e6, 1e9, -1e6],
+                names: ["Crumb Fund Manager", "Biscuit Market Baron", "Fortune Cookie Tycoon", "Dough Jones Legend", "The Dough Jones Plunge"],
+                thresholds: [100e6, 250e6, 500e6, 1e9, -1e6],
                 descs: [
-                    "Have <b>$25 million in stock market profits</b> across all ascensions.<q>Your cookie portfolio finally rose without burning. Neat!</q>",
                     "Have <b>$100 million in stock market profits</b> across all ascensions.<q>Turning crumbs into capital—one nibble at a time.</q>",
                     "Have <b>$250 million in stock market profits</b> across all ascensions.<q>You now own half the cookie aisle and a third of the jar.</q>",
-                    "Have <b>$500 million in stock market profits</b> across all ascensions.<q>You don’t just read the market—you crack it open like a fortune cookie.</q>",
+                    "Have <b>$500 million in stock market profits</b> across all ascensions.<q>You don't just read the market—you crack it open like a fortune cookie.</q>",
                     "Have <b>$1 billion in stock market profits</b> across all ascensions.<q>The index now tracks you. Analysts recommend: dunk.</q>",
                     "Have <b>$1 million in stock market losses</b> in one ascension.<q>This is why you diversify. Probably.</q>"
                 ],
-                customIcons: [[17, 6], [26, 7], [33, 33], [28, 29], [31, 8], [15, 8]],
-                orders: [61616.547, 61616.557, 61616.567, 61616.577, 61616.587, 61616.597]
+                customIcons: [[26, 7], [33, 33], [28, 29], [31, 8], [15, 8]],
+                orders: [61616.557, 61616.567, 61616.577, 61616.587, 61616.597]
             },
             seasonalReindeer: {
                 names: ["Seasonal Affective Deerorder"],
                 thresholds: [1],
-                descs: ["Pop a reindeer during <b>all non-Christmas seasons</b>.<q>Turns out the cure for seasonal depression was Christmas cheer all year long, keep those holiday lights running all year regardless of what the HOA\’s say.</q>"],
+                descs: ["Pop at least <b>one</b> reindeer during <b>all non-Christmas seasons</b>.<q>Turns out the cure for seasonal depression was Christmas cheer all year long, keep those holiday lights running all year regardless of what the HOA\’s say.</q>"],
                 customIcons: [[22, 15, 'custom']],
                 orders: [22100.275]
             },
@@ -3895,11 +3894,11 @@ window.JNEData = {
             orders: [20000.090]
         },
         buffs: {
-            names: ["Trifecta Combo", "Combo Initiate", "Combo God", "Combo Hacker", "Frenzy frenzy", "Double Dragon Clicker", "Frenzy Marathon", "Hogwarts Graduate", "Hogwarts Dropout", "Spell Slinger"],
-            thresholds: [3, 6, 9, 12, 0, 0, 0, 0, 0, 0], // 3, 6, 9, 12 buffs active, frenzy frenzy, double dragon, frenzy marathon, wizard achievements, and spell slinger (handled separately)
-            descs: ["Have <b>3 buffs</b> active at once.<q>Hey that was pretty neat!</q>", "Have <b>6 buffs</b> active at once.<q>Okay that was downright impressive clicking.</q>", "Have <b>9 buffs</b> active at once.<q>I can't even follow what you did there but it looked really cool.</q>", "Have <b>12 buffs</b> active at once.<q>I don't believe you, but for like real congrats if you did that.</q>", "Have all three frenzy buffs active at once.<q>Like pizza pizza but with more wrath.</q>", "Have a dragon flight and a click frenzy active at the same time.<q>Double the dragons, double the clicking!</q>", "Have a frenzy buff with a total duration of at least 10 minutes.<q>Who needs coffee when you have this much energy?</q>", "Have <b>3 positive Grimoire spell effects</b> active at once.<q>Merlin would be proud of your spellcraft!</q>", "Have <b>3 negative Grimoire spell effects</b> active at once.<q>The Sorting Hat made a terrible mistake!</q>", "Cast <b>10 spells</b> within a 10-second window.<q>Speed casting at its finest!</q>"],
-            customIcons: [[25, 36], [26, 11], [22, 11], [23, 11], [23, 2, 'custom'], [30, 12], [22, 13], [30, 20], [31, 20], [32, 4]],
-            orders: [25000.232, 25000.242, 25000.252, 25000.262, 25000.272, 25000.282, 25000.292, 25000.302, 25000.312, 25000.322]
+            names: ["Trifecta Combo", "Combo Initiate", "Combo God", "Combo Hacker", "Up Up Down Down, Shame Shame", "Frenzy frenzy", "Double Dragon Clicker", "Frenzy Marathon", "Hogwarts Graduate", "Hogwarts Dropout", "Spell Slinger"],
+            thresholds: [3, 6, 9, 12, 15, 0, 0, 0, 0, 0, 0], // 3, 6, 9, 12, 15 buffs active, frenzy frenzy, double dragon, frenzy marathon, wizard achievements, and spell slinger (handled separately)
+            descs: ["Have <b>3 buffs</b> active at once.<q>Hey that was pretty neat!</q>", "Have <b>6 buffs</b> active at once.<q>Okay that was downright impressive clicking.</q>", "Have <b>9 buffs</b> active at once.<q>I can't even follow what you did there but it looked really cool.</q>", "Have <b>12 buffs</b> active at once.<q>I don't believe you, but for like real congrats if you did that.</q>", "Have <b>15 buffs</b> active at once.<q>You know what you did.</q>", "Have all three frenzy buffs active at once.<q>Like pizza pizza but with more wrath.</q>", "Have a dragon flight and a click frenzy active at the same time.<q>Double the dragons, double the clicking!</q>", "Have a frenzy buff with a total duration of at least 10 minutes.<q>Who needs coffee when you have this much energy?</q>", "Have <b>3 positive Grimoire spell effects</b> active at once.<q>Merlin would be proud of your spellcraft!</q>", "Have <b>3 negative Grimoire spell effects</b> active at once.<q>The Sorting Hat made a terrible mistake!</q>", "Cast <b>10 spells</b> within a 10-second window.<q>Speed casting at its finest!</q>"],
+            customIcons: [[25, 36], [26, 11], [22, 11], [23, 11], [20, 19, 'custom'], [23, 2, 'custom'], [30, 12], [22, 13], [30, 20], [31, 20], [32, 4]],
+            orders: [25000.232, 25000.242, 25000.252, 25000.262, 25000.272, 25000.282, 25000.292, 25000.302, 25000.312, 25000.322, 25000.332]
         },
         prestigeUpgrades: {
             names: ["Beyond Prestige"],
