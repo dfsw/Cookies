@@ -669,7 +669,7 @@ var POTIONS = [
         name: "Dew of Secrets",
         icon: [2, 27, 'custom'],
         desc: "You\'ll discover this last anyways.",
-        effect: "Begins a 24-hour brew with a 35% chance of discovering a random unknown potion.",
+        effect: "Begins an 18-hour brew with a 50% chance of discovering a random unknown potion.",
         brewTime: 60*30,
         misbrew: "You forget this potion and its recipe is randomized.",
         prestige: true,
@@ -1754,7 +1754,7 @@ function updatePotionEffects() {
             for (var i = 0; i < 3; i++) { if (!G.slots[i]) { emptySlot = i; break; } }
             if (emptySlot === -1) { Game.Notify(p.name + ' consumed', 'No empty brew slot available.', getIconArray(p), 6); return; }
             var now = Date.now() / 1000;
-            G.slots[emptySlot] = { potionId: 'dew_discovering', startTime: now, endTime: now + 24, reagents: [] };
+            G.slots[emptySlot] = { potionId: 'dew_discovering', startTime: now, endTime: now + 64800, reagents: [] };
             PotionsM._refreshSlots();
             Game.Notify(p.name + ' consumed', 'A long and painful discovery brew has begun.', getIconArray(p), 6);
         },
@@ -3056,29 +3056,20 @@ PotionsM._hookGrimoire = function() {
             var balmCurse = Game.hasBuff('Balm of Merlin (misbrewed)');
             var multiplier = balmBuff ? 2 : (balmCurse ? 0.5 : 1);
 
+            // Call original logic first
+            if (wrapper2._original) wrapper2._original.apply(this, arguments);
+
             // Check if heavenlyUpgrades has added a tower level bonus
             var hasWizardlyBonus = Game.Has && Game.Has('Wizardly accomplishments');
             var towerLevel = hasWizardlyBonus ? Math.min(GM.parent.level, 20) : 0;
             var wizardlyBonus = hasWizardlyBonus ? (towerLevel * 0.001) / Game.fps : 0;
 
-            if (Game.T%5==0) {GM.computeMagicM();}
-            GM.magicPS=Math.max(0.002,Math.pow(GM.magic/Math.max(GM.magicM,100),0.5))*0.002;
-            GM.magicPS += wizardlyBonus; // Add heavenlyUpgrades bonus first
-            GM.magicPS *= multiplier; // Then apply Balm of Merlin multiplier
+            // Add heavenlyUpgrades bonus first
+            GM.magicPS += wizardlyBonus;
 
-            GM.magic+=GM.magicPS;
-            GM.magic=Math.min(GM.magic,GM.magicM);
-
-            if (Game.T%5==0) {
-                for (var i in GM.spells) {
-                    var me=GM.spells[i];
-                    var cost=GM.getSpellCost(me);
-                    var l = GM.l ? GM.l : function(id) { return document.getElementById(id); };
-                    var priceEl = l('grimoirePrice'+me.id);
-                    if (priceEl) priceEl.innerHTML=Beautify(cost);
-                    var spellEl = l('grimoireSpell'+me.id);
-                    if (spellEl) spellEl.className=GM.magic<cost?'grimoireSpell titleFont':'grimoireSpell titleFont ready';
-                }
+            // Apply Balm of Merlin multiplier to mana regen
+            if (multiplier !== 1) {
+                GM.magicPS *= multiplier;
             }
         };
         wrapper2._original = GM.logic;
@@ -4425,7 +4416,7 @@ PotionsM._completeDewDiscovery = function(slotIndex) {
     var discovered = false;
     var now = Date.now() / 1000;
 
-    if (PotionsM._random() < 0.35) {
+    if (PotionsM._random() < 0.50) {
         var candidates = [];
         for (var i = 0; i < POTIONS.length; i++) {
             if (isActivePotion(POTIONS[i]) && !POTIONS[i].discovered && !POTIONS[i].unlocked) {
@@ -4683,7 +4674,7 @@ PotionsM._loadImpl = function(str) {
             var timeRemaining = sd.t || 0;
             var isDew = potionId === 'dew_discovering';
             var potionDef = (potionId !== 'discovering' && !isDew) ? getPotionById(potionId) : null;
-            var maxBrewTime = potionDef ? potionDef.brewTime : (isDew ? 86400 : 300);
+            var maxBrewTime = potionDef ? potionDef.brewTime : (isDew ? 64800 : 300);
             var timeElapsed = maxBrewTime - timeRemaining;
             var restoredSlot = {
                 potionId:  potionId,

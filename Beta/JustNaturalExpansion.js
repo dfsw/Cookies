@@ -3374,10 +3374,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 if (!Game.shimmerTypes['reindeer']._jneOriginalReindeerPop) Game.shimmerTypes['reindeer']._jneOriginalReindeerPop = originalReindeerPop;
                 Game.shimmerTypes['reindeer'].popFunc = function(me) {
                     Game.shimmerTypes['reindeer']._jneOriginalReindeerPop.call(this, me);
-                    
+
                     var season = Game.season;
-                    if (seasonalReindeerData[season] && !seasonalReindeerData[season].popped) {
-                        seasonalReindeerData[season].popped = true;
+                    var seasonIndex = getSeasonIndex(season);
+                    if (seasonIndex !== -1) {
+                        var chars = seasonalReindeerData.split('');
+                        // Pad with zeros if string is shorter than expected
+                        while (chars.length <= seasonIndex) {
+                            chars.push('0');
+                        }
+                        chars[seasonIndex] = '1';
+                        seasonalReindeerData = chars.join('');
                     }
                 };
                 Game.shimmerTypes['reindeer']._seasonalReindeerHooked = true;
@@ -5535,8 +5542,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             }
                             return true;
                         }
-                    case 'reincarnate':
-                        return Game.resets >= threshold;
                     case 'stockmarket':
                         // For negative thresholds (losses), check current run profit only
                         // For positive thresholds (gains), check lifetime total
@@ -5931,46 +5936,39 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     
     // Upgrade data structure
     var upgradeData = window.JNEData ? window.JNEData.upgradeData : null;
-    
-    // Seasonal reindeer tracking system
-    var seasonalReindeerData = {
-        valentines: { popped: false, achievement: null },
-        fools: { popped: false, achievement: null },
-        easter: { popped: false, achievement: null },
-        halloween: { popped: false, achievement: null }
-    };
+    var seasonalReindeerData = '00000';
     
     // Helper function to get current season
     function getCurrentSeason() {
         return Game.season || '';
     }
 
+    function getSeasonIndex(season) {
+        var seasonMap = {
+            'valentines': 0,
+            'fools': 1,
+            'easter': 2,
+            'halloween': 3,
+            'lunarnewyear': 4
+        };
+        return seasonMap[season] !== undefined ? seasonMap[season] : -1;
+    }
+
     // Create seasonal reindeer achievements
     function createSeasonalReindeerAchievements() {
         var seasonalData = achievementData.other.seasonalReindeer;
         if (!seasonalData || !seasonalData.orders) return;
-        
-        for (var i = 0; i < seasonalData.names.length; i++) {
-                var srOrder = seasonalData.orders[i];
-                createAchievement(
-                    seasonalData.names[i],
-                    seasonalData.descs[i],
-                    null,
-                    srOrder,
-                    (function(seasonName) {
-                        return function() {
-                            return seasonalReindeerData[seasonName] && seasonalReindeerData[seasonName].popped;
-                        };
-                    })(getSeasonFromIndex(i)),
-                    seasonalData.customIcons[i]
-                );
-                
-                // Store reference to achievement for each season
-                var seasonName = getSeasonFromIndex(i);
-                if (seasonalReindeerData[seasonName]) {
-                    seasonalReindeerData[seasonName].achievement = seasonalData.names[i];
-                }
-        }
+
+        createAchievement(
+            seasonalData.names[0],
+            seasonalData.descs[0],
+            null,
+            seasonalData.orders[0],
+            function() {
+                return seasonalReindeerData.split('').every(function(char) { return char === '1'; });
+            },
+            seasonalData.customIcons[0]
+        );
     }
     
     // Lunar New Year lantern and zodiac achievements
@@ -6192,13 +6190,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (idx !== -1) modAchievementNames.splice(idx, 1);
         }
     }
-    
-    // Helper function to map achievement index to season name
-    function getSeasonFromIndex(index) {
-        var seasons = ['valentines', 'fools', 'easter', 'halloween'];
-        return seasons[index] || '';
-    }
-    
     
       // Initialize tracking and auxiliary states
     function initializeShinyWrinklerTracking() {
@@ -8135,7 +8126,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     cookieFishCaught: lifetimeData.cookieFishCaught || 0,
                     bingoJackpotWins: lifetimeData.bingoJackpotWins || 0,
                     lanternsClicked: lifetimeData.lanternsClicked || 0,
-                    zodiacVisited: lifetimeData.zodiacVisited || '000000000000'
+                    zodiacVisited: lifetimeData.zodiacVisited || '000000000000',
+                    seasonalReindeerData: seasonalReindeerData || '00000'
                 };
                 
                 //get terminal minigame save string
@@ -8533,6 +8525,35 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     if (modData.lifetime) {
                         lifetimeData = Object.assign(lifetimeData, modData.lifetime);
                         debugLog('mod.saveSystem.load: restored lifetime data from save');
+                    }
+
+                    // Migrate old seasonal reindeer achievements to bit string format can remove in a few months. 
+                    if (modData.lifetime && modData.lifetime.seasonalReindeerData) {
+                        // New format: use the saved bit string directly
+                        seasonalReindeerData = modData.lifetime.seasonalReindeerData;
+                        // Pad with zeros on the right if string is shorter than expected (for future season additions)
+                        while (seasonalReindeerData.length < 5) {
+                            seasonalReindeerData += '0';
+                        }
+                        debugLog('mod.saveSystem.load: restored seasonalReindeerData from save:', seasonalReindeerData);
+                    } else if (modSaveData.achievements) {
+                        // Old format: migrate from individual achievements
+                        var oldAchievements = {
+                            "Cupid's Reindeer": 0,      // valentines
+                            "Business Reindeer": 1,     // fools
+                            "Bundeer": 2,               // easter
+                            "Ghost Reindeer": 3         // halloween
+                        };
+                        var chars = seasonalReindeerData.split('');
+                        for (var oldName in oldAchievements) {
+                            if (modSaveData.achievements[oldName] && modSaveData.achievements[oldName].won > 0) {
+                                var idx = oldAchievements[oldName];
+                                chars[idx] = '1';
+                                debugLog('mod.saveSystem.load: migrated old achievement', oldName, 'to bit', idx);
+                            }
+                        }
+                        seasonalReindeerData = chars.join('');
+                        debugLog('mod.saveSystem.load: migrated seasonalReindeerData:', seasonalReindeerData);
                     }
                     
                     if (modData.modTracking) {
@@ -9213,14 +9234,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.originalMagicCpS = Game.magicCpS;
         }
 
+        var previousMagicCpS = Game.magicCpS;
         Game.magicCpS = function(what) {
-            var mult = Game.originalMagicCpS(what);
+            var mult = previousMagicCpS(what);
             if (upgradeData.building) {
                 for (var i = 0; i < upgradeData.building.length; i++) {
                     var upgradeInfo = upgradeData.building[i];
                     if (upgradeInfo && upgradeInfo.building === what &&
                         Game.Upgrades[upgradeInfo.name] && Game.Upgrades[upgradeInfo.name].bought) {
-                        mult *= 1.08;
+                        mult *= 1.25;
                     }
                 }
             }
@@ -9258,7 +9280,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 for (var i = 0; i < discountUpgrades.length; i++) {
                     var upgradeName = discountUpgrades[i];
                     if (Game.Upgrades[upgradeName] && Game.Upgrades[upgradeName].bought) {
-                        discountMultiplier *= 0.95; // Apply 5% discount cumulatively
+                        discountMultiplier *= 0.85; // Apply 15% discount cumulatively
                     }
                 }
                 price *= discountMultiplier;

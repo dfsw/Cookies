@@ -896,7 +896,7 @@
         function setupBuffModifiers() {
             if (!Game.gainBuff || Game._jneBuffModifiersHooked) return;
 
-            if (!Game._jneOriginalGainBuff) Game._jneOriginalGainBuff = Game.gainBuff;
+            if (!Game._jneOriginalGainBuffHU) Game._jneOriginalGainBuffHU = Game.gainBuff;
             Game.gainBuff = function(type, time, arg1, arg2, arg3) {
                 var alreadyApplying = !!Game._jneApplyingBuffModifiers;
                 if (!alreadyApplying) Game._jneApplyingBuffModifiers = true;
@@ -918,7 +918,7 @@
                             time = time * 0.9;
                         }
                     }
-                    return Game._jneOriginalGainBuff.call(this, type, time, arg1, arg2, arg3);
+                    return Game._jneOriginalGainBuffHU.call(this, type, time, arg1, arg2, arg3);
                 } finally {
                     if (!alreadyApplying) Game._jneApplyingBuffModifiers = false;
                 }
@@ -2975,9 +2975,9 @@
 
             if (Game.harvestLumps && !Game._sugarCaneHooked) {
                 Game._sugarCaneHooked = true;
-                if (!Game._jneOriginalHarvestLumps) Game._jneOriginalHarvestLumps = Game.harvestLumps;
+                if (!Game._jneOriginalHarvestLumpsForSugarCane) Game._jneOriginalHarvestLumpsForSugarCane = Game.harvestLumps;
                 Game.harvestLumps = function(amount, silent) {
-                    var orig = Game._jneOriginalHarvestLumps;
+                    var orig = Game._jneOriginalHarvestLumpsForSugarCane;
                     var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
                     if (M && M.plants && M.plants['sparklingSugarCane'] && M.plot) {
                         var totalMult = 0;
