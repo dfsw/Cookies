@@ -4,7 +4,7 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.201';
+        const MOD_HU_VERSION = '1.0.20';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const CUSTOM_SPRITE_SHEET_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
@@ -3716,10 +3716,9 @@
             // pantheon slots change
             var PM = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
             if (PM && PM.slotGod && !PM._sugarPredictorSlotHooked) {
-                if (!PM._jneOriginalSlotGodForPredictor) PM._jneOriginalSlotGodForPredictor = PM.slotGod;
+                var origSlotGod = PM.slotGod;
                 PM.slotGod = function() {
-                    var PM = Game.Objects['Temple'].minigame;
-                    var result = PM._jneOriginalSlotGodForPredictor.apply(this, arguments);
+                    var result = origSlotGod.apply(this, arguments);
                     Game.calculateLumpPredictions();
                     return result;
                 };
@@ -6690,10 +6689,9 @@
                     
                     // Reapply sugar predictor hook if needed
                     if (Game.Has('Sugar predictor') && !M._sugarPredictorSlotHooked) {
-                        if (!M._jneOriginalSlotGodForPredictor) M._jneOriginalSlotGodForPredictor = M.slotGod;
+                        var origSlotGodForPredictor = M.slotGod;
                         M.slotGod = function() {
-                            var M = Game.Objects['Temple'].minigame;
-                            var result = M._jneOriginalSlotGodForPredictor.apply(this, arguments);
+                            var result = origSlotGodForPredictor.apply(this, arguments);
                             Game.calculateLumpPredictions();
                             return result;
                         };

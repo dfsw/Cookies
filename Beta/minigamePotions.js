@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '2.0.00';
+const POTIONS_VERSION = '1.1.0';
 
 var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
 
@@ -561,8 +561,8 @@ var POTIONS = [
         name: "Wassail of Bedlam",
         icon: [0, 27, 'custom'],
         desc: "A toast to beautiful, absolute chaos. Cheers!",
-        effect: "Immediately spawn 3 lanterns, 3 reindeer, and 3 wrinklers (if able).",
-        brewTime: 60*20,
+        effect: "Immediately spawn 3 wrinklers (if able), 3 lanterns, and 3 reindeer regardless of season.",
+        brewTime: 60*40,
         misbrew: "Randomly switches between 3 different seasons sequentially, each at full cost.",
         prestige: true,
         prestigeLocked: true
@@ -572,7 +572,7 @@ var POTIONS = [
         name: "Liniment of Warlocks",
         icon: [3, 27, 'custom'],
         desc: "Warlock (1989) - A warlock flees from the 17th to the 20th century, with a witch-hunter in hot pursuit. It was okay, all the sequels not so much. Honestly if you haven\'t seen it by now you probably never will.",
-        effect: "If you have at least 50% mana, restore all your mana to full.",
+        effect: "If you have at least 50% mana remaining, restore your mana to full.",
         brewTime: 60*60*3,
         misbrew: "Lose all your mana.",
         prestige: true,
@@ -584,8 +584,8 @@ var POTIONS = [
         name: "Nepenthe of Undoing",
         icon: [4, 27, 'custom'],
         desc: "This is the long awaited combo piece you didn\'t know you needed, now you just need to figure out how to deploy it.",
-        effect: "Remove up to 6 positive buff effects, gain +100% CpS for each removed for 10 minutes per buff. (Positive buff effects are defined as those that add the golden aura around the big cookie when active.)",
-        brewTime: 60*45,
+        effect: "Remove up to 6 positive buff effects, gain +100% CpS for each removed for 10 minutes per buff removed. (Positive buff effects are defined as those that add the golden aura around the big cookie when active.)",
+        brewTime: 60*60*1.5,
         misbrew: "Positive buff effects are removed with no CpS benefit.",
         prestige: true,
         prestigeLocked: true
@@ -607,8 +607,8 @@ var POTIONS = [
         name: "Hydrosol of Refraction",
         icon: [7, 27, 'custom'],
         desc: "What are the odds of getting 100 golden cookies in a row with this? Oh… thats bleak might as well buy lottery tickets.",
-        effect: "Clicking a golden cookie has a 30% chance to summon another (storms and chains excluded) for 20 seconds.",
-        brewTime: 60*20,
+        effect: "Clicking a golden cookie has a 30% chance to summon another (storms and chains excluded) for the next 20 seconds.",
+        brewTime: 60*50,
         duration: 20,
         misbrew: "Golden cookies appear 50% less often for the next 5 minutes.",
         prestige: true,
@@ -619,7 +619,7 @@ var POTIONS = [
         name: "Retort of Logic",
         icon: [5, 27, 'custom'],
         desc: "Chaos, chaos everywhere and not a drop to drink",
-        effect: "Fill all empty potion slots with ready-to-use Elixirs of Chaos (no reagents consumed).",
+        effect: "Fill all empty potion slots with ready-to-use Elixirs of Chaos.",
         brewTime: 60*30,
         misbrew: "Empty all your potion slots.",
         prestige: true,
@@ -630,8 +630,9 @@ var POTIONS = [
         name: "Attar of the Gambler",
         icon: [6, 27, 'custom'],
         desc: "But why… mostly to make save scummers work harder, it doesn\'t actually solve the problem but its more annoying at least.",
-        effect: "Spawns a golden cookie with a chance of Dragon Harvest and Dragon Flight. Results are predetermined when brewed.",
-        brewTime: 60*60,
+        effect: "Spawns a golden cookie with a chance of Dragon Harvest and Dragon Flight. Results of the golden cookie are predetermined when brewed.",
+        brewTime: 60*60*2,
+        misbrewChance: 0.30,
         misbrew: "Spawns a golden cookie. The results contain Clots instead of Dragon Harvest and Dragon Flight.",
         prestige: true,
         prestigeLocked: true
@@ -642,7 +643,7 @@ var POTIONS = [
         icon: [8, 27, 'custom'],
         desc: "I want a clean cup, let\'s all move one place on.",
         effect: "Lose all your stored reagents and gain an equal number of random unlocked ones back.",
-        brewTime: 60*30,
+        brewTime: 60*60,
         misbrew: "Lose all your stored reagents and gain only half the amount of random ones back.",
         prestige: true,
         prestigeLocked: true
@@ -653,7 +654,7 @@ var POTIONS = [
         icon: [1, 27, 'custom'],
         desc: "Stability is overrated trait, when you are insane you always have someone to talk to.",
         effect: "Every second, CpS flips between +100% or -90% for 60 seconds.",
-        brewTime: 60*20,
+        brewTime: 60*60*1.5,
         duration: 60,
         misbrewChance: 0,
         misbrew: "Does not misbrew.",
@@ -3450,7 +3451,20 @@ PotionsM._buildCatalog = function() {
                     }
                     var misbrewChance = PotionsM._getMisbrewChance(potion);
                     var misbrewChanceStr = Math.round(misbrewChance * 100) + '%';
-                    return '<div style="padding:8px 4px;min-width:350px;" id="tooltipPotionsCatalog"><div class="icon" style="' + iconStyle + '"></div><div class="name">' + potion.name + '</div><div><small>Chance to misbrew: <b style="color:#f66">' + misbrewChanceStr + '</b></small></div><div class="line"></div><div class="description"><b>Effect:</b> <span class="green">' + potion.effect + '</span>' + (potion.misbrew ? '<div style="height:8px;"></div><b>Misbrew:</b> <span class="red">' + potion.misbrew + '</span>' : '') + '</div><div class="line"></div><div><small><b>Brew time:</b> ' + formatDuration(potion.brewTime) + '</small></div><div style="padding-top:8px;"><small><b>Ingredients:</b> ' + ingredientsHtml.join('') + '</small></div><q>' + potion.desc + '</q></div>';
+                    var prestigeTag = '';
+                    if (potion.prestige) {
+                        var uniqueInUse = false;
+                        for (var si = 0; si < 3; si++) {
+                            var slot = G.slots[si];
+                            if (slot && slot.potionId === potion.id) {
+                                uniqueInUse = true;
+                                break;
+                            }
+                        }
+                        var color = uniqueInUse ? '#f66' : '#fc6';
+                        prestigeTag = '<div class="meta" style="color:' + color + '">&#9733; Prestige potion</div>';
+                    }
+                    return '<div style="padding:8px 4px;min-width:350px;" id="tooltipPotionsCatalog"><div class="icon" style="' + iconStyle + '"></div><div class="name">' + potion.name + '</div>' + prestigeTag + '<div><small>Chance to misbrew: <b style="color:#f66">' + misbrewChanceStr + '</b></small></div><div class="line"></div><div class="description"><b>Effect:</b> <span class="green">' + potion.effect + '</span>' + (potion.misbrew ? '<div style="height:8px;"></div><b>Misbrew:</b> <span class="red">' + potion.misbrew + '</span>' : '') + '</div><div class="line"></div><div><small><b>Brew time:</b> ' + formatDuration(potion.brewTime) + '</small></div><div style="padding-top:8px;"><small><b>Ingredients:</b> ' + ingredientsHtml.join('') + '</small></div><q>' + potion.desc + '</q></div>';
                 };
                 PotionsM._addTooltip(el, tooltipFn, 'this');
             })(seed, p);
@@ -3655,7 +3669,7 @@ PotionsM._getReagentDef = function(reagentId) {
 };
 
 PotionsM.reagentRoll = function(reagentId) {
-    // Don't award reagents if minigame isn't loaded (Born Again mode or not unlocked yet)
+    // Don't award reagents if minigame isn't loaded 
     if (!PotionsM.parent || !PotionsM.parent.minigameLoaded || Game.ascensionMode == 1) return false;
     var rDef = PotionsM._getReagentDef(reagentId);
     if (!rDef) return false;
@@ -3701,7 +3715,7 @@ PotionsM._onCookieClick = function() {
 };
 
 PotionsM._addReagent = function(reagentId, amount, source) {
-    // Don't award reagents if minigame isn't loaded (Born Again mode or not unlocked yet)
+    // Don't award reagents if minigame isn't loaded 
     if (!PotionsM.parent || !PotionsM.parent.minigameLoaded || Game.ascensionMode == 1) return;
     if (PotionsM._loading) return;
     if (Game.buffs['Poultice of Overgrowth']) amount *= 2;
@@ -3964,6 +3978,17 @@ PotionsM._startBrew = function() {
             
             if (isSame) {
                 Game.Popup('<div style="font-size:80%;">This experiment is already being conducted</div>', Game.mouseX, Game.mouseY);
+                return;
+            }
+        }
+    }
+    
+    // Prevent duplicate prestige potions in brew slots
+    if (matchingPotion && matchingPotion.prestige) {
+        for (var i = 0; i < 3; i++) {
+            var slot = G.slots[i];
+            if (slot && slot.potionId === matchingPotion.id) {
+                Game.Popup('<div style="font-size:80%;">You may only have one of each type of prestige potion at a time</div>', Game.mouseX, Game.mouseY);
                 return;
             }
         }
@@ -4900,7 +4925,6 @@ PotionsM._performPrestige = function() {
     if (PotionsM._updateEffs) PotionsM._updateEffs();
     PotionsM.updatePotionsBrewedDisplay();
     PotionsM._checkPrestigeButton();
-    PlaySound('snd/upgrade.mp3');
     var prestigeIcon = [10, 11, ICON_SHEETS.main];
     Game.Notify('Fever Nightmare',
         'You have awakened. All recipes have been randomized.' +
@@ -5237,7 +5261,7 @@ function createPotionsAchievements() {
     },
     {
         name: 'Hoardiculturalist',
-        desc: 'Collect 1000 reagents in the Potions Class minigame.<q>You have more gunk in your pockets than a \'90s kid returning from an unsupervised afternoon in the woods.</q>',
+        desc: 'Collect 1500 reagents in the Potions Class minigame.<q>You have more gunk in your pockets than a \'90s kid returning from an unsupervised afternoon in the woods.</q>',
         icon: [13, 25, ICON_SHEETS.custom],
         order: baseOrder + 0.4
     },
@@ -5355,7 +5379,7 @@ function checkAndAwardPotionsAchievements() {
         var truffleHunter = state.unlockedReagentsCount >= REAGENTS.length;
         var potionMaster = state.unlockedPotionsCount >= POTIONS.length;
         var transfiguration = state.totalPotionsBrewed >= 250;
-        var alchemistCollector = state.totalReagentsCollected >= 1000;
+        var alchemistCollector = state.totalReagentsCollected >= 1500;
 
         // Advanced Placement Alchemy: discover all 10 prestige potions
         var prestigeDiscovered = 0;

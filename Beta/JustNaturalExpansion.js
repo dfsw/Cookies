@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.5.91';
+    var modVersion = '0.5.92';
     var debugMode = false; 
     
     function debugLog() {
