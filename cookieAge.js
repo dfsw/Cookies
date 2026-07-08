@@ -872,12 +872,10 @@
     
     // ===== INFO MENU INJECTION SYSTEM =====
     function setupInfoMenuInjection() {
-        // Store original UpdateMenu function
-        const originalUpdateMenu = Game.UpdateMenu;
-        
+        if (!Game._jneOriginalUpdateMenuCookieAge) Game._jneOriginalUpdateMenuCookieAge = Game.UpdateMenu;
         // Override UpdateMenu to inject info menu content
         Game.UpdateMenu = function() {
-            const result = originalUpdateMenu.call(this);
+            const result = Game._jneOriginalUpdateMenuCookieAge.call(this);
             
             // Handle info menu injection for puzzle 10
             if (Game.onMenu === 'log') {
@@ -1295,7 +1293,7 @@
                 'spiral_seasons': {
                 name: 'The wheel of seasons',
                 description: 'You turned the crooked wheel, letting each season rise and fall in The Order\'s rhythm. Their cycle is not nature\'s, yet you followed without hesitation.<q>The Brotherhood notes your obedience. To walk their year is to step further inside.</q>',
-                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the judge in scarlet cloak with his list.<br>The jester of ledgers laughs.<br>Then the hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return to knock.<q>Now is as good as a time as any to remind you that ALL Mysteries of the Cookie Age Puzzles can be done with vanilla game elements only.</q>',
+                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the judge in scarlet robes.<br>The jester of ledgers laughs.<br>Then the hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return to knock.<q>Now is as good as a time as any to remind you that ALL Mysteries of the Cookie Age Puzzles can be done with vanilla game elements only.</q>',
                 hint: '• The wheel of time doesn\'t always turn straight, each season has themes; turn them in the correct order.',
                 puzzleClass: SpiralSeasonsPuzzle,
                 mainIcon: [16, 6, mainIconsSpriteSheetUrl],
@@ -1492,7 +1490,7 @@
                 name: 'The lawkeeper\'s walk',
                 description: 'They sent you alone under The Order\'s gaze, green stone first, then the jewel of sixfold light, and last the crimson square. You kept to the path, no companion, no misstep. The hall weighed you in silence and let the verdict hang.<q>Judgment isn\'t always spoken. Today, it tilts your way, by a hair. Not every Brother is convinced.</q>',
                 puzzleClass: LawkeeperWalkPuzzle,
-                clue: 'The Lawkeeper walks a path of solitude for he is here to judge you.<br>First, upon the stone of green his step must fall.<br>Then, to the jewel of sixfold light he must ascend.<br>Last, he shall rest on the crimson square before his journey concludes.<br>None may stride beside him, for the Law is kept by none but him.',
+                clue: 'The Lawkeeper walks a path of solitude for he is here to judge you.<br>First, upon the stone of green his step must fall.<br>Then, to the jewel of sixfold light he must ascend.<br>Last, he shall rest on the crimson square before his journey concludes.<br>None may stride beside him, and a hush shall fall between each step, for the Law is kept by none but him.',
                 hint: '• The lawkeeper keeps order. Where might have you seen someone in charge of order keeping before?',
                 mainIcon: [22, 19, mainIconsSpriteSheetUrl],
                 completionMessage: 'The path is walked alone; judgment holds, for now.',
