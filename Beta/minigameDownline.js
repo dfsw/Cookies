@@ -3634,6 +3634,7 @@ function removeDownlineAchievements() {
         }
     });
     downlineAchievementState.achievementsCreated = false;
+    DownlineM._checkHookRegistered = false;
     if (Game.Achievements) {
         var newAchievementsOwned = 0;
         for (var achName in Game.Achievements) {

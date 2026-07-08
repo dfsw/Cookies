@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.5.92';
+    var modVersion = '0.6.0';
     var debugMode = false; 
     
     function debugLog() {
@@ -3100,7 +3100,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
             var zodiacGC = "//JNE_CORE\n" +
                            "if(Game.season==='lunarnewyear'&&me.wrath===0&&!me._predictionMode){" +
-                           "var _jneZodiac=Game.JNE&&Game.JNE.getLunarZodiacYear?Game.JNE.getLunarZodiacYear():null;" +
+                           "var _jneZodiac=Game.JNE&&Game.JNE.getCurrentLunarZodiac?Game.JNE.getCurrentLunarZodiac():null;" +
                            "if(_jneZodiac){" +
                            "var _jneMult=Game.JNE&&Game.JNE.getZodiacEffectMultiplier?Game.JNE.getZodiacEffectMultiplier():1;" +
                            "if(_jneZodiac.animal==='Dragon'&&Math.random()<0.05*_jneMult){list.push('dragonflight');}" +
@@ -3353,7 +3353,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 modTracking.currentZodiacStartTime = 0;
                 return;
             }
-            var zodiac = Game.JNE && typeof Game.JNE.getLunarZodiacYear === 'function' ? Game.JNE.getLunarZodiacYear() : null;
+            var zodiac = Game.JNE && typeof Game.JNE.getCurrentLunarZodiac === 'function' ? Game.JNE.getCurrentLunarZodiac() : null;
             if (!zodiac) return;
             var animal = zodiac.animal;
             // If timer is 0 or zodiac changed (detected by recalculating expected zodiac for current seasonUses), reset timer
@@ -4725,7 +4725,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     Game.seasonT = Game.getSeasonDuration();
                     var isLNY = Game.season === 'lunarnewyear';
                     if (isLNY) {
-                        var zodiac = Game.JNE.getLunarZodiacYear();
+                        var zodiac = Game.JNE.getCurrentLunarZodiac();
                         Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
                         if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
                             Game.shimmerTypes['lantern'].reset();
@@ -4768,7 +4768,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 Game.Upgrades['Lunar biscuit'].descFunc = function() {
                     var zodiacStr = '';
                     if (Game.season === 'lunarnewyear') {
-                        var zodiac = Game.JNE.getLunarZodiacYear();
+                        var zodiac = Game.JNE.getCurrentLunarZodiac();
                         zodiacStr = '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
                     }
                     return zodiacStr + '<div style="text-align:center;">' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.desc;
@@ -6006,7 +6006,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 me.l.setAttribute('alt', 'Lantern');
 
                 var dur = 4 + Math.random() * 2; // 4-6s base, randomized
-                var zodiac = Game.JNE.getLunarZodiacYear();
+                var zodiac = Game.JNE.getCurrentLunarZodiac();
                 var zodiacMult = getZodiacEffectMultiplier();
                 var durMod = 1;
                 if (zodiac && zodiac.animal === 'Sheep') durMod = 1.50;
@@ -6057,7 +6057,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 if (Game.hasBuff('Frenzy')) val *= 0.75;
                 var moni = Math.max(168, val);
 
-                var zodiac = Game.JNE.getLunarZodiacYear();
+                var zodiac = Game.JNE.getCurrentLunarZodiac();
                 var zodiacMult = getZodiacEffectMultiplier();
                 var valMod = 1;
                 if (zodiac && zodiac.animal === 'Monkey') valMod = 1.20;
@@ -6087,7 +6087,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             minTime: 0,
             maxTime: 0,
             getTimeMod: function(me, m) {
-                var zodiac = Game.JNE.getLunarZodiacYear();
+                var zodiac = Game.JNE.getCurrentLunarZodiac();
                 var zodiacMult = Game.JNE.getZodiacEffectMultiplier();
                 var spawnMod = 1;
                 if (zodiac && zodiac.animal === 'Dog') spawnMod = 0.50;
@@ -7694,8 +7694,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     newsItems.push('News : General tribalism and competition increase. People proudly stating how many challenges they have completed, earth being divided into camps.');
 
                     // Lunar New Year zodiac news item
-                    if (Game.season === 'lunarnewyear' && Game.JNE && Game.JNE.getLunarZodiacYear) {
-                        var zodiac = Game.JNE.getLunarZodiacYear();
+                    if (Game.season === 'lunarnewyear' && Game.JNE && Game.JNE.getCurrentLunarZodiac) {
+                        var zodiac = Game.JNE.getCurrentLunarZodiac();
                         if (zodiac) {
                             var zodiacNews = {
                                 'Rat': "local cookie hoarders insist they are not hoarding, merely preparing for abundance.",

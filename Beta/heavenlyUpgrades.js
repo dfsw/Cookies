@@ -4,7 +4,7 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.20';
+        const MOD_HU_VERSION = '1.0.202';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const CUSTOM_SPRITE_SHEET_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
@@ -1760,7 +1760,7 @@
 
                 // Magic Mushroom logic
                 var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
-                if (M && M.effs && M.effs.magicMushroomMult > 0) {
+                if (M && M.effs && M.effs.magicMushroomMult > 0 && M.freeze === 0) {
                     var cache = Game._weakestLinkCache;
 
                     if (!cache.magicMushroomAssignment || (Date.now() - cache.lastRecalc) > 1000) {
@@ -2766,7 +2766,7 @@
                                 if (result && (isGardenInfoTool || hasGardenInfoAnchor)) {
                                     var customInfo = '';
                                     
-                                    if (M.effs && M.effs.magicMushroomMult > 0) {
+                                    if (M.effs && M.effs.magicMushroomMult > 0 && M.freeze === 0) {
                                         var mult = M.effs.magicMushroomMult;
                                         
                                         if (!Game._weakestLinkCache) Game._weakestLinkCache = { assignments: {}, lastRecalc: 0 };
@@ -3174,18 +3174,11 @@
                     i--; // Adjust index since array shifted
                 }
             }
-            // Remove existing DOM element
-            var existingSpellEl = l('grimoireSpells').querySelector('[id^="grimoireSpell"]');
-            if (existingSpellEl) {
-                for (var i = 0; i < M.spellsById.length; i++) {
-                    var el = l('grimoireSpell' + i);
-                    if (el) {
-                        var tooltip = el.getAttribute('onmouseover') || el.getAttribute('data-tooltip');
-                        if (tooltip && (tooltip.includes('Gilded Allure') || tooltip.includes('gilded allure'))) {
-                            el.remove();
-                        }
-                    }
-                }
+ 
+            // Tagging our element with a stable data attribute lets us find and remove it reliably.
+            var staleSpellEls = l('grimoireSpells').querySelectorAll('[data-jne-gilded-allure]');
+            for (var i = 0; i < staleSpellEls.length; i++) {
+                staleSpellEls[i].remove();
             }
             
             var me={name:loc("Gilded Allure"),desc:loc("Golden Cookies appear 30% more often for the next 10 minutes."),failDesc:loc("Golden Cookies appear 75% less often for the next hour."),icon:[20,19],customIconSheet:getSpriteSheet('custom'),costMin:15,costPercent:0.5,
@@ -3193,7 +3186,7 @@
                 fail:()=>{Game.killBuff('Gilded allure');Game.killBuff('Midas curse');Game.gainBuff('midas curse',3600,1);Game.Popup(loc("Backfire!")+'<br>'+loc("Midas curse!"),Game.mouseX,Game.mouseY);}};
             M.spells['gilded allure']=me; me.id=M.spellsById.length; M.spellsById[me.id]=me; M._gildedAllureHooked=true;
             var div = document.createElement('div');
-            div.innerHTML = '<div class="grimoireSpell titleFont" id="grimoireSpell'+me.id+'" '+Game.getDynamicTooltip('Game.ObjectsById['+M.parent.id+'].minigame.spellTooltip('+me.id+')','this')+'><div class="usesIcon shadowFilter grimoireIcon" style="background-image:url(\''+me.customIconSheet+'\');background-position:'+(-me.icon[0]*48)+'px '+(-me.icon[1]*48)+'px;"></div><div class="grimoirePrice" id="grimoirePrice'+me.id+'">-</div></div>';
+            div.innerHTML = '<div class="grimoireSpell titleFont" data-jne-gilded-allure="1" id="grimoireSpell'+me.id+'" '+Game.getDynamicTooltip('Game.ObjectsById['+M.parent.id+'].minigame.spellTooltip('+me.id+')','this')+'><div class="usesIcon shadowFilter grimoireIcon" style="background-image:url(\''+me.customIconSheet+'\');background-position:'+(-me.icon[0]*48)+'px '+(-me.icon[1]*48)+'px;"></div><div class="grimoirePrice" id="grimoirePrice'+me.id+'">-</div></div>';
             var d = div.firstChild;
             l('grimoireSpells').appendChild(d); AddEvent(d,'click',()=>{PlaySound('snd/tick.mp3');M.castSpell(me);});
 
@@ -4620,7 +4613,7 @@
             Game.last.ddesc = 'Lets you pick which cookie image to display.';
             Game.last.descFunc = function() { var choice = this.choicesFunction()[Game.cookieImageType] || this.choicesFunction()[0]; return '<div style="text-align:center;">'+loc("Current:")+' '+tinyIcon(choice.icon)+' <b>'+choice.name+'</b></div><div class="line"></div>'+this.ddesc; };
             Game.last.choicesFunction = function() { var choices = []; for (var i in Game.CookiesByChoice) { choices[i] = {name: Game.CookiesByChoice[i].name, icon: Game.CookiesByChoice[i].icon, order: parseInt(i)}; } if (choices[Game.cookieImageType]) choices[Game.cookieImageType].selected = 1; return choices; };
-            Game.last.choicesPick = function(id) { Game.cookieImageType = id; if (Game.CookiesByChoice[id] && Game.Loader && Game.Loader.Replace) Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[id].pic); };
+            Game.last.choicesPick = function(id) { Game.cookieImageType = id; if (Game.Loader && Game.Loader.Replace) { if (id !== 0 && Game.CookiesByChoice[id]) { Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[id].pic); } else { Game.Loader.Replace('perfectCookie.png', 'perfectCookie.png'); } } };
             if (Game.Has('Big cookie image selector')) Game.Unlock('Cookie image selector');
         }
         
@@ -6625,8 +6618,12 @@
             // Apply big cookie image
             if (saveData.bigCookieImage !== undefined) {
                 Game.cookieImageType = saveData.bigCookieImage;
-                if (Game.CookiesByChoice && Game.CookiesByChoice[saveData.bigCookieImage] && Game.Loader && Game.Loader.Replace) {
-                    Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[saveData.bigCookieImage].pic);
+                if (Game.Loader && Game.Loader.Replace) {
+                    if (saveData.bigCookieImage !== 0 && Game.CookiesByChoice && Game.CookiesByChoice[saveData.bigCookieImage]) {
+                        Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[saveData.bigCookieImage].pic);
+                    } else {
+                        Game.Loader.Replace('perfectCookie.png', 'perfectCookie.png');
+                    }
                 }
             }
 

@@ -824,7 +824,7 @@ var REAGENTS = [
         name: "Roots",
         icon: [0, 19, 'garden'],
         flavor: "Gnarled tubers that pulse with subterranean cookie energy.",
-        gather: "Found by harvesting mature Cocoroots, Queenbeets, or Duketater in the Garden.",
+        gather: "Found by harvesting mature Chocoroots, Queenbeets, or Duketater in the Garden.",
         dropChance: 0.11,
     },
     {
@@ -5331,6 +5331,7 @@ function removePotionsAchievements() {
         }
     });
     potionsAchievementState.achievementsCreated = false;
+    PotionsM._checkHookRegistered = false;
     if (Game.Achievements) {
         var newAchievementsOwned = 0;
         for (var achName in Game.Achievements) {
