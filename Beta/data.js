@@ -211,7 +211,7 @@ window.JNEData = {
                 desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
                 ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Keeping the office clean and organized, sir.</q>',
                 price: 9e68, // 900 vigintillion
-                icon: [10, 8, 'custom'],
+                icon: [16, 5, 'custom'],
                 pool: 'kitten',
                 kitten: 105,
                 unlockCondition: function() {
@@ -223,7 +223,7 @@ window.JNEData = {
                 desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
                 ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Essential for maintaining purrductivity levels, sir.</q>',
                 price: 9e71, // 900 duovigintillion
-                icon: [10, 9, 'custom'],
+                icon: [16, 6, 'custom'],
                 pool: 'kitten',
                 kitten: 106,
                 unlockCondition: function() {
@@ -235,7 +235,7 @@ window.JNEData = {
                 desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
                 ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>They know your schedule better than you do, sir.</q>',
                 price: 9e74, // 900 trevigintillion
-                icon: [10, 10, 'custom'],
+                icon: [16, 7, 'custom'],
                 pool: 'kitten',
                 kitten: 107,
                 unlockCondition: function() {
