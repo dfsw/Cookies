@@ -5330,37 +5330,37 @@ function createPotionsAchievements() {
     {
         name: 'The whole pantry',
         desc: 'Unlock all reagents in the Potions Class minigame.<q>Everything has been found, labeled, sorted, cataloged, and licked for good measure.</q>',
-        icon: [11, 25, ICON_SHEETS.custom],
+        icon: Game.JNE.icon(11, 25, 'custom'),
         order: baseOrder + 0.1
     },
     {
         name: 'The complete works of questionable medicine',
         desc: 'Unlock all potions in the Potions Class minigame.<q>Nice little potion book you have collected there. Fancy yourself some sort of Half-Blood Prince?</q>',
-        icon: [15, 25, ICON_SHEETS.custom],
+        icon: Game.JNE.icon(15, 25, 'custom'),
         order: baseOrder + 0.2
     },
     {
         name: 'Stir crazy',
         desc: 'Brew 250 successful potions in the Potions Class minigame.<q>You have drunk so much questionable material that you will either be immortal or die from poisoning by the weekend.</q>',
-        icon: [0, 26, ICON_SHEETS.custom],
+        icon: Game.JNE.icon(0, 26, 'custom'),
         order: baseOrder + 0.3
     },
     {
         name: 'Hoardiculturalist',
         desc: 'Collect 1500 reagents in the Potions Class minigame.<q>You have more gunk in your pockets than a \'90s kid returning from an unsupervised afternoon in the woods.</q>',
-        icon: [13, 25, ICON_SHEETS.custom],
+        icon: Game.JNE.icon(13, 25, 'custom'),
         order: baseOrder + 0.4
     },
     {
         name: 'Advanced Placement Alchemy',
         desc: 'Discover all 10 prestige potions in the Potions Class minigame.<q>You have mastered the forbidden knowledge of the fever nightmare. The universe trembles at your alchemical prowess.</q>',
-        icon: [2, 27, ICON_SHEETS.custom],
+        icon: Game.JNE.icon(2, 27, 'custom'),
         order: baseOrder + 0.5
     },
     {
         name: 'Fever without dawn',
         desc: 'Unlock 50 potions within 8 hours of a fever nightmare.<q>Sleep is for the weak.</q>',
-        icon: [10, 11, ICON_SHEETS.main],
+        icon: Game.JNE.icon(10, 11, 'main'),
         order: baseOrder + 0.6
     }
 ];

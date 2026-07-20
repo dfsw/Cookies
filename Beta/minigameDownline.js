@@ -3554,19 +3554,19 @@ function createDownlineAchievements() {
       {
         name: 'Popularity factor',
         desc: 'Have <b>Hype</b>, <b>Commitment</b>, <b>Reputation</b>, and <b>Word of Mouth</b> over 950 at once in the Downline minigame.<q>You haven\'t been this popular since you got 13 votes for class treasurer in 10th grade, but this time you did better than 7th place.</q>',
-        icon: [18, 9, SHEETS.custom],
+        icon: Game.JNE.icon(18, 9, 'custom'),
         order: baseOrder + 0.1
     },
     {
         name: 'Factorial factor',
         desc: 'Release the <b>Fractal Engine minigame</b> 5 times in the Downline minigame in one ascension.<q>Buckle your seatbelts we are going full recursive on this one.</q>',
-        icon: [18, 8, SHEETS.custom],
+        icon: Game.JNE.icon(18, 8, 'custom'),
         order: baseOrder + 0.3
     },
     {
         name: 'Big tent factor',
         desc: 'Have <b>25,000 players</b> at one time in the Downline minigame.<q>You have more friends than Tila Tequila had on Facebook in 2006, but all of yours are recruiting their own friends to play Cookie Clicker; it’s a veritable pyramid scheme in here.</q>',
-        icon: [18, 10, SHEETS.custom],
+        icon: Game.JNE.icon(18, 10, 'custom'),
         order: baseOrder + 0.2
     }
     ];

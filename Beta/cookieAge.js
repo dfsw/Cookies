@@ -753,37 +753,37 @@
             {
               name: 'Order of the golden crumb',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>Before ink touched parchment and iron met flame—before our ancestors raised their first cities—there was the Cookie Age. Six great Orders of mystics, bakers, scribes, and oracles worshipped the golden cookie and the ancient cookie deities.</q>',
-              icon: [0, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(0, 15, 'custom'),
               order: baseOrder + 1
             },
             {
               name: 'Order of the impossible batch',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods passed down hidden knowledge and quiet power from one generation to the next, fevered in their devotion. Across the ages, the Orders shaped the world through influence unseen, molding humanity toward the cookie gods they served.</q>',
-              icon: [1, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(1, 15, 'custom'),
               order: baseOrder + 2
             },
             {
               name: 'Order of the shining spoon',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory—small signs and gestures marked friend from foe.</q>',
-              icon: [2, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(2, 15, 'custom'),
               order: baseOrder + 3
             },
             {
               name: 'Order of the cookie eclipse',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws—never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>',
-              icon: [3, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(3, 15, 'custom'),
               order: baseOrder + 4
             },
             {
               name: 'Order of the enchanted whisk',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>',
-              icon: [4, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(4, 15, 'custom'),
               order: baseOrder + 5
             },
             {
               name: 'Order of the eternal cookie',
               desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>',
-              icon: [5, 15, customSpriteSheetUrl()],
+              icon: Game.JNE.icon(5, 15, 'custom'),
               order: baseOrder + 6
             }
           ];
@@ -1046,7 +1046,7 @@
                 clue: 'Pay close attention to the world, something new is afoot, but it requires patience and a watchful eye.',
                 hint: '• Keep an eye on the news ticker(clicking it can speed up your journey).<br>• There is only one type of Lily in Cookie Clicker.<br>• Make sure there is nothing else besides a lily.<br>• You must have even more patience than the lily itself.',
                 puzzleClass: ProvingPatiencePuzzle,
-                mainIcon: [10, 12, customSpriteSheetUrl()],
+                mainIcon: Game.JNE.icon(10, 12, 'custom'),
                 completionMessage: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>The mystery has begun. Return to the stats menu to track progress and review your clues.</q>',
                 completionIcon: [10, 13, customSpriteSheetUrl()],
                 dependencies: [],
@@ -1060,9 +1060,9 @@
                 hint: '• What does your friend call you that you could use as a name to be seen by them?',
                 description: 'The sign now bears the mark they demanded. Stranger, friend, or foe, you have declared yourself all the same. Many eyes now turn toward you.<q>The path ahead is peril. Wit, not strength, will be your most important asset.</q>',
                 puzzleClass: MakingFriendshipPuzzle,
-                mainIcon: [5, 17, customSpriteSheetUrl()],
+                mainIcon: Game.JNE.icon(5, 17, 'custom'),
                 completionMessage: 'The sign now bears the mark they demanded. Eyes, welcome or hostile, are upon you.<q>The mark is set. In silence, watchers weigh what it means.</q>',
-                completionIcon: [9, 13, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['proving_patience'],
                 isActive: false,
                 type: 'investigate'
@@ -1074,9 +1074,9 @@
                 clue: 'You have shown your willingness but your tasks are not yet complete.',
                 hint: '• Cookie Clicker has a mail system, you may have forgotten about this particular heavenly upgrade though.',
                 puzzleClass: SmallTokenPuzzle,
-                mainIcon: [34, 8, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(34, 8, 'main'),
                 completionMessage: 'The parcel is gone. In its place, a letter binds you to a greater cause.<q>Your mission begins in earnest. The first rites are revealed.</q>',
-                completionIcon: [2, 17, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['making_friendship'],
                 isActive: false,
                 type: 'investigate'
@@ -1088,9 +1088,9 @@
                 clue: 'We have intercepted a message from a courier of The Order:<br><br>A field of fortune, wide and green,<br>four-leaf charms are thickly seen.<br>Mark an X with their gilded kin,<br>the hidden path to walk within.<br>Yet wait, no hand may turn the ground,<br> till the field holds three dozen crowns.<br>When green and gold together stand,<br>strike the heart at fortune\'s hand.',
                 hint: '• What\'s the only plant that has a golden relative?<br>• Once everything is mature then you need to dig.',
                 description: 'You marked the sign where fortune crossed and unearthed what lay beneath. This was no rite of the Brotherhood, but a secret uncovered in silence.<q>Your ally\'s hand steered you here. The Order would not grant such knowledge willingly. Wrapped in oilcloth beneath the soil lay a thin folio, water-stained and singed. Six headings survive;<br>The Order of the Golden Crumb<br>The Order of the Impossible Batch<br>The O..er of t.e Shining Spoon<br>Th. O.. th. .o…k.. .c…ip…e<br>Th. O..r of th. .n…hant…d .h…sk<br>Th. O..r of th. Et…rn…l ..…k..<br>Keep this close—what\'s missing will matter.</q>',
-                mainIcon: [23, 2, customSpriteSheetUrl()],
+                mainIcon: Game.JNE.icon(23, 2, 'custom'),
                 completionMessage: 'Digging where X marked the spot has revealed a tattered folio.',
-                completionIcon: [1, 16, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 dependencies: ['rite_shifting_measures'],
                 isActive: false,
                 type: 'investigate'
@@ -1116,9 +1116,9 @@
                 description: 'Classifieds burned. Courier missing. You cut the line and moved to coded relays, pushing a false lead for them to chase.<q>We bought you room, not safety. From now on, speak masked or not at all.</q>',
                 clue: 'The Order found our newspaper drops and our courier never returned. We fear they\'re onto you as well. From here on, every message must be encoded.<q>The Romans had their tricks. XIII should jog your memory.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message1.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• There are many ciphers used throughout history, but the Caesars of the Roman Empire favored one. The number 13 is the key you will need.',          
-                mainIcon: [3, 35, gardenSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(3, 35, 'garden'),
                 completionMessage: 'They followed the decoy; your trail cooled.',
-                completionIcon: [2, 16, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['blessing_creator'],
                 isActive: false,
                 type: 'investigate'
@@ -1129,10 +1129,10 @@
                 puzzleClass: BrotherOntoYouPuzzle,
                 clue: 'The Order is getting better at breaking our ciphers. We have an urgent message, decode it now; time is short.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message4.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• A blind friend would be very helpful in this situation.',
-                mainIcon: [1, 14, customSpriteSheetUrl()],
+                mainIcon: Game.JNE.icon(1, 14, 'custom'),
                 description: 'A name surfaced: Brother Corvin. By dusk he was due before the elders; he never arrived. The shaft took him, and with it the words that would have ended you.<q>This is the line we hoped you wouldn\'t need to cross. Stay calm; stay unseen.</q>',
                 completionMessage: 'The report died in the dark; the elders never spoke your name.',
-                completionIcon: [1, 17, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['they_are_watching', 'feast_four'],
                 isActive: false,
                 type: 'investigate'
@@ -1145,8 +1145,8 @@
                 description: 'Silence stretched too long. You slipped a small sign through and it reached us.<q>Stay on mission. They\'re already weighing your loyalties.</q>',
                 puzzleClass: SendWordPuzzle,
                 completionMessage: 'Your sign arrived. The line holds... for now.',
-                mainIcon: [7, 16, customSpriteSheetUrl()],
-                completionIcon: [9, 13, customSpriteSheetUrl()],
+                mainIcon: Game.JNE.icon(7, 16, 'custom'),
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['veiled_ledger', 'brother_onto_you'],
                 isActive: false,
                 type: 'investigate'
@@ -1188,7 +1188,7 @@
                 puzzleClass: FalseBeaconsPuzzle,
                 mainIcon: [12, 13, customSpriteSheetUrl()],
                 completionMessage: 'You ignored the decoys; our mark came back clean.',
-                completionIcon: [2, 16, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['rite_fivefold_casting', 'close_call'],
                 isActive: false,
                 type: 'investigate'
@@ -1202,7 +1202,7 @@
                 puzzleClass: InfiltrationProgressPuzzle,
                 mainIcon: [12, 17, customSpriteSheetUrl()],
                 completionMessage: 'Confirmation received. The line holds.',
-                completionIcon: [1, 17, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['ledger_bonds', 'false_beacons'],
                 isActive: false,
                 type: 'investigate'
@@ -1230,7 +1230,7 @@
                 puzzleClass: WatchKeeperRoundsPuzzle,
                 mainIcon: [9, 16, customSpriteSheetUrl()],
                 completionMessage: 'You cleared the yard without a second look.',
-                completionIcon: [2, 17, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['six_jars_ledger', 'built_trust'],
                 isActive: false,
                 type: 'investigate'
@@ -1244,7 +1244,7 @@
                 puzzleClass: RosettaStonePuzzle,
                 mainIcon: [9, 14, customSpriteSheetUrl()],
                 completionMessage: 'The stone held the key. You cracked the script.',
-                completionIcon: [1, 17, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['watch_keeper_rounds'],
                 isActive: false,
                 type: 'investigate'
@@ -1257,7 +1257,7 @@
                 hint: '• There appears to be extra spacing between some of the columns, it separates them out into equal groups. The robot stamp is already a clue!<br>• Lights are warm when on and cool when off right? Colors can be warm and cool too.',         
                 puzzleClass: MaskWearsThinPuzzle,
                 mainIcon: [15, 17, customSpriteSheetUrl()],
-                completionIcon: [1, 16, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 completionMessage: 'Face changed. Eyes moved on.',
                 dependencies: ['vaulted_relics', 'rosetta_stone'],
                 isActive: false,
@@ -1272,7 +1272,7 @@
                 puzzleClass: StillWithUsPuzzle,
                 mainIcon: [3, 16, customSpriteSheetUrl()],
                 completionMessage: 'Sign received. You are still with us.',     
-                completionIcon: [9, 13, customSpriteSheetUrl()],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['sigils', 'mask_wears_thin'],
                 isActive: false,
                 type: 'investigate'

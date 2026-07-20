@@ -4348,15 +4348,29 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Use custom icon if provided, otherwise use the vanilla icon
         var finalIcon = customIcon || icon;
         
+        // Handle icon parameter (may be JNE.icon array)
+        if (icon && Array.isArray(icon) && icon.length === 3) {
+            var iconDescriptor = Object.getOwnPropertyDescriptor(icon, '2');
+            if (iconDescriptor && iconDescriptor.get) {
+                finalIcon = icon;
+            }
+        }
+        
         // Handle custom icon formats
         if (customIcon && Array.isArray(customIcon)) {
             if (customIcon.length === 3) {
-                // Convert string sprite sheet names to actual URLs (but not full URLs)
-                var spriteSheet = customIcon[2];
-                if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
-                    spriteSheet = getSpriteSheet(spriteSheet);
+                // Check if this is a JNE.icon array with a dynamic getter - if so, use it as-is
+                var descriptor = Object.getOwnPropertyDescriptor(customIcon, '2');
+                if (descriptor && descriptor.get) {
+                    finalIcon = customIcon;
+                } else {
+                    // Convert string sprite sheet names to actual URLs (but not full URLs)
+                    var spriteSheet = customIcon[2];
+                    if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
+                        spriteSheet = getSpriteSheet(spriteSheet);
+                    }
+                    finalIcon = [customIcon[0], customIcon[1], spriteSheet];
                 }
-                finalIcon = [customIcon[0], customIcon[1], spriteSheet];
             } else if (customIcon.length === 2) {
                 // Simple coordinates: [x, y]
                 finalIcon = customIcon;

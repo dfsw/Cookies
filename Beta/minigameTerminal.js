@@ -3308,13 +3308,13 @@ function createTerminalAchievements() {
         {
             name: '10x Full-Stack rockstar ninja wizard engineer',
             desc: 'Execute <b>100 Programs</b> in the Terminal minigame.<q>Human Resources is adding another adjective to your job title as we speak. Technically, they\'re nouns masquerading as adjectives, just like recruiters masquerading as engineers.</q>',
-            icon: [19, 9, getCustomSpriteSheet()],
+            icon: Game.JNE.icon(19, 9, 'custom'),
             order: baseOrder + 0.1
         },
         {
             name: 'Agile hacker samurai jedi-craftsman engineer',
             desc: 'Execute <b>500 Programs</b> in the Terminal minigame.<q>Your LinkedIn job title history now reads like the opening chapter of a J.R.R. Tolkien novel, complete with wizards, jedi, ninjas, and at least one guru.</q>',
-            icon: [19, 10, getCustomSpriteSheet()],
+            icon: Game.JNE.icon(19, 10, 'custom'),
             order: baseOrder + 0.2
         }
     ];
