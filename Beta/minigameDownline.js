@@ -3602,6 +3602,12 @@ function createDownlineAchievements() {
         }
     }
     downlineAchievementState.achievementsCreated = true;
+    
+    // Register achievement names for sprite sheet icon updates
+    if (window.registerSpriteSheetAchievements) {
+        window.registerSpriteSheetAchievements(downlineAchievementNames);
+    }
+    
     if (!DownlineM._checkHookRegistered) {
         DownlineM._checkHookRegistered = true;
         setTimeout(function () {

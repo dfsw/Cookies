@@ -3348,6 +3348,11 @@ function createTerminalAchievements() {
     }
 
     terminalAchievementState.achievementsCreated = true;
+    
+    // Register achievement names for sprite sheet icon updates
+    if (window.registerSpriteSheetAchievements) {
+        window.registerSpriteSheetAchievements(terminalAchievementNames);
+    }
 }
 
 function removeTerminalAchievements() {

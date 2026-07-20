@@ -592,7 +592,7 @@
                 // Mark as extended to prevent multiple extensions
                 Game._achievementWinExtended = true;
             }
-            var positiveFeedbackLoopIcon = [15, 13, getSpriteSheet('custom')];
+            var positiveFeedbackLoopIcon = JNE.icon(22, 17, 'custom');
             setupCustomBuffTypes();
             Game._achievementWinCallbacks.push(function(achievement) {
                 if (Game.Has('Positive feedback loop') && Game.gainBuff) {
@@ -607,7 +607,7 @@
             if (!Game.buffType || typeof Game.buffType !== 'function') return;
 
             if (Game.buffTypesByName && !Game.buffTypesByName['feedback loop']) {
-                var positiveFeedbackLoopIcon = [22, 17, getSpriteSheet('custom')];
+                var positiveFeedbackLoopIcon = JNE.icon(22, 17, 'custom');
                 new Game.buffType('feedback loop', function(time, pow) {
                     return {
                         name: 'Feedback loop',
@@ -1115,7 +1115,7 @@
             setupPantheonSaveLoadHooks();
 
             var spirits = {
-                procrastination: {key: 'procrastination', name: 'Morrowen, Spirit of Procrastination', icon: [21, 20, getSpriteSheet('custom')], upgrade: 'Morrowen, Spirit of Procrastination',
+                procrastination: {key: 'procrastination', name: 'Morrowen, Spirit of Procrastination', icon: JNE.icon(21, 20, 'custom'), upgrade: 'Morrowen, Spirit of Procrastination',
                     activeDescFunc: function() {
                         if (!M.gods['procrastination']) return '';
                         var lvl = Game.hasGod('procrastination'); if (!lvl) return '';
@@ -1124,7 +1124,7 @@
                         if (days < 365) boost += base * Math.pow(0.99, days) * (hrs % 24) / 24;
                         return 'Current Bonus: <span class="green">+' + (boost * 100).toFixed(3) + '%</span>';
                     }, desc1: '<span class="green">CpS increases noticeably over time.</span>', desc2: '<span class="green">CpS increases moderately over time.</span>', desc3: '<span class="green">CpS increases slightly over time.</span>', descAfter: '<span class="red">Changing slots resets CpS gain.</span>', quote: 'Unable to bear the weight of its doings, this spirit split apart, reminiscing the forbidden and beautiful. In this eternal flash of inaction, its form melted and folded, as to atone as stone.'},
-                selfishness: {key: 'selfishness', name: 'Solgreth, Spirit of Selfishness', icon: [20, 20, getSpriteSheet('custom')], upgrade: 'Solgreth, Spirit of Selfishness',
+                selfishness: {key: 'selfishness', name: 'Solgreth, Spirit of Selfishness', icon: JNE.icon(20, 20, 'custom'), upgrade: 'Solgreth, Spirit of Selfishness',
                     activeDescFunc: function() {
                         if (!M.gods['selfishness']) return '';
                         var lvl = Game.hasGod('selfishness'); if (!lvl) return '';
@@ -1969,7 +1969,7 @@
                         key: 'aerated',
                         icon: 5,
                         customIcon: [15, 24],
-                        customIconSheet: getSpriteSheet('custom'),
+                        customIconSheet: window.getSpriteSheet('custom'),
                         tick: 10,
                         effMult: 1,
                         weedMult: 1.25,
@@ -3039,7 +3039,7 @@
                             if (jneIndependentRandom() < chance) {
                                 amount *= 2;
                                 if (!silent) {
-                                    Game.Notify('Sugar cane doubled your sugar lumps!', 'Your sparkling sugar cane plants triggered a lucky doubling!', [4, 24, getSpriteSheet('custom')], 6);
+                                    Game.Notify('Sugar cane doubled your sugar lumps!', 'Your sparkling sugar cane plants triggered a lucky doubling!', JNE.icon(4, 24, 'custom'), 6);
                                 }
                             }
                         }
@@ -3174,8 +3174,8 @@
         function setupGildedAllureSpell() {
             if (Game.buffType && !Game._gildedAllureBuffTypesCreated) {
                 Game._gildedAllureBuffTypesCreated = true;
-                new Game.buffType('gilded allure', (t,p)=>({name:'Gilded allure',desc:'Golden cookies appear 30% more often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:[20,19,getSpriteSheet('custom')],time:t*Game.fps}));
-                new Game.buffType('midas curse', (t,p)=>({name:'Midas curse',desc:'Golden cookies appear 75% less often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:[20,19,getSpriteSheet('custom')],time:t*Game.fps}));
+                new Game.buffType('gilded allure', (t,p)=>({name:'Gilded allure',desc:'Golden cookies appear 30% more often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
+                new Game.buffType('midas curse', (t,p)=>({name:'Midas curse',desc:'Golden cookies appear 75% less often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
             }
 
             var tower = Game.Objects['Wizard tower'];
@@ -3211,7 +3211,7 @@
                 staleSpellEls[i].remove();
             }
             
-            var me={name:loc("Gilded Allure"),desc:loc("Golden Cookies appear 30% more often for the next 10 minutes."),failDesc:loc("Golden Cookies appear 75% less often for the next hour."),icon:[20,19],customIconSheet:getSpriteSheet('custom'),costMin:15,costPercent:0.5,
+            var me={name:loc("Gilded Allure"),desc:loc("Golden Cookies appear 30% more often for the next 10 minutes."),failDesc:loc("Golden Cookies appear 75% less often for the next hour."),icon:[20,19],customIconSheet:window.getSpriteSheet('custom'),costMin:15,costPercent:0.5,
                 win:()=>{Game.killBuff('Gilded allure');Game.killBuff('Midas curse');Game.gainBuff('gilded allure',600,1);Game.Popup(loc("Golden allure!"),Game.mouseX,Game.mouseY);},
                 fail:()=>{Game.killBuff('Gilded allure');Game.killBuff('Midas curse');Game.gainBuff('midas curse',3600,1);Game.Popup(loc("Backfire!")+'<br>'+loc("Midas curse!"),Game.mouseX,Game.mouseY);}};
             M.spells['gilded allure']=me; me.id=M.spellsById.length; M.spellsById[me.id]=me; M._gildedAllureHooked=true;
@@ -4608,7 +4608,7 @@
             
             var desc = 'Toggles pink mode on and off, adding playful winklers to the game.<q>O M G SO CUTEEEEEEE!!!</q>';
             var winklers = Game.WINKLERS || 0;
-            var icon = upgrade.icon || [22, 20, getSpriteSheet('custom')];
+            var icon = upgrade.icon || JNE.icon(22, 20, 'custom');
             
             new Game.Upgrade('Pink stuff [on]', desc, 0, icon);
             var toggleOn = Game.last;
@@ -4667,19 +4667,19 @@
         function setupBoxOfDonuts() {
             var basePrice = Math.pow(10, 75);
             var donuts = [
-                {name: 'Maple frosted donut', desc: 'Popular both inside of Canada and outside, a delicious treat covered in sweet maple syrup flavored frosting, taste more like autumn than pumpkin spice.', icon: [6, 25, getSpriteSheet('custom')]},
-                {name: 'Boston creme donut', desc: 'A donut filled with vanilla custard and topped with chocolate glaze. Named after the city, not the cream.', icon: [5, 25, getSpriteSheet('custom')]},
+                {name: 'Maple frosted donut', desc: 'Popular both inside of Canada and outside, a delicious treat covered in sweet maple syrup flavored frosting, taste more like autumn than pumpkin spice.', icon: JNE.icon(6, 25, 'custom')},
+                {name: 'Boston creme donut', desc: 'A donut filled with vanilla custard and topped with chocolate glaze. Named after the city, not the cream.', icon: JNE.icon(5, 25, 'custom')},
                 {name: 'Strawberry jelly donut', desc: 'A donut filled with sweet strawberry jelly. Watch out for dripping jelly on your pants!', icon: [27, 28]},
-                {name: 'Chocolate frosted donut', desc: 'A donut topped with rich chocolate frosting. Simple, yet satisfying.', icon: [4, 25, getSpriteSheet('custom')]},
+                {name: 'Chocolate frosted donut', desc: 'A donut topped with rich chocolate frosting. Simple, yet satisfying.', icon: JNE.icon(4, 25, 'custom')},
                 {name: 'Donut holes', desc: 'The holes from donuts fried and served warm, donuts aren\'t actually made by punching a hole out, but these are so delicious you won\'t actually care.', icon: [30, 3]},
-                {name: 'Chocolate filled donut', desc: 'A donut filled with rich chocolate cream. Double the chocolate, double the fun.', icon: [10, 25, getSpriteSheet('custom')]},
-                {name: 'Powdered sugar jelly donut', desc: 'A jelly donut dusted with powdered sugar. The powder gets everywhere, but it\'s totally worth it even if you look like a messy cocaine addict.', icon: [9, 25, getSpriteSheet('custom')]},
+                {name: 'Chocolate filled donut', desc: 'A donut filled with rich chocolate cream. Double the chocolate, double the fun.', icon: JNE.icon(10, 25, 'custom')},
+                {name: 'Powdered sugar jelly donut', desc: 'A jelly donut dusted with powdered sugar. The powder gets everywhere, but it\'s totally worth it even if you look like a messy cocaine addict.', icon: JNE.icon(9, 25, 'custom')},
                 {name: 'Plain glazed donut', desc: 'Absolutely gooey with sugar glaze. You won\'t even mind the sticky fingers.', icon: [28, 28]},
-                {name: 'Blueberry jelly filled donut', desc: 'A donut filled with sweet blueberry jelly. Blue colored sugar counts as a fruit right?', icon: [3, 25, getSpriteSheet('custom')]},
+                {name: 'Blueberry jelly filled donut', desc: 'A donut filled with sweet blueberry jelly. Blue colored sugar counts as a fruit right?', icon: JNE.icon(3, 25, 'custom')},
                 {name: 'Pink frosted donut', desc: 'A donut topped with pink frosting. Perfect for special occasions or just because.', icon: [30, 32]},
-                {name: 'Chocolate sprinkle donut', desc: 'A chocolate frosted donut covered in colorful sprinkles. The sprinkles add texture and joy.', icon: [8, 25, getSpriteSheet('custom')]},
+                {name: 'Chocolate sprinkle donut', desc: 'A chocolate frosted donut covered in colorful sprinkles. The sprinkles add texture and joy.', icon: JNE.icon(8, 25, 'custom')},
                 {name: 'Bear claw', desc: 'A sweet pastry shaped like a bear\'s claw, filled with almond paste and topped with sliced almonds.', icon: [23, 36]},
-                {name: 'Chocolate eclair', desc: 'An elongated pastry filled with cream and topped with chocolate. Elegant, delicious, and French in origin just like this game.', icon: [7, 25, getSpriteSheet('custom')]}
+                {name: 'Chocolate eclair', desc: 'An elongated pastry filled with cream and topped with chocolate. Elegant, delicious, and French in origin just like this game.', icon: JNE.icon(7, 25, 'custom')}
             ];
             
             // Inline icon values to prevent reference corruption issues
@@ -4947,7 +4947,7 @@
                 desc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.',
                 ddesc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
                 price: 15e15,
-                icon: [9, 13, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 13, 'custom'),
                 posX: -1987,
                 posY: -688,
                 require: ['Just natural expansion heavenly upgrades']
@@ -4958,7 +4958,7 @@
                 desc: 'Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.',
                 ddesc: 'Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.<q>You mean all this time we just needed to buy him a cheap watch?</q>',
                 price: 20e15,
-                icon: [19, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(19, 24, 'custom'),
                 posX: -1773,
                 posY: -454,
                 require: ['Wallstreet bets']
@@ -4969,7 +4969,7 @@
                 desc: 'Adds a new god to the Pantheon.',
                 ddesc: 'Adds a new god to the Pantheon.<q>You should probably be studying right now instead of playing idle games.</q>',
                 price: 35e15,
-                icon: [21, 20, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 20, 'custom'),
                 posX: -1566,
                 posY: -358,
                 require: ['Cyclius swatch']
@@ -4979,7 +4979,7 @@
                 desc: 'Adds a new god to the Pantheon.',
                 ddesc: 'Adds a new god to the Pantheon.<q>If that\'s a veiled criticism of me, I won\'t hear it and I won\'t respond to it.</q>',
                 price: 35e15,
-                icon: [20, 20, getSpriteSheet('custom')],
+                icon: JNE.icon(20, 20, 'custom'),
                 posX: -1725,
                 posY: -232,
                 require: ['Cyclius swatch']
@@ -5018,7 +5018,7 @@
                 desc: 'Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots.',
                 ddesc: 'Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots. <q>Modern farming tools sure do cut down on the manual labor, next thing you know and we will have robots doing the work for us.</q>',
                 price: 25e15,
-                icon: [11, 16, getSpriteSheet('custom')],
+                icon: JNE.icon(11, 16, 'custom'),
                 posX: -1455,
                 posY: -508,
                 require: ['Soil inspector']
@@ -5029,7 +5029,7 @@
                 desc: 'Adds a new seed to the garden minigame.',
                 ddesc: 'Adds a new seed to the garden minigame. A cross between Bakeberry and Thumbcorn.<q>GMOs are finally paying off, especially when powered by Just Natural Expansion.</q>',
                 price: 85e15,
-                icon: [4, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(4, 24, 'custom'),
                 posX: -1246,
                 posY: -567,
                 require: ['Plant all']
@@ -5040,7 +5040,7 @@
                 desc: 'Adds a new seed to the garden minigame.',
                 ddesc: 'Adds a new seed to the garden minigame. A cross between Meddleweed and Green rot or less commonly Ordinary Clover.<q>An invasive species that spreads like wildfire. We\'re not sure if introducing this to our garden was a good idea.</q>',
                 price: 90e15,
-                icon: [9, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 24, 'custom'),
                 posX: -1271,
                 posY: -418,
                 require: ['Plant all']
@@ -5051,7 +5051,7 @@
                 desc: 'Adds a new seed to the garden minigame.',
                 ddesc: 'Adds a new seed to the garden minigame. A fairly rare cross between Ichor Puff and Doughshroom.<q>Caution: ingesting may alter your perception of reality. Results may vary, only to be taken orally.</q>',
                 price: 95e15,
-                icon: [14, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(14, 24, 'custom'),
                 posX: -1413,
                 posY: -311,
                 require: ['Plant all']
@@ -5080,7 +5080,7 @@
                 desc: 'Adds a new soil to the garden minigame.',
                 ddesc: 'Adds a new soil to the garden minigame.<q>It seems like plants like air, have we considered adding more air to the soil?</q>',
                 price: 100e15,
-                icon: [15, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(15, 24, 'custom'),
                 posX: -1343,
                 posY: -687,
                 require: ['Plant all']
@@ -5091,7 +5091,7 @@
                 desc: 'Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.',
                 ddesc: 'Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.<q>Mana enhancing supplements are suspected, drug test are scheduled for next week.</q>',
                 price: 100e15,
-                icon: [16, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(16, 15, 'custom'),
                 posX: -1715,
                 posY: -765,
                 require: ['Wallstreet bets']
@@ -5102,7 +5102,7 @@
                 desc: 'Adds a new spell to the Grimoire minigame.',
                 ddesc: 'Adds a new spell to the Grimoire minigame.<q>Our scholars discovered a new spell but it took a really long time to write down since everyone who cast it was immediately hit in the head by flying objects.</q>',
                 price: 150e15,
-                icon: [20, 19, getSpriteSheet('custom')],
+                icon: JNE.icon(20, 19, 'custom'),
                 posX: -1543,
                 posY: -753,
                 require: ['Wizardly accomplishments']
@@ -5113,7 +5113,7 @@
                 desc: 'Edit <b>permanent upgrade slots</b> between ascensions.',
                 ddesc: 'Edit <b>permanent upgrade slots</b> between ascensions.<q>Nothing wrong with a little tweaking.</q>',
                 price: 5e15,
-                icon: [12, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(12, 15, 'custom'),
                 posX: -2116,
                 posY: -579,
                 require: ['Just natural expansion heavenly upgrades']
@@ -5124,7 +5124,7 @@
                 desc: 'Buildings are <b>10%</b> cheaper.',
                 ddesc: 'Buildings are <b>10%</b> cheaper.<q>Cut out the middlemen by becoming the middleman.</q>',
                 price: 35e15,
-                icon: [10, 14, getSpriteSheet('custom')],
+                icon: JNE.icon(10, 14, 'custom'),
                 posX: -1934,
                 posY: -492,
                 require: ['Erasable pens']
@@ -5146,7 +5146,7 @@
                 desc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.',
                 ddesc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.<q>Okay yes I understand, but then what is the turtle sitting on?</q>',
                 price: 250e15,
-                icon: [12, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(12, 17, 'custom'),
                 posX: -2054,
                 posY: -194,
                 require: ['Self employed realtor', 'Wholesale discount club']
@@ -5462,7 +5462,7 @@
                 desc: 'You can now collect your milk fish for a small reward.',
                 ddesc: 'You can now collect your milk fish for a small reward.<q>There\'s gold in them there milk.</q>',
                 price: 500e15,
-                icon: [7, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(7, 15, 'custom'),
                 posX: -2065,
                 posY: -1544,
                 require: ['Fish tank']
@@ -5473,7 +5473,7 @@
                 desc: 'Fish appear <b>25%</b> more often.',
                 ddesc: 'Fish appear <b>25%</b> more often.<q>With proper care and feeding, your fish population thrives.</q>',
                 price: 2000e15,
-                icon: [1, 25, getSpriteSheet('custom')],
+                icon: JNE.icon(1, 25, 'custom'),
                 posX: -2202,
                 posY: -1658,
                 require: ['Sunken treasure']
@@ -5484,7 +5484,7 @@
                 desc: 'Fish have a <b>10%</b> chance to appear in pairs.',
                 ddesc: 'Fish have a <b>10%</b> chance to appear in pairs.<q>Double the fish, double the fun!</q>',
                 price: 30000e15,
-                icon: [2, 25, getSpriteSheet('custom')],
+                icon: JNE.icon(2, 25, 'custom'),
                 posX: -2076,
                 posY: -1766,
                 require: ['Aquaculturist']
@@ -5526,7 +5526,7 @@
                 desc: '<b>2%</b> chance to auto click a fading golden cookie.',
                 ddesc: '<b>2%</b> chance to auto click a fading golden cookie.<q>Twice the chance, still less reliable than just clicking the cookie though.</q>',
                 price: 1000e15,
-                icon: [23, 2, getSpriteSheet('custom')],
+                icon: JNE.icon(23, 2, 'custom'),
                 posX: -2982,
                 posY: -784,
                 require: ['Fading payout']
@@ -5548,7 +5548,7 @@
                 desc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.',
                 ddesc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
                 price: 50000e15,
-                icon: [14, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(14, 15, 'custom'),
                 posX: -3104,
                 posY: -557,
                 require: ['Distilled essence of retripled luck', 'Lucky fading payout']
@@ -5559,7 +5559,7 @@
                 desc: 'Shows the remaining duration of buffs in your golden stopwatch.',
                 ddesc: 'Shows the remaining duration of buffs in your golden stopwatch.<q>A watch complication is any function beyond telling the hours, minutes, and seconds, adding mechanical complexity like chronographs or a buff countdown timer.</q>',
                 price: 35000e15,
-                icon: [16, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(16, 24, 'custom'),
                 posX: -2964,
                 posY: -450,
                 require: ['Golden stopwatch']
@@ -5570,7 +5570,7 @@
                 desc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.',
                 ddesc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.<q>They told us we were mad to try but who is laughing now?</q>',
                 price: 500000e15,
-                icon: [3, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(3, 17, 'custom'),
                 posX: -3077,
                 posY: -189,
                 require: ['Golden stopwatch']
@@ -5581,7 +5581,7 @@
                 desc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.',
                 ddesc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.<q>Who are we kidding anyways, you are going to click the cookie anyway.</q>',
                 price: 500000e16,
-                icon: [17, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(17, 15, 'custom'),
                 posX: -3289,
                 posY: -314,
                 require: ['Golden cookie predictor']
@@ -5592,7 +5592,7 @@
                 desc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.',
                 ddesc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.<q>We improved it by making improvements to the dohicky that makes it work.</q>',
                 price: 500000e17,
-                icon: [17, 14, getSpriteSheet('custom')],
+                icon: JNE.icon(17, 14, 'custom'),
                 posX: -3304,
                 posY: -528,
                 require: ['Tweaked golden cookie predictor']
@@ -5603,7 +5603,7 @@
                 desc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.',
                 ddesc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
                 price: 800000e17,
-                icon: [9, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 17, 'custom'),
                 posX: -3166,
                 posY: -763,
                 require: ['Improved golden cookie predictor']
@@ -5614,7 +5614,7 @@
                 desc: 'A golden cookie spawns at the <b>top</b> of every hour.',
                 ddesc: 'A golden cookie spawns at the <b>top</b> of every hour.<q>Because nothing says \'all is well\' like a cookie appearing right on schedule</q>',
                 price: 1000000e17,
-                icon: [14, 14, getSpriteSheet('custom')],
+                icon: JNE.icon(14, 14, 'custom'),
                 posX: -3318,
                 posY: -885,
                 require: ['Perfected golden cookie predictor']
@@ -5625,7 +5625,7 @@
                 desc: 'A golden cookie spawns at the <b>bottom</b> of every hour.',
                 ddesc: 'A golden cookie spawns at the <b>bottom</b> of every hour.<q>Perfect timing for anyone who believes the universe should deliver sugar twice as often.</q>',
                 price: 2000000e17,
-                icon: [17, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(17, 17, 'custom'),
                 posX: -3414,
                 posY: -744,
                 require: ['All is well']
@@ -5636,7 +5636,7 @@
                 desc: 'Fortune cookies make <b>noise</b> when they appear.',
                 ddesc: 'Fortune cookies make <b>noise</b> when they appear.<q>When destiny arrives, it refuses to do so quietly.</q>',
                 price: 50e15,
-                icon: [23, 20, getSpriteSheet('custom')],
+                icon: JNE.icon(23, 20, 'custom'),
                 posX: -2569,
                 posY: -535,
                 require: ['Improved cookie chains']
@@ -5647,7 +5647,7 @@
                 desc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.',
                 ddesc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.<q>Everyone knows Chinese leftovers mysteriously multiply in the fridge like they\'re running a shadow franchise.</q>',
                 price: 100e15,
-                icon: [17, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(17, 24, 'custom'),
                 posX: -2797,
                 posY: -490,
                 require: ['Fortune tolls for you']
@@ -5680,7 +5680,7 @@
                 desc: 'Shiny Wrinklers are <b>25%</b> more common.',
                 ddesc: 'Shiny Wrinklers are <b>25%</b> more common.',
                 price: 10e15,
-                icon: [21, 13, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 13, 'custom'),
                 posX: -2245,
                 posY: -952,
                 require: ['Just natural expansion heavenly upgrades']
@@ -5691,7 +5691,7 @@
                 desc: 'Wrinklers suck <b>10%</b> more.',
                 ddesc: 'Wrinklers suck <b>10%</b> more.',
                 price: 15e15,
-                icon: [21, 16, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 16, 'custom'),
                 posX: -2506,
                 posY: -1096,
                 require: ['Rare game hunter']
@@ -5702,7 +5702,7 @@
                 desc: 'Wrinklers suck <b>20%</b> more.',
                 ddesc: 'Wrinklers suck <b>20%</b> more.<q>Sluuuurrrp.</q>',
                 price: 15e15,
-                icon: [21, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 17, 'custom'),
                 posX: -2647,
                 posY: -1157,
                 require: ['Hellish hunger']
@@ -5713,7 +5713,7 @@
                 desc: 'Wrinklers spawn <b>10%</b> faster.',
                 ddesc: 'Wrinklers spawn <b>10%</b> faster.',
                 price: 20e15,
-                icon: [21, 19, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 19, 'custom'),
                 posX: -2406,
                 posY: -1202,
                 require: ['Rare game hunter']
@@ -5723,7 +5723,7 @@
                 desc: 'Wrinklers spawn <b>20%</b> faster.',
                 ddesc: 'Wrinklers spawn <b>20%</b> faster.',
                 price: 20e15,
-                icon: [22, 19, getSpriteSheet('custom')],
+                icon: JNE.icon(22, 19, 'custom'),
                 posX: -2489,
                 posY: -1324,
                 require: ['Unlocked gates of hell']
@@ -5734,7 +5734,7 @@
                 desc: 'Shiny Wrinklers are <b>50%</b> more common.',
                 ddesc: 'Shiny Wrinklers are <b>50%</b> more common.',
                 price: 25e15,
-                icon: [21, 14, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 14, 'custom'),
                 posX: -2684,
                 posY: -1334,
                 require: ['Ravenous leeches', 'Wide open door of hell']
@@ -5744,7 +5744,7 @@
                 desc: 'Shiny Wrinklers are <b>twice</b> as common.',
                 ddesc: 'Shiny Wrinklers are <b>twice</b> as common.<q>Good news, shiny wrinklers have been removed from the critically endangered list, bad news if you keep popping them they will end up right back on it.</q>',
                 price: 250e15,
-                icon: [21, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 15, 'custom'),
                 posX: -2846,
                 posY: -1451,
                 require: ['Indigenous tracker']
@@ -5788,7 +5788,7 @@
                 desc: 'Lucky Golden Cookies are <b>5%</b> less common.',
                 ddesc: 'Lucky Golden Cookies are <b>5%</b> less common.<q>Lucky cookies are good but not that good.</q>',
                 price: 500e15,
-                icon: [23, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(23, 17, 'custom'),
                 posX: -3160,
                 posY: -1038,
                 require: ['Mail in sweepstake winner', 'Fading payout']
@@ -5799,7 +5799,7 @@
                 desc: 'Lucky Golden Cookies are <b>10%</b> less common.',
                 ddesc: 'Lucky Golden Cookies are <b>10%</b> less common.<q>Your younger self would be so disappointed to learn you wanted to get less lucky cookies.</q>',
                 price: 8000e15,
-                icon: [23, 15, getSpriteSheet('custom')],
+                icon: JNE.icon(23, 15, 'custom'),
                 posX: -3469,
                 posY: -1015,
                 require: ['Unlucky luckier']
@@ -5810,7 +5810,7 @@
                 desc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.',
                 ddesc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.<q>Scientists call it \'operant conditioning\'. You call it \'Ooh, another shiny widget to click on.\'</q>',
                 price: 5000000e17,
-                icon: [22, 17, getSpriteSheet('custom')],
+                icon: JNE.icon(22, 17, 'custom'),
                 posX: -3577,
                 posY: -849,
                 require: ['Six bells', 'Even more unlucky luckier']
@@ -5843,7 +5843,7 @@
                 desc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
                 ddesc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
                 price: 250e15,
-                icon: [5, 16, getSpriteSheet('custom')],
+                icon: JNE.icon(5, 16, 'custom'),
                 posX: -2258,
                 posY: -1406,
                 require: ['Skitter skatter skrum ahh']
@@ -5854,7 +5854,7 @@
                 desc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.',
                 ddesc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.<q>I think I missed this day at Hogwarts.</q>',
                 price: 750e15,
-                icon: [14, 16, getSpriteSheet('custom')],
+                icon: JNE.icon(14, 16, 'custom'),
                 posX: -2448,
                 posY: -1653,
                 require: ['Abra-Ka-Wiggle']
@@ -5887,7 +5887,7 @@
                 desc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.',
                 ddesc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.<q>Here we find a rare shiny wrinkler, its skin catching the light in a way its species has no right to. Naturally, this peculiarity attracts the rest, who approach like scientists inspecting a colleague who has made a questionable life choice.</q>',
                 price: 5000e15,
-                icon: [18, 26, getSpriteSheet('custom')],   
+                icon: JNE.icon(18, 26, 'custom'),   
                 posX: -2609,
                 posY: -1505,
                 require: ['Alakazoodle evil noodle', 'Species bounceback']
@@ -5898,7 +5898,7 @@
                 desc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!',
                 ddesc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade, your grandmas can now play the slots. The more grandmas you own, the more pulls they make. Jackpots are rare, but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!<q>They just love sitting there all day feeding quarters into the machines. Despite the zombie-like appearance, it actually keeps them more docile.</q>',   
                 price: 75e19,
-                icon: [18, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(18, 24, 'custom'),
                 posX: -2440,
                 posY: -1461,
                 require: ['Slimy pheromones']
@@ -5909,7 +5909,7 @@
                 desc: 'Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).',
                 ddesc: 'Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).<q>O M G SO CUTEEEEEEE!!!</q>',
                 price: 800e15,
-                icon: [22, 20, getSpriteSheet('custom')],
+                icon: JNE.icon(22, 20, 'custom'),
                 posX: -2977,
                 posY: -1563,
                 require: ['Mail in sweepstake winner', 'Alakazoodle evil noodle']
@@ -5942,7 +5942,7 @@
                 desc: 'This upgrade doesn\'t do anything.',
                 ddesc: 'This upgrade doesn\'t do anything.<q>Or does it...? Nope, it doesn\'t... really for sure, believe me. Well maybe I lied, maybe it does. Does it really matter in the end?</q>',
                 price: 500e15,
-                icon: [22, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(22, 24, 'custom'),
                 posX: -2340,
                 posY: 164,
                 require: ['Sugar predictor']
@@ -5953,7 +5953,7 @@
                 desc: 'Terminal minigame cooldown is reduced by 1 hour.',
                 ddesc: 'Terminal minigame cooldown is reduced by 1 hour.<q>Water and delicate electronics together at last, what\'s the worst that can happen?</q>',
                 price: 250e15,
-                icon: [21, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(21, 24, 'custom'),
                 posX: -1371,
                 posY: -870,
                 require: ['Gilded allure', 'Aerated soil']
@@ -5964,7 +5964,7 @@
                 desc: 'Terminal minigame has one extra slot.',
                 ddesc: 'Terminal minigame has one extra slot.<q>Triple the price for 3.5% more power, now with flashing LEDs.</q>',
                 price: 500e15,
-                icon: [20, 24, getSpriteSheet('custom')],
+                icon: JNE.icon(20, 24, 'custom'),
                 posX: -1368,
                 posY: -1027,
                 require: ['Water cooled processors']
@@ -5975,7 +5975,7 @@
                 desc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.',
                 ddesc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.<q>MEGA CLICK!!!!</q>',
                 price: 50e19,
-                icon: [9, 7, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 7, 'custom'),
                 posX: -1805,
                 posY: -118,
                 require: ['Box of overpriced donuts']
@@ -5986,7 +5986,7 @@
                 desc: 'Mega clicks are now <b>50%</b> more common.',
                 ddesc: 'Mega clicks are now <b>50%</b> more common.<q>We can\'t believe they found a way to make mega clicks even more awesome either.</q>',
                 price: 500e19,
-                icon: [9, 8, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 8, 'custom'),
                 posX: -1719,
                 posY: 17,
                 require: ['Mega clicks']
@@ -5997,7 +5997,7 @@
                 desc: 'Mega clicks are now <b>50%</b> more powerful.',
                 ddesc: 'Mega clicks are now <b>50%</b> more powerful.<q>Extreme power for extreme clicks!</q>',
                 price: 5000e19,
-                icon: [9, 10, getSpriteSheet('custom')],
+                icon: JNE.icon(9, 10, 'custom'),
                 posX: -1626,
                 posY: 155,
                 require: ['Lucky mega clicks']

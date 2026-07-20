@@ -133,17 +133,14 @@
     var heavenlyUpgradesScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/heavenlyUpgrades.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/heavenlyUpgrades.js';
-    // Custom sprite sheet: one primary URL, one fallback if it fails to load. Everything else in the
-    // mod reads the current value through getSpriteSheet('custom') / spriteSheets.custom - nothing
-    // else should ever reference these raw URLs directly.
+
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
-        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=1'
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=2'
         : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
     var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png';
-    // 1x1 transparent placeholder shown until the sheet finishes loading, so nothing renders a broken
-    // image or hits the network directly while we're still resolving it.
+   
     var SPRITE_SHEET_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
     var spriteSheets = {
@@ -159,6 +156,29 @@
         }
     }
 
+    // Registry for achievement names that need icon updates when sprite sheet loads
+    var spriteSheetAchievementRegistry = [];
+    function registerSpriteSheetAchievements(achievementNames) {
+        if (Array.isArray(achievementNames)) {
+            for (var i = 0; i < achievementNames.length; i++) {
+                if (spriteSheetAchievementRegistry.indexOf(achievementNames[i]) === -1) {
+                    spriteSheetAchievementRegistry.push(achievementNames[i]);
+                }
+            }
+        }
+        // If sprite sheet already loaded (not placeholder), update icons immediately
+        var currentSheet = spriteSheets.custom;
+        if (currentSheet && !currentSheet.startsWith('data:')) {
+            for (var i = 0; i < achievementNames.length; i++) {
+                var achName = achievementNames[i];
+                var ach = Game.Achievements && Game.Achievements[achName];
+                if (ach && Array.isArray(ach.icon) && ach.icon.length === 3) {
+                    ach.icon[2] = currentSheet;
+                }
+            }
+        }
+    }
+
     // Fetched exactly once (primary, then fallback if that fails) and cached locally as a blob: URL,
     // so no matter how many icons/menus reference the custom sheet, only these two requests ever happen.
     var SPRITE_SHEET_FETCH_TIMEOUT_MS = 8000;
@@ -167,7 +187,6 @@
         var timedOut = false;
         var timer = setTimeout(function() {
             timedOut = true;
-            console.warn('[JNE] Sprite sheet fetch timed out after ' + timeoutMs + 'ms:', url);
             controller.abort();
         }, timeoutMs);
         console.log('[JNE] Sprite sheet: attempting fetch:', url);
@@ -179,17 +198,13 @@
         }).catch(function(err) {
             clearTimeout(timer);
             if (timedOut) throw new Error('Timed out after ' + timeoutMs + 'ms: ' + url);
-            console.warn('[JNE] Sprite sheet: fetch rejected:', url, err && (err.name + ': ' + err.message));
             throw err;
         });
     }
     function loadCustomSpriteSheet() {
-        console.log('[JNE] Sprite sheet: starting load. Primary=', CUSTOM_SHEET_PRIMARY_URL, 'Fallback=', CUSTOM_SHEET_FALLBACK_URL);
         fetchWithTimeout(CUSTOM_SHEET_PRIMARY_URL, SPRITE_SHEET_FETCH_TIMEOUT_MS).catch(function(err) {
-            console.warn('[JNE] Custom sprite sheet failed from primary URL, trying fallback. Reason:', err);
             return fetchWithTimeout(CUSTOM_SHEET_FALLBACK_URL, SPRITE_SHEET_FETCH_TIMEOUT_MS);
         }).then(function(blob) {
-            console.log('[JNE] Sprite sheet: resolved successfully, blob size=' + (blob && blob.size));
             var oldUrl = spriteSheets.custom;
             var blobUrl = URL.createObjectURL(blob);
             spriteSheets.custom = blobUrl;
@@ -205,12 +220,19 @@
             }
             if (Game.UpdateMenu) Game.UpdateMenu();
             console.log('[JNE] Sprite sheet: spriteSheets.custom is now', blobUrl);
+            // Update registered achievement icons
+            for (var i = 0; i < spriteSheetAchievementRegistry.length; i++) {
+                var achName = spriteSheetAchievementRegistry[i];
+                var ach = Game.Achievements && Game.Achievements[achName];
+                if (ach && Array.isArray(ach.icon) && ach.icon.length === 3) {
+                    ach.icon[2] = blobUrl;
+                }
+            }
             // Notify registered callbacks
             for (var i = 0; i < spriteSheetLoadCallbacks.length; i++) {
                 try {
                     spriteSheetLoadCallbacks[i](blobUrl);
                 } catch (cbErr) {
-                    console.error('[JNE] Sprite sheet callback error:', cbErr);
                 }
             }
         }).catch(function(err) {
@@ -4167,6 +4189,24 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     window.getSpriteSheet = getSpriteSheet;
     window.registerSpriteSheetLoadCallback = registerSpriteSheetLoadCallback;
+    window.registerSpriteSheetAchievements = registerSpriteSheetAchievements;
+    
+    // Helper to create icon arrays that resolve sprite sheet URLs at access time
+    // Usage: JNE.icon(x, y, 'custom') returns [x, y, 'custom'] with a getter for the URL
+    // This prevents capturing placeholder URLs at module-load time
+    if (!Game.JNE) Game.JNE = {};
+    Game.JNE.icon = function(x, y, sheetName) {
+        var icon = [x, y, sheetName];
+        // Add a getter for icon[2] that resolves the sheet name to a URL on access
+        Object.defineProperty(icon, '2', {
+            get: function() {
+                return getSpriteSheet(sheetName);
+            },
+            configurable: true
+        });
+        return icon;
+    };
+    window.JNE = Game.JNE;
 
     // Helper function to process icon arrays - convert string sprite sheet names to URLs
     function processIcon(icon) {
@@ -4818,11 +4858,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     start: 'Lunar New Year season has started!',
                     over: 'Lunar New Year season is over.',
                     trigger: 'Lunar biscuit',
-                    endIcon: [6, 13, getSpriteSheet('custom')]
+                    endIcon: JNE.icon(6, 13, 'custom')
                 };
 
                 // Create the trigger upgrade
-                new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, [9, 12, getSpriteSheet('custom')]);
+                new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, JNE.icon(9, 12, 'custom'));
                 Game.last.season = 'lunarnewyear';
                 Game.last.pool = 'toggle';
                 Game.last.order = 24001;
@@ -6195,7 +6235,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                 Game.Earn(moni);
                 var moniStr = loc('%1 cookie', LBeautify(moni));
-                Game.Notify('You found a lantern!', 'The lantern gives you ' + moniStr + '.', [23, 24, getSpriteSheet('custom')], 6);
+                Game.Notify('You found a lantern!', 'The lantern gives you ' + moniStr + '.', JNE.icon(23, 24, 'custom'), 6);
                 Game.Popup('<div style="font-size:80%;">+' + moniStr + '</div>', Game.mouseX, Game.mouseY);
                 Game.SparkleAt(Game.mouseX, Game.mouseY);
                 PlaySound('snd/shimmerClick.mp3');
@@ -6254,7 +6294,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 order: 22400.1701,
                 type: 'lanternClicks',
                 threshold: 168,
-                icon: [9, 12, getSpriteSheet('custom')]
+                icon: JNE.icon(9, 12, 'custom')
             },
             {
                 name: 'For My Whole Life',
@@ -6262,7 +6302,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 order: 22400.1702,
                 type: 'lanternClicks',
                 threshold: 1314,
-                icon: [12, 16, getSpriteSheet('custom')]
+                icon: JNE.icon(12, 16, 'custom')
             },
             {
                 name: 'Everything Everywhere All at Once',
@@ -6270,7 +6310,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 order: 22400.1703,
                 type: 'zodiacVisits',
                 threshold: 12,
-                icon: [10, 11, getSpriteSheet('custom')]
+                icon: JNE.icon(10, 11, 'custom')
             }
         ];
 
@@ -6747,7 +6787,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var processedIcon = processIcon(upgradeInfo.icon);
         var finalIcon = processedIcon;
         if (Array.isArray(processedIcon) && processedIcon.length === 2) {
-            finalIcon = [processedIcon[0], processedIcon[1], getSpriteSheet('custom')];
+            finalIcon = JNE.icon(processedIcon[0], processedIcon[1], 'custom');
         }
         
         new Game.Upgrade(upgradeInfo.name, upgradeInfo.ddesc, upgradeInfo.price, finalIcon);
@@ -8902,7 +8942,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 createAchievement(
                     ach.level15,
                     "Reach Level <b>15</b> " + Game.Objects[ach.building].plural + ".",
-                    [spriteIndex, 19, getSpriteSheet('custom')],
+                    JNE.icon(spriteIndex, 19, 'custom'),
                     ach.level15Order,
                     (function(buildingName) {
                         return function() { 
@@ -8916,7 +8956,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 createAchievement(
                     ach.level20,
                     "Reach Level <b>20</b> " + Game.Objects[ach.building].plural + ".",
-                    [spriteIndex, 20, getSpriteSheet('custom')],
+                    JNE.icon(spriteIndex, 20, 'custom'),
                     ach.level20Order,
                     (function(buildingName) {
                         return function() { 
@@ -8970,7 +9010,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 createAchievement(
                         tier.name,
                         tier.desc,
-                        [spriteIndex, tier.spriteY, getSpriteSheet('custom')],
+                        JNE.icon(spriteIndex, tier.spriteY, 'custom'),
                         tier.order,
                     (function(buildingName, threshold) {
                         return function() { 
