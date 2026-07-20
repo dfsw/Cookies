@@ -607,7 +607,7 @@
             if (!Game.buffType || typeof Game.buffType !== 'function') return;
 
             if (Game.buffTypesByName && !Game.buffTypesByName['feedback loop']) {
-                var positiveFeedbackLoopIcon = [15, 13, getSpriteSheet('custom')];
+                var positiveFeedbackLoopIcon = [22, 17, getSpriteSheet('custom')];
                 new Game.buffType('feedback loop', function(time, pow) {
                     return {
                         name: 'Feedback loop',
@@ -2486,6 +2486,31 @@
                     35: { baseX: -240, baseY: -1152 },
                     36: { baseX: -480, baseY: -1152 }
                 };
+
+                // Register callback to update cached sprite sheet URL when blob loads
+                var updateSpriteSheetRefs = function(blobUrl) {
+                    customSheet = blobUrl;
+                    M._jneCustomSheet = blobUrl;
+                    if (M._addCustomPlantCSSRules) M._addCustomPlantCSSRules();
+                    if (M.soils && M.soils.aerated && M.soils.aerated.customIconSheet) {
+                        M.soils.aerated.customIconSheet = blobUrl;
+                    }
+                    // Update aerated soil CSS if it exists
+                    var aeratedStyle = document.getElementById('aeratedSoilCSS');
+                    if (aeratedStyle && M.soils && M.soils.aerated) {
+                        var aeratedId = M.soils.aerated.id;
+                        var bgPos = (-M.soils.aerated.customIcon[0] * 48) + 'px ' + (-M.soils.aerated.customIcon[1] * 48) + 'px';
+                        aeratedStyle.textContent = '#gardenSoilIcon-' + aeratedId + ' { background-image: url(\'' + blobUrl + '\') !important; background-position: ' + bgPos + ' !important; }';
+                    }
+                };
+                if (window.registerSpriteSheetLoadCallback) {
+                    window.registerSpriteSheetLoadCallback(updateSpriteSheetRefs);
+                    // Check if sprite sheet already loaded (not placeholder)
+                    var currentSheet = getSpriteSheet('custom');
+                    if (currentSheet && !currentSheet.startsWith('data:')) {
+                        updateSpriteSheetRefs(currentSheet);
+                    }
+                }
 
                 if (!document.getElementById('customGardenPlantsCSS')) {
                     var style = document.createElement('style');

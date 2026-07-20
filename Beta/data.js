@@ -23,7 +23,7 @@ window.JNEData = {
                 desc: 'Golden cookies appear <b>5%</b> more often.<br>Unlocked by owning the Vanilla Star achievement.<br>Cost scales with CpS',
                 ddesc: 'Golden cookies appear <b>5%</b> more often.<br>Unlocked by owning the Vanilla Star achievement.<br>Cost scales with CpS<q>From the smallest crumb, the greatest feast begins. Founded by the Crumbmonks of the 1st Batch, these solemn custodians protect the tiniest morsels of the First Cookie. It is whispered that even a single Golden Crumb, if eaten, grants visions of infinite bakeries. They roam the world with robes lined in napkin cloth, ready to rescue stray crumbs from the void.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [14, 13, 'custom'],
+                icon: [0, 15, 'custom'],
                 pool: '',
                 order: 30001.001,
                 unlockCondition: function() {
@@ -39,7 +39,7 @@ window.JNEData = {
                 desc: 'Golden cookies appear <b>5%</b> more often.<br>Unlocked by owning The Final Challenger achievement.<br>Cost scales with CpS',
                 ddesc: 'Golden cookies appear <b>5%</b> more often.<br>Unlocked by owning The Final Challenger achievement.<br>Cost scales with CpS<q>The dough will rise… whether reality likes it or not. Bakers of the improbable, challengers of the possible — this Order has baked cookies in ovens that do not exist, from ingredients that never were. Their scrolls describe recipes written in paradox and whisked with defiance. Most of their meetings end with someone on fire.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [15, 13, 'custom'],
+                icon: [1, 15, 'custom'],
                 pool: '',
                 order: 30001.01,
                 unlockCondition: function() {
@@ -55,7 +55,7 @@ window.JNEData = {
                 desc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Combo achievements.<br>Cost scales with CpS',
                 ddesc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Combo achievements.<br>Cost scales with CpS<q>Where light meets dough, miracles happen. The Shining Spoon Order believes in the transformative power of proper tools. Their spoons are forged from starlight and polished with hope, each one capable of stirring the very essence of cookie magic. They say a spoon that shines can turn any batter into gold.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [18, 13, 'custom'],
+                icon: [2, 15, 'custom'],
                 pool: '',
                 order: 30001.02,
                 unlockCondition: function() {
@@ -76,7 +76,7 @@ window.JNEData = {
                 desc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Grandmapocalypse cookie achievements.<br>Cost scales with CpS',
                 ddesc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Grandmapocalypse cookie achievements.<br>Cost scales with CpS<q>When the light of the cookie sun is hidden, the shadows reveal their secrets. The Cookie Eclipse Order operates in the darkness between batches, when the ovens are cold and the dough is still. They believe that true cookie wisdom comes from understanding both the light and the shadow.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [17, 13, 'custom'],
+                icon: [3, 15, 'custom'],
                 pool: '',
                 order: 30001.03,
                 unlockCondition: function() {
@@ -105,7 +105,7 @@ window.JNEData = {
                 desc: 'Frenzy, Click Frenzy, and Elder Frenzy buffs are <b>5%</b> more powerful.<br>Unlocked by owning all Grimoire achievements.<br>Cost scales with CpS',
                 ddesc: 'Frenzy, Click Frenzy, and Elder Frenzy buffs are <b>5%</b> more powerful.<br>Unlocked by owning all Grimoire achievements.<br>Cost scales with CpS<q>Magic flows through every whisk stroke, every fold of dough. The Enchanted Whisk Order practices the ancient art of cookie sorcery, where ingredients are not just mixed but awakened. Their whisks are carved from enchanted wood and bound with spells that make every cookie a little bit magical.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [16, 13, 'custom'],
+                icon: [4, 15, 'custom'],
                 pool: '',
                 order: 30001.04,
                 unlockCondition: function() {
@@ -129,7 +129,7 @@ window.JNEData = {
                 desc: 'Golden cookies appear <b>5%</b> more often and their effects last <b>5%</b> longer.<br>Unlocked by owning all previous Great Orders of the Cookie Age upgrades.<br>Cost scales with CpS',
                 ddesc: 'Golden cookies appear <b>5%</b> more often and their effects last <b>5%</b> longer.<br>Unlocked by owning all previous Great Orders of the Cookie Age upgrades.<br>Cost scales with CpS<q>Beyond time, beyond space, there exists a cookie that never crumbles. The Eternal Cookie Order seeks to understand the nature of permanence in an impermanent world. They believe that if one can bake a cookie that lasts forever, one can unlock the secrets of immortality itself.</q>',
                 price: 999, // Placeholder price, will be overridden by priceFunc
-                icon: [19, 13, 'custom'],
+                icon: [5, 15, 'custom'],
                 pool: '',
                 order: 30001.05,
                 unlockCondition: function() {
@@ -3596,7 +3596,7 @@ window.JNEData = {
                 names: ["Archwizard", "Spellmaster", "Cookieomancer", "Spell lord", "Magic emperor", "Sweet Sorcery"],
                 thresholds: [1999, 2999, 3999, 4999, 9999, "freeSugarLump"],
                 descs: ["Cast <b>1,999</b> spells across all ascensions.<q>Zim zam zap!</q>", "Cast <b>2,999</b> spells across all ascensions.<q>Pew pew pew!</q>", "Cast <b>3,999</b> spells across all ascensions.", "Cast <b>4,999</b> spells across all ascensions.", "Cast <b>9,999</b> spells across all ascensions.<q>Yea well, how many backfired?</q>", "Get the <b>Free Sugar Lump</b> outcome from a magically spawned golden cookie.<q>Sweet sorcery indeed!</q>"],
-                customIcons: [[22, 12], [20, 14, 'custom'], [20, 13, 'custom'], [28, 12], [27, 12], [20, 15, 'custom']],
+                customIcons: [[22, 12], [5, 16, 'custom'], [16, 15, 'custom'], [28, 12], [27, 12], [20, 15, 'custom']],
                 orders: [61495.333, 61495.343, 61495.353, 61495.363, 61495.373, 61496.004]
             },
             templeSwaps: {

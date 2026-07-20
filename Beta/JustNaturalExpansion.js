@@ -133,14 +133,92 @@
     var heavenlyUpgradesScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/heavenlyUpgrades.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/heavenlyUpgrades.js';
+    // Custom sprite sheet: one primary URL, one fallback if it fails to load. Everything else in the
+    // mod reads the current value through getSpriteSheet('custom') / spriteSheets.custom - nothing
+    // else should ever reference these raw URLs directly.
+    var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=1'
+        : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
+    var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
+        : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png';
+    // 1x1 transparent placeholder shown until the sheet finishes loading, so nothing renders a broken
+    // image or hits the network directly while we're still resolving it.
+    var SPRITE_SHEET_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
     var spriteSheets = {
-        custom: BETA_MODE 
-            ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png'
-            : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png',
+        custom: SPRITE_SHEET_PLACEHOLDER,
         gardenPlants: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
     };
+
+    // Callbacks to notify when sprite sheet loads (for modules that cache the URL)
+    var spriteSheetLoadCallbacks = [];
+    function registerSpriteSheetLoadCallback(callback) {
+        if (typeof callback === 'function') {
+            spriteSheetLoadCallbacks.push(callback);
+        }
+    }
+
+    // Fetched exactly once (primary, then fallback if that fails) and cached locally as a blob: URL,
+    // so no matter how many icons/menus reference the custom sheet, only these two requests ever happen.
+    var SPRITE_SHEET_FETCH_TIMEOUT_MS = 8000;
+    function fetchWithTimeout(url, timeoutMs) {
+        var controller = new AbortController();
+        var timedOut = false;
+        var timer = setTimeout(function() {
+            timedOut = true;
+            console.warn('[JNE] Sprite sheet fetch timed out after ' + timeoutMs + 'ms:', url);
+            controller.abort();
+        }, timeoutMs);
+        console.log('[JNE] Sprite sheet: attempting fetch:', url);
+        return fetch(url, { mode: 'cors', cache: 'force-cache', signal: controller.signal }).then(function(resp) {
+            clearTimeout(timer);
+            console.log('[JNE] Sprite sheet: fetch responded:', url, 'status=' + resp.status, 'ok=' + resp.ok);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.blob();
+        }).catch(function(err) {
+            clearTimeout(timer);
+            if (timedOut) throw new Error('Timed out after ' + timeoutMs + 'ms: ' + url);
+            console.warn('[JNE] Sprite sheet: fetch rejected:', url, err && (err.name + ': ' + err.message));
+            throw err;
+        });
+    }
+    function loadCustomSpriteSheet() {
+        console.log('[JNE] Sprite sheet: starting load. Primary=', CUSTOM_SHEET_PRIMARY_URL, 'Fallback=', CUSTOM_SHEET_FALLBACK_URL);
+        fetchWithTimeout(CUSTOM_SHEET_PRIMARY_URL, SPRITE_SHEET_FETCH_TIMEOUT_MS).catch(function(err) {
+            console.warn('[JNE] Custom sprite sheet failed from primary URL, trying fallback. Reason:', err);
+            return fetchWithTimeout(CUSTOM_SHEET_FALLBACK_URL, SPRITE_SHEET_FETCH_TIMEOUT_MS);
+        }).then(function(blob) {
+            console.log('[JNE] Sprite sheet: resolved successfully, blob size=' + (blob && blob.size));
+            var oldUrl = spriteSheets.custom;
+            var blobUrl = URL.createObjectURL(blob);
+            spriteSheets.custom = blobUrl;
+            var fixIcon = function(obj) {
+                var icon = obj && obj.icon;
+                if (Array.isArray(icon) && icon[2] === oldUrl) icon[2] = blobUrl;
+            };
+            if (Game.Achievements) {
+                for (var achName in Game.Achievements) fixIcon(Game.Achievements[achName]);
+            }
+            if (Game.Upgrades) {
+                for (var upName in Game.Upgrades) fixIcon(Game.Upgrades[upName]);
+            }
+            if (Game.UpdateMenu) Game.UpdateMenu();
+            console.log('[JNE] Sprite sheet: spriteSheets.custom is now', blobUrl);
+            // Notify registered callbacks
+            for (var i = 0; i < spriteSheetLoadCallbacks.length; i++) {
+                try {
+                    spriteSheetLoadCallbacks[i](blobUrl);
+                } catch (cbErr) {
+                    console.error('[JNE] Sprite sheet callback error:', cbErr);
+                }
+            }
+        }).catch(function(err) {
+            console.error('[JNE] Custom sprite sheet failed to load from both primary and fallback:', err);
+        });
+    }
     try {
-        preloadSpriteSheets();
+        loadCustomSpriteSheet();
     } catch (e) {
         console.error('Error during sprite sheet preload:', e);
     }
@@ -4083,56 +4161,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // List of all mod achievement names for debug reset
     var modAchievementNames = [];
     
-    // Preload sprite sheets to avoid multiple HTTP requests
-    var spriteSheetFallbacks = {
-        custom: BETA_MODE
-            ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
-            : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png'
-    };
-    function preloadSpriteSheets() {
-        var sheetNames = Object.keys(spriteSheets);
-        for (var i = 0; i < sheetNames.length; i++) {
-            var sheetName = sheetNames[i];
-            (function(sheetName) {
-                var img = new Image();
-                img.onerror = function() {
-                    var fallbackUrl = spriteSheetFallbacks[sheetName];
-                    if (!fallbackUrl) return;
-                    console.warn('[JNE] Sprite sheet failed to load from primary URL, trying fallback:', fallbackUrl);
-                    var fallbackImg = new Image();
-                    fallbackImg.onload = function() {
-                        var oldUrl = spriteSheets[sheetName];
-                        spriteSheets[sheetName] = fallbackUrl;
-                        spriteSheets[sheetName + '_loaded'] = fallbackImg;
-                        var fixIcon = function(obj) {
-                            var icon = obj && obj.icon;
-                            if (Array.isArray(icon) && icon[2] === oldUrl) icon[2] = fallbackUrl;
-                        };
-                        if (Game.Achievements) {
-                            for (var achName in Game.Achievements) fixIcon(Game.Achievements[achName]);
-                        }
-                        if (Game.Upgrades) {
-                            for (var upName in Game.Upgrades) fixIcon(Game.Upgrades[upName]);
-                        }
-                        if (Game.UpdateMenu) Game.UpdateMenu();
-                    };
-                    fallbackImg.onerror = function() {
-                        console.error('[JNE] Sprite sheet also failed to load from fallback URL:', fallbackUrl);
-                    };
-                    fallbackImg.src = fallbackUrl;
-                };
-                img.src = spriteSheets[sheetName];
-                // Store the loaded image for reference
-                spriteSheets[sheetName + '_loaded'] = img;
-            })(sheetName);
-        }
-    }
-    
     // Helper function to get sprite sheet URL
     function getSpriteSheet(sheetName) {
         return spriteSheets[sheetName] || '';
     }
     window.getSpriteSheet = getSpriteSheet;
+    window.registerSpriteSheetLoadCallback = registerSpriteSheetLoadCallback;
 
     // Helper function to process icon arrays - convert string sprite sheet names to URLs
     function processIcon(icon) {
