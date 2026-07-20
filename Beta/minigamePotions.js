@@ -5,8 +5,6 @@
 
 const POTIONS_VERSION = '1.1.3';
 
-var POTIONS_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
-
 // =====================================================================
 // Potions 
 //
@@ -2067,9 +2065,7 @@ function formatRemaining(sec) {
 }
 
 function getSpriteSheet(sheetName) {
-    if (typeof window.getSpriteSheet === 'function') return window.getSpriteSheet(sheetName);
-    if (sheetName === 'custom') return POTIONS_CUSTOM_SPRITE_URL;
-    return '';
+    return window.getSpriteSheet(sheetName);
 }
 
 function getPotionById(id) {
@@ -3313,9 +3309,11 @@ PotionsM.init = function(div) {
 // =====================================================================
 var ICON_SHEETS = {
     main:   'https://orteil.dashnet.org/cookieclicker/img/icons.png',
-    custom: POTIONS_CUSTOM_SPRITE_URL,
     garden: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
 };
+Object.defineProperty(ICON_SHEETS, 'custom', {
+    get: function() { return getSpriteSheet('custom'); }
+});
 
 PotionsM._makeIcon = function(col, row, sheet, size) {
     size = size || 48;

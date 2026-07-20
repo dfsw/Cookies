@@ -4,18 +4,17 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.23';
+        const MOD_HU_VERSION = '1.0.24';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
-        const CUSTOM_SPRITE_SHEET_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
         const GARDEN_SPRITE_SHEET_URL = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
         const MOD_PLANT_KEYS = ['sparklingSugarCane', 'krazyKudzu', 'magicMushroom'];
         const WEAKEST_LINK_UPGRADES = [
-            { name: 'Weakest link', mult: 16 },
-            { name: 'The next weakest link', mult: 12 },
-            { name: 'No more weak links', mult: 8 }
+            { name: 'Weakest link', rank: 1, mult: 16 },
+            { name: 'The next weakest link', rank: 2, mult: 12 },
+            { name: 'No more weak links', rank: 3, mult: 8 }
         ];
-        Game.jneWeakestLinkUpgrades = WEAKEST_LINK_UPGRADES;
+        Game._jneWeakestLinkUpgrades = WEAKEST_LINK_UPGRADES;
 
         function isModPlant(plantKey) {
             if (!plantKey) return false;
@@ -23,10 +22,8 @@
         }
 
         function getSpriteSheet(sheetName) {
-            if (typeof window.getSpriteSheet === 'function') return window.getSpriteSheet(sheetName);
-            if (sheetName === 'custom') return CUSTOM_SPRITE_SHEET_URL;
             if (sheetName === 'garden') return GARDEN_SPRITE_SHEET_URL;
-            return '';
+            return window.getSpriteSheet(sheetName);
         }
         
         function jneEvery(prop, ms) {
@@ -142,7 +139,7 @@
                 [['Unlucky luckier', 'Even more unlucky luckier', 'Slightly less bitter wrath', 'Flavor enhanced wrath'], setupCookieReduction],
                 [['Fish tank', 'Sunken treasure', 'Aquaculturist', 'Hatchery effect'], setupFishShimmers],
                 [['Erasable pens'], setupErasablePens],
-                [['Frenziered elders', 'Godzmak\'s Headstart', 'Creative tax evasion'], setupBuffModifiers],
+                [['Frenziered elders', 'Godzamok\'s Headstart', 'Creative tax evasion'], setupBuffModifiers],
                 [['Mega clicks', 'Lucky mega clicks', 'Extreme mega clicks'], setupMegaClicks]
             ];
             // Skip all owned setup functions in Born Again mode (upgrades remain owned but have no effect)
@@ -764,14 +761,14 @@
         function setupCookieDisplayUnit() {
             if (!Game.Draw) return;
             if (Game.Draw._jneCookieDisplayHooked) return;
-            if (!Game._jneOriginalDraw) Game._jneOriginalDraw = Game.Draw;
+            if (!Game._jneOriginalDrawCookieDisplay) Game._jneOriginalDrawCookieDisplay = Game.Draw;
             Game.Draw = function() {
                 //  don't draw if game isn't ready
                 if (!Game.ready) return;
                 
                 try {
                     // Call vanilla draw - this may throw if minigame not loaded yet
-                    var result = Game._jneOriginalDraw.apply(this, arguments);
+                    var result = Game._jneOriginalDrawCookieDisplay.apply(this, arguments);
                     
                     // Only apply our modifications if vanilla draw succeeded
                     try {
@@ -829,10 +826,10 @@
                     if (Game.hasBuff('Feedback loop')) val *= 1.1;
                     var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
                     if (M && M.gods['selfishness']) {
-                        var l = Game.hasGod('selfishness');
-                        if (l) {
-                            var r = Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][l], 1);
-                            if (r < 1) val *= [1, 2, 1.5, 1.25][l];
+                        var godLevel = Game.hasGod('selfishness');
+                        if (godLevel) {
+                            var r = Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][godLevel], 1);
+                            if (r < 1) val *= [1, 2, 1.5, 1.25][godLevel];
                         }
                     }
                 }
@@ -875,17 +872,17 @@
                 }
                 var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
                 if (M && M.gods['procrastination']) {
-                    var l = Game.hasGod('procrastination');
-                    if (l && M._procrastinationSlotTime) {
-                        var h = (Date.now() - M._procrastinationSlotTime) / 3600000, d = Math.min(Math.floor(h / 24), 365), b = [0, 0.03, 0.02, 0.01][l];
+                    var godLevel = Game.hasGod('procrastination');
+                    if (godLevel && M._procrastinationSlotTime) {
+                        var h = (Date.now() - M._procrastinationSlotTime) / 3600000, d = Math.min(Math.floor(h / 24), 365), b = [0, 0.03, 0.02, 0.01][godLevel];
                         var t = b * (1 - Math.pow(0.99, d)) / 0.01;
                         if (d < 365) t += b * Math.pow(0.99, d) * (h % 24) / 24;
                         mult *= (1 + t);
                     }
                 }
                 if (M && M.gods['selfishness']) {
-                    var l = Game.hasGod('selfishness');
-                    if (l) mult *= (1 - Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][l], 1));
+                    var godLevel = Game.hasGod('selfishness');
+                    if (godLevel) mult *= (1 - Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][godLevel], 1));
                 }
                 return cps * mult;
             }, 'Centralized CPS modifiers');
@@ -909,8 +906,8 @@
                         if (type === 'blood frenzy' && Game.Has && Game.Has('Frenziered elders')) {
                             time = Math.ceil(time * 1.25);
                         }
-                        // Godzmak's Headstart - devastation buffs last 10% longer
-                        if (type === 'devastation' && Game.Has && Game.Has("Godzmak's Headstart")) {
+                        // Godzamok's Headstart - devastation buffs last 10% longer
+                        if (type === 'devastation' && Game.Has && Game.Has("Godzamok's Headstart")) {
                             time = Math.ceil(time * 1.1);
                         }
                         // Creative tax evasion - loan interest buffs last 10% less long
@@ -1305,9 +1302,9 @@
                     var st = Game.shimmerTypes && Game.shimmerTypes.golden;
                     if (!st._jneOriginalSpawnConditions || !st._jneOriginalSpawnConditions()) return false;
                     if (M.gods && M.gods['selfishness'] && Game.hasGod('selfishness')) {
-                        var l = Game.hasGod('selfishness');
-                        if (l) {
-                            var r = Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][l], 1);
+                        var godLevel = Game.hasGod('selfishness');
+                        if (godLevel) {
+                            var r = Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][godLevel], 1);
                             if (r >= 1) return false;
                         }
                     }
@@ -1691,11 +1688,6 @@
         
         function setupWeakestLink() {
             if (Game._jneWeakestLinkHooked) return;
-            Game._jneWeakestLinkUpgrades = [
-                { name: 'Weakest link', rank: 1, mult: 16 },
-                { name: 'The next weakest link', rank: 2, mult: 12 },
-                { name: 'No more weak links', rank: 3, mult: 8 }
-            ];
             
             if (!Game._weakestLinkCache) Game._weakestLinkCache = { assignments: {}, lastRecalc: 0 };
 
@@ -1783,9 +1775,9 @@
                                 if (cache.assignments) {
                                     for (var k in cache.assignments) {
                                         if (cache.assignments[k].buildingName === b.name) {
-                                            for (var u = 0; u < Game.jneWeakestLinkUpgrades.length; u++) {
-                                                if (Game.jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
-                                                    cps /= Game.jneWeakestLinkUpgrades[u].mult;
+                                            for (var u = 0; u < Game._jneWeakestLinkUpgrades.length; u++) {
+                                                if (Game._jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
+                                                    cps /= Game._jneWeakestLinkUpgrades[u].mult;
                                                     break;
                                                 }
                                             }
@@ -2790,9 +2782,9 @@
                                                 if (cache.assignments) {
                                                     for (var k in cache.assignments) {
                                                         if (cache.assignments[k].buildingName === b.name) {
-                                                            for (var u = 0; u < Game.jneWeakestLinkUpgrades.length; u++) {
-                                                                if (Game.jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
-                                                                    cps /= Game.jneWeakestLinkUpgrades[u].mult;
+                                                            for (var u = 0; u < Game._jneWeakestLinkUpgrades.length; u++) {
+                                                                if (Game._jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
+                                                                    cps /= Game._jneWeakestLinkUpgrades[u].mult;
                                                                     break;
                                                                 }
                                                             }
@@ -3330,8 +3322,10 @@
             if (typeof l !== 'function') return;
 
 
-            if (!(M.logic && M.logic._potionsLogicHooked)) {
+            if (M.logic && !M.logic._jneWizardlyLogicHooked) {
+                var _jneOriginalWizardlyLogic = M.logic;
                 M.logic = function() {
+                    _jneOriginalWizardlyLogic.call(this);
                     var M = Game.Objects['Wizard tower'].minigame;
                     if (Game.T%5==0) {M.computeMagicM();}
                     var towerLevel = Math.min(M.parent.level, 20);
@@ -3347,18 +3341,24 @@
                         if (spellEl) spellEl.className = M.magic < cost ? 'grimoireSpell titleFont' : 'grimoireSpell titleFont ready';
                     }
                 };
+                M.logic._jneWizardlyLogicHooked = true;
             }
 
-            M.draw = function() {
-                var M = Game.Objects['Wizard tower'].minigame;
-                if (Game.drawT%5==0) {
-                    if (M.magicBarTextL) M.magicBarTextL.innerHTML=Math.min(Math.floor(M.magicM),Beautify(M.magic))+'/'+Beautify(Math.floor(M.magicM))+(M.magic<M.magicM?(' ('+loc("+%1/s",Beautify((M.magicPS||0)*Game.fps,3))+')'):'');
-                    if (M.magicBarFullL) M.magicBarFullL.style.width=((M.magic/M.magicM)*100)+'%';
-                    if (M.magicBarL) M.magicBarL.style.width=(M.magicM*3)+'px';
-                    if (M.infoL) M.infoL.innerHTML=loc("Spells cast: %1 (total: %2)",[Beautify(M.spellsCast),Beautify(M.spellsCastTotal)]);
-                }
-                if (M.magicBarFullL) M.magicBarFullL.style.backgroundPosition=(-Game.T*0.5)+'px';
-            };
+            if (M.draw && !M.draw._jneWizardlyDrawHooked) {
+                var _jneOriginalWizardlyDraw = M.draw;
+                M.draw = function() {
+                    _jneOriginalWizardlyDraw.call(this);
+                    var M = Game.Objects['Wizard tower'].minigame;
+                    if (Game.drawT%5==0) {
+                        if (M.magicBarTextL) M.magicBarTextL.innerHTML=Math.min(Math.floor(M.magicM),Beautify(M.magic))+'/'+Beautify(Math.floor(M.magicM))+(M.magic<M.magicM?(' ('+loc("+%1/s",Beautify((M.magicPS||0)*Game.fps,3))+')'):'');
+                        if (M.magicBarFullL) M.magicBarFullL.style.width=((M.magic/M.magicM)*100)+'%';
+                        if (M.magicBarL) M.magicBarL.style.width=(M.magicM*3)+'px';
+                        if (M.infoL) M.infoL.innerHTML=loc("Spells cast: %1 (total: %2)",[Beautify(M.spellsCast),Beautify(M.spellsCastTotal)]);
+                    }
+                    if (M.magicBarFullL) M.magicBarFullL.style.backgroundPosition=(-Game.T*0.5)+'px';
+                };
+                M.draw._jneWizardlyDrawHooked = true;
+            }
 
             M._wizardlyAccomplishmentsHooked = true;
         }
@@ -3796,37 +3796,39 @@
             Game.predictLumpTypesByWrathWithState = function(startTime, grandmas, rigidel, rigidelActive, dragonsCurve, realityBending, type1Chance, supremeIntellect) {
                 var harvestTime = startTime + Game.calculateLumpRipeAgeWithState(grandmas, rigidel, rigidelActive, dragonsCurve, realityBending, supremeIntellect);
                 var oldRandom = Math.random;
+                var rng;
                 try {
                     Math.seedrandom(Game.seed + '/' + harvestTime);
-                    var t0 = [0], t1 = [0], t2 = [0], t3 = [0];
-                    var curveMult = (dragonsCurve ? 1 : 0) + (realityBending ? 0.1 : 0);
-                    var loop = 1 + curveMult;
-                    // Mirror vanilla's randomFloor exactly: always consumes one Math.random() call,
-                    // even when loop is an integer. if ((loop%1)<Math.random()) floor else ceil
-                    var loops = ((loop % 1) < Math.random()) ? Math.floor(loop) : Math.ceil(loop);
-                    var chance1 = (type1Chance !== undefined) ? type1Chance : (Game.Has('Sucralosia Inutilis') ? 0.15 : 0.1);
-
-                    for (var i = 0; i < loops; i++) {
-                        if (Math.random() < chance1) { t0.push(1); t1.push(1); t2.push(1); t3.push(1); }
-                        if (Math.random() < 0.003) { t0.push(2); t1.push(2); t2.push(2); t3.push(2); }
-                        var meatyRoll = Math.random();
-                        if (meatyRoll < 0.1 * 0) t0.push(3);
-                        if (meatyRoll < 0.1 * 1) t1.push(3);
-                        if (meatyRoll < 0.1 * 2) t2.push(3);
-                        if (meatyRoll < 0.1 * 3) t3.push(3);
-                        if (Math.random() < 0.02) { t0.push(4); t1.push(4); t2.push(4); t3.push(4); }
-                    }
-
-                    var pick = Math.random();
-                    return [
-                        t0[Math.floor(pick * t0.length)],
-                        t1[Math.floor(pick * t1.length)],
-                        t2[Math.floor(pick * t2.length)],
-                        t3[Math.floor(pick * t3.length)]
-                    ];
+                    rng = Math.random;
                 } finally {
                     Math.random = oldRandom;
                 }
+                var t0 = [0], t1 = [0], t2 = [0], t3 = [0];
+                var curveMult = (dragonsCurve ? 1 : 0) + (realityBending ? 0.1 : 0);
+                var loop = 1 + curveMult;
+                // Mirror vanilla's randomFloor exactly: always consumes one Math.random() call,
+                // even when loop is an integer. if ((loop%1)<Math.random()) floor else ceil
+                var loops = ((loop % 1) < rng()) ? Math.floor(loop) : Math.ceil(loop);
+                var chance1 = (type1Chance !== undefined) ? type1Chance : (Game.Has('Sucralosia Inutilis') ? 0.15 : 0.1);
+
+                for (var i = 0; i < loops; i++) {
+                    if (rng() < chance1) { t0.push(1); t1.push(1); t2.push(1); t3.push(1); }
+                    if (rng() < 0.003) { t0.push(2); t1.push(2); t2.push(2); t3.push(2); }
+                    var meatyRoll = rng();
+                    if (meatyRoll < 0.1 * 0) t0.push(3);
+                    if (meatyRoll < 0.1 * 1) t1.push(3);
+                    if (meatyRoll < 0.1 * 2) t2.push(3);
+                    if (meatyRoll < 0.1 * 3) t3.push(3);
+                    if (rng() < 0.02) { t0.push(4); t1.push(4); t2.push(4); t3.push(4); }
+                }
+
+                var pick = rng();
+                return [
+                    t0[Math.floor(pick * t0.length)],
+                    t1[Math.floor(pick * t1.length)],
+                    t2[Math.floor(pick * t2.length)],
+                    t3[Math.floor(pick * t3.length)]
+                ];
             };
 
             Game.predictLumpTypeWithState = function(startTime, grandmas, rigidel, rigidelActive, dragonsCurve, realityBending, wrath, supremeIntellect) {
@@ -5901,8 +5903,8 @@
             
             createHeavenlyUpgrade({
                 name: 'Creative tax evasion',
-                desc: 'Negative loan effects don\'t last as long.',
-                ddesc: 'Negative loan effects don\'t last as long.<q>Reducing downside exposure through aggressive imagination and creative bookkeeping.</q>',
+                desc: 'Negative loan effects are shorter.',
+                ddesc: 'Negative loan effects are shorter.<q>Reducing downside exposure through aggressive imagination and creative bookkeeping.</q>',
                 price: 75e15,
                 icon: [34, 12],
                 posX: -1874,
@@ -5977,9 +5979,9 @@
             });
             
             createHeavenlyUpgrade({
-                name: 'Godzmak\'s Headstart',
-                desc: 'Godzmak buffs last <b>10%</b> longer.',
-                ddesc: 'Godzmak\'s buff last <b>10%</b> longer.<q>We shouldn\'t be encouraging his destructive behavior, but he is kinda cute.</q>',
+                name: 'Godzamok\'s Headstart',
+                desc: 'Godzamok buffs last <b>10%</b> longer.',
+                ddesc: 'Godzamok\'s buffs last <b>10%</b> longer.<q>We shouldn\'t be encouraging his destructive behavior, but he is kinda cute.</q>',
                 price: 50000e15,
                 icon: [23, 18],
                 posX: -1418,
@@ -6424,10 +6426,6 @@
             if (M) {
                 M._gardenPlantsInjected = false;
                 M._customPlantCSSAdded = false;
-                // DO NOT clear _aeratedSoilHooked - M.draw/M.logic are never replaced by vanilla reinit
-                // (only M.load is called again on LoadSave), so first capture stays valid.
-                // Clearing this causes setupAeratedSoil to re-wrap M.draw, creating circular references.
-                // M._aeratedSoilHooked = false;
                 M._aeratedSoilIconHooked = false;
                 M._aeratedSoilTooltipHooked = false;
                 M._aeratedSoilLoadHooked = false;
@@ -6435,6 +6433,7 @@
                 M._iconFixSetup = false;
                 M._drawHookedForIcons = false;
                 M._buildPlotHookedForData = false;
+                M._soilInspectorHooked = false;
             }
 
             // Clear wizard tower flags so gilded allure spell and wizardly accomplishments get recreated on load
@@ -6448,6 +6447,19 @@
             }
             Game._gildedAllureBuffTypesCreated = false;
             
+            // Migration: rename "Godzmak's Headstart" (typo) to "Godzamok's Headstart"
+            var _oldName = "Godzmak's Headstart";
+            var _newName = "Godzamok's Headstart";
+            var _hasOld = (saveData.boughtUpgrades && saveData.boughtUpgrades.indexOf(_oldName) !== -1) ||
+                          (saveData.h && saveData.h.indexOf(_oldName) !== -1) ||
+                          (saveData.upgrades && saveData.upgrades[_oldName]);
+            if (_hasOld) {
+                if (!saveData.boughtUpgrades) saveData.boughtUpgrades = [];
+                if (saveData.boughtUpgrades.indexOf(_newName) === -1) {
+                    saveData.boughtUpgrades.push(_newName);
+                }
+            }
+
             // Restore all upgrades with their bought states (handle both new array format and legacy object format)
             var restoredCount = 0;
             var notFoundCount = 0;

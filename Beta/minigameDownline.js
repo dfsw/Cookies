@@ -106,9 +106,11 @@ function $(id) { return document.getElementById(id); }
 
 var SHEETS = {
     main: 'https://orteil.dashnet.org/cookieclicker/img/icons.png',
-    custom: 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png',
     garden: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
 };
+Object.defineProperty(SHEETS, 'custom', {
+    get: function() { return window.getSpriteSheet('custom'); }
+});
 
 function createIcon(col, row, sheet, cellSize) {
     cellSize = cellSize || 48;
@@ -2176,7 +2178,7 @@ DownlineM.init = function(div) {
     function getTooltipIconStyle(def, name) {
       var iconsUrl = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/icons.png';
       var gardenUrl = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/gardenPlants.png';
-      var customUrl = (SHEETS && SHEETS.custom) ? SHEETS.custom : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png';
+      var customUrl = SHEETS.custom;
       var icon, url;
       if (def && def.icon) {
         icon = def.icon;

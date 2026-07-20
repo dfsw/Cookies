@@ -141,13 +141,13 @@
     };
 
     // JNE Tier System
-    Game.Tiers['jne1'] = { name: 'Sterling', color: '#DDEAF0', special: 1, unlock: -1 };
-    Game.Tiers['jne2'] = { name: 'Champion', color: '#FFF05A', special: 1, unlock: -1 };
-    Game.Tiers['jne3'] = { name: 'Gumshoe', color: '#D8A868', special: 1, unlock: -1 };
+    Game.Tiers['jne1'] = { name: 'Sterlicious', color: '#DDEAF0', special: 1, unlock: -1 };
+    Game.Tiers['jne2'] = { name: 'Championchip', color: '#FFF05A', special: 1, unlock: -1 };
+    Game.Tiers['jne3'] = { name: 'Gumshoechew', color: '#D8A868', special: 1, unlock: -1 };
     Game.Tiers['jne4'] = { name: 'Atomalt', color: '#20B8C8', special: 1, unlock: -1 };
     Game.Tiers['jne5'] = { name: 'Groovium', color: '#FF1A90', special: 1, unlock: -1 };
-    Game.Tiers['jne6'] = { name: 'RecRoom', color: '#E87038', special: 1, unlock: -1 };
-    Game.Tiers['jne7'] = { name: 'Technoir', color: '#FF3A90', special: 1, unlock: -1 };
+    Game.Tiers['jne6'] = { name: 'Retroffee', color: '#E87038', special: 1, unlock: -1 };
+    Game.Tiers['jne7'] = { name: 'Synthberry', color: '#FF3A90', special: 1, unlock: -1 };
     Game.Tiers['jne8'] = { name: 'Neonblast', color: '#20F0D8', special: 1, unlock: -1 };
     Game.Tiers['jne9'] = { name: 'Cybercandy', color: '#A880FF', special: 1, unlock: -1 };
     Game.Tiers['jne10'] = { name: 'Magmallow', color: '#D81A00', special: 1, unlock: -1 };
@@ -4079,12 +4079,40 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var modAchievementNames = [];
     
     // Preload sprite sheets to avoid multiple HTTP requests
+    var spriteSheetFallbacks = {
+        custom: BETA_MODE
+            ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
+            : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png'
+    };
     function preloadSpriteSheets() {
         for (var sheetName in spriteSheets) {
-            var img = new Image();
-            img.src = spriteSheets[sheetName];
-            // Store the loaded image for reference
-            spriteSheets[sheetName + '_loaded'] = img;
+            (function(sheetName) {
+                var img = new Image();
+                img.onerror = function() {
+                    var fallbackUrl = spriteSheetFallbacks[sheetName];
+                    if (!fallbackUrl) return;
+                    console.warn('[JNE] Sprite sheet failed to load from primary URL, trying fallback:', fallbackUrl);
+                    var fallbackImg = new Image();
+                    fallbackImg.onload = function() {
+                        var oldUrl = spriteSheets[sheetName];
+                        spriteSheets[sheetName] = fallbackUrl;
+                        spriteSheets[sheetName + '_loaded'] = fallbackImg;
+                        if (Game.Achievements) {
+                            for (var achName in Game.Achievements) {
+                                var icon = Game.Achievements[achName].icon;
+                                if (Array.isArray(icon) && icon[2] === oldUrl) icon[2] = fallbackUrl;
+                            }
+                        }
+                    };
+                    fallbackImg.onerror = function() {
+                        console.error('[JNE] Sprite sheet also failed to load from fallback URL:', fallbackUrl);
+                    };
+                    fallbackImg.src = fallbackUrl;
+                };
+                img.src = spriteSheets[sheetName];
+                // Store the loaded image for reference
+                spriteSheets[sheetName + '_loaded'] = img;
+            })(sheetName);
         }
     }
     
@@ -4092,6 +4120,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function getSpriteSheet(sheetName) {
         return spriteSheets[sheetName] || '';
     }
+    window.getSpriteSheet = getSpriteSheet;
 
     // Helper function to process icon arrays - convert string sprite sheet names to URLs
     function processIcon(icon) {
@@ -8792,9 +8821,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     var actualRequirementType = (type === 'completionism') ? data.thresholds[i] : type;
                     var requirement = createRequirementFunction(actualRequirementType, data.thresholds[i]);
                     var customIcon = data.customIcons && data.customIcons[i] ? data.customIcons[i] : null;
+                    var desc = data.descs[i];
+                    if (typeof desc === 'function') desc = desc(data.thresholds[i], i);
+                    else if (typeof data.descs === 'function') desc = data.descs(data.thresholds[i], i);
                     createAchievement(
                         data.names[i],
-                        data.descs[i],
+                        desc,
                         null,
                         data.orders[i],
                         requirement,
@@ -8823,7 +8855,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 // Level 15 achievement
                 createAchievement(
                     ach.level15,
-                    "Reach Level <b>15</b> " + ach.building.toLowerCase() + "s.",
+                    "Reach Level <b>15</b> " + Game.Objects[ach.building].plural + ".",
                     [spriteIndex, 19, getSpriteSheet('custom')],
                     ach.level15Order,
                     (function(buildingName) {
@@ -8837,7 +8869,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 // Level 20 achievement
                 createAchievement(
                     ach.level20,
-                    "Reach Level <b>20</b> " + ach.building.toLowerCase() + "s.",
+                    "Reach Level <b>20</b> " + Game.Objects[ach.building].plural + ".",
                     [spriteIndex, 20, getSpriteSheet('custom')],
                     ach.level20Order,
                     (function(buildingName) {
@@ -9307,7 +9339,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         } catch (e) {
             console.error('Error during mod initialization:', e);
         }
-    }, 500);
+    }, 0);
 
     function addCustomBuildingMultipliers() {
         if (Game.customMultipliersSetup) return;

@@ -17,7 +17,9 @@ M.parent = Game.Objects && Game.Objects['Javascript console'] ? Game.Objects['Ja
 };
 M.parent.minigame = M;
 
-const TERMINAL_CUSTOM_SPRITE_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
+function getCustomSpriteSheet() {
+    return window.getSpriteSheet('custom');
+}
 
 var terminalAchievementNames = [
     '10x Full-Stack rockstar ninja wizard engineer',
@@ -173,9 +175,7 @@ M.launch = function () {
         var index = parseInt(iconIndex, 10);
         if (isNaN(index) || index < 0) return null;
         if (index >= 34 && index <= 36) {
-            var customSheet = '';
-            if (typeof getSpriteSheet === 'function') customSheet = getSpriteSheet('custom') || '';
-            if (!customSheet) customSheet = TERMINAL_CUSTOM_SPRITE_URL;
+            var customSheet = getCustomSpriteSheet();
             if (!customSheet) return null;
             return [(index - 34) * 5, 24, customSheet];
         }
@@ -503,7 +503,7 @@ M.launch = function () {
             { value: 'season:easter', label: 'Easter season', icon: [0, 12] }
         ];
         if (Game.JNE && Game.JNE.enableExtraSeasons) {
-            options.push({ value: 'season:lunarnewyear', label: 'Lunar New Year season', icon: [9, 12, TERMINAL_CUSTOM_SPRITE_URL] });
+            options.push({ value: 'season:lunarnewyear', label: 'Lunar New Year season', icon: [9, 12, getCustomSpriteSheet()] });
         }
         return options;
     }
@@ -685,7 +685,7 @@ M.launch = function () {
                     options: function () {
                         var plantIcon = buildGardenSoilIcon(0);
                         var harvestIcon = buildGardenToolIcon(0);
-                        var swapSoilIcon = [11, 16, TERMINAL_CUSTOM_SPRITE_URL];
+                        var swapSoilIcon = [11, 16, getCustomSpriteSheet()];
                         return [
                             { value: 'plant', label: 'Plant', icon: plantIcon },
                             { value: 'harvest', label: 'Harvest', icon: harvestIcon },
@@ -739,7 +739,7 @@ M.launch = function () {
             key: 'changeAura',
             name: 'Aura Heap Controller',
             desc: 'Switch dragon auras.',
-            icon: [6, 17, TERMINAL_CUSTOM_SPRITE_URL],
+            icon: [6, 17, getCustomSpriteSheet()],
             config: [
                 {
                     id: 'slot',
@@ -860,7 +860,7 @@ M.launch = function () {
             key: 'brewSlot',
             name: 'Alchemy Buffer Consumer',
             desc: 'Consume a potion from the Alchemy Lab minigame.',
-            icon: [0, 26, TERMINAL_CUSTOM_SPRITE_URL],
+            icon: [0, 26, getCustomSpriteSheet()],
             config: [
                 {
                     id: 'slot',
@@ -3308,13 +3308,13 @@ function createTerminalAchievements() {
         {
             name: '10x Full-Stack rockstar ninja wizard engineer',
             desc: 'Execute <b>100 Programs</b> in the Terminal minigame.<q>Human Resources is adding another adjective to your job title as we speak. Technically, they\'re nouns masquerading as adjectives, just like recruiters masquerading as engineers.</q>',
-            icon: [19, 9, TERMINAL_CUSTOM_SPRITE_URL],
+            icon: [19, 9, getCustomSpriteSheet()],
             order: baseOrder + 0.1
         },
         {
             name: 'Agile hacker samurai jedi-craftsman engineer',
             desc: 'Execute <b>500 Programs</b> in the Terminal minigame.<q>Your LinkedIn job title history now reads like the opening chapter of a J.R.R. Tolkien novel, complete with wizards, jedi, ninjas, and at least one guru.</q>',
-            icon: [19, 10, TERMINAL_CUSTOM_SPRITE_URL],
+            icon: [19, 10, getCustomSpriteSheet()],
             order: baseOrder + 0.2
         }
     ];
