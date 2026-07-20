@@ -4922,7 +4922,7 @@
                 desc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.',
                 ddesc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
                 price: 15e15,
-                icon: [23, 0, getSpriteSheet('custom')],
+                icon: [9, 13, getSpriteSheet('custom')],
                 posX: -1987,
                 posY: -688,
                 require: ['Just natural expansion heavenly upgrades']
@@ -5121,7 +5121,7 @@
                 desc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.',
                 ddesc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.<q>Okay yes I understand, but then what is the turtle sitting on?</q>',
                 price: 250e15,
-                icon: [13, 17, getSpriteSheet('custom')],
+                icon: [12, 17, getSpriteSheet('custom')],
                 posX: -2054,
                 posY: -194,
                 require: ['Self employed realtor', 'Wholesale discount club']
@@ -5785,7 +5785,7 @@
                 desc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.',
                 ddesc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.<q>Scientists call it \'operant conditioning\'. You call it \'Ooh, another shiny widget to click on.\'</q>',
                 price: 5000000e17,
-                icon: [15, 13, getSpriteSheet('custom')],
+                icon: [22, 17, getSpriteSheet('custom')],
                 posX: -3577,
                 posY: -849,
                 require: ['Six bells', 'Even more unlucky luckier']
@@ -5818,7 +5818,7 @@
                 desc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
                 ddesc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
                 price: 250e15,
-                icon: [6, 16, getSpriteSheet('custom')],
+                icon: [5, 16, getSpriteSheet('custom')],
                 posX: -2258,
                 posY: -1406,
                 require: ['Skitter skatter skrum ahh']
@@ -5862,7 +5862,7 @@
                 desc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.',
                 ddesc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.<q>Here we find a rare shiny wrinkler, its skin catching the light in a way its species has no right to. Naturally, this peculiarity attracts the rest, who approach like scientists inspecting a colleague who has made a questionable life choice.</q>',
                 price: 5000e15,
-                icon: [30, 5],
+                icon: [18, 26, getSpriteSheet('custom')],   
                 posX: -2609,
                 posY: -1505,
                 require: ['Alakazoodle evil noodle', 'Species bounceback']
@@ -5950,7 +5950,7 @@
                 desc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.',
                 ddesc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.<q>MEGA CLICK!!!!</q>',
                 price: 50e19,
-                icon: [11, 35],
+                icon: [9, 7, getSpriteSheet('custom')],
                 posX: -1805,
                 posY: -118,
                 require: ['Box of overpriced donuts']
@@ -5961,7 +5961,7 @@
                 desc: 'Mega clicks are now <b>50%</b> more common.',
                 ddesc: 'Mega clicks are now <b>50%</b> more common.<q>We can\'t believe they found a way to make mega clicks even more awesome either.</q>',
                 price: 500e19,
-                icon: [9, 9, getSpriteSheet('custom')],
+                icon: [9, 8, getSpriteSheet('custom')],
                 posX: -1719,
                 posY: 17,
                 require: ['Mega clicks']

@@ -1532,7 +1532,7 @@ DownlineM.init = function(div) {
         headline: 'Visual overhaul hits the market — still pixelated, still just perfect' },
       
 
-      { name: 'Publish roadmap', icon: [13,17], sheet: 'custom', durationSec: 2 * 60 * 60, costCps: 10 * 60,
+      { name: 'Publish roadmap', icon: [12,17], sheet: 'custom', durationSec: 2 * 60 * 60, costCps: 10 * 60,
         desc: 'Share the vision. Better hope you can keep these deadlines though or players might come after you.',
         flavor: 'Coming this year. Maybe next year, or in 11 years. We believe in transparency.',
         unlock: { conditions: [{ stat: 'commitment', min: 125 }] },
@@ -1832,7 +1832,7 @@ DownlineM.init = function(div) {
         effects: { players: 60, commitment: -3, reputation: -5, hype: 5, referrals: 4, boost: -6 },
         headline: 'Cookie Clicker the Motion Picture premieres to packed theaters — finishes to half empty theaters' },
 
-      { name: 'Pivot!', icon: [15,17], sheet: 'custom', durationSec: 0, costCps: 24 * 60 * 60,
+      { name: 'Pivot!', icon: [12,14], sheet: 'custom', durationSec: 0, costCps: 24 * 60 * 60,
         desc: 'Immediately stop all actions, may be used once every hour.',
         flavor: 'Wait this isn\'t really working. CHANGE EVERYTHING RIGHT NOW!',
         unlock: { conditions: [{ stat: 'players', min: 250 }]},

@@ -3245,7 +3245,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             // === SELFISHNESS GOD TRACKING ===
             var selfishnessMod = "//JNE_SELFISHNESS\n" +
                 "var M=Game.Objects['Temple']&&Game.Objects['Temple'].minigame;" +
-                "if(M&&M.gods&&M.gods['selfishness']&&Game.hasGod('selfishness')&&me&&me.type==='golden'){" +
+                "if(M&&M.gods&&M.gods['selfishness']&&Game.hasGod('selfishness')&&me&&me.type==='golden'&&!me._predictionMode){" +
                     "if(!(me.force==='cookie storm drop'||(me.forceObj&&me.forceObj.type==='cookie storm drop'))){" +
                         "if(!me._jneSelfishnessCounted){" +
                             "me._jneSelfishnessCounted=true;" +
