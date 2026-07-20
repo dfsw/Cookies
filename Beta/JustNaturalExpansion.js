@@ -139,6 +139,11 @@
             : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png',
         gardenPlants: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
     };
+    try {
+        preloadSpriteSheets();
+    } catch (e) {
+        console.error('Error during sprite sheet preload:', e);
+    }
 
     // JNE Tier System
     Game.Tiers['jne1'] = { name: 'Sterlicious', color: '#DDEAF0', special: 1, unlock: -1 };
@@ -4085,7 +4090,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png'
     };
     function preloadSpriteSheets() {
-        for (var sheetName in spriteSheets) {
+        var sheetNames = Object.keys(spriteSheets);
+        for (var i = 0; i < sheetNames.length; i++) {
+            var sheetName = sheetNames[i];
             (function(sheetName) {
                 var img = new Image();
                 img.onerror = function() {
@@ -4097,12 +4104,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         var oldUrl = spriteSheets[sheetName];
                         spriteSheets[sheetName] = fallbackUrl;
                         spriteSheets[sheetName + '_loaded'] = fallbackImg;
+                        var fixIcon = function(obj) {
+                            var icon = obj && obj.icon;
+                            if (Array.isArray(icon) && icon[2] === oldUrl) icon[2] = fallbackUrl;
+                        };
                         if (Game.Achievements) {
-                            for (var achName in Game.Achievements) {
-                                var icon = Game.Achievements[achName].icon;
-                                if (Array.isArray(icon) && icon[2] === oldUrl) icon[2] = fallbackUrl;
-                            }
+                            for (var achName in Game.Achievements) fixIcon(Game.Achievements[achName]);
                         }
+                        if (Game.Upgrades) {
+                            for (var upName in Game.Upgrades) fixIcon(Game.Upgrades[upName]);
+                        }
+                        if (Game.UpdateMenu) Game.UpdateMenu();
                     };
                     fallbackImg.onerror = function() {
                         console.error('[JNE] Sprite sheet also failed to load from fallback URL:', fallbackUrl);
@@ -9333,14 +9345,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
         
-    setTimeout(function() {
-        try {            
-            preloadSpriteSheets();
-        } catch (e) {
-            console.error('Error during mod initialization:', e);
-        }
-    }, 0);
-
     function addCustomBuildingMultipliers() {
         if (Game.customMultipliersSetup) return;
         if (!modSettings.enableBuildingUpgrades) return;
