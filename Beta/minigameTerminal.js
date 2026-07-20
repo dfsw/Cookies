@@ -38,7 +38,7 @@ M.launch = function () {
     M.maxSlots = 12; 
 
     const TERMINAL_BACKGROUND_URL = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/TerminalBG.png';
-    const TERMINAL_DIRECTIONAL_URL = 'https://raw.githubusercontent.com/dfsw/Cookies/main/directional.png';
+    const TERMINAL_DIRECTIONAL_URL = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@refs/heads/main/directional.png';
     const DRAGON_AURA_BASE_OPTIONS = [
         { value: 0, label: 'No aura', icon: [0, 7] },
         { value: 1, label: 'Breath of Milk', icon: [18, 25] },
