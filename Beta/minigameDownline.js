@@ -1659,7 +1659,7 @@ DownlineM.init = function(div) {
         effects: { hype: 4, reputation: -2 },
         headline: 'Critical reviews vanish overnight — "suspiciously positive" 5 star rating appears' },
 
-      { name: 'Energy drink sponsorship', icon: [9,7], durationSec: 8 * 60 * 60, costCps: 60 * 60,
+      { name: 'Energy drink sponsorship', icon: [20,14], sheet: 'custom', durationSec: 8 * 60 * 60, costCps: 60 * 60,
         desc: 'Brand deal with a caffeine giant.',
         flavor: 'Now with 200% of your daily sugar per serving, 4.5 servings per can.',
         unlock: { conditions: [{ stat: 'players', min: 150 }, { stat: 'hype', min: 100 }] },
@@ -1795,7 +1795,7 @@ DownlineM.init = function(div) {
         effects: { reputation: 5, players: -6, boost: -4},
         headline: 'SAVE Cookie Clicker Act passes house of representatives next stop the senate' },
       
-        { name: 'Subliminal marketing', icon: [0,16], sheet: 'custom', durationSec: 4 * 60 * 60, costCps: 180 * 60,
+        { name: 'Subliminal marketing', icon: [20,13], sheet: 'custom', durationSec: 4 * 60 * 60, costCps: 180 * 60,
         desc: "Hidden messages everywhere. They won't know why they're clicking.",
         flavor: 'eikooc eht kcilc',
         unlock: { conditions: [{ stat: 'players', min: 500 }], tempConditions: [{ stat: 'reputation', min: 700 }] },
@@ -3583,10 +3583,9 @@ function createDownlineAchievements() {
         var achievement = Game.JNE.createAchievement(
             achData.name,
             achData.desc,
-            null,
+            achData.icon,
             achData.order,
-            null,
-            achData.icon
+            null
         );
         if (achievement) {
             achievement.pool = 'normal';

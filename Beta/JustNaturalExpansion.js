@@ -135,7 +135,7 @@
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/heavenlyUpgrades.js';
 
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
-        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=2'
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=5'
         : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
     var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
@@ -4192,12 +4192,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     window.registerSpriteSheetAchievements = registerSpriteSheetAchievements;
     
     // Helper to create icon arrays that resolve sprite sheet URLs at access time
-    // Usage: JNE.icon(x, y, 'custom') returns [x, y, 'custom'] with a getter for the URL
-    // This prevents capturing placeholder URLs at module-load time
     if (!Game.JNE) Game.JNE = {};
     Game.JNE.icon = function(x, y, sheetName) {
         var icon = [x, y, sheetName];
-        // Add a getter for icon[2] that resolves the sheet name to a URL on access
         Object.defineProperty(icon, '2', {
             get: function() {
                 return getSpriteSheet(sheetName);
@@ -4334,7 +4331,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     window.JustNaturalExpansionInitialized = true;
 
     
-    function createAchievement(name, desc, icon, order, requirement, customIcon) {
+    function createAchievement(name, desc, icon, order, requirement) {
         if (!Game || !Game.Achievements) {
             console.warn('Game not available for achievement creation');
             return null;
@@ -4345,35 +4342,19 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return null;
         }
         
-        // Use custom icon if provided, otherwise use the vanilla icon
-        var finalIcon = customIcon || icon;
+        var finalIcon = icon;
         
-        // Handle icon parameter (may be JNE.icon array)
+        // Handle icon arrays - preserve JNE.icon dynamic getters, convert string sheet names to URLs
         if (icon && Array.isArray(icon) && icon.length === 3) {
-            var iconDescriptor = Object.getOwnPropertyDescriptor(icon, '2');
-            if (iconDescriptor && iconDescriptor.get) {
+            var descriptor = Object.getOwnPropertyDescriptor(icon, '2');
+            if (descriptor && descriptor.get) {
                 finalIcon = icon;
-            }
-        }
-        
-        // Handle custom icon formats
-        if (customIcon && Array.isArray(customIcon)) {
-            if (customIcon.length === 3) {
-                // Check if this is a JNE.icon array with a dynamic getter - if so, use it as-is
-                var descriptor = Object.getOwnPropertyDescriptor(customIcon, '2');
-                if (descriptor && descriptor.get) {
-                    finalIcon = customIcon;
-                } else {
-                    // Convert string sprite sheet names to actual URLs (but not full URLs)
-                    var spriteSheet = customIcon[2];
-                    if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
-                        spriteSheet = getSpriteSheet(spriteSheet);
-                    }
-                    finalIcon = [customIcon[0], customIcon[1], spriteSheet];
+            } else {
+                var spriteSheet = icon[2];
+                if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
+                    spriteSheet = getSpriteSheet(spriteSheet);
                 }
-            } else if (customIcon.length === 2) {
-                // Simple coordinates: [x, y]
-                finalIcon = customIcon;
+                finalIcon = [icon[0], icon[1], spriteSheet];
             }
         }
         
@@ -5577,9 +5558,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 };
             })(buildingType, amount);
             
-            var customIcon = customIcons && customIcons[i] ? customIcons[i] : null;
+            var icon = customIcons && customIcons[i] ? customIcons[i] : baseIcon;
             var order = (buildingOrders && buildingOrders[i] !== undefined) ? buildingOrders[i] : (baseOrder + (i + 1) * 0.01);
-            var ach = createAchievement(name, desc, baseIcon, order, requirement, customIcon);
+            var ach = createAchievement(name, desc, icon, order, requirement);
             if (ach) {
                 achievements.push(ach);
             }
@@ -6133,12 +6114,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         createAchievement(
             seasonalData.names[0],
             seasonalData.descs[0],
-            null,
+            seasonalData.customIcons[0],
             seasonalData.orders[0],
             function() {
                 return seasonalReindeerData.split('').every(function(char) { return char === '1'; });
-            },
-            seasonalData.customIcons[0]
+            }
         );
     }
     
@@ -8920,17 +8900,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             for (var i = 0; i < data.names.length; i++) {
                     var actualRequirementType = (type === 'completionism') ? data.thresholds[i] : type;
                     var requirement = createRequirementFunction(actualRequirementType, data.thresholds[i]);
-                    var customIcon = data.customIcons && data.customIcons[i] ? data.customIcons[i] : null;
+                    var icon = data.customIcons && data.customIcons[i] ? data.customIcons[i] : null;
                     var desc = data.descs[i];
                     if (typeof desc === 'function') desc = desc(data.thresholds[i], i);
                     else if (typeof data.descs === 'function') desc = data.descs(data.thresholds[i], i);
                     createAchievement(
                         data.names[i],
                         desc,
-                        null,
+                        icon,
                         data.orders[i],
-                        requirement,
-                        customIcon
+                        requirement
                     );
             }
         }
@@ -9041,8 +9020,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             'Just Natural Expansion has been used outside of Leaderboard/Competition mode.',
             [26, 30], 
             10000.25, 
-            null,
-            [26, 30] 
+            null
         );
         
         beyondLeaderboardAchievement.pool = 'shadow';
