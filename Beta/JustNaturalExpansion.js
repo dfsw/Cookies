@@ -145,7 +145,8 @@
 
     var spriteSheets = {
         custom: SPRITE_SHEET_PLACEHOLDER,
-        gardenPlants: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
+        main: 'https://orteil.dashnet.org/cookieclicker/img/icons.png',
+        garden: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
     };
 
     // Callbacks to notify when sprite sheet loads (for modules that cache the URL)
@@ -173,7 +174,21 @@
                 var achName = achievementNames[i];
                 var ach = Game.Achievements && Game.Achievements[achName];
                 if (ach && Array.isArray(ach.icon) && ach.icon.length === 3) {
-                    ach.icon[2] = currentSheet;
+                    try {
+                        // Check if icon has a getter on index 2 (JNE.icon pattern for custom sheet)
+                        var descriptor = Object.getOwnPropertyDescriptor(ach.icon, '2');
+                        if (descriptor && descriptor.get) {
+                            // Replace entire icon array since we can't set getter property
+                            var x = ach.icon[0];
+                            var y = ach.icon[1];
+                            ach.icon = [x, y, currentSheet];
+                        } else {
+                            // Regular array, can set directly
+                            ach.icon[2] = currentSheet;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to update icon for achievement:', achName, e);
+                    }
                 }
             }
         }
@@ -2004,9 +2019,38 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Combined menu injection function
     function injectMenus() {
         if (!Game._jneOriginalUpdateMenuJNE) Game._jneOriginalUpdateMenuJNE = Game.UpdateMenu;
+
+        // Patch vanilla writeIcon to handle null icons
+        if (!Game._jneOriginalWriteIcon) {
+            Game._jneOriginalWriteIcon = Game.writeIcon;
+            Game.writeIcon = function(icon) {
+                if (!icon || !Array.isArray(icon) || icon.length < 2) {
+                    console.warn('writeIcon called with invalid icon:', icon);
+                    icon = [0, 0, 'https://orteil.dashnet.org/cookieclicker/img/icons.png'];
+                }
+                return Game._jneOriginalWriteIcon(icon);
+            };
+        }
+
         Game.UpdateMenu = function() {
+            // Fix null icons on achievements and upgrades before rendering
+            if (Game.Achievements) {
+                for (var name in Game.Achievements) {
+                    if (Game.Achievements[name] && !Game.Achievements[name].icon) {
+                        Game.Achievements[name].icon = [0, 0, getSpriteSheet('main')];
+                    }
+                }
+            }
+            if (Game.Upgrades) {
+                for (var name in Game.Upgrades) {
+                    if (Game.Upgrades[name] && !Game.Upgrades[name].icon) {
+                        Game.Upgrades[name].icon = [0, 0, getSpriteSheet('main')];
+                    }
+                }
+            }
+
             const result = Game._jneOriginalUpdateMenuJNE.call(this);
-            
+
             // Call registered menu hooks from other modules
             if (Game.JNE && Game.JNE.menuHooks) {
                 for (var i = 0; i < Game.JNE.menuHooks.length; i++) {
@@ -2017,7 +2061,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     }
                 }
             }
-            
+
             // Handle options menu injection
             if (Game.onMenu === 'prefs') {
                 let menuContainer = document.getElementById('menu');
@@ -4204,6 +4248,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // Helper to create icon arrays that resolve sprite sheet URLs at access time
     if (!Game.JNE) Game.JNE = {};
     Game.JNE.icon = function(x, y, sheetName) {
+        // Handle both calling conventions: (x, y, sheetName) and ({x, y, sheetName})
+        if (typeof x === 'object' && x !== null) {
+            sheetName = x.sheetName;
+            y = x.y;
+            x = x.x;
+        }
         var icon = [x, y, sheetName];
         Object.defineProperty(icon, '2', {
             get: function() {
@@ -4217,13 +4267,19 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Helper function to process icon arrays - convert string sprite sheet names to URLs
     function processIcon(icon) {
-        if (!icon) return icon;
+        if (!icon) {
+            console.warn('processIcon received null icon, using default');
+            return [0, 0, getSpriteSheet('main')];
+        }
         if (Array.isArray(icon) && icon.length === 3) {
             var spriteSheet = icon[2];
             // Only convert if it's a simple name (not a full URL)
             if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
                 return [icon[0], icon[1], getSpriteSheet(spriteSheet)];
             }
+        } else if (Array.isArray(icon) && icon.length === 2) {
+            // Convert [x, y] to [x, y, sheet]
+            return [icon[0], icon[1], getSpriteSheet('main')];
         }
         return icon;
     }
@@ -4346,26 +4402,46 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             console.warn('Game not available for achievement creation');
             return null;
         }
-        
+
         if (!name || !desc) {
             console.warn('Invalid achievement data:', { name: name, desc: desc });
             return null;
         }
-        
+
         var finalIcon = icon;
-        
-        // Handle icon arrays - preserve JNE.icon dynamic getters, convert string sheet names to URLs
-        if (icon && Array.isArray(icon) && icon.length === 3) {
-            var descriptor = Object.getOwnPropertyDescriptor(icon, '2');
-            if (descriptor && descriptor.get) {
-                finalIcon = icon;
+
+        // Ensure icon is never null - use default icon if needed
+        if (!finalIcon) {
+            finalIcon = [0, 0, getSpriteSheet('main')];
+        }
+
+        // Handle icon arrays - preserve JNE.icon dynamic getters for custom sheets, resolve others
+        if (Array.isArray(finalIcon) && finalIcon.length === 3) {
+            var x = finalIcon[0];
+            var y = finalIcon[1];
+            var spriteSheet = finalIcon[2];
+
+            // Check if this is a JNE.icon with a getter (dynamic sprite sheet)
+            var descriptor = Object.getOwnPropertyDescriptor(finalIcon, '2');
+            var hasGetter = descriptor && descriptor.get;
+
+            // If it has a getter and references a custom sheet, keep it as-is for dynamic resolution
+            // For vanilla sheets (main, garden, etc.), resolve immediately to avoid issues
+            if (hasGetter && typeof spriteSheet === 'string' && spriteSheet === 'custom') {
+                finalIcon = finalIcon; // Keep the JNE.icon with getter
             } else {
-                var spriteSheet = icon[2];
+                // Resolve sprite sheet - handle both string names and URLs
                 if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
                     spriteSheet = getSpriteSheet(spriteSheet);
                 }
-                finalIcon = [icon[0], icon[1], spriteSheet];
+                // Create a static array
+                finalIcon = [x, y, spriteSheet];
             }
+        } else if (Array.isArray(finalIcon) && finalIcon.length === 2) {
+            // Convert [x, y] to [x, y, sheet]
+            finalIcon = [finalIcon[0], finalIcon[1], getSpriteSheet('main')];
+        } else {
+            finalIcon = [0, 0, getSpriteSheet('main')];
         }
         
         // Check for flavor text and append it to the description
@@ -6517,16 +6593,22 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function registerUpgrade(upgradeInfo, upgradeType, customProperties) {
         try {
             var upgrade = Game.Upgrades[upgradeInfo.name];
-            
+
             if (!upgrade) {
                 console.warn('Failed to create ' + upgradeType + ' upgrade:', upgradeInfo.name);
                 return false;
             }
-            
+
+            // Ensure icon is never null
+            if (!upgrade.icon) {
+                console.warn('Upgrade has null icon, setting default:', upgradeInfo.name);
+                upgrade.icon = [0, 0, getSpriteSheet('main')];
+            }
+
             // Set basic properties
             upgrade.desc = upgradeInfo.desc;
             upgrade.ddesc = upgradeInfo.ddesc;
-            
+
             // Set custom properties
             if (customProperties) {
                 for (var prop in customProperties) {

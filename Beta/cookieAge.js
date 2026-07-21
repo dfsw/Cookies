@@ -790,27 +790,29 @@
         // Check which puzzles are completed to determine which achievements should be created as won
         var completedPuzzles = cookieAgeData.puzzles.completed || [];
         
-        // Create each achievement using the base mod's helper
         for (var index = 0; index < mysteryAchievements.length; index++) {
             var achData = mysteryAchievements[index];
-            
+
             // Check if the milestone puzzle is already completed
             var milestonePuzzle = mysteryMilestonePuzzles[index];
             var shouldBeWon = completedPuzzles.indexOf(milestonePuzzle) !== -1;
-            
-            // Create the achievement without a requirement function (we check manually on puzzle completion)
+
             var achievement = Game.JNE.createAchievement(
                 achData.name,
                 achData.desc,
-                null,  // vanilla icon (not used)
+                achData.icon,  // custom icon
                 achData.order,
-                null,  // no requirement function - achievements awarded manually on puzzle completion
-                achData.icon  // custom icon
+                null  // no requirement function - achievements awarded manually on puzzle completion
             );
-            
+
             // Ensure achievement has correct pool
             if (achievement) {
                 achievement.pool = 'normal';
+
+                // Register for sprite sheet update when custom sheet loads
+                if (typeof registerSpriteSheetAchievements === 'function') {
+                    registerSpriteSheetAchievements([achData.name]);
+                }
                 
                 // If the milestone is already achieved, mark the achievement as won silently
                 if (shouldBeWon) {
