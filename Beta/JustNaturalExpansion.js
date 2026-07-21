@@ -150,6 +150,37 @@
         gardenPlants: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png' //need to rename out at some point
     };
 
+    // Helper function to get sprite sheet URL
+    function getSpriteSheet(sheetName) {
+        return spriteSheets[sheetName] || '';
+    }
+    window.getSpriteSheet = getSpriteSheet;
+    window.registerSpriteSheetLoadCallback = registerSpriteSheetLoadCallback;
+    window.registerSpriteSheetAchievements = registerSpriteSheetAchievements;
+    
+    // Helper to create icon arrays that resolve sprite sheet URLs at access time
+    // Define this early so external scripts can use it before mod initialization completes
+    if (!Game.JNE) Game.JNE = {};
+    Game.JNE.icon = function(x, y, sheetName) {
+        // Handle both calling conventions: (x, y, sheetName) and ({x, y, sheetName})
+        if (typeof x === 'object' && x !== null) {
+            sheetName = x.sheetName;
+            y = x.y;
+            x = x.x;
+        }
+        var icon = [x, y, sheetName];
+        // Store the sheet name for detection without triggering the getter
+        icon._jneSheetName = sheetName;
+        Object.defineProperty(icon, '2', {
+            get: function() {
+                return getSpriteSheet(sheetName);
+            },
+            configurable: true
+        });
+        return icon;
+    };
+    window.JNE = Game.JNE;
+
     // Callbacks to notify when sprite sheet loads (for modules that cache the URL)
     var spriteSheetLoadCallbacks = [];
     function registerSpriteSheetLoadCallback(callback) {
@@ -238,7 +269,29 @@
                 var achName = spriteSheetAchievementRegistry[i];
                 var ach = Game.Achievements && Game.Achievements[achName];
                 if (ach && Array.isArray(ach.icon) && ach.icon.length === 3) {
-                    ach.icon[2] = blobUrl;
+                    try {
+                        // Check if icon has a getter on index 2 (JNE.icon pattern for custom sheet)
+                        var descriptor = Object.getOwnPropertyDescriptor(ach.icon, '2');
+                        if (descriptor && descriptor.get) {
+                            // Replace entire icon array since we can't set getter property
+                            var x = ach.icon[0];
+                            var y = ach.icon[1];
+                            ach.icon = [x, y, blobUrl];
+                        } else {
+                            // Regular array, can set directly
+                            ach.icon[2] = blobUrl;
+                        }
+                    } catch (e) {
+                        // Fallback: try to set directly
+                        try {
+                            ach.icon[2] = blobUrl;
+                        } catch (e2) {
+                            // If that fails, replace the entire array
+                            var x = ach.icon[0];
+                            var y = ach.icon[1];
+                            ach.icon = [x, y, blobUrl];
+                        }
+                    }
                 }
             }
             // Notify registered callbacks
@@ -4237,36 +4290,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     // List of all mod achievement names for debug reset
     var modAchievementNames = [];
     
-    // Helper function to get sprite sheet URL
-    function getSpriteSheet(sheetName) {
-        return spriteSheets[sheetName] || '';
-    }
-    window.getSpriteSheet = getSpriteSheet;
-    window.registerSpriteSheetLoadCallback = registerSpriteSheetLoadCallback;
-    window.registerSpriteSheetAchievements = registerSpriteSheetAchievements;
-    
-    // Helper to create icon arrays that resolve sprite sheet URLs at access time
-    if (!Game.JNE) Game.JNE = {};
-    Game.JNE.icon = function(x, y, sheetName) {
-        // Handle both calling conventions: (x, y, sheetName) and ({x, y, sheetName})
-        if (typeof x === 'object' && x !== null) {
-            sheetName = x.sheetName;
-            y = x.y;
-            x = x.x;
-        }
-        var icon = [x, y, sheetName];
-        // Store the sheet name for detection without triggering the getter
-        icon._jneSheetName = sheetName;
-        Object.defineProperty(icon, '2', {
-            get: function() {
-                return getSpriteSheet(sheetName);
-            },
-            configurable: true
-        });
-        return icon;
-    };
-    window.JNE = Game.JNE;
-
     // Helper function to process icon arrays - convert string sprite sheet names to URLs
     function processIcon(icon) {
         if (!icon) {

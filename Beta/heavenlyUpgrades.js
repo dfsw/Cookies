@@ -1167,6 +1167,19 @@
                     if (icon[2]) iconDiv.style.backgroundImage = 'url(' + icon[2] + ')';
                     var dragDiv = document.createElement('div');
                     dragDiv.className = 'templeSlotDrag';
+
+                    // Register callback to update god icon when sprite sheet loads
+                    if (window.registerSpriteSheetLoadCallback && icon[2]) {
+                        window.registerSpriteSheetLoadCallback(function(blobUrl) {
+                            var godEl = l('templeGod' + me.id);
+                            if (godEl) {
+                                var iconEl = godEl.querySelector('.templeIcon');
+                                if (iconEl) {
+                                    iconEl.style.backgroundImage = 'url(' + blobUrl + ')';
+                                }
+                            }
+                        });
+                    }
                     dragDiv.id = 'templeGodDrag' + me.id;
                     godDiv.appendChild(iconDiv);
                     godDiv.appendChild(dragDiv);
@@ -3230,6 +3243,20 @@
             div.innerHTML = '<div class="grimoireSpell titleFont" data-jne-gilded-allure="1" id="grimoireSpell'+me.id+'" '+Game.getDynamicTooltip('Game.ObjectsById['+M.parent.id+'].minigame.spellTooltip('+me.id+')','this')+'><div class="usesIcon shadowFilter grimoireIcon" style="background-image:url(\''+me.customIconSheet+'\');background-position:'+(-me.icon[0]*48)+'px '+(-me.icon[1]*48)+'px;"></div><div class="grimoirePrice" id="grimoirePrice'+me.id+'">-</div></div>';
             var d = div.firstChild;
             l('grimoireSpells').appendChild(d); AddEvent(d,'click',()=>{PlaySound('snd/tick.mp3');M.castSpell(me);});
+
+            // Register callback to update spell icon when sprite sheet loads
+            if (window.registerSpriteSheetLoadCallback) {
+                window.registerSpriteSheetLoadCallback(function(blobUrl) {
+                    me.customIconSheet = blobUrl;
+                    var spellEl = l('grimoireSpell' + me.id);
+                    if (spellEl) {
+                        var iconEl = spellEl.querySelector('.grimoireIcon');
+                        if (iconEl) {
+                            iconEl.style.backgroundImage = 'url(\'' + blobUrl + '\')';
+                        }
+                    }
+                });
+            }
 
             if (M.spellTooltip && !M._gildedAllureTooltipHooked) {
                 M._gildedAllureTooltipHooked = true;
