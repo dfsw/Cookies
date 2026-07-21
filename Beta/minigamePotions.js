@@ -3320,7 +3320,8 @@ Object.defineProperty(ICON_SHEETS, 'custom', {
 
 PotionsM._makeIcon = function(col, row, sheet, size) {
     size = size || 48;
-    var sheetUrl = ICON_SHEETS[sheet || 'custom'] || ICON_SHEETS.custom;
+    var sheetName = sheet || 'custom';
+    var sheetUrl = ICON_SHEETS[sheetName] || ICON_SHEETS.custom;
     var el = document.createElement('span');
     el.className = 'potions-icon';
     el.style.backgroundImage = 'url(' + sheetUrl + ')';
@@ -3328,6 +3329,12 @@ PotionsM._makeIcon = function(col, row, sheet, size) {
     if (size !== 48) {
         el.style.width = size + 'px';
         el.style.height = size + 'px';
+    }
+    // Register for sprite sheet update if using custom sheet
+    if (sheetName === 'custom' && typeof registerSpriteSheetLoadCallback === 'function') {
+        registerSpriteSheetLoadCallback(function() {
+            el.style.backgroundImage = 'url(' + ICON_SHEETS.custom + ')';
+        });
     }
     return el;
 };
