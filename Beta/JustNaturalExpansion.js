@@ -4,7 +4,7 @@
 {
     'use strict';
     
-    var BETA_MODE = true; 
+    var BETA_MODE = false; 
     
     // off loaded the static data for upgrades, achievements, etc
     var script = document.createElement('script');
@@ -23,7 +23,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.6.1';
+    var modVersion = '0.6.2';
     var debugMode = false; 
     
     function debugLog() {
@@ -135,7 +135,7 @@
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/heavenlyUpgrades.js';
 
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
-        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=5'
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png'
         : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';
     var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png'
@@ -2311,32 +2311,34 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 var iconId = 'puzzle-icon-' + trackType + '-' + puzzleId;
                                 var crateClass = 'crate upgrade enabled';
                                 if (!Game.prefs.crates) crateClass += ' noFrame';
-                                
+
+                                var isCustomIcon = icon.hasOwnProperty('_jneSheetName') && icon._jneSheetName === 'custom';
+                                var iconUrl = icon[2];
+                                if (!isCustomIcon && typeof iconUrl === 'string' && !iconUrl.startsWith('http')) {
+                                    iconUrl = getSpriteSheet(iconUrl);
+                                }
+
                                 var description = puzzle.description.replace(/\\n/g, '<br>');
                                 var clue = (puzzle.clue || puzzle.description).replace(/\\n/g, '<br>');
-                                
+
                                 // Process conditional text if Cookie Age is available
                                 if (window.CookieAge && window.CookieAge.processConditionalText) {
                                     description = window.CookieAge.processConditionalText(description);
                                     clue = window.CookieAge.processConditionalText(clue);
                                 }
-                                var trackColor = trackType === 'investigate' ? '#4ecdc4' : trackType === 'infiltrate' ? '#ff6b6b' : '#9b59b6';
-                                var trackLabel = trackType === 'investigate' ? 'Investigate' : trackType === 'infiltrate' ? 'Infiltrate' : 'Choose';
-                                
-                                // Create dynamic tooltip function that checks for Shift key
+
                                 var tooltipFunction = function(puzzleIcon, puzzleName, puzzleDescription, puzzleClue) {
                                     return function() {
-                                        // Check if Shift key is currently pressed
                                         var showClue = Game.keys && (Game.keys[16] || Game.keys.shiftKey);
                                         var displayText = showClue ? puzzleClue : puzzleDescription;
                                         var hintText = showClue ? '' : '<div style="font-size:60%;color:rgba(255,255,255,0.4);margin-top:4px;text-align:center;font-weight:bold;"><br>(Hold Shift to view original clue)</div>';
-                                        
+
                                         return `<div style="position:absolute;left:1px;top:1px;right:1px;bottom:1px;background:linear-gradient(125deg,rgba(50,40,40,1) 0%,rgba(50,40,40,0) 20%);mix-blend-mode:screen;z-index:1;"></div><div style="z-index:10;padding:8px 4px;min-width:350px;position:relative;" id="tooltipCrate"><div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-position: -${puzzleIcon[0] * 48}px -${puzzleIcon[1] * 48}px; background-image: url('${puzzleIcon[2]}');"></div><div class="name">${puzzleName}</div><div class="tag" style="background-color:#ff6b6b;">Puzzle</div><div class="tag" style="background-color:#fff;">Solved</div><div class="line"></div><div class="description">${displayText}</div>${hintText}</div>`;
                                     };
                                 }(icon, puzzle.name, description, clue);
-                                
-                                trackIconsHTML += `<div class="${crateClass}" style="background-position: -${icon[0] * 48}px -${icon[1] * 48}px; background-image: url('${icon[2]}');" id="${iconId}"></div>`;
-                                
+
+                                trackIconsHTML += `<div class="${crateClass}" style="background-position: -${icon[0] * 48}px -${icon[1] * 48}px; background-image: url('${iconUrl}');" id="${iconId}"></div>`;
+
                                 // Store tooltip function for later attachment
                                 if (!window.CookieAge) window.CookieAge = {};
                                 if (!window.CookieAge.puzzleTooltips) window.CookieAge.puzzleTooltips = {};
@@ -4253,6 +4255,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             x = x.x;
         }
         var icon = [x, y, sheetName];
+        // Store the sheet name for detection without triggering the getter
+        icon._jneSheetName = sheetName;
         Object.defineProperty(icon, '2', {
             get: function() {
                 return getSpriteSheet(sheetName);
@@ -4420,16 +4424,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             var y = finalIcon[1];
             var spriteSheet = finalIcon[2];
 
-            // Check if this is a JNE.icon with a getter (dynamic sprite sheet)
-            var descriptor = Object.getOwnPropertyDescriptor(finalIcon, '2');
-            var hasGetter = descriptor && descriptor.get;
+            // Check if this is a JNE.icon with the _jneSheetName marker (dynamic sprite sheet)
+            var isJneIcon = finalIcon.hasOwnProperty('_jneSheetName');
+            var sheetName = isJneIcon ? finalIcon._jneSheetName : null;
 
-            // If it has a getter and references a custom sheet, keep it as-is for dynamic resolution
-            // For vanilla sheets  resolve immediately 
-            if (hasGetter && typeof spriteSheet === 'string' && spriteSheet === 'custom') {
+            // If it's a JNE.icon and references a custom sheet, keep it as-is for dynamic resolution
+            // For vanilla sheets, resolve immediately to avoid issues
+            if (isJneIcon && sheetName === 'custom') {
                 finalIcon = finalIcon; // Keep the JNE.icon with getter
                 usesCustomSheet = true;
             } else {
+                // Resolve sprite sheet - handle both string names and URLs
                 if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
                     spriteSheet = getSpriteSheet(spriteSheet);
                 }

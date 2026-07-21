@@ -14,17 +14,7 @@ Big thanks to the amazing folks in the [Cookie Clicker Discord](https://discord.
 
 Thank you to the "beta" testers who were willing to help me balance and test, I have now struck a balance between people saying things are too hard and things are too easy, which I suspect is the sweet middle ground. 
 
-Special thanks to CursedSliver, The_1_Shadow, and Fractyl for donating art to the mod, anyone who wants to improve and donate art is more than welcome as it is not my skillset, all art is temporary until someone donates something improved. 
-
-#### Why This Mod Exists
-
-When I reached the late game of Cookie Clicker, I felt a real sense of loss. I was running out of meaningful goals. I looked for mods that could extend the experience without radically changing the core gameplay.
-
-Most of what I found didn’t fit. Many end-game mods added flashy new buildings or mechanics that didn’t feel true to vanilla and often weren’t balanced. Others offered extremely difficult, sometimes nearly impossible, achievements. Those were closer to what I wanted, but I wasn’t looking for “impossible.” I wanted more of what made the base game fun.
-
-So I set out to imagine what Cookie Clicker would feel like if it simply lasted longer with deeper goals to chase. Achievements are challenging but not unreasonable, designed for active players who like having long-term targets. Nothing breaks the existing formula (though I had to heavily nerf the new kittens to keep them balanced). The intent was always to extend the game, not reinvent it. Do not expect to knock out these features in a few days. Many require weeks of planning and patience. The idea is to add lasting goals, not hand out free milk and CpS.
-
-I hope this mod hits that mark and gives you years more clicking, planning, and cookie glory. If not, I’ll still enjoy it myself, since I built what I wanted to play. If you do find something broken or unreasonable, reach out on Discord (User: DFSW). I am always happy to discuss and evaluate.
+Special thanks to CursedSliver, The_1_Shadow, Fractyl, and Narhard GD for donating art to the mod, anyone who wants to improve and donate art is more than welcome as it is not my skillset, all art is temporary until someone donates something improved. 
 
 ## Installation Directions
 
@@ -59,22 +49,88 @@ The mobile version of Cookie Clicker does not support mods at this time.
 #### Compatibility Notes
 - **CCSE Compatible**: Works with Cookie Clicker Script Extender
 - **CCMM Compatible**: Works with Cookie Clicker Mod Manager
-- **Load Order**: For best compatibility, load CCSE first, then this mod
-- **Browser Support**: Works in all modern browsers 
+- **Cookie Monster Compatible**: In order to get Cookie Monster cost calculations to reflect correctly please load it first. 
+- **Spell Planners**: Just Natural Expansion should work with all spell planners, if you find any exceptions please report them.
+- **Load Order**: For best compatibility, load other mods first
 
-#### Mod Compatibility
+## Changelog    
 
-Just Natural Expansion uses Cookie Clicker’s documented API layer to extend the core game. As a result, Just Natural Expansion should remain functional for years to come—even if I get hit by a bus. However this API is fairly limited, so many modders rely on [CCSE](https://klattmose.github.io/CookieClicker/CCSE-POCs/). 
+### Version 0.6.2
 
-Unfortunately, CCSE uses code injection to make fundamental changes to the vanilla game’s source code, which breaks the built-in modding API in a handful of places. To address this, I’ve written a CCSE Bridge that allows CCSE mods and Just Natural Expansion to run together. The catch: **CCSE must be loaded before** Just Natural Expansion, so make sure JNE is last in your load order. Other modders are welcome to use my bridge code (located in the same repo) if they prefer a more vanilla mod approach. 
+* Lots of new/updated art updates as the ground work is being laid for the next major version. 
+* Fixed several upgrade/achievement descriptions that had typos or other issues in them. 
+* If for any reason the custom sprite sheet fails to load from github the mod will try a fallback address now. 
+* Added a cooldown to the popup for Mega Clicks so autoclicker users arent spammed by it. Defaults to 50ms but customizable via Game.JNE.megaClickCooldown = 50; in browser
+* Minor bug fixes, performance improvements, and other fixes. 
 
-I’ve tested compatibility with many popular [CCSE mods](https://klattmose.github.io/CookieClicker/). If you encounter specific incompatibilities, please let me know so I can look into possible workarounds.
 
-## Changelog
+### Version 0.6.1
+* New artwork for tiers and cookies baked all time and some other ones. 
+* Building and Kitten upgrades now have proper named tiers. 
+* Fix for Morroween not storing his start time the first time he is used in a game. 
+* Fix for Balm of Merlin not retaining its mana hook when a new save is loaded into the game without reloading the browser. 
+* Fixed several potions that would lose their effect when reloading a save without reloading the game. 
+* Fixed a bug that would result in reagents being lost on save/load if they were in the brew slots but not yet used to make a potion. Reagents in the brew slots are now preserved in the save. 
+* Fix for some vanilla minigame reagent drops when savescumming.
+* JNE Kittens no longer make assumptions about the gender of the player <3.
+* In this weeks edition of CursedSliver forces me to nerfs things. Blood of the Craftsman is now capped at an acension max of 50 buildings of each type gained. This should likely never effect most people but does prevent someone from exploiting it. You would need to consume >100 of these to be capped per ascension (owning all 20 buildings). 
+* Also thanks to the aforementioned exploit professional Extract of Cadence can now only ever add 1 minute total to any individual buff. This means casting it multiple times may be capped for buffs that were already extended by the full minute. It will still effect all buffs but no single buff may be continously extended. 
+* Minor bug fixes and improvements.
+
+
+**Major Version 0.6.0 - Potions, Balance, and Bugs!**
+* Potions Lab now has its own Prestige system, accessible after unlocking all potions, if you can find the slightly hidden access. There’s a lot more to discover, and even more alchemy fun awaits.
+* Refactored a bunch of stuff to hopefully make compatibility with other mods more stable, so we see fewer crashes, lockups, and performance issues. It is still recommended to load Just Natural Expansion last in your mod list if you are running multiple mods. While this makes things more stable, it touches a lot of different code points. I believe I have tested thoroughly, but please report anything that is not working right.
+* Fixed a bug with Balm of Merlin not applying correctly.
+* Updated the tooltip for Sparkling Sugar Cane and made it a little less cheeseable.
+* Fixed some potential exploit mechanics around the Bingo Center Slot Machines that CursedSliver ruined for everyone.
+* Hopefully, the bug where Guilded Allure shows up twice on reload has been fixed, though it has always been kind of a pain to reproduce exactly how to get it to break for testing.
+* Downline Rebranding has had its requirements reduced. There’s really no reason Rebranding has requirements other than to hide the action until the player has started a run.
+* Minor Downline balance tweaks.
+* Multiple fixes and improvements to running in Born Again mode.
+* The building upgrades that provide cost discounts are now more powerful. The vanilla game is very stingy with handing out building discounts, so I have always been very careful about providing discounts that are too powerful here.
+* The building upgrades that provide efficiency boosts are now more powerful as well. These should have been more powerful from the start.
+* Removed some mod achievements that weren’t really useful or fun, such as ascending X times or cursor ownership. Also added a couple of new ones.
+* Revised Make X from Clicking achievements to be more in line with expected game progression. This means you may be awarded some achievements as soon as the new version loads.
+* Seasonal Reindeer achievements have been combined into a single achievement for finding a reindeer in all non-Christmas seasons. If you have already earned any of these achievements, your progress is remembered.
+* Minor bug fixes, improvements, and balance tweaks.
+* Remember to back up your save frequently!
+
+### Version 0.5.8
+* Fix for data loss issue with heavenly upgrades. If you lost purchase status for heavenly upgrades ping DFSW on discord and I can restore them for you. Sorry about that!
+
+### Version 0.5.7
+* Fixed a bug with God of All Gods that would only track the time a god was slotted when they became unslotted. 
+* Eagled eyed Downline players may find its now slightly easier to see how much boredom an action is creating. 
+* Updated the wording on a couple of early Mysteries of the Cookie Age puzzles to hopefully fix up some common snags people were having. 
+* Fixed a bug when buying buildings in order to sell them in certain puzzles that would result in a win not being registered under specific conditions. 
+* Holobore was not told what the Golden Cookie Predictor was and as such he reacted poorly to it, we have put him through a weekend seminar on it and he now behaves much better. 
+* Solvent of Substitution is smarter about awarding reagents. 
+* Minor bug fixes and improvements. 
+
+
+### Version 0.5.6
+* Fixed a potential crash if a saved game was loaded while lunar new year season had expired without the mod installed.
+* Cleaned up and redid some icons that had been bothering me for a while.
+* Slightly increased the drop rate for Dragon Harvest and Flight in Lunar New Year.
+* Fixed the ordering of some achievments that got messed up in some migration a while back. 
+* Minor bug fixes and improvements. 
+
+### Version 0.5.5
+* Fixed some bugs with lantern count displays in stats. 
+* The data file is never cached anymore, because that was stupid and painted me into a corner. 
+* Refactoring how building upgrades work to make the mod more compatible with Cookie Monster Mod.  
 
 ### Version 0.5.4
 * Lunar New Year! Come celebrate with Just Natural Expansion with this brand new holiday season just released. Find your lucky year and collect lanterns and blessings, may your path be prosperous this year. 
-* Additional bug fixes and stability improvements.
+* Support for new season through terminal, cookie age, potions class, etc. 
+* Fixed a bug that would cause Cookie Monster to enter an infinite loop when using potions that touched the Effs array. 
+* Option O loading should no longer break some Grimoire related heavenly upgrades
+* Minor tweaks to Potions Class Reagent drop conditions/rates for balance. 
+* Pivot! in Downline may now only be used once an hour. 
+* Downline prestiage releases are now sped up in the golden ratio, which honestly makes more sense than what we were doing before. 
+* Additional bug fixes, stability improvements, and general code cleanup and 
+simplification.
 
 ### Version 0.5.3
 * Updated the logic of how aerated soil works to make it more inline with the intention of the upgrade. 

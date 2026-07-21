@@ -3307,10 +3307,13 @@ PotionsM.init = function(div) {
 // =====================================================================
 // Icon builder 
 // =====================================================================
-var ICON_SHEETS = {
-    main:   'https://orteil.dashnet.org/cookieclicker/img/icons.png',
-    garden: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
-};
+var ICON_SHEETS = {};
+Object.defineProperty(ICON_SHEETS, 'main', {
+    get: function() { return getSpriteSheet('main'); }
+});
+Object.defineProperty(ICON_SHEETS, 'garden', {
+    get: function() { return getSpriteSheet('garden'); }
+});
 Object.defineProperty(ICON_SHEETS, 'custom', {
     get: function() { return getSpriteSheet('custom'); }
 });

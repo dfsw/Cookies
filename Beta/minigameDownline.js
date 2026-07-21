@@ -104,10 +104,13 @@ DownlineM.dragonBoostTooltip = function() {
 
 function $(id) { return document.getElementById(id); }
 
-var SHEETS = {
-    main: 'https://orteil.dashnet.org/cookieclicker/img/icons.png',
-    garden: 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png'
-};
+var SHEETS = {};
+Object.defineProperty(SHEETS, 'main', {
+    get: function() { return window.getSpriteSheet('main'); }
+});
+Object.defineProperty(SHEETS, 'garden', {
+    get: function() { return window.getSpriteSheet('garden'); }
+});
 Object.defineProperty(SHEETS, 'custom', {
     get: function() { return window.getSpriteSheet('custom'); }
 });
