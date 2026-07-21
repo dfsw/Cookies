@@ -3331,6 +3331,10 @@ DownlineM.init = function(div) {
           if (!saved || typeof saved.name !== 'string') return;
           var def = ACTIONS[saved.name];
           if (!def) return;
+          if (!def.icon || !Array.isArray(def.icon) || def.icon.length < 2) {
+            console.warn('Invalid icon for action:', saved.name, def.icon);
+            return;
+          }
           var chip = document.createElement('span');
           chip.className = 'downline-active-chip';
           chip.setAttribute('data-name', saved.name);
@@ -3554,19 +3558,19 @@ function createDownlineAchievements() {
       {
         name: 'Popularity factor',
         desc: 'Have <b>Hype</b>, <b>Commitment</b>, <b>Reputation</b>, and <b>Word of Mouth</b> over 950 at once in the Downline minigame.<q>You haven\'t been this popular since you got 13 votes for class treasurer in 10th grade, but this time you did better than 7th place.</q>',
-        icon: Game.JNE.icon(18, 9, 'custom'),
+        icon: Game.JNE.icon(18, 6, 'custom'),
         order: baseOrder + 0.1
     },
     {
         name: 'Factorial factor',
         desc: 'Release the <b>Fractal Engine minigame</b> 5 times in the Downline minigame in one ascension.<q>Buckle your seatbelts we are going full recursive on this one.</q>',
-        icon: Game.JNE.icon(18, 8, 'custom'),
+        icon: Game.JNE.icon(18, 7, 'custom'),
         order: baseOrder + 0.3
     },
     {
         name: 'Big tent factor',
         desc: 'Have <b>25,000 players</b> at one time in the Downline minigame.<q>You have more friends than Tila Tequila had on Facebook in 2006, but all of yours are recruiting their own friends to play Cookie Clicker; it’s a veritable pyramid scheme in here.</q>',
-        icon: Game.JNE.icon(18, 10, 'custom'),
+        icon: Game.JNE.icon(18, 8, 'custom'),
         order: baseOrder + 0.2
     }
     ];
@@ -3601,12 +3605,7 @@ function createDownlineAchievements() {
         }
     }
     downlineAchievementState.achievementsCreated = true;
-    
-    // Register achievement names for sprite sheet icon updates
-    if (window.registerSpriteSheetAchievements) {
-        window.registerSpriteSheetAchievements(downlineAchievementNames);
-    }
-    
+
     if (!DownlineM._checkHookRegistered) {
         DownlineM._checkHookRegistered = true;
         setTimeout(function () {
@@ -3728,7 +3727,6 @@ function initializeDownlineMinigame() {
 
         if (isConsoleLoading && !fractalEngine.minigameUrl) {
             fractalEngine.minigameUrl = 'downline';
-            fractalEngine.minigameIcon = [19, 11];
         }
 
         if (typeof fractalEngine.refresh === 'function') {

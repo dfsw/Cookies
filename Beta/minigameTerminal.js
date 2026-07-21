@@ -3308,13 +3308,13 @@ function createTerminalAchievements() {
         {
             name: '10x Full-Stack rockstar ninja wizard engineer',
             desc: 'Execute <b>100 Programs</b> in the Terminal minigame.<q>Human Resources is adding another adjective to your job title as we speak. Technically, they\'re nouns masquerading as adjectives, just like recruiters masquerading as engineers.</q>',
-            icon: Game.JNE.icon(19, 9, 'custom'),
+            icon: Game.JNE.icon(19, 2, 'custom'),
             order: baseOrder + 0.1
         },
         {
             name: 'Agile hacker samurai jedi-craftsman engineer',
             desc: 'Execute <b>500 Programs</b> in the Terminal minigame.<q>Your LinkedIn job title history now reads like the opening chapter of a J.R.R. Tolkien novel, complete with wizards, jedi, ninjas, and at least one guru.</q>',
-            icon: Game.JNE.icon(19, 10, 'custom'),
+            icon: Game.JNE.icon(19, 4, 'custom'),
             order: baseOrder + 0.2
         }
     ];
@@ -3347,11 +3347,6 @@ function createTerminalAchievements() {
     }
 
     terminalAchievementState.achievementsCreated = true;
-    
-    // Register achievement names for sprite sheet icon updates
-    if (window.registerSpriteSheetAchievements) {
-        window.registerSpriteSheetAchievements(terminalAchievementNames);
-    }
 }
 
 function removeTerminalAchievements() {

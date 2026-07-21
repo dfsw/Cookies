@@ -5378,12 +5378,7 @@ function createPotionsAchievements() {
         }
     }
     potionsAchievementState.achievementsCreated = true;
-    
-    // Register achievement names for sprite sheet icon updates
-    if (window.registerSpriteSheetAchievements) {
-        window.registerSpriteSheetAchievements(potionsAchievementNames);
-    }
-    
+
     // Apply any achievement won state that was stashed during load (load ran before achievements existed)
     if (Array.isArray(PotionsM._pendingAchWon)) {
         var pending = PotionsM._pendingAchWon;

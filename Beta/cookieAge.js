@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.5';
+    var expansionVersion = '1.0.6';
     var debugMode = false; // Set to true for testing
   
     function customSpriteSheetUrl() {
@@ -809,11 +809,6 @@
             if (achievement) {
                 achievement.pool = 'normal';
 
-                // Register for sprite sheet update when custom sheet loads
-                if (typeof registerSpriteSheetAchievements === 'function') {
-                    registerSpriteSheetAchievements([achData.name]);
-                }
-                
                 // If the milestone is already achieved, mark the achievement as won silently
                 if (shouldBeWon) {
                     achievement.won = 1;
