@@ -927,6 +927,11 @@
 
         function setupMegaClicks() {
             if (Game.registerHook && !Game._megaClicksHookRegistered) {
+                // Cooldown time in ms, configurable via console: Game.JNE.megaClickCooldown = 50;
+                if (!Game.JNE) Game.JNE = {};
+                Game.JNE.megaClickCooldown = Game.JNE.megaClickCooldown || 50;
+                Game.JNE._megaClickLastPopup = 0;
+                
                 Game.registerHook('click', function() {
                     // Skip effect in Born Again mode
                     if (Game.ascensionMode == 1) return;
@@ -934,6 +939,10 @@
                         var megaClickChance = Game.Has('Lucky mega clicks') ? 0.015 : 0.01;
                         var isMegaClick = jneIndependentRandom() < megaClickChance; 
                         if (isMegaClick) {
+                            var now = Date.now();
+                            if (now - Game.JNE._megaClickLastPopup < Game.JNE.megaClickCooldown) return;
+                            Game.JNE._megaClickLastPopup = now;
+                            
                             var clickAmount = Game.computedMouseCps || 0;
                             var multiplier = Game.Has('Extreme mega clicks') ? 14 : 9;
                             var bonusAmount = clickAmount * multiplier;
