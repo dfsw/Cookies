@@ -3328,10 +3328,9 @@ function createTerminalAchievements() {
         var achievement = Game.JNE.createAchievement(
             achData.name,
             achData.desc,
-            null,
+            achData.icon,
             achData.order,
-            null,
-            achData.icon
+            null
         );
         if (achievement) {
             achievement.pool = 'normal';
@@ -3530,7 +3529,6 @@ if (Game.Objects && Game.Objects['Javascript console']) {
 
         if (isConsoleLoading && !jsConsole.minigameUrl) {
             jsConsole.minigameUrl = 'terminal';
-            jsConsole.minigameIcon = [19, 11];
         }
 
         if (typeof jsConsole.refresh === 'function') {

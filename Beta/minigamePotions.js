@@ -5080,7 +5080,6 @@ function initializePotionsMinigame() {
         if (typeof PotionsM.createAchievements === 'function') PotionsM.createAchievements();
         if (!alchemyLab.minigameUrl) {
             alchemyLab.minigameUrl = 'potions';
-            alchemyLab.minigameIcon = [6, 0];
         }
         if (typeof alchemyLab.refresh === 'function') alchemyLab.refresh();
         if (isConsoleLoading && Game.ObjectsById && Game.ObjectsById[alchemyLab.id] &&
@@ -5370,10 +5369,9 @@ function createPotionsAchievements() {
         var achievement = Game.JNE.createAchievement(
             achData.name,
             achData.desc,
-            null,
+            achData.icon,
             achData.order,
-            null,
-            achData.icon
+            null
         );
         if (achievement) {
             achievement.pool = 'normal';
