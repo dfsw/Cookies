@@ -2007,6 +2007,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.UpdateMenu = function() {
             const result = Game._jneOriginalUpdateMenuJNE.call(this);
             
+            // Call registered menu hooks from other modules
+            if (Game.JNE && Game.JNE.menuHooks) {
+                for (var i = 0; i < Game.JNE.menuHooks.length; i++) {
+                    try {
+                        Game.JNE.menuHooks[i]();
+                    } catch (e) {
+                        console.error('Menu hook error:', e);
+                    }
+                }
+            }
+            
             // Handle options menu injection
             if (Game.onMenu === 'prefs') {
                 let menuContainer = document.getElementById('menu');
@@ -2920,7 +2931,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Full reload path
         cfg.scriptLoaded = false;
         b.minigame = null; b.minigameLoaded = false; b.minigameUrl = '';
-        b.minigameName = ''; b.minigameIcon = null; b.minigameLoading = false;
+        b.minigameName = ''; b.minigameLoading = false;
         if (cfg.globalMiniKey) window[cfg.globalMiniKey] = null;
         if (cfg.globalInitKey) window[cfg.globalInitKey] = null;
         var scripts = document.getElementsByTagName('script');
@@ -2945,14 +2956,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (shouldShow) {
                 b.minigameName = cfg.minigameName;
                 b.minigameUrl = cfg.scriptUrl + '?v=' + Date.now();
-                b.minigameIcon = cfg.icon;
                 b.minigameLoading = false;
                 // Remove the CC-assigned script element so Game.LoadMinigames() creates a fresh one
                 var oldScript = document.getElementById('minigameScript-' + b.id);
                 if (oldScript && oldScript.parentNode) { oldScript.parentNode.removeChild(oldScript); needsLoad = true; }
                 if (!cfg.scriptLoaded) needsLoad = true;
             } else {
-                b.minigameUrl = ''; b.minigameName = ''; b.minigameIcon = null; b.minigameLoading = false;
+                b.minigameUrl = ''; b.minigameName = ''; b.minigameLoading = false;
                 if (b.minigame && b.minigame.effs) { b.minigame.effs = null; effectsCleared = true; }
                 if (b.minigame) b.minigame._initialEffsSet = false;
                 b.minigameLoaded = false;

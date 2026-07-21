@@ -653,38 +653,40 @@
             }
         }
         
-        if (Game.UpdateMenu && !Game.UpdateMenu._erasablePensHooked) {
-            Game.UpdateMenu._erasablePensHooked = true;
-            if (!Game._jneOriginalUpdateMenuHU) Game._jneOriginalUpdateMenuHU = Game.UpdateMenu;
-            Game.UpdateMenu = function() {
-                var result = Game._jneOriginalUpdateMenuHU.apply(this, arguments);
-                if (Game.Has('Erasable pens')) {
-                    setTimeout(function() {
-                        var slotNames = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V'];
-                        var allCrates = document.querySelectorAll('div.crate.upgrade.heavenly');
-                        for (var i = 0; i < slotNames.length; i++) {
-                            var upgrade = Game.Upgrades[slotNames[i]];
-                            if (!upgrade) continue;
-                            for (var j = 0; j < allCrates.length; j++) {
-                                var crate = allCrates[j];
-                                if ((crate.getAttribute('onmouseover') || '').indexOf('UpgradesById[' + upgrade.id + ']') !== -1 && !crate._erasablePensHandlerAdded) {
-                                    crate.addEventListener('click', (function(slot) {
-                                        return function(e) {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            if (Game.AssignPermanentSlot) Game.AssignPermanentSlot(slot);
-                                            return false;
-                                        };
-                                    })(i), true);
-                                    crate._erasablePensHandlerAdded = true;
-                                    break;
-                                }
+        if (Game.JNE && !Game.JNE.menuHooks) {
+            Game.JNE.menuHooks = [];
+        }
+        
+        var erasablePensHook = function() {
+            if (Game.Has('Erasable pens')) {
+                setTimeout(function() {
+                    var slotNames = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V'];
+                    var allCrates = document.querySelectorAll('div.crate.upgrade.heavenly');
+                    for (var i = 0; i < slotNames.length; i++) {
+                        var upgrade = Game.Upgrades[slotNames[i]];
+                        if (!upgrade) continue;
+                        for (var j = 0; j < allCrates.length; j++) {
+                            var crate = allCrates[j];
+                            if ((crate.getAttribute('onmouseover') || '').indexOf('UpgradesById[' + upgrade.id + ']') !== -1 && !crate._erasablePensHandlerAdded) {
+                                crate.addEventListener('click', (function(slot) {
+                                    return function(e) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (Game.AssignPermanentSlot) Game.AssignPermanentSlot(slot);
+                                        return false;
+                                    };
+                                })(i), true);
+                                crate._erasablePensHandlerAdded = true;
+                                break;
                             }
                         }
-                    }, 100);
-                }
-                return result;
-            };
+                    }
+                }, 100);
+            }
+        };
+        
+        if (Game.JNE.menuHooks.indexOf(erasablePensHook) === -1) {
+            Game.JNE.menuHooks.push(erasablePensHook);
         }
         
         var origDescs = {};
