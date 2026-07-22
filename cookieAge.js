@@ -10,10 +10,12 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.5';
+    var expansionVersion = '1.0.7';
     var debugMode = false; // Set to true for testing
   
-    var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
+    function customSpriteSheetUrl() {
+        return window.getSpriteSheet('custom');
+    }
     var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
     var mainIconsSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/icons.png';
 
@@ -751,65 +753,62 @@
             {
               name: 'Order of the golden crumb',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>Before ink touched parchment and iron met flame—before our ancestors raised their first cities—there was the Cookie Age. Six great Orders of mystics, bakers, scribes, and oracles worshipped the golden cookie and the ancient cookie deities.</q>',
-              icon: [0, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(0, 15, 'custom'),
               order: baseOrder + 1
             },
             {
               name: 'Order of the impossible batch',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods passed down hidden knowledge and quiet power from one generation to the next, fevered in their devotion. Across the ages, the Orders shaped the world through influence unseen, molding humanity toward the cookie gods they served.</q>',
-              icon: [1, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(1, 15, 'custom'),
               order: baseOrder + 2
             },
             {
               name: 'Order of the shining spoon',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory—small signs and gestures marked friend from foe.</q>',
-              icon: [2, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(2, 15, 'custom'),
               order: baseOrder + 3
             },
             {
               name: 'Order of the cookie eclipse',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws—never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>',
-              icon: [3, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(3, 15, 'custom'),
               order: baseOrder + 4
             },
             {
               name: 'Order of the enchanted whisk',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>',
-              icon: [4, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(4, 15, 'custom'),
               order: baseOrder + 5
             },
             {
               name: 'Order of the eternal cookie',
               desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>',
-              icon: [5, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(5, 15, 'custom'),
               order: baseOrder + 6
             }
           ];
         // Check which puzzles are completed to determine which achievements should be created as won
         var completedPuzzles = cookieAgeData.puzzles.completed || [];
         
-        // Create each achievement using the base mod's helper
         for (var index = 0; index < mysteryAchievements.length; index++) {
             var achData = mysteryAchievements[index];
-            
+
             // Check if the milestone puzzle is already completed
             var milestonePuzzle = mysteryMilestonePuzzles[index];
             var shouldBeWon = completedPuzzles.indexOf(milestonePuzzle) !== -1;
-            
-            // Create the achievement without a requirement function (we check manually on puzzle completion)
+
             var achievement = Game.JNE.createAchievement(
                 achData.name,
                 achData.desc,
-                null,  // vanilla icon (not used)
+                achData.icon,  // custom icon
                 achData.order,
-                null,  // no requirement function - achievements awarded manually on puzzle completion
-                achData.icon  // custom icon
+                null  // no requirement function - achievements awarded manually on puzzle completion
             );
-            
+
             // Ensure achievement has correct pool
             if (achievement) {
                 achievement.pool = 'normal';
-                
+
                 // If the milestone is already achieved, mark the achievement as won silently
                 if (shouldBeWon) {
                     achievement.won = 1;
@@ -872,20 +871,22 @@
     
     // ===== INFO MENU INJECTION SYSTEM =====
     function setupInfoMenuInjection() {
-        if (!Game._jneOriginalUpdateMenuCookieAge) Game._jneOriginalUpdateMenuCookieAge = Game.UpdateMenu;
-        // Override UpdateMenu to inject info menu content
-        Game.UpdateMenu = function() {
-            const result = Game._jneOriginalUpdateMenuCookieAge.call(this);
-            
+        if (Game.JNE && !Game.JNE.menuHooks) {
+            Game.JNE.menuHooks = [];
+        }
+        
+        var cookieAgeMenuHook = function() {
             // Handle info menu injection for puzzle 10
             if (Game.onMenu === 'log') {
                 setTimeout(function() {
                     injectBlessingPuzzleInfo();
                 }, 100);
             }
-            
-            return result;
         };
+        
+        if (Game.JNE.menuHooks.indexOf(cookieAgeMenuHook) === -1) {
+            Game.JNE.menuHooks.push(cookieAgeMenuHook);
+        }
     }
     
     function injectBlessingPuzzleInfo() {
@@ -1044,9 +1045,9 @@
                 clue: 'Pay close attention to the world, something new is afoot, but it requires patience and a watchful eye.',
                 hint: '• Keep an eye on the news ticker(clicking it can speed up your journey).<br>• There is only one type of Lily in Cookie Clicker.<br>• Make sure there is nothing else besides a lily.<br>• You must have even more patience than the lily itself.',
                 puzzleClass: ProvingPatiencePuzzle,
-                mainIcon: [10, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 12, 'custom'),
                 completionMessage: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>The mystery has begun. Return to the stats menu to track progress and review your clues.</q>',
-                completionIcon: [10, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(10, 13, 'custom'),
                 dependencies: [],
                 isActive: false,
                 type: 'investigate'
@@ -1058,9 +1059,9 @@
                 hint: '• What does your friend call you that you could use as a name to be seen by them?',
                 description: 'The sign now bears the mark they demanded. Stranger, friend, or foe, you have declared yourself all the same. Many eyes now turn toward you.<q>The path ahead is peril. Wit, not strength, will be your most important asset.</q>',
                 puzzleClass: MakingFriendshipPuzzle,
-                mainIcon: [5, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(5, 17, 'custom'),
                 completionMessage: 'The sign now bears the mark they demanded. Eyes, welcome or hostile, are upon you.<q>The mark is set. In silence, watchers weigh what it means.</q>',
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['proving_patience'],
                 isActive: false,
                 type: 'investigate'
@@ -1072,9 +1073,9 @@
                 clue: 'You have shown your willingness but your tasks are not yet complete.',
                 hint: '• Cookie Clicker has a mail system, you may have forgotten about this particular heavenly upgrade though.',
                 puzzleClass: SmallTokenPuzzle,
-                mainIcon: [34, 8, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(34, 8, 'main'),
                 completionMessage: 'The parcel is gone. In its place, a letter binds you to a greater cause.<q>Your mission begins in earnest. The first rites are revealed.</q>',
-                completionIcon: [2, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['making_friendship'],
                 isActive: false,
                 type: 'investigate'
@@ -1086,9 +1087,9 @@
                 clue: 'We have intercepted a message from a courier of The Order:<br><br>A field of fortune, wide and green,<br>four-leaf charms are thickly seen.<br>Mark an X with their gilded kin,<br>the hidden path to walk within.<br>Yet wait, no hand may turn the ground,<br> till the field holds three dozen crowns.<br>When green and gold together stand,<br>strike the heart at fortune\'s hand.',
                 hint: '• What\'s the only plant that has a golden relative?<br>• Once everything is mature then you need to dig.',
                 description: 'You marked the sign where fortune crossed and unearthed what lay beneath. This was no rite of the Brotherhood, but a secret uncovered in silence.<q>Your ally\'s hand steered you here. The Order would not grant such knowledge willingly. Wrapped in oilcloth beneath the soil lay a thin folio, water-stained and singed. Six headings survive;<br>The Order of the Golden Crumb<br>The Order of the Impossible Batch<br>The O..er of t.e Shining Spoon<br>Th. O.. th. .o…k.. .c…ip…e<br>Th. O..r of th. .n…hant…d .h…sk<br>Th. O..r of th. Et…rn…l ..…k..<br>Keep this close—what\'s missing will matter.</q>',
-                mainIcon: [23, 2, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(23, 2, 'custom'),
                 completionMessage: 'Digging where X marked the spot has revealed a tattered folio.',
-                completionIcon: [1, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 dependencies: ['rite_shifting_measures'],
                 isActive: false,
                 type: 'investigate'
@@ -1100,9 +1101,9 @@
                 clue: 'Return to the first spark, the place of beginnings. There the Creator inscribed a rite to beg favor against the Brotherhood. Do it swiftly, for you will need every ounce of fortune on the path ahead.<q>You\'ll need all the luck you can get after all. Things will continue to become more difficult the longer you remain on this path.</q>',
                 hint: '• Where has Orteil (the Game Creator) provided dated information to the user? <br>• Is there a beginning to that information? Maybe you should read it.<br>• Where else have you seen the word leprechaun in Cookie Clicker?',
                 puzzleClass: BlessingCreatorPuzzle,
-                mainIcon: [4, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(4, 17, 'custom'),
                 completionMessage: 'You curried favor with the Creator. The blessing lingers, but so does the risk.',
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 dependencies: ['brothers_masquerade'], 
                 isActive: false,
                 type: 'investigate'
@@ -1114,9 +1115,9 @@
                 description: 'Classifieds burned. Courier missing. You cut the line and moved to coded relays, pushing a false lead for them to chase.<q>We bought you room, not safety. From now on, speak masked or not at all.</q>',
                 clue: 'The Order found our newspaper drops and our courier never returned. We fear they\'re onto you as well. From here on, every message must be encoded.<q>The Romans had their tricks. XIII should jog your memory.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message1.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• There are many ciphers used throughout history, but the Caesars of the Roman Empire favored one. The number 13 is the key you will need.',          
-                mainIcon: [3, 35, gardenSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(3, 35, 'garden'),
                 completionMessage: 'They followed the decoy; your trail cooled.',
-                completionIcon: [2, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['blessing_creator'],
                 isActive: false,
                 type: 'investigate'
@@ -1127,10 +1128,10 @@
                 puzzleClass: BrotherOntoYouPuzzle,
                 clue: 'The Order is getting better at breaking our ciphers. We have an urgent message, decode it now; time is short.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message4.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• A blind friend would be very helpful in this situation.',
-                mainIcon: [1, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(1, 14, 'custom'),
                 description: 'A name surfaced: Brother Corvin. By dusk he was due before the elders; he never arrived. The shaft took him, and with it the words that would have ended you.<q>This is the line we hoped you wouldn\'t need to cross. Stay calm; stay unseen.</q>',
                 completionMessage: 'The report died in the dark; the elders never spoke your name.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['they_are_watching', 'feast_four'],
                 isActive: false,
                 type: 'investigate'
@@ -1143,8 +1144,8 @@
                 description: 'Silence stretched too long. You slipped a small sign through and it reached us.<q>Stay on mission. They\'re already weighing your loyalties.</q>',
                 puzzleClass: SendWordPuzzle,
                 completionMessage: 'Your sign arrived. The line holds... for now.',
-                mainIcon: [7, 16, customSpriteSheetUrl],
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(7, 16, 'custom'),
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['veiled_ledger', 'brother_onto_you'],
                 isActive: false,
                 type: 'investigate'
@@ -1156,9 +1157,9 @@
                 description: 'You carried out the purge, twenty-seven grandmas cut in a single sweep. Rumors stalled and the watchers shifted their gaze.<q>You can\'t know if all were spies—only that you\'re still alive.</q>',
                 clue: 'Our messages continue to be intercepted; we have to raise the difficulty again. Act urgently and cleanly, or your fate is already sealed.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message2.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Placing letters into two tic-tac-toe boards may help understand this cipher.<br>• Remember the characters from The Peanuts cartoon series, one of their names may aid you in searching.',  
-                mainIcon: [11, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 15, 'custom'),
                 completionMessage: 'Twenty-seven cut. The whispers stopped... for now.',
-                completionIcon: [0, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 16, 'custom'),
                 dependencies: ['veiled_ledger', 'send_word'],
                 isActive: false,
                 type: 'investigate'
@@ -1170,9 +1171,9 @@
                 clue: 'That was too close for comfort. We hope this finds you in good spirits, we need to maintain distance to keep the ruse intact.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message5.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• A little more complex than the Caesar Cipher but letters are still being shifted here.<br>• That stand alone "Z" is a dead giveaway for this type of cipher.',             
                 puzzleClass: CloseCallPuzzle,
-                mainIcon: [13, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 14, 'custom'),
                 completionMessage: 'The bundle moved unnoticed; the watchers saw nothing.',
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 dependencies: ['lawkeeper_walk', 'spy_purge'],
                 isActive: false,
                 type: 'investigate'
@@ -1184,9 +1185,9 @@
                 clue: 'The Order has proved more clever than we could have ever imagined.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message9.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Before radios sailors still needed to communicate at a distance, though slightly outdated these still play an important role in the maritime world.',
                 puzzleClass: FalseBeaconsPuzzle,
-                mainIcon: [12, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 13, 'custom'),
                 completionMessage: 'You ignored the decoys; our mark came back clean.',
-                completionIcon: [2, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['rite_fivefold_casting', 'close_call'],
                 isActive: false,
                 type: 'investigate'
@@ -1198,9 +1199,9 @@
                 clue: 'A letter finds its way to you.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message8.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• In the early days of texting before phones had full keyboards this was the only way to get the job done.<br>• 0s and 1s are special.',
                 puzzleClass: InfiltrationProgressPuzzle,
-                mainIcon: [12, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 17, 'custom'),
                 completionMessage: 'Confirmation received. The line holds.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['ledger_bonds', 'false_beacons'],
                 isActive: false,
                 type: 'investigate'
@@ -1212,8 +1213,8 @@
                 clue: 'You have built trust with The Order and they are on the path to accepting you as their own, stay true to your mission.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message6.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Computers have a lot of ways to encode text to be more readable for machines, this is an older method but not the oldest.<br> • Figuring out what range of letters appear with the numbers will help narrow your search.',
                 puzzleClass: BuiltTrustPuzzle,
-                mainIcon: [11, 13, customSpriteSheetUrl],
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 13, 'custom'),
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 completionMessage: 'The sign was seen and noted. Your standing rose.',           
                 dependencies: ['storm_devotion', 'infiltration_progress'],
                 isActive: false,
@@ -1226,9 +1227,9 @@
                 clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;"><video src="https://raw.githubusercontent.com/dfsw/Cookies/main/chruch.mp4" style="width:300px;height:300px;border:2px solid #666;border-radius:4px;" autoplay loop muted playsinline></video></div>',
                 hint: '• Dots and dashes are a good way to send a message over distance without making any noise.<br>• An envoy brings a message, what is another type of person that shares a message? Where can you find them in Cookie Clicker?<br>• Just because a lamp is out doesn\'t mean it no longer exists.',            
                 puzzleClass: WatchKeeperRoundsPuzzle,
-                mainIcon: [9, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 16, 'custom'),
                 completionMessage: 'You cleared the yard without a second look.',
-                completionIcon: [2, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['six_jars_ledger', 'built_trust'],
                 isActive: false,
                 type: 'investigate'
@@ -1240,9 +1241,9 @@
                 clue: 'This stone tablet bears familiar marks, half-remembered. You\'ve seen these symbols before, perhaps it was just a dream spoken in another tongue...<br><br>Search out the stone that can provide the twin keys you need.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message10.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Where would you go to see foreign languages in Cookie Clicker, look carefully.',
                 puzzleClass: RosettaStonePuzzle,
-                mainIcon: [9, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 14, 'custom'),
                 completionMessage: 'The stone held the key. You cracked the script.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['watch_keeper_rounds'],
                 isActive: false,
                 type: 'investigate'
@@ -1254,8 +1255,8 @@
                 clue: 'Danger is following you. Among the Brotherhood, some have learned a spy\'s description; outfox them to keep your cover.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message7.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• There appears to be extra spacing between some of the columns, it separates them out into equal groups. The robot stamp is already a clue!<br>• Lights are warm when on and cool when off right? Colors can be warm and cool too.',         
                 puzzleClass: MaskWearsThinPuzzle,
-                mainIcon: [15, 17, customSpriteSheetUrl],
-                completionIcon: [1, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(15, 17, 'custom'),
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 completionMessage: 'Face changed. Eyes moved on.',
                 dependencies: ['vaulted_relics', 'rosetta_stone'],
                 isActive: false,
@@ -1268,9 +1269,9 @@
                 clue: 'Remember what we truly are to you and you will have the key you need to decode this communication.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message11.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Some ciphers cannot be broken without the proper key, do you remember what your ally called themselves when they sent you classified ads?',
                 puzzleClass: StillWithUsPuzzle,
-                mainIcon: [3, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(3, 16, 'custom'),
                 completionMessage: 'Sign received. You are still with us.',     
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['sigils', 'mask_wears_thin'],
                 isActive: false,
                 type: 'investigate'
@@ -1282,9 +1283,9 @@
                 clue: 'Each hall has its clamor, but only one may sing.<br>Still every voice, save the beckoning digits.<br>Only then in muted silence, will The Order speak.<q>The order often speaks through riddles and clues guarding their initiation process from outsiders.</q>',
                 hint: '• There are twenty halls in Cookie Clicker. Only one of them has digits though. Quiet the others.',
                 puzzleClass: SilentChoirPuzzle,
-                mainIcon: [17, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(17, 17, 'custom'),
                 completionMessage: 'Silence falls, digits echo, The Order accepts your presence.<q>They believe you seek to join.</q>',
-                completionIcon: [0, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 14, 'custom'),
                 dependencies: ['small_token'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1296,9 +1297,9 @@
                 clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the judge in scarlet robes.<br>The jester of ledgers laughs.<br>Then the hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return to knock.<q>Now is as good as a time as any to remind you that ALL Mysteries of the Cookie Age Puzzles can be done with vanilla game elements only.</q>',
                 hint: '• The wheel of time doesn\'t always turn straight, each season has themes; turn them in the correct order.',
                 puzzleClass: SpiralSeasonsPuzzle,
-                mainIcon: [16, 6, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 6, 'main'),
                 completionMessage: 'The wheel has turned, its crooked path obeyed. The Order\'s rhythm flows through your steps.<q>You have shown you can keep their time, no matter how twisted.</q>',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['silent_choir'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1310,9 +1311,9 @@
                 description: 'You cast off ships, raised gates, kindled suns, ruined houses, and lifted spires, each crooked measure bound in its turn. The seal held, and The Order watched.<q>Such rites are spoken to test faith as much as skill. You obeyed, and for now, they are satisfied.</q>',
                 clue: 'The Brothers bind their steps in crooked sums,<br>five measures across sea, gate, sun, coin, and sky.<br><br>First, cast off a handful of Ships in Harbor, then raise half a dozen Crimson Gates.<br>Next, kindle thrice three Scattered Suns, then ruin the Houses of Coin by a dozen pieces.<br>Last, let the Spires of the Firmament climb elevenfold, and the ritual seal shall hold.',
                 hint: '• These sound like buildings, don\'t they? What could ships, red gates, scattered light, houses of money, and tall towers be? How many fingers on a hand sounds like its pretty full no? Despite some common misconceptions a chancemaker is not a casino.',
-                mainIcon: [13, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 12, 'custom'),
                 completionMessage: 'The crooked sums are complete, the seal holds firm.<q>The Order marks your obedience in silence.</q>',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['spiral_seasons'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1324,9 +1325,9 @@
                 description: 'You echoed their chant, childish on its surface yet meaningful to them. The Brothers laughed, voices rising with yours, and for a moment suspicion eased.<q>Every fraternity has its games. Play along, and they may forget to question you.</q>',
                 clue: 'To walk among Brothers, mimic their childish rite.<br>They shout a single charm three times in rising chorus,<br>a game to children, but to The Order a sign of kinship.<br>Do as they do, swiftly and without straying,<br>and the brothers may welcome you with open arms.',
                 hint: '• Magic words could be called charms. Is there somewhere in the game that uses magic?',
-                mainIcon: [16, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 15, 'custom'),
                 completionMessage: 'Once, twice, thrice, the chant complete. Laughter covers suspicion, and for now you blend in.<q>You are counted among them, though only in play.</q>',
-                completionIcon: [7, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 13, 'custom'),
                 dependencies: ['garden_sigil'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1338,9 +1339,9 @@
                 description: 'You seated each spirit in turn, gold, ash, and ink, never together, always alone. The veil quivered, then parted, and the Brothers nodded in approval.<q>This was no game. You carried out their rite with care, and in their eyes, you are changed.</q>',
                 clue: 'The veil is held by three spirits.<br><br>The first, draped in gilt, who mocks all labor and hungers for spoils,<br>he claims the throne of blood.<br><br>The second, born of quake and ash, scattering every work,<br>he sits upon the crown of brilliance.<br><br>The last, the hidden scribe, whose tendrils wrote all that was and will be,<br>the verdant seat belongs to his creation.<br><br>Each has but a single throne.<br>Seat them in their destined order,<br>never with another at their side.<br>When each has risen and fallen alone,<br>the veil will part.',
                 hint: '• Where do spirits reside? Each spirit has different attributes as does each slot/seat where they can be placed.<br>• When seating them make sure they are alone.',
-                mainIcon: [8, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 15, 'custom'),
                 completionMessage: 'The spirits rose and fell upon their thrones, each alone, each in order. The veil parts.<q>The Brotherhood sees you not as a guest, but as one who obeys their rites.</q>',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['initiation_riddle'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1352,9 +1353,9 @@
                 description: 'They taught you to wear Brother Sebastian\'s face: bare brow, raven beard, ivory flesh, prism-shattered eyes. You carried his name and walked unchallenged. For a moment, you weren\'t just imitating, you were him.<q>Even you felt the mask blur. Was it disguise, or revelation?</q>',
                 clue: 'The Brotherhood give freely to their kin, but guards their treasure from strangers.<br>Wear the face and bear the name of Brother Sebastian, brow bare, beard raven and bountiful, ivory flesh, and eyes distorted by prisms.<br>Then shall they grant you their token.',
                 hint: '• Where can you change your appearance in Cookie Clicker? There is even a vanilla achievement for it.<br>• Changing your appearance isn\'t enough to fool anyone if you walk around with your own name still.',
-                mainIcon: [13, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 15, 'custom'),
                 completionMessage: 'The mask held. The Brothers saw Sebastian, not you.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['spirits_thrones'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1366,9 +1367,9 @@
                 clue: 'Count the home of the altars where the spirits rest.<br>Seek the numbers that cannot be broken,<br>save by themselves and the One.<br>Take the first five in their divine order.<br>Raise one, then cast the next down,<br>ever climbing, never the same twice.<br>Each count a vow, each altar a hymn.',
                 hint: '• Where do the spirits reside? Is there a building associated with them?<br>• What is the name of numbers cannot be divided by anything but themselves and one?',
                 puzzleClass: PatternAltarsPuzzle,
-                mainIcon: [13, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 16, 'custom'),
                 completionMessage: 'Altars align and the prime vow answers.<q>Eyes linger longer now. One misstep is all it takes.</q>',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['brothers_masquerade'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1380,9 +1381,9 @@
                 clue: 'Bring the vessel to one part in five of six hundred,<br>and take back five for fortune\'s favor.<br>No drop more, no drop less.<br>Speak the rite in these breaths:<br>Hush the chaos,<br>strike the bargain,<br>stretch the moment,<br>wake what slumbers.',
                 hint: '• Spells need mana, and that vessel must be precisely filled before you can begin.<br>• Each spell has a particular meaning.',
                 puzzleClass: LitanyCrumbsPuzzle,
-                mainIcon: [5, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(5, 16, 'custom'),
                 completionMessage: 'The rite holds; the mixture obeys.<q>A Brother lingers at the threshold, as if waiting to see what else you can be trusted with.</q>',
-                completionIcon: [6, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['pattern_altars'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1394,9 +1395,9 @@
                 clue: 'Where greed resides, a fortune starts from nothing.<br>Not a single grain, then one soon follows<br>The climb has just begun.<br>Each step recalls the two before,<br>A spiral born of memory and more.<br>Like petals drawn or shells aligned,<br>In nature\'s code the path defined.<br>Yet halt the climb at fourteen told,<br>And count the sums in sequence old.',
                 hint: '• Where does greed reside? Can\'t have greed without money right?<br>• Spirals in nature follow a very specific pattern.',
                 puzzleClass: SpiralFortunePuzzle,
-                mainIcon: [16, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 14, 'custom'),
                 completionMessage: 'The spiral grows beneath your hand, each sum in place.<q>They exchange glances now, the kind reserved for those no longer seen as outsiders.</q>',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['litany_crumbs'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1408,9 +1409,9 @@
                 description: 'The wheel held, and time itself bowed to the Brothers\' command.<q>This was no private rite. Eyes fixed upon your hands, measuring every motion. A single mistake would have betrayed you.</q>',
                 clue: 'Teeth keep the time.<br>Mark the quarters,<br>the first and third feed,<br>the second and fourth fall silent.<br><br>Then heed the neighbors of the quarters,<br>those who follow any quarter shall wake,<br>those who stand before any quarter shall sleep.<br><br>When the wheel holds, The Order will convene.',
                 hint: '• Little leeches can be seen as hands on a clock, make sure you have all 12 hands or it\'s not really a clock.',
-                mainIcon: [14, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 14, 'custom'),
                 completionMessage: 'The quarters align and the wheel obeys. No fault is found.',
-                completionIcon: [7, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 13, 'custom'),
                 dependencies: ['spiral_fortune'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1422,9 +1423,9 @@
                 description: 'You learned their restraint. At each table you left one dish untouched, love unbitten, spring uncracked, shadow unburied, winter unopened. Nearly bare, never empty. The Brothers nodded at a custom older than hunger.<q>Their taboos are the passwords now. Break one, and you break your cover.</q>',
                 clue: 'As the Cookie Eclipse hides its face, so too the Brothers do not glut themselves on every feast<br>From each table they take near all, but never the last dish.<br>One sweet of love left untasted,<br>one shell of spring left uncracked,<br>one bone of shadow left buried,<br>one gift of winter left unopened.<br>When the plates are nearly bare,<br>yet not a single table cleared,<br>their fast is complete.',
                 hint: '• Each season has its treats, you may need to ascend to accomplish this task.',
-                mainIcon: [10, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 15, 'custom'),
                 completionMessage: 'The feast ends unfinished. The Brotherhood is satisfied.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['wrinkler_clock', 'blessing_creator'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1436,9 +1437,9 @@
                 clue: 'The Brothers scorn the crowns of milk and light.<br>Choose instead the halo where thought burns brightest,<br>and the grip of greed that guards its trove.<br>Place them both upon a fiery pet,<br>then lay your hand upon its hide,<br>seven times in patience.',
                 hint: '• Do you happen to have a fiery pet? Does that pet usually have things to do with milk and light? Maybe even radiant light?',
                 puzzleClass: TrialScalesPatiencePuzzle,
-                mainIcon: [6, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(6, 17, 'custom'),
                 completionMessage: 'Scales and hands laid true. The dragon sleeps; The Order\'s gaze lingers.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['feast_four'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1450,9 +1451,9 @@
                 description: 'They set you to work in the open earth, where four red hearts ripened inside a crown of bone-white stalks. You waited, exposed, until everything stood exactly as decreed, no leaf astray, no timing off, and then tore the harvest in a single motion.<q>This was a test in daylight. One hesitance, one extra cut, and your purpose would have shown.</q>',
                 clue: 'Four hearts swell in the hollow,<br>red and full of sweet promise.<br>Around them lies a barren hush,<br>no root, no leaf, only waiting earth.<br>Beyond that silence, a crown of bone-white stalks,<br>roots that do not wither, teeth that do not fall.<br>When the hearts are ripe and the dead still stand,<br>tear down what is mortal all in one motion,<br>and the vow is sealed.',
                 hint: '• Did you know each plant in the garden has specific and descriptive flavor text?<br>• There is a specific key combo to harvest only mature mortal plants, that\'s an important combo to know.',
-                mainIcon: [11, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 16, 'custom'),
                 completionMessage: 'One motion, cleanly done. The hearts fall the sentries remain.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['trial_scales_patience', 'brother_onto_you'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1464,9 +1465,9 @@
                 description: 'They placed the ledger before you, its pages heavy with hidden sums. Grain, shell, nectar, each tallied to the Brotherhood\'s design, each page turned and left bare in its rhythm. You wrote the numbers they demanded, and the seal closed without flaw.<q>This was no mere trial. They trusted you with their reckoning, and you balanced it as if born to their order.</q>',
                 clue: 'The Order keeps its secrets not in words but in accounts.<br>Three tallies must be set upon the ledger:<br>The white grain that sweetens all, a dozen thrice over.<br>The pale confection, seven tens, less three.<br>The golden nectar of the hives, three fifties, and a score besides.<br>Leave every other page bare,<br>and the ledger shall be sealed.',
                 hint: '• Sounds like Sugar, Honey, and White Chocolate, where have you seen those before?',
-                mainIcon: [15, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(15, 16, 'custom'),
                 completionMessage: 'The ledger closes, tallies exact. You are trusted with their numbers.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['garden_hearts'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1478,9 +1479,9 @@
                 description: 'Twenty halls clamored at once, and you silenced all but seven. Each spared voice matched their law: vows, mirrors, suns, and stolen tomorrows. When the tally ended, the chambers rang true.<q>The Brothers watched in silence, weighing not just your obedience but the ease with which you carried it out. Too perfect, and questions may follow.</q>',
                 clue: 'From first help to the final mirror, twenty chambers ring.<br>Stillness claims all but seven, and the first, which the void may never take.<br><br>The hall of vows must murmur still.<br>One chamber that is the square of three cannot be stilled.<br>The mirror at the end must answer.<br>Spare the hall where tomorrow is stolen.<br>Let the second hearth keep its ember.<br>Where suns are scattered, the light must fall through.<br>And keep the count of the twice-born nine.',
                 hint: '• Still is quiet, and quiet is still.<br>• These sound like things you have seen, there are 20 of them, the first one is special don\'t let it throw your counts off.',            
-                mainIcon: [16, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 17, 'custom'),
                 completionMessage: 'The halls fall quiet, seven voices spared. The Brotherhood nods, though some eyes linger.',
-                completionIcon: [0, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 14, 'custom'),
                 dependencies: ['veiled_ledger'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1492,9 +1493,9 @@
                 puzzleClass: LawkeeperWalkPuzzle,
                 clue: 'The Lawkeeper walks a path of solitude for he is here to judge you.<br>First, upon the stone of green his step must fall.<br>Then, to the jewel of sixfold light he must ascend.<br>Last, he shall rest on the crimson square before his journey concludes.<br>None may stride beside him, and a hush shall fall between each step, for the Law is kept by none but him.',
                 hint: '• The lawkeeper keeps order. Where might have you seen someone in charge of order keeping before?',
-                mainIcon: [22, 19, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(22, 19, 'main'),
                 completionMessage: 'The path is walked alone; judgment holds, for now.',
-                completionIcon: [1, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['ringing_halls', 'spy_purge'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1506,9 +1507,9 @@
                 clue: 'Crown the pole of steadfastness with fire, for it alone endures.<br>In the deeps beneath, no flame may live.<br>Where the first light stirs, strike it silent, yet let its two heralds burn bright.<br>At the place of dying sun, let the blaze roar, but bind both its shoulders fast.<br>Of the four slanting winds, only those that lean toward dawn may shine.<br>Now return to the crown, and remember: what is lit first must be quenched last.<br>When these decrees are fulfilled, the wheel is broken, and the sign is made.',
                 hint: '• 12 points on a compass, what else has 12 points that can all be associated with direction?<br>• Work out each point at a time. The last item must be done last in the chain.',
                 puzzleClass: CompassSentinelPuzzle,
-                mainIcon: [12, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 14, 'custom'),
                 completionMessage: 'The wheel is broken; the whispers grow louder.',          
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['lawkeeper_walk', 'close_call'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1520,9 +1521,9 @@
                 clue: 'The Brothers speak of vows that bind in chains,<br>a complicated rite not meant to be spoken lightly.<br><br>Swear it, break it, swear again,<br>and only thrice may the Matriarchs sleep<br>before waking in truth.<br><br>When their whispers are stilled,<br>the gilded switch shall light the world,<br>the silver veil shall be drawn across the sky,<br>and the year shall be walked in turn,<br>each season passing in its rightful order.<br><br>Thus is the circle sealed.',
                 hint: '• Where can you make and break vows to the grandmatriarchs? What other things can you do in that same area?',
                 puzzleClass: LitanyBrokenVowsPuzzle,
-                mainIcon: [8, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 13, 'custom'),
                 completionMessage: 'The vows bind, break, and bind again. The circle is sealed, yet suspicion stirs.',
-                completionIcon: [1, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['compass_sentinel'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1534,9 +1535,9 @@
                 clue: 'The Brothers whisper of a circle wrought not with stone,<br>but with incantations, five in measure.<br>Begin with the shadow that stirs yet cannot rise.<br>Next bind the failure, lest it spoils the ritual.<br>Set forth a bargain, sealed in coin.<br>Grasp the sand as it slips the glass,<br>stretching each grain beyond its course.<br>Finally, unleash the nimble sprites,<br>their deft hands completing the weave.',
                 hint: '• Shadows stir but they don\'t rise, sounds like a failure to me. Certain conditions cause a failure to always happen here.<br>• What else could sprites mean, folklore can never seem to settle on proper names for these little things?',
                 puzzleClass: RiteFivefoldCastingPuzzle,
-                mainIcon: [6, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(6, 16, 'custom'),
                 completionMessage: 'The five incantations resound. The Brothers\' circle holds you within.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['litany_broken_vows'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1548,9 +1549,9 @@
                 description: 'The crimson hymn rose, ovens quaked, and fortune poured across the earth. While others reached for riches, you turned aside and stepped into the Great Beyond. The Matriarchs shrieked above, and still you held fast.<q>This was a public act, bold and dangerous. In the chaos, you risked everything to prove you would not betray their creed of restraint.</q>',
                 clue: 'When the Grandmatriarchs shriek their crimson hymn,<br>the ovens quake and fortune floods the earth.<br>Yet the faithful must turn from abundance,<br>stepping into the Great Beyond while the chorus still roars.',
                 hint: '• You won\'t want to run from so many cookies but sometimes you have to forgo riches. What is the only way you can truly end this type of frenzy early?',
-                mainIcon: [13, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 13, 'custom'),
                 completionMessage: 'The hymn fades, the storm of fortune passes. You stood apart, and they saw.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['rite_fivefold_casting'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1562,9 +1563,9 @@
                 description: 'They set the hidden sums before you, each number bound to the next in chains of balance. You traced their knots and laid the bonds true, the ledger closing with a weight that was more than ink.<q>To be trusted with their reckoning is to be seen as one of them. But every figure is a snare, and you walked among them without falter.</q>',
                 clue: 'The Order reckons in hidden sums.<br>Let the sky-borne couriers be your measure.<br>The fields of grain lag the couriers by three-score.<br>The veins of the earth are half again the fields<br>and yet the veins and the couriers must be as one.<br>The houses of coin hold the veins plus the couriers.<br>The sanctums of prayer keep a third of those coffers.<br>The broken clocks are the sanctums plus ninety.<br>The recursive engines are half those clocks.<br>when every bond holds, the knot will loosen.',
                 hint: '• Figuring out the names is the first part of the battle, from there you will need to associate the relationships. It\'s a good thing you ascended recently, otherwise you might need to sell too many to be worthwhile; now you can just buy. Only totals matter here.',
-                mainIcon: [8, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 17, 'custom'),
                 completionMessage: 'The bonds hold fast; the ledger closes. Trust deepens.',
-                completionIcon: [6, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['grandmatriarchs_flight'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1576,9 +1577,9 @@
                 description: 'They led you into the hollow where bone-white stalks guard the earth. Between them, blooms waited for order, their pattern incomplete. With careful hands you set the rows, white and mixed, silence and color, until the garden itself bowed to their design.<q>In tending this place, you left a trace of yourself among them. The pattern is theirs, but now it bears your hand.</q>',
                 clue: 'The Six Orders mark their halls with a sign that never dies.<br><br>At its heart, four crowns of the elusive bloom,<br>a petal of foreverness, guardian against the rot, yet whose sweetness hides a trace of poison.<br><br>Not in a single stem, but in limbs of doubled breadth shall these crowns be set, reaching ever out in perfect form.<br><br>The others filled with the forgotten stalks, deathless blooms whose scent clouds the air and whose roots whisper of wrath.<br><br>Raise this deathless sigil, and in its geometry your false devotion shall be believed.',
                 hint: '• Only two are truly immortal. Pay careful attention to the arms/legs/limbs, they are stretched straight out.',
-                mainIcon: [12, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 12, 'custom'),
                 completionMessage: 'The stalks stand tall, the blooms aligned. The pattern holds, and so do you.',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['ledger_bonds'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1590,9 +1591,9 @@
                 clue: 'The storm will tempt you with riches,<br>but the Brothers spurn such glitter.<br>When the sky rains gold,<br>touch none of them.<br>Instead, strike down a quartet of leeches at the cookie\'s heart,<br>and prove your devotion is not swayed by material temptations.',
                 hint: '• When cookies rain from the sky, especially when they are golden, or more specifically red, then you can begin.',
                 puzzleClass: StormDevotionPuzzle,
-                mainIcon: [7, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(7, 15, 'custom'),
                 completionMessage: 'The storm passed, and you stood unshaken. They saw your devotion.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['garden_pattern'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1604,9 +1605,9 @@
                 clue: 'Not all dawns rise with the same face.<br>Some hours dress the world in counterfeit words,<br>and in those hours alone the ritual can be tallied.<br><br>Expand the mess, for employees do not bake on empty stomachs.<br>Strike a recipe from the ledger, for profit brooks no secrecy.<br>Seat a voice in the chamber, that flour may be decreed holy.<br>Increase holdings in the market, for faith untraded is wasted.<br><br>When these balances are kept,<br>the mask holds fast,<br>and the Brothers count you among the faithful.',
                 hint: '• Sometimes buildings have different names and faces.',
                 puzzleClass: FalseDawnPuzzle,
-                mainIcon: [17, 6, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(17, 6, 'main'),
                 completionMessage: 'The balances held. Stewards nodded; the mask didn\'t slip.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['storm_devotion'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1618,9 +1619,9 @@
                 clue: 'Nine steps bind the shadowed wheel,<br>miss one, and the circle shatters, and you must begin again.<br><br>First, call the sickle and the miser, bind hunger and hoarding in false union.<br>Next, break stone beside the changeling\'s blood.<br>Then crown the crooked fruit with the whisper of arcane fire.<br>Let the mirror reflect the distorted image of superior thought.<br>Bind good fortune to the belly of the beast; greed feeds hunger.<br>At the sixth toll, let the glass falsely reflect the clock-thief, illusion clutching time.<br>The black tithe stands in solitude, unshared, unabashed.<br>Place steel alongside chance, forge and dice in solidarity.<br>And to seal the rite let silence fall across the world.',
                 hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.<br>• Focus on the items themselves not the buildings they belong to.',            
                 puzzleClass: RiteNineFlamesPuzzle,
-                mainIcon: [14, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 16, 'custom'),
                 completionMessage: 'Nine flames tended. The dragon bowed. And part of you bowed with it.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['storm_devotion'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1632,9 +1633,9 @@
                 description: 'They opened the shelves, balances only the faithful may touch. You set the jars to their hidden sums, and the page closed as though your hand had always belonged there.<q>You did not hesitate. Only after, you asked yourself why. The Order of the Eternal Cookie is proud of the mathematical wit you demonstrated.</q>',
                 clue: 'Set six jars upon the shelf.<br>The bitter dark jar holds twice the churned jar. <br>The pale flower keeps a dozen fewer than the darkness. <br>A third-pinch fills the salt from the pale flower.<br>The churn is nine shy of the wheat.<br>The fragile shells hold the wheat and the briny stones together.<br>And the tally of all six must be three gross less nine.<br>Leave every other jar bare, and only then will the page balance.',
                 hint: '• Bitter dark sounds like something you put in a cookie, so do the rest of these in fact. Where have you seen a list of ingredients before?<br>• Pale flowers might make dark seed pods. <br>• Cream isn\'t churned but something else is.',
-                mainIcon: [11, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 12, 'custom'),
                 completionMessage: 'The jars balanced. And so did your steps, more easily than they should have.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['rite_nine_flames'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1646,9 +1647,9 @@
                 clue: 'Staff every bed in the square ward with caretakers of red.<br>Wait until every post stands tall in its fullness.<br>Only then, clear the two great corridors corner to corner, no foot sets upon those crossing halls.<br>Along each outer wall, keep four in a row;<br>one pace inward, keep but two.<br>When the halls lie empty and the fours-and-twos endure,<br>the Caretaker will notice.',
                 hint: '• Nurses are caretakers, sometimes they wear red. Where have you seen red nurses before?',
                 puzzleClass: NursesFieldsPuzzle,
-                mainIcon: [4, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(4, 16, 'custom'),
                 completionMessage: 'The halls emptied, the pattern endured. And you endured with it.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['six_jars_ledger', 'watch_keeper_rounds'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1660,9 +1661,9 @@
                 clue: 'The bright star guides the way.<br>A westerly wind sets upon her canvas.<br>Shine green from the lee beam through the lee quarter.<br>Keep the taffrail lantern bright.<br>Glow the bowsprit flame.<br>Light the weather quarters before dousing the astern one.<br>Let no other lights shine tonight',
                 hint: '• A ship sailing towards the north star has many lights. 12 points can be used to represent these lights.',
                 puzzleClass: RuleLightsPuzzle,
-                mainIcon: [12, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 16, 'custom'),
                 completionMessage: 'The lamps fall silent, save those they commanded. The Order\'s path shines before you.',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['nurses_fields'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1674,9 +1675,9 @@
                 description: 'The reliquary loomed, iron doors waiting in silence. You laid down treasures not to hold, but to surrender. The vault stirred as if it remembered your offering.<q>What you gave cannot be reclaimed. Nor can the part of yourself you sealed away with it.</q>',
                 clue: 'The Great Orders are not fed by what you hold,<br>but by what you lay aside.<br>Their relics must rest in shadow, honored though never touched.<br>The Orders care not for specifics, only that your honor is sincere <br>Place a treasure for each,<br>the reliquary shall stir, when your task is sealed in iron',
                 hint: '• Where can you place 6 objects in a safe place, maybe even one made out of iron, so they cannot be touched?',
-                mainIcon: [8, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 16, 'custom'),
                 completionMessage: 'The reliquary closed. The cost is yours to bear.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['rule_lights'],
                 isActive: false, 
                 type: 'infiltrate'
@@ -1688,9 +1689,9 @@
                 description: 'Six fragments, six vows, crown, spark, gleam, heart, shadow, song. You gathered them, bound them, and the ovens roared as the sigil burned bright. You were no longer copying their rites, you were shaping their mark.<q>Your friend would call this betrayal. The Brothers call it proof. And part of you agrees with them.</q>',
                 clue: 'In the beginning six ancient vows were sworn, each leaving a single fragment of the mark.<br>Look not to what they share<br>Seek instead uniqueness, where true meaning dwells.<br><br>From those who worship the shining tool that stirs the dough, take the crown upon its head.<br>From those who make the batch no hand could ever bake, seize the spark that begins its fire.<br>From those who kneel before the crumb that glitters brighter than coin, lift the mark that gleams first.<br>From those that dwell in the shadow that blots the sky, take its hidden heart.<br>From those who took the vow that outlasts time, carve the final shade it casts.<br>From those who used the whisk that dances with magic, draw the penultimate hiss of its song.<br><br>Bind these fragments together.<br>Let the ovens burn beneath this name, and the path will open.',
                 hint: '• You have been given all the names over time, you just need to put them together. Each name lends a single letter.',
-                mainIcon: [8, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 14, 'custom'),
                 completionMessage: 'The fragments bound, the sigil shone. Whose mark did you make, theirs, or yours?',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['vaulted_relics', 'mask_wears_thin'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1702,9 +1703,9 @@
                 description: 'Clay paths, bone sentries, spirals, thorns, crowns. Step by step, you walked their soil, blades at your back, petals at your side, until the northern gate of eternal flowers opened before you. You did not merely walk their maze, you crossed into their world.<q>The Brotherhood will never see you as anything but theirs. The question is no longer whether you can escape, but whether you want to.</q>',
                 clue: 'To meet The Order, you must walk a sacred path.<br>Walk not upon foliage, but on bare clay;<br>All untold and untrodden fall to the baker\'s friend<br><br>Begin a pace distanced from the southern wall, with a single step to the rising sun,<br>stand between twin sentries whose bones do not decay but hasten others.<br><br>With the map now orientated stride forward twice,<br>meeting the spiral that turns towards the hours.<br>Face the dawn, and pass between the twin thorn-cries set in twain, do not linger.<br><br>To your right, the ordered blade keeps its vigil,<br>and before you waits the cats delight.<br><br>Now let the blades fall small upon your back<br>Upon the east horizon twin humble patches of green,<br>and before you in the distance gleams bright their golden kin.<br><br>Abandon the light for the dusk, and past the thorn-cries where they were ordered<br>and halt before the pallid spiral that unwinds against the hours.<br><br>Spirals to south and spirals to west if no missteps.<br>The northern gate flanked by eternal petals marks your exit.',
                 hint: '• You need to start off the map, one pace below and one pace to the right.<br>• You will end up with a single path if everything is right.<br>• There will be areas that aren\'t specified; the riddle provides what these need to be filled with.<br>• The soil matters here but maturity does not.',
-                mainIcon: [13, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 17, 'custom'),
                 completionMessage: 'The petals fall behind you. The path is chosen. Whose path it is, that remains to be decided.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['sigils', 'still_with_us'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1716,9 +1717,9 @@
                 clue: '<style>#tooltipCrate .description .schismClue, #tooltipCrate .description .schismClue q { color:#faeacd !important; }</style>Twelve sit the circle, with festive hats affixed, stewards of the ceaseless march.<br>Their measures are uneven: seven hold the longer reign, five the shorter.<br>Among the lesser, one forever limps, sometimes gaining a step but never the stature of its kin.<span class="schismClue"><br><br><b class="standWithOrder" style="color:#FFE0BD !important;">To stand with The Order let those of longer reign endure; cast the others into shadow.</b><br><br><b class="exposeOrder" style="color:#CFE1FF !important;">To expose The Order and their secrets to the world let those of longer reign fall; cast the others into the light.</b></span>',
                 hint: '• Don\'t forget the festive hats.<br>• When you realize what the ceaseless march is you will have the answer.',                
                 puzzleClass: SchismChoicePuzzle,
-                mainIcon: [10, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 14, 'custom'),
                 completionMessage: 'The choice is made. {{expose:You have chosen to expose The Order and their secrets to the world||order:You have chosen to stand with The Order}}. There is no turning back now.',
-                completionIcon: [10, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(10, 14, 'custom'),
                 dependencies: ['still_with_us', 'garden_maze'],
                 isActive: false,
                 type: 'choose'
@@ -1730,9 +1731,9 @@
                 clue: 'You have chosen {{expose:to expose The Order and their secrets to the world and bring to an end their shadow reign||order:to stand with The Order and serve them in whatever way they need}}. The path ahead is dangerous and difficult, your opponents will spare no effort to thwart you, you must prevail in your mission.<q>There is no going back. Your allegiance has been declared.</q><br><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message12.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• How\'s your Latin? Rome was founded on April 21st, right? Everything is added, not stand alone there.<br>• It\'s counterintuitive but Year 0 doesn\'t actually exist.<br>• A cipher favored by prisoners who have Bibles.',
                 description: '{{expose:You turned their own chronicle into a key, drew the hidden line, and made the hall sing it back in your order. When the last note fell, you burned the bridge behind you.<q>No more hedging—only the work of dragging them into the light.</q>||order:You read the Chronicle as a Brother, pulled the buried instruction, and set the hall to their sequence. When the final tone held, you closed the other channel and stepped fully inside.<q>No more divides—your hand is theirs.</q>}}',
-                mainIcon: [11, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 17, 'custom'),
                 completionMessage: '{{expose:Conviction proved. The Brotherhood line is cut; your signal runs outward alone.||order:Conviction proved. The rebel line is erased; only the Brothers hear you now.}}',
-                completionIcon: [11, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(11, 17, 'custom'),
                 dependencies: ['schism_choice'],
                 isActive: false,
                 type: 'choose'
@@ -1744,9 +1745,9 @@
                 description: '{{expose:The Order would kill for this, technology enough to bend perceptions and the will of humanity. You kept it out of their hands and loosened a hidden seam in their plans.<q>Hide it deep. When the moment breaks, this is the weight that tips the scale.</q>||order:Whoever holds this holds the keys to power. You placed the artifact in the Brotherhood\'s vault, and with it, your trust.<q>With this secured, you are theirs in truth; when the call comes, you move with them.</q>}}',
                 clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/tv.gif" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Channel 3 is important, a screenshot might help you figure out what to do here.<br>• Etaoin is an important word here, but it\'s not a real word.',
-                mainIcon: [14, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 17, 'custom'),
                 completionMessage: '{{expose:The artifact is sealed away from their hands; their reach shortens.||order:The artifact rests in their vaults; the inner circle of The Order marks your name.}}',                    
-                completionIcon: [14, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(14, 17, 'custom'),
                 dependencies: ['embrace_path'],
                 isActive: false,
                 type: 'choose'
@@ -1758,9 +1759,9 @@
                 description: '{{expose:You have blown the doors wide. Ledgers, rites, faces, laid bare and exposed to the public. Their grip loosens, and the world whispers the truth, no longer bound by fear. One task remains before they can regroup, strike while they stagger and end their reign once and for all.<q>By wit, patience, and nerve, you brought them to the brink. One more push.</q>||order:You handed over everything, drops, codes, routes, safe houses, names, and faces, all that was once entrusted to you. The Brotherhood moves like a blade, quiet, coordinated, vicious, final. With your cache in their capable hands, the purge begins.<q>By wit, patience, and nerve, you steadied the world\'s order. One more strike, and there will be no enemies left to fight.</q>}}',
                 clue: 'Every note is a musician every musician is a note only when the full ensemble is gathered will you be able to hear the music. Strike each note as it\'s named, stumble too often or move too slowly and the path stays hidden.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message13.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• 14 notes are needed to play this song. Where can you get 14 notes from?<br>• After the music has been played, where can you redeem something in Cookie Clicker?',
-                mainIcon: [10, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 17, 'custom'),
                 completionMessage: '{{expose:The exchange is complete; the endgame begins.||order:The exchange is complete; the purge begins.}}',
-                    completionIcon: [10, 17, customSpriteSheetUrl],
+                    completionIcon: Game.JNE.icon(10, 17, 'custom'),
                 dependencies: ['loyalty_test'],
                 isActive: false,
                 type: 'choose'
@@ -1772,9 +1773,9 @@
                 description: '{{expose:The Order stands exposed; their sigils are scraped from doors and their ledgers pass hand to hand. Cells scatter, safehouses go cold, and the sects turn on one another in the harsh and unforgiving daylight you dragged them into. Not destroyed, but driven back into the shadows, your lost friends are avenged, your allies sleep easier, and the world whispers your work in half-remembered headlines. By wits, patience, and nerve, you unraveled scores of ciphers, ledgers, and rites few would dare.<q>Hold your head high; you kept your promise, outplayed their watchers and spies, and pulled the underworld elite into the light.</q>||order:They tried to unmask the Brotherhood; instead you steadied its hand. Decoys were laid, leaks sealed, and the rites kept without a misstep; the world now run truer for it. The old sigils shine again behind iron doors. The mask you wore has become a name, and a chair is kept for you when the circle meets. By wits, patience, and nerve, you turned trial after trial into mastery.<q>Hold your head high; you weighed the cold hard facts, outmaneuvered their foes, and chose the greater good in the end.</q>}}',
                 clue: '{{expose:Steel yourself for the final battle to expose The Order. Victory or defeat, everything hangs in the balance.||order:Steel yourself for the final battle to defend The Order. Victory or defeat, everything hangs in the balance.}}<br><br>When a full set of sailors sit above the rose sea the path will reveal itself.<q>They say good fences make good neighbors.</q>',
                 hint: '• How do sailors send complex messages to each other? <br> • A code into a code is annoying, but a fence will help, one of those 3 rail picket ones maybe? <br> • Something seems wrong with this chessboard once you figure out what it is then you are almost there. <br>• Chess clocks have many uses, but these ones are especially key once you read the time.',
-                mainIcon: [9, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 17, 'custom'),
                 completionMessage: '{{expose:The Order\'s darkness has been exposed. Truth prevails.||order:The darkness has been vanquished. The Order prevails.}}',
-                completionIcon: [9, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 17, 'custom'),
                 dependencies: ['rise_up'],
                 isActive: false,
                 type: 'choose'
