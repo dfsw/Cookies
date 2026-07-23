@@ -3251,6 +3251,8 @@ PotionsM.init = function(div) {
     PotionsM._refreshSlots();
     PotionsM._renderSelectedReagents();
     PotionsM._checkPrestigeButton();
+
+
     PotionsM._potionsBrewedL = l('potionsPotionsBrewed');
     PotionsM.updatePotionsBrewedDisplay();
 
@@ -3329,12 +3331,6 @@ PotionsM._makeIcon = function(col, row, sheet, size) {
     if (size !== 48) {
         el.style.width = size + 'px';
         el.style.height = size + 'px';
-    }
-    // Register for sprite sheet update if using custom sheet
-    if (sheetName === 'custom' && typeof registerSpriteSheetLoadCallback === 'function') {
-        registerSpriteSheetLoadCallback(function() {
-            el.style.backgroundImage = 'url(' + ICON_SHEETS.custom + ')';
-        });
     }
     return el;
 };
