@@ -5,6 +5,14 @@
 
 const DOWNLINE_VERSION = '1.0.6';
 
+// TEMPORARY DEBUG: relay to the main mod file's flow logger if present, else fall back to console.
+function _dlFlowLog(tag, data) {
+    try {
+        if (typeof window.__JNEFlowLog === 'function') { window.__JNEFlowLog('Downline:' + tag, data); return; }
+        console.log('[JNE-FLOW][Downline:' + tag + ']', data !== undefined ? data : '');
+    } catch (e) {}
+}
+
 var downlineAchievementNames = [
     'Popularity factor',
     'Factorial factor',
@@ -3251,11 +3259,14 @@ DownlineM.init = function(div) {
       if (window.DownlineMinigame && window.DownlineMinigame.writeCache) {
         window.DownlineMinigame.writeCache(decodeURIComponent(saveString));
       }
+      _dlFlowLog('_saveImpl:result', { len: saveString.length });
       return saveString;
     };
 
     DownlineM._loadImpl = function (str) {
+      _dlFlowLog('_loadImpl:entry', { type: typeof str, len: (typeof str === 'string') ? str.length : str, stack: (new Error()).stack });
       if (!str || str === '') {
+        _dlFlowLog('_loadImpl:branch=empty-input -> RESET', null);
         DownlineM._resetImpl(false);
         return;
       }
@@ -3271,13 +3282,16 @@ DownlineM.init = function(div) {
         }
         data = JSON.parse(decoded);
       } catch (e) {
+        _dlFlowLog('_loadImpl:branch=parse-failed -> RESET', { error: e && e.message });
         DownlineM._resetImpl(false);
         return;
       }
       if (!data || typeof data !== 'object') {
+        _dlFlowLog('_loadImpl:branch=invalid-data -> RESET', null);
         DownlineM._resetImpl(false);
         return;
       }
+      _dlFlowLog('_loadImpl:branch=success -> applying data', null);
       var prevPrestige = G.prestige || 0;
       var prevPrestigeBoost = G.prestigeBoost || 0;
       DownlineM._resetImpl(false);
@@ -3689,6 +3703,12 @@ function initializeDownlineMinigame() {
     var flagDefined = !!(Game.JNE && Game.JNE.enableDownlineMinigame !== undefined);
     var isConsoleLoading = !flagDefined || (Game.JNE && Game.JNE.enableDownlineMinigame === false);
     var isEnabled = flagDefined ? !!Game.JNE.enableDownlineMinigame : true;
+    _dlFlowLog('initializeDownlineMinigame:entry (runs synchronously as part of script body, BEFORE vanilla onload fires)', {
+        flagDefined: flagDefined, isConsoleLoading: isConsoleLoading, isEnabled: isEnabled,
+        minigameLoaded: fractalEngine.minigameLoaded, minigameLoading: fractalEngine.minigameLoading,
+        fractalEngineMinigameSaveTruthy: !!fractalEngine.minigameSave,
+        jneDownlineSavedDataLen: (Game.JNE && typeof Game.JNE.downlineSavedData === 'string') ? Game.JNE.downlineSavedData.length : undefined
+    });
 
     function ensureMinigameDiv() {
         if (fractalEngine.minigameDiv) return;

@@ -4108,7 +4108,7 @@ PotionsM._startBrew = function() {
             TriedRecipes.mark(G.triedRecipes, rIds[0], rIds[1], rIds[2]);
         }
         
-        var discoveryTime = 300;
+        var discoveryTime = 180;
         
         // Apply Syrup of Insight misbrew to discovery time 
         if (Game.hasBuff('Syrup of Insight (misbrewed)')) {
