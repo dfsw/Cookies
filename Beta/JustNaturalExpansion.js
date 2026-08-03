@@ -8373,9 +8373,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     achievementsData = JSON.parse(saveAchievementsData());
                 } catch (e) {
                     errorLog('mod.saveSystem.save: Error saving achievements data:', e);
-                    // Fall back to the last known-good stashed achievements instead of an
-                    // empty object — writing {} here would permanently wipe every earned
-                    // achievement on the next load if this exception ever fires.
                     achievementsData = { achievements: (modSaveData && modSaveData.achievements) || {} };
                 }
                 

@@ -4588,9 +4588,21 @@ PotionsM._buildSaveDataImpl = function() {
 
     // 6. Achievement won state: array of won indices
     var aw = [];
-    for (var ai = 0; ai < potionsAchievementNames.length; ai++) {
-        var ach = Game.Achievements && Game.Achievements[potionsAchievementNames[ai]];
-        if (ach && ach.won) aw.push(ai);
+    if (!potionsAchievementState.achievementsCreated) {
+        if (Array.isArray(PotionsM._pendingAchWon)) {
+            aw = PotionsM._pendingAchWon;
+        } else {
+            // Achievements were removed (disabled minigame) — preserve won state from [DISABLED] entries
+            for (var ai = 0; ai < potionsAchievementNames.length; ai++) {
+                var hiddenAch = Game.Achievements && Game.Achievements[potionsAchievementNames[ai] + ' [DISABLED]'];
+                if (hiddenAch && hiddenAch._savedWonStatus) aw.push(ai);
+            }
+        }
+    } else {
+        for (var ai = 0; ai < potionsAchievementNames.length; ai++) {
+            var ach = Game.Achievements && Game.Achievements[potionsAchievementNames[ai]];
+            if (ach && ach.won) aw.push(ai);
+        }
     }
 
     // rn/pn: record how many reagents/potions exist at save time.
