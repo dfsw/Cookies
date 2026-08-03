@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.1.4';
+const POTIONS_VERSION = '1.1.5';
 
 // =====================================================================
 // Potions 
@@ -26,7 +26,7 @@ var POTIONS = [
         duration: 180,
         misbrew: "Clicking is 50% less powerful for 10 minutes.",
         reagents: { nectar_of_effort: 1, dragon_scales: 1, golden_flour: 1 },
-        unlocked: false
+        unlocked: true
     },
     {
         id: 'arcana_of_the_finger',
@@ -4693,6 +4693,11 @@ PotionsM._loadImpl = function(str) {
                 POTIONS[i].unlocked = true;
             }
         }
+    }
+
+    var _baselinePotion = getPotionById('oil_of_hephaestus');
+    if (_baselinePotion && !_baselinePotion.unlocked && G.prestigeCount === 0) {
+        _baselinePotion.unlocked = true;
     }
 
     // Staged reagents (selected but not yet committed to a brew)

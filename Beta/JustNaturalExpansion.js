@@ -3638,39 +3638,27 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     console.error('JNE: Error injecting getTimeMod modifications:', error);
                 }
             }
-            
-            registerHook('logic', function() {
-                if (Game.gainBuff && !Game._gainBuffHooked) {
-                    if (!Game._jneOriginalGainBuff) Game._jneOriginalGainBuff = Game.gainBuff;
-                    Game.gainBuff = function(type, time, arg1, arg2, arg3) {
-                        if (type === 'click frenzy' || type === 'frenzy' || type === 'blood frenzy') {
-                            if (Game.Has('Order of the Enchanted Whisk')) {
-                                arg1 = Math.ceil(arg1 * 1.05);
-                            }
-                        }
-                        return Game._jneOriginalGainBuff.call(this, type, time, arg1, arg2, arg3);
-                    };
-                    Game.gainBuff._jneGainBuffHooked = true;
-                    Game._gainBuffHooked = true;
-                }
-            }, 'Hook into Game.gainBuff for frenzy buff modifications');
-            
-            registerHook('logic', function() {
-                if (Game.buffs && Game.Has('Order of the Enchanted Whisk')) {
-                    for (let buffName in Game.buffs) {
-                        let buff = Game.buffs[buffName];
-                        if (buff && !buff._enchantedWhiskModified) {
-                            if (buffName === 'Click frenzy' || buffName === 'Frenzy' || buffName === 'Elder frenzy') {
-                                buff._enchantedWhiskModified = true;
-                                if (buff.multClick) buff.multClick = Math.ceil(buff.multClick * 1.05);
-                                if (buff.multCpS) buff.multCpS = Math.ceil(buff.multCpS * 1.05);
-                            }
-                        }
-                    }
-                }
-            }, 'Modify existing frenzy buffs for Order of the Enchanted Whisk');
 
         }, 'Hook into golden cookie frequency system');
+
+
+        registerHook('logic', function() {
+            if (Game.gainBuff && !Game._gainBuffHooked) {
+                if (!Game._jneOriginalGainBuff) Game._jneOriginalGainBuff = Game.gainBuff;
+                Game.gainBuff = function(type, time, arg1, arg2, arg3) {
+                    if (type === 'click frenzy' || type === 'frenzy' || type === 'blood frenzy') {
+
+                        if (Game.Has('Order of the Enchanted Whisk') &&
+                            !(Game.JNE && Game.JNE._isRestoringData)) {
+                            arg1 = Math.ceil(arg1 * 1.05);
+                        }
+                    }
+                    return Game._jneOriginalGainBuff.call(this, type, time, arg1, arg2, arg3);
+                };
+                Game.gainBuff._jneGainBuffHooked = true;
+                Game._gainBuffHooked = true;
+            }
+        }, 'Hook into Game.gainBuff for frenzy buff modifications');
 
         // Set up save hook to exclude mod upgrades from permanent slots during save
         setupPermanentSlotSaveHook();
@@ -3685,13 +3673,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     
                     // Check if wrinkler was just popped (phase went from > 0 to 0)
                     if (prevState && prevState.phase > 0 && me.phase == 0) {
-                        // Count ALL wrinkler pops (regardless of type)
                         sessionDeltas.wrinklersPopped++;
                         
                         // Track shiny wrinkler pops specifically
                         if (me && me.type == 1) {
                             modTracking.shinyWrinklersPopped++;
-                            // Also immediately save to lifetime data since game doesn't track this
                             lifetimeData.shinyWrinklersPopped++;
                             
                         }
@@ -7520,6 +7506,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             enableBuildingUpgrades: !!modSettings.enableBuildingUpgrades,
             enableKittenUpgrades: !!modSettings.enableKittenUpgrades
         };
+
+        if (!achievementsCreated) {
+            if (modSaveData && modSaveData.achievements) {
+                modData.achievements = modSaveData.achievements;
+            }
+            return JSON.stringify(modData);
+        }
         
         // Save the won state of each of our custom achievements
         var savedCount = 0;
@@ -7540,6 +7533,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 if (wonState > 0) {
                     wonCount++;
                 }
+            } else if (modSaveData && modSaveData.achievements && modSaveData.achievements[name]) {
+                // back to the last known state rather than silently dropping it.
+                modData.achievements[name] = { won: modSaveData.achievements[name].won || 0 };
             }
         });
         
@@ -8377,7 +8373,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     achievementsData = JSON.parse(saveAchievementsData());
                 } catch (e) {
                     errorLog('mod.saveSystem.save: Error saving achievements data:', e);
-                    achievementsData = { achievements: {} };
+                    // Fall back to the last known-good stashed achievements instead of an
+                    // empty object — writing {} here would permanently wipe every earned
+                    // achievement on the next load if this exception ever fires.
+                    achievementsData = { achievements: (modSaveData && modSaveData.achievements) || {} };
                 }
                 
                 var wonAchievements = 0;
@@ -8395,27 +8394,30 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     upgradesData = JSON.parse(saveUpgradesData());
                 } catch (e) {
                     errorLog('mod.saveSystem.save: Error saving upgrades data:', e);
-                    upgradesData = { upgrades: {} };
+                    upgradesData = { upgrades: (modSaveData && modSaveData.upgrades) || {} };
                 }
                 
-                // Create a copy of lifetime data without the sacrifice time
-                // Debug log removed for clean console
-                var lifetimeDataToSave = {
-                    reindeerClicked: lifetimeData.reindeerClicked || 0,
-                    stockMarketAssets: lifetimeData.stockMarketAssets || 0,
-                    shinyWrinklersPopped: lifetimeData.shinyWrinklersPopped || 0,
-                    wrathCookiesClicked: lifetimeData.wrathCookiesClicked || 0,
-                    totalCookieClicks: lifetimeData.totalCookieClicks || 0,
-                    wrinklersPopped: lifetimeData.wrinklersPopped || 0,
-                    elderCovenantToggles: lifetimeData.elderCovenantToggles || 0,
-                    pledges: lifetimeData.pledges || 0,
-                    godUsageTime: lifetimeData.godUsageTime || {},
-                    cookieFishCaught: lifetimeData.cookieFishCaught || 0,
-                    bingoJackpotWins: lifetimeData.bingoJackpotWins || 0,
-                    lanternsClicked: lifetimeData.lanternsClicked || 0,
-                    zodiacVisited: lifetimeData.zodiacVisited || '000000000000',
-                    seasonalReindeerData: seasonalReindeerData || '00000'
-                };
+                var lifetimeDataToSave;
+                if (!modInitialized && modSaveData && modSaveData.lifetime) {
+                    lifetimeDataToSave = modSaveData.lifetime;
+                } else {
+                    lifetimeDataToSave = {
+                        reindeerClicked: lifetimeData.reindeerClicked || 0,
+                        stockMarketAssets: lifetimeData.stockMarketAssets || 0,
+                        shinyWrinklersPopped: lifetimeData.shinyWrinklersPopped || 0,
+                        wrathCookiesClicked: lifetimeData.wrathCookiesClicked || 0,
+                        totalCookieClicks: lifetimeData.totalCookieClicks || 0,
+                        wrinklersPopped: lifetimeData.wrinklersPopped || 0,
+                        elderCovenantToggles: lifetimeData.elderCovenantToggles || 0,
+                        pledges: lifetimeData.pledges || 0,
+                        godUsageTime: lifetimeData.godUsageTime || {},
+                        cookieFishCaught: lifetimeData.cookieFishCaught || 0,
+                        bingoJackpotWins: lifetimeData.bingoJackpotWins || 0,
+                        lanternsClicked: lifetimeData.lanternsClicked || 0,
+                        zodiacVisited: lifetimeData.zodiacVisited || '000000000000',
+                        seasonalReindeerData: seasonalReindeerData || '00000'
+                    };
+                }
                 
                 //get terminal minigame save string
                 var terminalSaveString = '';
@@ -8454,6 +8456,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 } catch (e) {
                     errorLog('mod.saveSystem.save: Error getting Cookie Age save data:', e);
                 }
+                // Race-condition guard: Cookie Age's applySaveData() is called in
+                // continueModInitialization() AFTER modInitialized is set. If save() fires
+                // in that narrow window, getSaveData() may return null even though valid
+                // data is stashed in Game.JNE.cookieAgeSavedData. The else-if above only
+                // catches the case where getSaveData doesn't exist, not where it returns
+                // null — so check again here and fall back to the stashed data.
+                if (cookieAgeData === null && Game.JNE && Game.JNE.cookieAgeSavedData) {
+                    cookieAgeData = Game.JNE.cookieAgeSavedData;
+                }
                 
                 //get heavenly upgrades save string
                 var heavenlyUpgradesSaveString = '';
@@ -8483,11 +8494,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     upgrades: upgradesData.upgrades || {},
                     achievements: achievementsData.achievements || {},
                     lifetime: lifetimeDataToSave,
-                    settings: modSettings,
+                    settings: (!modInitialized && modSaveData && modSaveData.settings) ? modSaveData.settings : modSettings,
                     terminal: terminalSaveString,
                     downlineMinigame: downlineMinigameSaveString,
                     potionsMinigame: potionsMinigameSaveString,
-                    modTracking: {
+                    modTracking: (!modInitialized && modSaveData && modSaveData.modTracking) ? modSaveData.modTracking : {
                         shinyWrinklersPopped: modTracking.shinyWrinklersPopped || 0,
                         templeSwapsTotal: modTracking.templeSwapsTotal || 0,
                         soilChangesTotal: modTracking.soilChangesTotal || 0,
