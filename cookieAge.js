@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.7';
+    var expansionVersion = '1.0.8';
     var debugMode = false; // Set to true for testing
   
     function customSpriteSheetUrl() {
@@ -3032,18 +3032,13 @@
         var actualPuzzleId = typeof puzzleId === 'number' ? getPuzzleIdByIndex(puzzleId) : puzzleId;
         var numericId = typeof puzzleId === 'number' ? puzzleId : getPuzzleIndex(puzzleId);
         
-        // Clean up specific puzzle hooks
+        // Clean up specific puzzle hooks by scanning registered hook types
         var hookKey = 'puzzle' + numericId;
-        var storedCb = cookieAgeData.puzzles.hooks[hookKey];
-        if (storedCb && Game.removeHook) {
-            try { Game.removeHook('check', storedCb); } catch (_) {}
-            try { Game.removeHook('logic', storedCb); } catch (_) {}
-        }
         if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks) {
             delete cookieAgeData.puzzles.hooks[hookKey];
         }
 
-        // Additionally, scan all hook types and remove any Cookie Age callbacks for this puzzle
+        // Scan all hook types and remove any Cookie Age callbacks for this puzzle
         try {
             if (Game.customHooks) {
                 var suffix = ':puzzle' + numericId;
@@ -3673,18 +3668,14 @@
     BasePuzzle.prototype.registerHook = function(hookType, callback, description) {
         var hookKey = this.hookKey;
         cookieAgeData.puzzles.hooks[hookKey] = callback;
-        this.hooks.push({ key: hookKey, callback: callback });
+        this.hooks.push({ key: hookKey, callback: callback, type: hookType });
         return safeRegisterHook(hookType, callback, description, hookKey);
     };
-    
+
     BasePuzzle.prototype.removeHooks = function() {
-        var self = this;
         this.hooks.forEach(function(hook) {
-            if (Game.removeHook) {
-                try {
-                    Game.removeHook('check', hook.callback);
-                    Game.removeHook('logic', hook.callback);
-                } catch (e) {}
+            if (Game.removeHook && hook.type) {
+                try { Game.removeHook(hook.type, hook.callback); } catch (e) {}
             }
             delete cookieAgeData.puzzles.hooks[hook.key];
         });
@@ -9213,16 +9204,36 @@
     }
     
     // Helper method for testing - mark puzzle as completed (bypass dependencies)
+    // Clears any blocking state (completing/notificationsShown) so completion always succeeds
     function markPuzzleCompleted(puzzleId) {
+        ensurePuzzleSystemInitialized();
+        ensureTracksInitialized();
+
         if (!cookieAgeData.puzzles.completed) {
             cookieAgeData.puzzles.completed = [];
         }
-        
-        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-            cookieAgeData.puzzles.completed.push(puzzleId);
+        if (!cookieAgeData.puzzles.completing) {
+            cookieAgeData.puzzles.completing = {};
         }
-        
-        return cookieAgeData.puzzles.completed;
+        if (!cookieAgeData.puzzles.notificationsShown) {
+            cookieAgeData.puzzles.notificationsShown = {};
+        }
+
+        // Clear blocking state so tryCompletePuzzle won't bail out
+        delete cookieAgeData.puzzles.completing[puzzleId];
+        delete cookieAgeData.puzzles.notificationsShown[puzzleId];
+
+        // If already in completed array, remove it so tryCompletePuzzle can run full logic
+        var idx = cookieAgeData.puzzles.completed.indexOf(puzzleId);
+        if (idx !== -1) {
+            cookieAgeData.puzzles.completed.splice(idx, 1);
+        }
+
+        var result = tryCompletePuzzle(puzzleId);
+        if (!result) {
+            console.warn('[Cookie Age] markPuzzleCompleted: tryCompletePuzzle returned false for', puzzleId);
+        }
+        return result;
     }
     
     // Helper method for testing - mark all dependencies as completed for a puzzle
@@ -9240,19 +9251,53 @@
         return true;
     }
     
-    // Helper method for testing - reset puzzle system and set target puzzle
-    function resetAndSetPuzzle(puzzleNumber) {
-        
-        // Deactivate current puzzle first
-        if (typeof deactivateCurrentPuzzle === 'function') {
-            deactivateCurrentPuzzle();
+    // Helper method for testing - reset target's track and activate the given puzzle ID
+    function resetAndSetPuzzle(puzzleId) {
+        ensurePuzzleSystemInitialized();
+        ensureTracksInitialized();
+
+        var puzzle = cookieAgeData.puzzles.registry[puzzleId];
+        if (!puzzle) {
+            console.warn('[Cookie Age] resetAndSetPuzzle: puzzle not in registry:', puzzleId);
+            return false;
         }
-        
-        // Clear completed puzzles
-        cookieAgeData.puzzles.completed = [];
-        
-        // Now set the puzzle progress (which will mark dependencies as completed)
-        setPuzzleProgress(puzzleNumber);
+        var trackType = puzzle.type;
+        var track = cookieAgeData.puzzles.tracks[trackType];
+
+        // Deactivate current puzzle in this track
+        if (track.active) {
+            deactivateCurrentPuzzle(track.active);
+        }
+        track.active = null;
+
+        // Reset this track: clear blocking state and completed entries for its puzzles
+        if (!cookieAgeData.puzzles.completing) cookieAgeData.puzzles.completing = {};
+        if (!cookieAgeData.puzzles.notificationsShown) cookieAgeData.puzzles.notificationsShown = {};
+        if (!cookieAgeData.puzzles.completed) cookieAgeData.puzzles.completed = [];
+        var orderArr = trackType === 'investigate' ? INVESTIGATE_PUZZLE_ORDER
+            : trackType === 'infiltrate' ? INFILTRATE_PUZZLE_ORDER
+            : CHOOSE_PUZZLE_ORDER;
+        for (var i = 0; i < orderArr.length; i++) {
+            var pid = orderArr[i];
+            delete cookieAgeData.puzzles.completing[pid];
+            delete cookieAgeData.puzzles.notificationsShown[pid];
+            var idx = cookieAgeData.puzzles.completed.indexOf(pid);
+            if (idx !== -1) cookieAgeData.puzzles.completed.splice(idx, 1);
+        }
+
+        // Mark prior puzzles in this track as completed and set progress to target
+        for (var j = 0; j < puzzle.trackOrder; j++) {
+            cookieAgeData.puzzles.completed.push(orderArr[j]);
+        }
+        track.progress = puzzle.trackOrder;
+
+        // Force-activate the target puzzle
+        track.active = puzzleId;
+        puzzle.isActive = true;
+        setupPuzzle(puzzleId);
+
+        console.log('[Cookie Age] resetAndSetPuzzle: activated', puzzleId, 'in track', trackType);
+        return true;
     }
     
     // Helper method to complete currently active puzzle(s) and move to next
@@ -9262,40 +9307,40 @@
         var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
         var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
         var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
-        
+
+        debugLog('completeActivePuzzles track state:', {
+            investigate: investigateActive,
+            infiltrate: infiltrateActive,
+            choose: chooseActive
+        });
+
         var completed = [];
-        
-        if (investigateActive) {
-            var puzzle = cookieAgeData.puzzles.registry[investigateActive];
-            if (puzzle) {
-                tryCompletePuzzle(investigateActive);
-                completed.push(investigateActive + ' (' + puzzle.name + ')');
+        var failed = [];
+
+        var activeIds = [investigateActive, infiltrateActive, chooseActive];
+        for (var i = 0; i < activeIds.length; i++) {
+            var activeId = activeIds[i];
+            if (!activeId) continue;
+            var puzzle = cookieAgeData.puzzles.registry[activeId];
+            if (!puzzle) continue;
+            var label = activeId + ' (' + puzzle.name + ')';
+            if (tryCompletePuzzle(activeId)) {
+                completed.push(label);
+            } else {
+                failed.push(label);
             }
         }
-        
-        if (infiltrateActive) {
-            var puzzle = cookieAgeData.puzzles.registry[infiltrateActive];
-            if (puzzle) {
-                tryCompletePuzzle(infiltrateActive);
-                completed.push(infiltrateActive + ' (' + puzzle.name + ')');
-            }
-        }
-        
-        if (chooseActive) {
-            var puzzle = cookieAgeData.puzzles.registry[chooseActive];
-            if (puzzle) {
-                tryCompletePuzzle(chooseActive);
-                completed.push(chooseActive + ' (' + puzzle.name + ')');
-            }
-        }
-        
+
         if (completed.length > 0) {
             console.log('[Cookie Age] Completed active puzzles:', completed.join(', '));
-            return completed;
-        } else {
-            console.log('[Cookie Age] No active puzzles to complete');
-            return [];
         }
+        if (failed.length > 0) {
+            console.warn('[Cookie Age] Failed to complete active puzzles (blocked by completing/notificationsShown state):', failed.join(', '));
+        }
+        if (completed.length === 0 && failed.length === 0) {
+            console.log('[Cookie Age] No active puzzles to complete. Track state:', { investigate: investigateActive, infiltrate: infiltrateActive, choose: chooseActive });
+        }
+        return completed;
     }
     
     // Make helper methods available globally for console testing
@@ -9321,9 +9366,9 @@
         if (!__requireDebugForConsole()) return;
         unlockPuzzleForTesting(puzzleId);
     };
-    Game.resetAndSetPuzzle = function(puzzleNumber) {
+    Game.resetAndSetPuzzle = function(puzzleId) {
         if (!__requireDebugForConsole()) return;
-        resetAndSetPuzzle(puzzleNumber);
+        resetAndSetPuzzle(puzzleId);
     };
     Game.completeActivePuzzles = function() {
         if (!__requireDebugForConsole()) return [];
