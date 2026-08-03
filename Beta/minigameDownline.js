@@ -9,7 +9,6 @@ const DOWNLINE_VERSION = '1.0.6';
 function _dlFlowLog(tag, data) {
     try {
         if (typeof window.__JNEFlowLog === 'function') { window.__JNEFlowLog('Downline:' + tag, data); return; }
-        console.log('[JNE-FLOW][Downline:' + tag + ']', data !== undefined ? data : '');
     } catch (e) {}
 }
 
