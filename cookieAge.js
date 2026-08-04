@@ -10,7 +10,7 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.8';
+    var expansionVersion = '1.0.9';
     var debugMode = false; // Set to true for testing
   
     function customSpriteSheetUrl() {
@@ -3929,6 +3929,9 @@
             Game.ClickSpecialPic = Game._originalClickSpecialPic;
             delete Game._originalClickSpecialPic;
         }
+        var tracking = this.getTracking();
+        if (tracking) tracking.hooked = false;
+        this.dragonHooked = false;
     };
     
     TrialScalesPatiencePuzzle.prototype.onCheck = function() {
@@ -4446,7 +4449,7 @@
         // Get current values before removing property overrides
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
-        
+
         // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
@@ -4458,6 +4461,7 @@
             // Restore as normal writable property with current value
             Game.dragonAura2 = currentAura2;
         }
+        if (tracking) tracking.hooked = false;
     };
     
     function StormDevotionPuzzle(puzzleId, puzzleData, registry) {
@@ -5749,6 +5753,8 @@
             Game.ClickSpecialPic = Game._originalClickSpecialPicStillWithUs;
             delete Game._originalClickSpecialPicStillWithUs;
         }
+        var tracking = this.getTracking();
+        if (tracking) tracking.hooked = false;
     };
     
     StillWithUsPuzzle.prototype.onCheck = function() {
@@ -5858,6 +5864,10 @@
         var tracking = this.getTracking();
         if (tracking && tracking.originalSetSound && Game.jukebox) {
             Game.jukebox.setSound = tracking.originalSetSound;
+        }
+        if (tracking) {
+            tracking.hooked = false;
+            tracking.originalSetSound = null;
         }
     };
     
@@ -6121,43 +6131,49 @@
                 'Resurrect Abomination'
             ],
             currentSequence: [],
-            maxMagicRequired: 115,
-            originalCastSpell: null,
-            hooked: false
+            maxMagicRequired: 115
         };
     };
-    
+
     LitanyCrumbsPuzzle.prototype.onSetup = function() {
         if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
             this.hookGrimoire();
         } else {
             var self = this;
             this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.getTracking().hooked) {
+                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
                     self.hookGrimoire();
                 }
             }, 'Check for grimoire availability');
         }
     };
-    
+
     LitanyCrumbsPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M && M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            tracking.originalCastSpell = M.castSpell;
-            var self = this;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                setTimeout(function() {
-                    self.checkSpellCast(spell);
-                }, 0);
-                return result;
-            };
-            
-            tracking.hooked = true;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        if (M.castSpell._cookieAgeLitanyCrumbs) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
+            return;
         }
+
+        var originalCastSpell = M.castSpell;
+        var self = this;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
+                setTimeout(function() {
+                    instance.checkSpellCast(spell);
+                }, 0);
+            }
+            return result;
+        };
+        wrapper._cookieAgeLitanyCrumbs = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     
     LitanyCrumbsPuzzle.prototype.checkSpellCast = function(spell) {
@@ -6199,10 +6215,11 @@
     };
     
     LitanyCrumbsPuzzle.prototype.onCleanup = function() {
-        var tracking = this.getTracking();
-        if (tracking && tracking.originalCastSpell && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            Game.Objects['Wizard tower'].minigame.castSpell = tracking.originalCastSpell;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeLitanyCrumbs) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     
     LitanyCrumbsPuzzle.prototype.onCheck = function() {
@@ -6227,43 +6244,49 @@
             ],
             expectedResults: [false, true, true, true, true],
             currentSequence: [],
-            currentResults: [],
-            originalCastSpell: null,
-            hooked: false
+            currentResults: []
         };
     };
-    
+
     RiteFivefoldCastingPuzzle.prototype.onSetup = function() {
         if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
             this.hookGrimoire();
         } else {
             var self = this;
             this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.getTracking().hooked) {
+                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
                     self.hookGrimoire();
                 }
             }, 'Check for grimoire availability');
         }
     };
-    
+
     RiteFivefoldCastingPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M && M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            tracking.originalCastSpell = M.castSpell;
-            var self = this;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                setTimeout(function() {
-                    self.checkSpellCast(spell, result);
-                }, 0);
-                return result;
-            };
-            
-            tracking.hooked = true;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        if (M.castSpell._cookieAgeRiteFivefold) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
+            return;
         }
+
+        var originalCastSpell = M.castSpell;
+        var self = this;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
+                setTimeout(function() {
+                    instance.checkSpellCast(spell, result);
+                }, 0);
+            }
+            return result;
+        };
+        wrapper._cookieAgeRiteFivefold = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     
     RiteFivefoldCastingPuzzle.prototype.checkSpellCast = function(spell, result) {
@@ -6297,10 +6320,11 @@
     };
     
     RiteFivefoldCastingPuzzle.prototype.onCleanup = function() {
-        var tracking = this.getTracking();
-        if (tracking && tracking.originalCastSpell && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            Game.Objects['Wizard tower'].minigame.castSpell = tracking.originalCastSpell;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeRiteFivefold) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     
     RiteFivefoldCastingPuzzle.prototype.onCheck = function() {
@@ -6488,10 +6512,17 @@
     
     LawkeeperWalkPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        if (tracking && tracking.hooked && tracking.originalSlot) {
-            if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-                Game.Objects['Temple'].minigame.slot = tracking.originalSlot;
+        if (tracking && tracking.hooked && tracking.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
+            var pantheon = Game.Objects['Temple'].minigame;
+            // Only restore if the current slot is actually our proxy
+            if (pantheon.slot === tracking.slotProxy) {
+                pantheon.slot = tracking.originalSlot;
             }
+        }
+        if (tracking) {
+            tracking.hooked = false;
+            tracking.originalSlot = null;
+            tracking.slotProxy = null;
         }
     };
     
@@ -7733,8 +7764,6 @@
             lastSpellId: null,
             consecutiveCastCount: 0,
             firstCastTime: null,
-            originalCastSpell: null,
-            hooked: false,
             completed: false
         };
     };
@@ -7749,30 +7778,32 @@
         }, 'Check for grimoire minigame availability');
     };
     InitiationRiddlePuzzle.prototype.setupSpellHook = function() {
-        if (!Game.Objects['Wizard tower'] || !Game.Objects['Wizard tower'].minigame) {
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        // If already hooked by us, just update the puzzle reference and skip re-wrapping
+        if (M.castSpell._cookieAgeInitiationRiddle) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
             return;
         }
-        
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            var self = this;
-            tracking.originalCastSpell = M.castSpell;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                
+
+        var originalCastSpell = M.castSpell;
+        var self = this;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
                 setTimeout(function() {
-                    self.checkSpellCast(spell);
+                    instance.checkSpellCast(spell);
                 }, 0);
-                
-                return result;
-            };
-            
-            tracking.hooked = true;
-            this.spellHooked = true;
-        }
+            }
+            return result;
+        };
+        wrapper._cookieAgeInitiationRiddle = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     InitiationRiddlePuzzle.prototype.checkSpellCast = function(spell) {
         if (!this.isValid()) {
@@ -7810,14 +7841,12 @@
         }
     };
     InitiationRiddlePuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            var M = Game.Objects['Wizard tower'].minigame;
-            var tracking = this.getTracking();
-            
-            if (tracking && tracking.hooked && tracking.originalCastSpell) {
-                M.castSpell = tracking.originalCastSpell;
-            }
+
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeInitiationRiddle) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     InitiationRiddlePuzzle.prototype.onCheck = function() {
         // Check happens in spell cast hook
@@ -8012,14 +8041,20 @@
         sequence.stepStartTime = null;
     };
     SpiritsThronesPuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
+        var sequence = this.getTracking();
+        if (sequence && sequence.hooked && sequence.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
             var pantheon = Game.Objects['Temple'].minigame;
-            var sequence = this.getTracking();
-            
-            if (sequence && sequence.hooked && sequence.originalSlot) {
+            // Only restore if the current slot is actually our proxy
+            if (pantheon.slot === sequence.slotProxy) {
                 pantheon.slot = sequence.originalSlot;
             }
         }
+        if (sequence) {
+            sequence.hooked = false;
+            sequence.originalSlot = null;
+            sequence.slotProxy = null;
+        }
+        this.pantheonHooked = false;
     };
     SpiritsThronesPuzzle.prototype.onCheck = function() {
         // Check happens in Proxy hook
@@ -8182,7 +8217,7 @@
         // Get current values before removing property overrides
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
-        
+
         // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
@@ -8194,6 +8229,8 @@
             // Restore as normal writable property with current value
             Game.dragonAura2 = currentAura2;
         }
+        if (tracking) tracking.hooked = false;
+        this.auraHooked = false;
     };
     TheyAreWatchingPuzzle.prototype.onCheck = function() {
         // Check happens when aura properties are set
@@ -8361,6 +8398,8 @@
                 configurable: true
             });
         }
+        if (tracking) tracking.hooked = false;
+        this.seasonHooked = false;
     };
     SpiralSeasonsPuzzle.prototype.onCheck = function() {
         // Check happens in season setter hook
@@ -9308,11 +9347,13 @@
         var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
         var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
 
-        debugLog('completeActivePuzzles track state:', {
-            investigate: investigateActive,
-            infiltrate: infiltrateActive,
-            choose: chooseActive
-        });
+        if (debugMode) {
+            console.log('[Cookie Age Debug] completeActivePuzzles track state:', {
+                investigate: investigateActive,
+                infiltrate: infiltrateActive,
+                choose: chooseActive
+            });
+        }
 
         var completed = [];
         var failed = [];
