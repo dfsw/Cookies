@@ -1129,7 +1129,19 @@ function updatePotionEffects() {
     );
     def('decoction_of_winter',
         function(p) { Game.killBuff('Decoction of Winter (misbrewed)'); Game.gainBuff('Decoction of Winter', 3600, 1.25); Game.Notify(p.name + ' consumed', 'Reindeer and lanterns are 25% more common for the next hour.', getIconArray(p), 6); },
-        function(p) { Game.killBuff('Decoction of Winter'); Game.gainBuff('Decoction of Winter (misbrewed)', 3600, 0); Game.Notify(p.name + ' misbrewed', 'Reindeer and lanterns do not spawn for the next hour.', getIconArray(p), 6); }
+        function(p) {
+            Game.killBuff('Decoction of Winter');
+            Game.gainBuff('Decoction of Winter (misbrewed)', 3600, 0);
+            Game.Notify(p.name + ' misbrewed', 'Reindeer and lanterns do not spawn for the next hour.', getIconArray(p), 6);
+            if (PotionsM._updateEffs) PotionsM._updateEffs();
+            if (Game.CalculateGains) Game.CalculateGains();
+            if (Game.shimmerTypes) {
+                var rd = Game.shimmerTypes['reindeer'];
+                if (rd && rd.spawnsOnTimer && rd.getMinTime) { rd.minTime = rd.getMinTime(rd); rd.maxTime = rd.getMaxTime(rd); }
+                var ln = Game.shimmerTypes['lantern'];
+                if (ln && ln.spawnsOnTimer && ln.getMinTime) { ln.minTime = ln.getMinTime(ln); ln.maxTime = ln.getMaxTime(ln); }
+            }
+        }
     );
     def('blood_of_the_craftsman',
         function(p) {
@@ -2375,6 +2387,14 @@ createPotionBuffType('Decoction of Winter', 'decoction_of_winter', false);
 createPotionBuffType('Decoction of Winter (misbrewed)', 'decoction_of_winter', true, {
     onDie: function() {
         if (PotionsM._updateEffs) PotionsM._updateEffs();
+
+        if (Game.CalculateGains) Game.CalculateGains();
+        if (Game.shimmerTypes) {
+            var rd = Game.shimmerTypes['reindeer'];
+            if (rd && rd.spawnsOnTimer && rd.getMinTime) { rd.minTime = rd.getMinTime(rd); rd.maxTime = rd.getMaxTime(rd); }
+            var ln = Game.shimmerTypes['lantern'];
+            if (ln && ln.spawnsOnTimer && ln.getMinTime) { ln.minTime = ln.getMinTime(ln); ln.maxTime = ln.getMaxTime(ln); }
+        }
         // vanilla really doesnt like shimmer timers to be set to infinite so in order to break it we just force spawn a reindeer onDie.
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer'] && Game.season === 'christmas') {
             var newShimmer = new Game.shimmer('reindeer');
@@ -2748,6 +2768,16 @@ PotionsM._registerHooks = function() {
             }, 1500); //make sure we don't award reagents from loading for state shifts probably a better way but I hate CC loading and im tired of finding ways to get it to work right
         });
         Game._potionsResetHooked = true;
+    }
+
+    // Decoction of Winter reset on ascension 
+      if (!Game._potionsReincarnateHooked) {
+        Game.registerHook('reincarnate', function() {
+            setTimeout(function() {
+                if (Game.killShimmers) Game.killShimmers();
+            }, 100);
+        });
+        Game._potionsReincarnateHooked = true;
     }
 
     if (!Game._potionsTickerHooked) {

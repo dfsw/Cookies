@@ -4,7 +4,7 @@
         var _huT0 = Date.now();
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.26';
+        const MOD_HU_VERSION = '1.0.27';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const GARDEN_SPRITE_SHEET_URL = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
@@ -4620,37 +4620,38 @@
                             '<div class="line"></div>';
             
             for (var i = 0; i < donuts.length; i++) {
-                if (Game.Upgrades[donuts[i].name]) continue;
-                
                 var price = basePrice * Math.pow(2.5, i);
-                var prodDesc = 'Cookie production multiplier <b>+3%</b>.<q>' + donuts[i].desc + '</q>';
-                var upgrade = new Game.Upgrade(donuts[i].name, prodDesc, price, donuts[i].icon);
-                
-                upgrade.power = 3;
-                upgrade.pool = 'cookie';
-                upgrade._heavenlyUpgrade = true; // Mark as our upgrade for save/load
-                upgrade.ddesc = prodDesc;
-                upgrade.bought = 0; // Default state - load() will set from save data
 
-                // Unlock immediately if box is in save data, otherwise use UnlockAt
-                var _huBoxOwned = (Game.JNE && Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades && Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades.indexOf('Box of overpriced donuts') !== -1) || Game.Has('Box of overpriced donuts');
-                if (_huBoxOwned) {
-                    Game.Unlock(donuts[i].name);
-                } else if (Game.UnlockAt) {
-                    var toPush = {cookies: price / 20, name: donuts[i].name, require: 'Box of overpriced donuts'};
-                    Game.UnlockAt.push(toPush);
+                if (!Game.Upgrades[donuts[i].name]) {
+                    var prodDesc = 'Cookie production multiplier <b>+3%</b>.<q>' + donuts[i].desc + '</q>';
+                    var upgrade = new Game.Upgrade(donuts[i].name, prodDesc, price, donuts[i].icon);
+
+                    upgrade.power = 3;
+                    upgrade.pool = 'cookie';
+                    upgrade._heavenlyUpgrade = true; // Mark as our upgrade for save/load
+                    upgrade.ddesc = prodDesc;
+                    upgrade.bought = 0; // Default state - load() will set from save data
+
+                    upgrade.ddesc = sourceText + upgrade.ddesc;
+                    upgrade.desc = sourceText + upgrade.desc;
+
+                    if (Game.cookieUpgrades && Game.cookieUpgrades.indexOf(upgrade) === -1) {
+                        Game.cookieUpgrades.push(upgrade);
+                    }
+                    if (Game.UpgradesByPool) {
+                        if (!Game.UpgradesByPool['cookie']) Game.UpgradesByPool['cookie'] = [];
+                        if (Game.UpgradesByPool['cookie'].indexOf(upgrade) === -1) {
+                            Game.UpgradesByPool['cookie'].push(upgrade);
+                        }
+                    }
                 }
-                
-                upgrade.ddesc = sourceText + upgrade.ddesc;
-                upgrade.desc = sourceText + upgrade.desc;
-                
-                if (Game.cookieUpgrades && Game.cookieUpgrades.indexOf(upgrade) === -1) {
-                    Game.cookieUpgrades.push(upgrade);
-                }
-                if (Game.UpgradesByPool) {
-                    if (!Game.UpgradesByPool['cookie']) Game.UpgradesByPool['cookie'] = [];
-                    if (Game.UpgradesByPool['cookie'].indexOf(upgrade) === -1) {
-                        Game.UpgradesByPool['cookie'].push(upgrade);
+                if (Game.UnlockAt) {
+                    var _exists = false;
+                    for (var _j = 0; _j < Game.UnlockAt.length; _j++) {
+                        if (Game.UnlockAt[_j] && Game.UnlockAt[_j].name === donuts[i].name) { _exists = true; break; }
+                    }
+                    if (!_exists) {
+                        Game.UnlockAt.push({cookies: price / 20, name: donuts[i].name, require: 'Box of overpriced donuts'});
                     }
                 }
             }
@@ -6496,18 +6497,6 @@
                 });
             }
 
-            // setupBoxOfDonuts only unlocks NEWLY created donuts; existing donuts (never deleted on
-            // reload) must have their unlocked flag re-applied here so unbought donuts still render in
-            // the store. If the box is owned, every donut is unlocked (matches setupBoxOfDonuts).
-            var _donutBoxOwned = (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades) &&
-                                saveData.boughtUpgrades.indexOf('Box of overpriced donuts') !== -1) ||
-                                Game.Has('Box of overpriced donuts');
-            if (_donutBoxOwned) {
-                DONUT_NAMES.forEach(function(name) {
-                    if (Game.Upgrades[name]) Game.Upgrades[name].unlocked = 1;
-                });
-            }
-
 
             // Apply settings
             if (saveData.settings && saveData.settings.cpsDisplayUnit) {
@@ -6784,13 +6773,10 @@
             var ownedSet = {};
             for (var bi = 0; bi < boughtSet.length; bi++) ownedSet[boughtSet[bi]] = true;
 
-            var boxOwned = ownedSet['Box of overpriced donuts'] || Game.Has('Box of overpriced donuts');
             DONUT_NAMES.forEach(function(name) {
                 var up = Game.Upgrades[name];
                 if (!up) return;
                 up.bought = ownedSet[name] ? 1 : 0;
-                // If the box is owned, every donut is unlocked (matches setupBoxOfDonuts behavior).
-                if (boxOwned) up.unlocked = 1;
             });
 
             // Restore the purchased state of every other heavenly upgrade synchronously so it can
@@ -6813,6 +6799,33 @@
             if (Game.storeToRefresh !== undefined) Game.storeToRefresh = 1;
         }
 
+        function unlockDonutsAfterReincarnate() {
+            var boxOwned = (Game.JNE && Game.JNE.heavenlyUpgradesSavedData &&
+                            Array.isArray(Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades) &&
+                            Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades.indexOf('Box of overpriced donuts') !== -1) ||
+                          Game.Has('Box of overpriced donuts');
+            if (!boxOwned) return;
+            if (!Game.UnlockAt) return;
+
+            var existing = {};
+            for (var i = 0; i < Game.UnlockAt.length; i++) {
+                if (Game.UnlockAt[i] && Game.UnlockAt[i].name) existing[Game.UnlockAt[i].name] = Game.UnlockAt[i];
+            }
+
+            DONUT_NAMES.forEach(function(name) {
+                var up = Game.Upgrades[name];
+                if (!up) return;
+                if (existing[name]) {
+                    // Entry already exists — just ensure the upgrade references it.
+                    if (!up.unlockAt) up.unlockAt = existing[name];
+                    return;
+                }
+                var entry = {cookies: up.basePrice / 20, name: name, require: 'Box of overpriced donuts'};
+                Game.UnlockAt.push(entry);
+                up.unlockAt = entry;
+            });
+        }
+
         // Expose API
         if (!Game.JNE) Game.JNE = {};
         if (!Game.JNE.HeavenlyUpgrades) {
@@ -6823,12 +6836,14 @@
                 getSaveData: getSaveData,
                 load: load,
                 restoreDonutsNow: restoreDonutsNow,
+                unlockDonutsAfterReincarnate: unlockDonutsAfterReincarnate,
                 setupBuffModifiers: setupBuffModifiers
             };
         } else {
             Game.JNE.HeavenlyUpgrades.getSaveData = getSaveData;
             Game.JNE.HeavenlyUpgrades.load = load;
             Game.JNE.HeavenlyUpgrades.restoreDonutsNow = restoreDonutsNow;
+            Game.JNE.HeavenlyUpgrades.unlockDonutsAfterReincarnate = unlockDonutsAfterReincarnate;
             Game.JNE.HeavenlyUpgrades.setupBuffModifiers = setupBuffModifiers;
         }
 

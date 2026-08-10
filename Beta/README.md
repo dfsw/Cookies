@@ -55,9 +55,40 @@ The mobile version of Cookie Clicker does not support mods at this time.
 
 ## Changelog    
 
-### Version 0.6.2
+### Version 0.6.7
+* Fixed a handful of puzzles that would not detect a proper solve after save scumming. 
+* Added a toggle button in options to turn on extra stats tracking info for those who missed that data after the last patch. 
+* Fixed a bug that would prevent reindeer from spawning if the user ascended while Decoction of Winter misbrew effect was active. 
+* After an ascension donut upgrades were not made available until a refresh or save load, this has been fixed. 
+* Minor bug fixes and improvements. 
 
-* Lots of new/updated art updates as the ground work is being laid for the next major version. 
+### Version 0.6.6
+* Improvements to the save/load systems to prevent data loses in edges cases where things go terribly wrong. 
+* There was a bug that didn't always unlock the freebie potion in Potions Class on a fresh install, that has been fixed. This only applies to unlocks before Fever Nightmares. 
+* Order of the Enchanted Whisk Upgrade could mistaken reapply its buff multiple times. This has been fixed. 
+* I feel the need for seed achievement is now more forgiving and sadly more cheesable. 
+* Stat menu items that exists for tracking specifically for one off achievements are now hidden when the achievement has been earned. 
+* Added a sugar lump spending action to the Potions Class minigame that lets you speed up brewing and discovery, tied to existing minigame cooldowns. 
+* Just Natural Expansion heavenly upgrade plant restore logic that overwrites empty garden spots with custom plants on load now also considers Meddleweed to be the same as an empty tile. In short you shouldn't lose custom plants to weeds on loads anymore. 
+* Fixes on certain puzzles that broke when user was save scumming. 
+* Minor bug fixes. 
+
+
+### Version 0.6.5
+* Fixes a crash that could occur if Lunar New Year expired while the game wasn't running. 
+
+### Version 0.6.4
+* Fixed a bug that could lose minigame save data in certain network failure events. 
+* Fix for the toggle for Cookie Calculations Heavenly Upgrade not showing on Steam. 
+* Reworked the logic for items that affect the mana regen rate in Grimoire to be more centralized and therefore hopefully more stable.
+* Potion discovery time has been reduced from 5 minutes to 3 minutes. 
+* Minor bug fixes, performance improvements, and other fixes. 
+
+### Version 0.6.3
+* Compatibility adjustments for certain third party mods.  
+
+### Version 0.6.2
+* Lots of new/updated art as the ground work is being laid for the next major version. 
 * Fixed several upgrade/achievement descriptions that had typos or other issues in them. 
 * If for any reason the custom sprite sheet fails to load from github the mod will try a fallback address now. 
 * Added a cooldown to the popup for Mega Clicks so autoclicker users arent spammed by it. Defaults to 50ms but customizable via Game.JNE.megaClickCooldown = 50; in browser
