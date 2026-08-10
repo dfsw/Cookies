@@ -2137,7 +2137,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 let extraStatItemsListing = document.createElement('div');
                                 extraStatItemsListing.className = 'listing';
                                 var extraStatItemsOn = !!modSettings.enableExtraStatItems;
-                                extraStatItemsListing.innerHTML = '<a class="smallFancyButton prefButton option' + (extraStatItemsOn ? '' : ' off') + '" id="toggle-extra-stat-items" ' + Game.clickStr + '="window.JNE.toggleExtraStatItems(); PlaySound(\'snd/tick.mp3\');">Extra Stat Items: <b>' + (extraStatItemsOn ? 'ON' : 'OFF') + '</b></a><label>(Adds extra info to the stats section)</label>';
+                                extraStatItemsListing.innerHTML = '<a class="smallFancyButton prefButton option' + (extraStatItemsOn ? '' : ' off') + '" id="toggle-extra-stat-items" ' + Game.clickStr + '="window.JNE.toggleExtraStatItems(); PlaySound(\'snd/tick.mp3\');">Extra Stats: <b>' + (extraStatItemsOn ? 'ON' : 'OFF') + '</b></a><label>(Adds extra info to the stats section)</label>';
                                 targetListing.parentNode.insertBefore(extraStatItemsListing, insertAfter.nextSibling);
                                 insertAfter = extraStatItemsListing;
                             }
