@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const TERMINAL_VERSION = '1.0.5';
+const TERMINAL_VERSION = '1.0.6';
 
 var M = {};
 M.parent = Game.Objects && Game.Objects['Javascript console'] ? Game.Objects['Javascript console'] : {
@@ -1789,12 +1789,11 @@ M.launch = function () {
             sacrificeNote = ' Sacrificed one ' + buildingName + '.';
         }
 
-        if (typeof Game.ToggleSpecialMenu === 'function') {
+        if (typeof Game.ToggleSpecialMenu === 'function' && Game.specialTab === 'dragon') {
             Game.ToggleSpecialMenu(1);
         }
 
         Game.recalculateGains = 1;
-        Game.upgradesToRebuild = 1;
         return ok('Set ' + auraData.dname + ' on the ' + slotLabel + '.' + sacrificeNote);
     });
 
