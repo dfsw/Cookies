@@ -10,12 +10,12 @@ NightfallM.parent = getGrandma() || { id: 0, level: 10, minigameName: 'Nightfall
 if (getGrandma()) NightfallM.parent.minigame = NightfallM;
 
 var G = {
-    lastTick: 0, score: 0, time: 0, unlockedItems: {}, placedItems: [], selectedTool: null,
+    score: 0, time: 0, unlockedItems: {}, placedItems: [], selectedTool: null,
     isDragging: false, dragGhost: null, dragGhostX: -1, dragGhostY: -1, debugMode: true, movingPlacedId: null,
     enemies: [], enemyIdCounter: 0, simAccumulator: 0, lastFrameTime: 0, lastSpawnTime: 0, difficultyMultiplier: 1,
     gameSpeed: 1, gameOver: false, gameStarted: false, triggerTiles: [], laneItems: null,
-    needsRenderPlacedItems: false, lastRenderTime: 0, attackEffects: [], distractionFx: [], killCounts: {},
-    friendlyEntities: [], friendlyIdCounter: 0
+    lastRenderTime: 0, attackEffects: [], distractionFx: [], killCounts: {},
+    friendlyEntities: [], friendlyIdCounter: 0, smokeFx: [], projectileFx: [], boltFx: []
 };
 
 var GRID_CELL_SIZE = 14;
@@ -32,18 +32,22 @@ function buildTileImgHTML(count, bgUrl, tileW, tileH) {
 }
 
 var nightfallSheetUrl = 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/nightfall.png';
-var iconUrlCache = {};
+var nightfallBaseUrl = 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/';
+var smokeUrl = nightfallBaseUrl + 'smoke.png';
+var SMOKE_FRAMES = 10, SMOKE_FRAME_W = 64, SMOKE_FRAME_H = 64, SMOKE_FPS = 15, SMOKE_DURATION = SMOKE_FRAMES / SMOKE_FPS;
+var boltUrl = nightfallBaseUrl + 'bolt.png';
+var BOLT_FRAMES = 9, BOLT_FRAME_W = 32, BOLT_FRAME_H = 64, BOLT_FPS = 18, BOLT_DURATION = BOLT_FRAMES / BOLT_FPS;
 function getIconUrl(sheet) {
-    if (iconUrlCache[sheet] !== undefined) return iconUrlCache[sheet];
-    var url = (sheet === 'nightfall') ? nightfallSheetUrl : ((window.getSpriteSheet ? window.getSpriteSheet(sheet) : '') || (Game.resPath + 'img/icons.png'));
-    iconUrlCache[sheet] = url;
-    return url;
+    if (sheet === 'nightfall') return nightfallSheetUrl;
+    var url = window.getSpriteSheet ? window.getSpriteSheet(sheet) : '';
+    return url || (Game.resPath + 'img/icons.png');
 }
 
 function getIconPosition(item) {
-    if (item._iconPos) return item._iconPos;
     var col = item.icon[0], row = item.icon[1], sheet = item.icon.length > 2 ? item.icon[2] : 'main';
-    item._iconPos = { col: col, row: row, sheet: sheet, url: getIconUrl(sheet), x: col * 48, y: row * 48 };
+    var url = getIconUrl(sheet);
+    if (item._iconPos && item._iconPos.url === url) return item._iconPos;
+    item._iconPos = { col: col, row: row, sheet: sheet, url: url, x: col * 48, y: row * 48 };
     return item._iconPos;
 }
 
@@ -121,16 +125,9 @@ NightfallM.init = function(div) {
     var TILE_H = 140;
 
     var grandma = getGrandma();
-    var grandmaLevel = (grandma && typeof grandma.level === 'number') ? grandma.level : 0;
-    var extraWidth = 0;
-    if (grandmaLevel <= 10) {
-        extraWidth = grandmaLevel * 50;
-    } else {
-        extraWidth = 10 * 50 + (Math.min(grandmaLevel, 20) - 10) * 25;
-    }
-    var tileBgWidth = 450 + extraWidth;
-    var containerWidth = div.clientWidth || div.offsetWidth || tileBgWidth;
-    var effectiveWidth = Math.min(tileBgWidth, containerWidth);
+    var grandmaLevel = Math.min(10, (grandma && typeof grandma.level === 'number') ? grandma.level : 0);
+    var tileBgWidth = 602 + grandmaLevel * 28;
+    var effectiveWidth = Math.min(tileBgWidth, div.clientWidth || div.offsetWidth || tileBgWidth);
     var tilesNeeded = Math.max(1, Math.ceil(tileBgWidth / TILE_W));
     var STRIP_W = tilesNeeded * TILE_W;
     var scrollbarDisplay = (tileBgWidth > effectiveWidth) ? 'block' : 'none';
@@ -138,80 +135,68 @@ NightfallM.init = function(div) {
     var tileImgs = buildTileImgHTML(tilesNeeded, startBgUrl, TILE_W, TILE_H);
 
     NightfallM.toolItems = [
-        { type: 'Distractions', name: 'Hard Candy', health: 10, icon: [30, 10, 'main'], animation: '', cost: 100, size: { w: 2, h: 2 }, unlock: { score: 0, time: 0 }, desc: 'A sweet treat to slow the grandmas down.<q>Hard on teeth, harder on grandmas.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
+        { type: 'Distractions', name: 'Hard Candy', health: 10, healRate: 10, icon: [30, 10, 'main'], animation: '', cost: 100, size: { w: 2, h: 2 }, unlock: { score: 0, time: 0 }, desc: 'A sweet treat to slow the grandmas down.<q>Hard on teeth, harder on grandmas.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }, { text: 'Heals distracted grandmas', positive: false }] },
         { type: 'Distractions', name: 'Fresh Cookies', health: 20, icon: [20, 33, 'main'], animation: '', cost: 140, size: { w: 2, h: 2 }, unlock: { score: 300, time: 0 }, desc: 'Freshly baked bait for the cookie horde.<q>Nothing beats the smell of fresh cookies.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
         { type: 'Distractions', name: 'Gift Package', health: 30, icon: [34, 10, 'main'], animation: '', cost: 180, size: { w: 2, h: 2 }, unlock: { score: 600, time: 0 }, desc: 'A mysterious box that lures curious grandmas.<q>It is the thought that counts.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
-        { type: 'Distractions', name: 'Baby', health: 40, icon: [8, 10, 'main'], animation: '', cost: 220, size: { w: 2, h: 2 }, unlock: { score: 900, time: 0 }, desc: 'A cooing distraction that softens even the wrathful.<q>Who is a cute little distraction?</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
         { type: 'Distractions', name: 'Phone Call', health: 60, icon: [0, 2, 'nightfall'], animation: '', cost: 260, size: { w: 2, h: 2 }, unlock: { score: 1200, time: 0 }, desc: 'A ringing phone that demands attention.<q>Hello? Yes, this is grandma.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
         { type: 'Distractions', name: 'Computer', health: 90, icon: [1, 2, 'nightfall'], animation: '', cost: 300, size: { w: 2, h: 2 }, unlock: { score: 1500, time: 0 }, desc: 'A glowing screen that mesmerizes the elderly.<q>They just want to forward one more email.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
-        { type: 'Distractions', name: 'Slot Machine', health: 120, icon: [18, 24, 'custom'], animation: '', cost: 340, size: { w: 2, h: 2 }, unlock: { score: 1800, time: 0 }, desc: 'One-armed bandit for one-armed grandmas.<q>Jackpot of distraction.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }] },
+        { type: 'Distractions', name: 'Slot Machine', health: 120, icon: [18, 24, 'custom'], animation: '', cost: 340, size: { w: 2, h: 2 }, unlock: { score: 1800, time: 0 }, desc: 'One-armed bandit for one-armed grandmas.<q>Jackpot of distraction.</q>', effects: [{ text: 'Distracts nearby grandmas', positive: true }, { text: 'Each active slot machine boosts CPS by 1%', positive: true }] },
         { type: 'Barricades', name: 'Fence', health: 100, icon: [1, 0, 'nightfall'], animation: '', cost: 150, size: { w: 2, h: 2 }, unlock: { score: 0, time: 0 }, desc: 'A simple wooden fence to slow the advance.<q>Good fences make good defenses.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }] },
-        { type: 'Barricades', name: 'Detour Sign', health: 200, avoidance: 0.8, icon: [5, 0, 'nightfall'], animation: '', cost: 210, size: { w: 2, h: 2 }, unlock: { score: 400, time: 0 }, desc: 'A sign that sends grandmas the long way around.<q>Detour ahead, grandma.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }, { text: '80% of grandmas will bypass to an adjacent lane', positive: true }] },
+        { type: 'Barricades', name: 'Detour Sign', health: 200, avoidance: 0.95, icon: [5, 0, 'nightfall'], animation: '', cost: 210, size: { w: 2, h: 2 }, unlock: { score: 400, time: 0 }, desc: 'A sign that sends grandmas the long way around.<q>Detour ahead, grandma.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }, { text: '95% of grandmas will bypass to an adjacent lane', positive: true }] },
         { type: 'Barricades', name: 'Crate', health: 300, icon: [4, 0, 'nightfall'], animation: '', cost: 270, size: { w: 2, h: 2 }, unlock: { score: 800, time: 0 }, desc: 'A sturdy crate to block the path.<q>What could this crate contain!? Maybe its a golden cookie or a bomb, but its probably just even more grandmas.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }, { text: 'Contains a surprise upon opening', positive: true }] },
         { type: 'Barricades', name: 'Bookcase', health: 400, icon: [0, 0, 'nightfall'], animation: '', cost: 330, size: { w: 2, h: 3 }, unlock: { score: 1200, time: 0 }, desc: 'Knowledge stacked high to hold the line.<q>Throw the book at them.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }] },
-        { type: 'Barricades', name: 'Sandbags', health: 500, icon: [2, 0, 'nightfall'], animation: '', cost: 390, size: { w: 2, h: 2 }, unlock: { score: 1600, time: 0 }, desc: 'Military-grade sand for military-grade grandmas.<q>Bagged and ready.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }] },
+        { type: 'Barricades', name: 'Sandbags', health: 500, rangedResist: 0.9, icon: [2, 0, 'nightfall'], animation: '', cost: 390, size: { w: 2, h: 2 }, unlock: { score: 1600, time: 0 }, desc: 'Military-grade sand for military-grade grandmas.<q>Bagged and ready.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }, { text: 'Takes 90% less damage from ranged attacks', positive: true }] },
         { type: 'Barricades', name: 'Filing Cabinet', health: 700, icon: [3, 0, 'nightfall'], animation: '', cost: 450, size: { w: 2, h: 3 }, unlock: { score: 2000, time: 0 }, desc: 'Bureaucratic bulk that stops grandma cold.<q>Please file your advance under denied.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }] },
         { type: 'Barricades', name: 'Brick Wall', health: 1000, icon: [6, 0, 'nightfall'], animation: '', cost: 510, size: { w: 3, h: 3 }, unlock: { score: 2400, time: 0 }, desc: 'A solid brick wall, as straightforward as it gets.<q>Just another brick in the wall.</q>', effects: [{ text: 'Blocks grandma movement', positive: true }] },
-        { type: 'Traps', name: 'Banana Peel', health: 30, damage: 40, range: 1, icon: [2, 1, 'nightfall'], animation: '', cost: 200, size: { w: 2, h: 2 }, unlock: {time: 60}, desc: 'A classic for a reason.<q>Watch your step, grandma.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Affected grandmas are slowed by 50% for 5 seconds.', positive: true }], effect: { type: 'slow', amount: 0.5, duration: 5 } },
+        { type: 'Traps', name: 'Banana Peel', health: 30, damage: 40, range: 1, icon: [2, 1, 'nightfall'], animation: '', cost: 200, size: { w: 2, h: 2 }, unlock: {time: 60}, desc: 'A classic for a reason.<q>Watch your step, grandma.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Affected grandmas are slowed by 50% for 15 seconds.', positive: true }], effect: { type: 'slow', amount: 0.5, duration: 15 } },
         { type: 'Traps', name: 'Cactus', health: 50, damage: 50, range: 20, avoidance: 0.3, icon: [5, 1, 'nightfall'], animation: '', cost: 280, size: { w: 2, h: 2 }, unlock: {time: 3*60 }, desc: 'As all coyotes are well aware prickly, pointy, and precisely unpleasant.<q>Just because they look huggable doesn\'t mean you should hug.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'More clever grandmas will step to avoid the cactus', positive: false }] },
         { type: 'Traps', name: 'Marbles', health: 30, damage: 60, range: 35, icon: [1, 1, 'nightfall'], animation: '', cost: 360, size: { w: 2, h: 2 }, unlock: {time: 5*60 }, desc: 'Small glass spheres of grandma doom.<q>Lost your marbles? Here they are.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'May shift grandmas to an adjacent lane', positive: true }], effect: { type: 'laneShift' } },
-        { type: 'Traps', name: 'Wet Floors', health: 100, damage: 70, range: 25, icon: [3, 1, 'nightfall'], animation: '', cost: 440, size: { w: 2, h: 2 }, unlock: { time: 10*60 }, desc: 'Caution: slippery when wet.<q>Liability lawsuit just waiting to happen.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Affected grandmas are slowed by 25% for 10 seconds.', positive: true }], effect: { type: 'slow', amount: 0.25, duration: 10 } },
+        { type: 'Traps', name: 'Wet Floors', health: 100, damage: 70, range: 25, icon: [3, 1, 'nightfall'], animation: '', cost: 440, size: { w: 2, h: 2 }, unlock: { time: 10*60 }, desc: 'Caution: slippery when wet.<q>Liability lawsuit just waiting to happen.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Affected grandmas are slowed by 25% for 30 seconds.', positive: true }], effect: { type: 'slow', amount: 0.25, duration: 30 } },
         { type: 'Traps', name: 'Beehive', health: 50, damage: 80, range: 40, icon: [19, 33, 'main'], animation: '', cost: 520, size: { w: 2, h: 2 }, unlock: {time: 12*60 }, desc: 'An angry swarm that will make grandma put some hussle in her step.<q>Better bee careful.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Speeds grandmas up by 25% for 15 seconds', positive: false }], effect: { type: 'speed', amount: 0.25, duration: 5 } },
         { type: 'Traps', name: 'Bear Trap', health: 100, damage: 90, range: 1, icon: [4, 1, 'nightfall'], animation: '', cost: 600, size: { w: 2, h: 2 }, unlock: {time: 15*60 }, desc: 'A metal jaw ready to snap shut.<q>Do not step here.</q>', effects: [{ text: 'Stops grandmas completely for 5 seconds', positive: true }], effect: { type: 'slow', amount: 1.0, duration: 5 } },
         { type: 'Traps', name: 'Land Mine', health: 10, damage: 1000, range: 70, icon: [0, 1, 'nightfall'], animation: '', cost: 680, size: { w: 4, h: 4 }, unlock: {time: 20*60 }, desc: 'War crimes or not we are going to stop those pesky grandmas.<q>Step lively, grandma.</q>', effects: [{ text: 'Damages nearby grandmas on contact', positive: true }, { text: 'Single use only', positive: false }] },
         { type: 'Offensive', name: 'Bomb Launcher', health: 40, damage: 150, range: 130, minRange: 60, rangeType: 'circle', fireRate: 5, pierces: true, ignoresBarricades: true, icon: [0, 3, 'nightfall'], animation: '', cost: 3000, size: { w: 2, h: 2 }, unlock: { score: 1000, time: 60 }, desc: 'Launches explosive pastries at long range.<q>Cake delivered with extreme prejudice.</q>', effects: [{ text: 'Deals heavy AoE damage in a wide band', positive: true }] },
-        { type: 'Offensive', name: 'Cannon', health: 45, damage: 500, range: 180, rangeType: 'lineAhead', fireRate: 3, pierces: true, ignoresBarricades: false, icon: [1, 3, 'nightfall'], animation: '', cost: 4200, size: { w: 4, h: 3 }, unlock: { score: 1600, time: 60 }, desc: 'A black-powder answer to a cookie problem.<q>Fire in the hole.</q>', effects: [{ text: 'Deals penetrating ranged damage in a straight line', positive: true },  { text: 'Cannot shoot through barricades', positive: false } ] },
+        { type: 'Offensive', name: 'Cannon', health: 45, damage: 500, range: 180, rangeType: 'lineAhead', fireRate: 3, pierces: true, ignoresBarricades: false, icon: [1, 3, 'nightfall'], animation: '', cost: 4200, size: { w: 5, h: 3 }, unlock: { score: 1600, time: 60 }, desc: 'A black-powder answer to a cookie problem.<q>Fire in the hole.</q>', effects: [{ text: 'Deals penetrating ranged damage in a straight line', positive: true },  { text: 'Cannot shoot through barricades', positive: false } ], placedSprite: { static: true, frameW: 80, frameH: 48, frames: 4, fps: 8, offsetX: -14, url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/cannonfire.png' } },
         { type: 'Offensive', name: 'Burnt Toast', health: 50, damage: 15, range: 60, rangeType: 'circle', fireRate: 0.5, pierces: true, ignoresBarricades: true, icon: [5, 3, 'nightfall'], animation: '', cost: 5400, size: { w: 2, h: 2 }, unlock: { score: 2200, time: 60 }, desc: 'Charred breakfast projectiles, extra crispy.<q>Served hot and hazardous.</q>', effects: [{ text: 'Deals rapid close-range damage', positive: true }] },
         { type: 'Offensive', name: 'Paint Cans', health: 55, damage: 84, range: 80, rangeType: 'lineBoth', fireRate: 2, pierces: true, ignoresBarricades: true, icon: [2, 3, 'nightfall'], animation: '', cost: 6600, size: { w: 2, h: 2 }, unlock: { score: 2800, time: 60 }, desc: 'Splash damage in every color of the rainbow.<q>Paint the town red.</q>', effects: [{ text: 'Deals ranged damage in a swinging wave', positive: true }] },
-        { type: 'Offensive', name: 'Robot Grandpas', health: 80, damage: 92, range: 100, rangeType: 'arcAhead', fireRate: 3, pierces: true, ignoresBarricades: false, icon: [3, 3, 'nightfall'], animation: '', cost: 7800, size: { w: 2, h: 2 }, unlock: { score: 3400, time: 60 }, desc: 'Mechanized grandpas programmed for combat.<q>While we still can\'t figure out where the actual grandpas have been stashed these mechanical ones are a good substitute.</q>', effects: [{ text: 'Approaches and eliminates grandmas.', positive: true }, { text: 'Heals when not engaged in combat.', positive: true }, { text: 'Damage increases each grandma eliminated.', positive: true }], placedSprite: { frameW: 64, frameH: 64, anims: { walk: { url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandpawalk.png', frames: 9, fps: 8 }, attack: { url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandpaattack.png', frames: 9, fps: 8 } } } },
-        { type: 'Offensive', name: 'Cookie Sentry Gun', health: 65, damage: 30, range: 80, rangeType: 'arcAhead', fireRate: 1, pierces: false, ignoresBarricades: false, icon: [4, 3, 'nightfall'], animation: '', cost: 9000, size: { w: 2, h: 2 }, unlock: { score: 4000, time: 60 }, desc: 'An automated cookie-defense turret.<q>Nobody steals the cookies on its watch.</q>', effects: [{ text: 'Deals ranged damage to frontmost grandmas', positive: true }, { text: 'Cannot shoot through barricades', positive: false }] }
+        { type: 'Offensive', name: 'Robot Grandpas', health: 80, damage: 92, range: 100, rangeType: 'arcAhead', fireRate: 3, pierces: true, ignoresBarricades: false, icon: [3, 3, 'nightfall'], animation: '', cost: 7800, size: { w: 1, h: 4 }, unlock: { score: 3400, time: 60 }, desc: 'Mechanized grandpas programmed for combat.<q>While we still can\'t figure out where the actual grandpas have been stashed these mechanical ones are a good substitute.</q>', effects: [{ text: 'Approaches and eliminates grandmas.', positive: true }, { text: 'Heals when not engaged in combat.', positive: true }, { text: 'Damage increases each grandma eliminated.', positive: true }], placedSprite: { frameW: 64, frameH: 64, anims: { walk: { url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandpawalk.png', frames: 9, fps: 8 }, attack: { url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandpaattack.png', frames: 9, fps: 8 } } } },
+        { type: 'Offensive', name: 'Cookie Sentry Gun', health: 65, damage: 20, range: 80, rangeType: 'arcAhead', fireRate: 0.3, pierces: false, ignoresBarricades: false, icon: [4, 3, 'nightfall'], animation: '', cost: 9000, size: { w: 2, h: 2 }, unlock: { score: 4000, time: 60 }, desc: 'An automated cookie-defense turret.<q>Nobody steals the cookies on its watch.</q>', effects: [{ text: 'Deals ranged damage to frontmost grandmas', positive: true }, { text: 'Cannot shoot through barricades', positive: false }], placedSprite: { static: true, frameW: 84, frameH: 72, frames: 4, fps: 8, scale: 0.5, url: 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/sentryfire.png' } }
     ];
-
     NightfallM.grandmaData = [
-        { file: 'alteredGrandma.png', name: 'Altered Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma summons wrinklers to do her bidding and absorb incoming damage.<q>Wrinklers are basically nature\'s bubble wrap, assuming the bubbles were alive, hungry, and deeply upsetting to look at.</q>' },
-        { file: 'alternateGrandma.png', name: 'Alternative Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma comes from another dimension, but that does not make her any less deadly.<q>In her dimension, you are the grandma and she owns the bakery. Try not to think about it too hard; we certainly didn\'t.</q>' },
-        { file: 'antiGrandma.png', name: 'Anti Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma controls black holes and can teleport to the location of any other grandma.<q>According to several highly respected physicists, none of this should be happening. They have since stopped returning our calls.</q>' },
-        { file: 'bankGrandma.png', name: 'Bank Grandma', rarity: 8, speed: 13, damage: 8, info: 'Cold, hard, and highly motivated, this grandma smashes through defenses with exceptional force.<q>She denied your loan, froze your assets, and somehow charged the barricade a monthly maintenance fee.</q>' },
-        { file: 'brainyGrandma.png', name: 'Brainy Grandma', rarity: 5, speed: 15, damage: 5, info: 'This grandma can control objects with her mind, so you do not want to find yourself on the wrong side of her gaze.<q>She can bend steel with her thoughts but still needs you to come over and change the input on the television.</q>' },
-        { file: 'bunnyGrandma.png', name: 'Bunny Grandma', rarity: 0, speed: 22, damage: 5, info: 'This grandma has a spring in her step and can jump over barricades and traps.<q>She was told to act her age, but nobody could agree whether rabbit years should be multiplied or divided by seven.</q>' },
-        { file: 'cloneGrandma.png', name: 'Clone Grandma', rarity: 0, speed: 14, damage: 5, info: 'When this grandma is defeated, she returns as another random type of grandma.<q>They were so preoccupied with whether they could clone grandma that they never stopped to consider whether anyone wanted two grandmas asking why they never call.</q>' },
-        { file: 'cosmicGrandma.png', name: 'Cosmic Grandma', rarity: 0, speed: 20, damage: 5, info: 'This grandma carries a ray gun and knows how to use it. Her extra feet also make her faster than the average grandma.<q>In space, no one can hear you scream, but somehow everyone can still hear grandma complain that the spaceship is too cold.</q>' },
-        { file: 'elfGrandma.png', name: 'Elf Grandma', rarity: 0, speed: 14, damage: 5, info: 'This festive grandma can summon attacking reindeer to charge ahead and do her bidding.<q>She has a red nose, several unpaid seasonal workers, and a very loose interpretation of workplace safety laws.</q>' },
-        { file: 'farmerGrandma.png', name: 'Farmer Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma can attack from farther away thanks to the extended reach of her trusty pitchfork.<q>She wakes before sunrise, works sixteen hours, and still finds time to post twelve paragraphs online about how nobody wants to work anymore.</q>' },
-        { file: 'grandma.png', name: 'Grandma', rarity: 15, speed: 12, damage: 5, info: 'Back to basics, this grandma has no special powers but is still fully capable of giving your defenses the walloping of a lifetime.<q>No lasers, no magic, no interdimensional nonsense. Just sensible shoes and forty years of unresolved family grievances.</q>' },
-        { file: 'grandmasGrandma.png', name: 'Grandmas Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma comes from the past to look after her grandchild grandmas, healing them and keeping them safe.<q>She remembers when your grandma was this tall, cookies cost a nickel, and the Grandmapocalypse had decent manners.</q>' },
-        { file: 'luckyGrandma.png', name: 'Lucky Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma has better luck than average and receives more favorable outcomes from events around her.<q>She has won bingo seventeen weeks in a row. The investigation remains open, but the witnesses have all received very nice fruit baskets.</q>' },
-        { file: 'metaGrandma.png', name: 'Meta Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma is all grandmas at once and assumes whichever form is best suited to her current situation.<q>Her ability sounded much simpler before we had to program it. At this point she is mostly powered by switch statements and regret.</q>' },
-        { file: 'minerGrandma.png', name: 'Miner Grandma', rarity: 5, speed: 10, damage: 7, info: 'This grandma spent her life in the mines and is exceptionally skilled at tearing down walls and barricades.<q>She worked the mines for fifty years without seeing daylight, which was still preferable to one afternoon helping you move apartments.</q>' },
-        { file: 'rainbowGrandma.png', name: 'Rainbow Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma focuses the power of pure light into rainbow blasts that strike your defenses from afar.<q>Scientists once believed rainbows were harmless atmospheric phenomena. Scientists have been wrong about a surprising number of grandma-related subjects.</q>' },
-        { file: 'scriptGrandma.png', name: 'Script Grandma', rarity: 0, speed: 14, damage: 5, info: 'The most technologically capable of all grandmas, she understands phones and computers and cannot be fooled by electronic distractions.<q>She fixed your printer, reset your router, and removed eleven browser toolbars you insist you never installed.</q>' },
-        { file: 'templeGrandma.png', name: 'Temple Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma is in touch with the gods and can summon protective shields around other grandmas.<q>The gods work in mysterious ways, although lately most of those ways seem to involve granting damage resistance to elderly women in hallways.</q>' },
-        { file: 'transmutedGrandma.png', name: 'Transmuted Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma creates a golden cookie when she is defeated.<q>The alchemists finally succeeded in turning grandma into gold. Unfortunately, they started with the outside and she was extremely unhappy about it.</q>' },
-        { file: 'witchGrandma.png', name: 'Witch Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma spent her later years holed up in wizard towers and casts powerful spells when threatened.<q>She is not a witch because she weighs the same as a duck. We checked, and all we learned was that both the duck and grandma bite.</q>' },
-        { file: 'workerGrandma.png', name: 'Worker Grandma', rarity: 0, speed: 14, damage: 5, info: 'This grandma is not afraid of a hard day\'s work and uses her tools to disarm traps before they can injure anyone.<q>She can disable a pressure plate, defuse a landmine, and replace a garbage disposal, but she will still call you over to open a jar.</q>' }
+        { file: 'alteredGrandma.png', name: 'Altered Grandma', rarity: 0, hp: 150, speed: 14, damage: 5, attackRange: 0, info: 'This grandma summons wrinklers to do her bidding and absorb incoming damage.<q>Wrinklers are basically nature\'s bubble wrap, assuming the bubbles were alive, hungry, and deeply upsetting to look at.</q>' },
+        { file: 'alternateGrandma.png', name: 'Alternative Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma comes from another dimension, but that does not make her any less deadly.<q>In her dimension, you are the grandma and she owns the bakery. Try not to think about it too hard; we certainly didn\'t.</q>' },
+        { file: 'antiGrandma.png', name: 'Anti Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma controls black holes and can teleport to the location of any other grandma.<q>According to several highly respected physicists, none of this should be happening. They have since stopped returning our calls.</q>' },
+        { file: 'bankGrandma.png', name: 'Bank Grandma', rarity: 6, hp: 130, speed: 13, damage: 8, attackRange: 0, info: 'Cold, hard, and highly motivated, this grandma smashes through defenses with exceptional force.<q>She denied your loan, froze your assets, and somehow charged the barricade a monthly maintenance fee.</q>' },
+        { file: 'brainyGrandma.png', name: 'Brainy Grandma', rarity: 4, hp: 50, speed: 15, damage: 5, attackRange: 70, info: 'This grandma can control objects with her mind, so you do not want to find yourself on the wrong side of her gaze, she is smart enough to attack weapons first.<q>She can bend steel with her thoughts but still needs you to come over and change the input on the television.</q>' },
+        { file: 'bunnyGrandma.png', name: 'Bunny Grandma', rarity: 0, hp: 80, speed: 22, damage: 5, attackRange: 0, info: 'This grandma has a spring in her step and can jump over barricades and traps.<q>She was told to act her age, but nobody could agree whether rabbit years should be multiplied or divided by seven.</q>' },
+        { file: 'cloneGrandma.png', name: 'Clone Grandma', rarity: 2, hp: 3000, speed: 2, damage: 0, attackRange: 0, info: 'Highly armored thank to her vat penetrating weapons stop with her. When this grandma is defeated, she returns as another random type of grandma. <q>They were so preoccupied with whether they could clone grandma that they never stopped to consider whether anyone wanted two grandmas asking why they never call.</q>' },
+        { file: 'cosmicGrandma.png', name: 'Cosmic Grandma', rarity: 0, hp: 100, speed: 20, damage: 5, attackRange: 80, info: 'This grandma carries a ray gun and knows how to use it. Her extra feet also make her faster than the average grandma.<q>In space, no one can hear you scream, but somehow everyone can still hear grandma complain that the spaceship is too cold.</q>' },
+        { file: 'elfGrandma.png', name: 'Elf Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This festive grandma can summon attacking reindeer to charge ahead and do her bidding.<q>She has a red nose, several unpaid seasonal workers, and a very loose interpretation of workplace safety laws.</q>' },
+        { file: 'farmerGrandma.png', name: 'Farmer Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 35, info: 'This grandma can attack from farther away thanks to the extended reach of her trusty pitchfork.<q>She wakes before sunrise, works sixteen hours, and still finds time to post twelve paragraphs online about how nobody wants to work anymore.</q>' },
+        { file: 'grandma.png', name: 'Grandma', rarity: 10, hp: 100, speed: 12, damage: 5, attackRange: 0, info: 'Back to basics, this grandma has no special powers but is still fully capable of giving your defenses the walloping of a lifetime.<q>No lasers, no magic, no interdimensional nonsense. Just sensible shoes and forty years of unresolved family grievances.</q>' },
+        { file: 'grandmasGrandma.png', name: 'Grandmas Grandma', rarity: 0, hp: 120, speed: 14, damage: 5, attackRange: 0, info: 'This grandma comes from the past to look after her grandchild grandmas, healing them and keeping them safe.<q>She remembers when your grandma was this tall, cookies cost a nickel, and the Grandmapocalypse had decent manners.</q>' },
+        { file: 'luckyGrandma.png', name: 'Lucky Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma has better luck than average and receives more favorable outcomes from events around her.<q>She has won bingo seventeen weeks in a row. The investigation remains open, but the witnesses have all received very nice fruit baskets.</q>' },
+        { file: 'metaGrandma.png', name: 'Meta Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma is all grandmas at once and assumes whichever form is best suited to her current situation.<q>Her ability sounded much simpler before we had to program it. At this point she is mostly powered by switch statements and regret.</q>' },
+        { file: 'minerGrandma.png', name: 'Miner Grandma', rarity: 5, hp: 120, speed: 10, damage: 7, attackRange: 0, info: 'This grandma spent her life in the mines and is exceptionally skilled at tearing down walls and barricades.<q>She worked the mines for fifty years without seeing daylight, which was still preferable to one afternoon helping you move apartments.</q>' },
+        { file: 'rainbowGrandma.png', name: 'Rainbow Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma focuses the power of pure light into rainbow blasts that strike your defenses from afar.<q>Scientists once believed rainbows were harmless atmospheric phenomena. Scientists have been wrong about a surprising number of grandma-related subjects.</q>' },
+        { file: 'scriptGrandma.png', name: 'Script Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'The most technologically capable of all grandmas, she understands phones and computers and cannot be fooled by electronic distractions.<q>She fixed your printer, reset your router, and removed eleven browser toolbars you insist you never installed.</q>' },
+        { file: 'templeGrandma.png', name: 'Temple Grandma', rarity: 0, hp: 120, speed: 14, damage: 5, attackRange: 0, info: 'This grandma is in touch with the gods and can summon protective shields around other grandmas.<q>The gods work in mysterious ways, although lately most of those ways seem to involve granting damage resistance to elderly women in hallways.</q>' },
+        { file: 'transmutedGrandma.png', name: 'Transmuted Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma creates a golden cookie when she is defeated.<q>The alchemists finally succeeded in turning grandma into gold. Unfortunately, they started with the outside and she was extremely unhappy about it.</q>' },
+        { file: 'witchGrandma.png', name: 'Witch Grandma', rarity: 4, hp: 60, speed: 14, damage: 5, attackRange: 100, info: 'This grandma spent her later years holed up in wizard towers and casts powerful spells at great rangem she is very fragile to physical attacks.<q>She is not a witch because she weighs the same as a duck. We checked, and all we learned was that both the duck and grandma bite.</q>' },
+        { file: 'workerGrandma.png', name: 'Worker Grandma', rarity: 0, hp: 100, speed: 14, damage: 5, attackRange: 0, info: 'This grandma is not afraid of a hard day\'s work and uses her tools to disarm traps before they can injure anyone.<q>She can disable a pressure plate, defuse a landmine, and replace a garbage disposal, but she will still call you over to open a jar.</q>' }
     ];
 
-    function getGrandmaSpriteBase() {
-        return 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/';
-    }
 
-    function getGrandmaTypeDefaults() {
-        return {
-            hp: 100, speed: 14, damage: 5, attackRange: 14, attackInterval: 1.0,
-            collisionIgnore: [], abilities: [], frameW: 48, frameH: 48,
-            spriteBase: getGrandmaSpriteBase(),
-            anims: { walk:{row:0,frames:4,fps:8}, attack:{row:1,frames:4,fps:8}, hurt:{row:2,frames:2,fps:6} }
-        };
-    }
+    var grandmaTypeDefaults = { hp: 100, speed: 14, damage: 5, attackRange: 0, attackInterval: 1.0, collisionIgnore: [], abilities: [], frameW: 64, frameH: 64, anims: { walk:{row:0,frames:4,fps:8}, attack:{row:1,frames:4,fps:8}, hurt:{row:2,frames:2,fps:6} } };
 
     var grandmaTypeOverrides = {
         'Bunny Grandma': { collisionIgnore: ['Barricade','Trap'] },
-        'Cosmic Grandma': { attackRange: 80 },
-        'Farmer Grandma': { attackRange: 35 },
-        'Miner Grandma': { damageModVsType: { Barricade: 2.0 }, frameW: 64, frameH: 64, anims: { walk:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/minewalk.png'}, attack:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/mineattack.png'} } },
-        'Bank Grandma': { damageModVsType: { Distraction: 1.5, Barricade: 1.5 }, frameW: 64, frameH: 64, anims: { walk:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/bankwalk.png'}, attack:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/bankattack.png'} } },
-        'Brainy Grandma': { rangedAttack: true, rangedAttackRange: GRID_CELL_SIZE * 5, frameW: 64, frameH: 64, anims: { walk:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/brainwalk.png'}, attack:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/brainattack.png'} } },
-        'Grandma': { frameW: 64, frameH: 64, anims: { walk:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandmawalk.png'}, attack:{row:0,frames:9,fps:8,url:'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/grandmaattack.png'} } },
+        'Miner Grandma': { damageModVsType: { Barricade: 2.0 }, anims: { walk:{row:0,frames:9,fps:8,file:'minewalk.png'}, attack:{row:0,frames:9,fps:8,file:'mineattack.png'} } },
+        'Bank Grandma': { damageModVsType: { Distraction: 1.5, Barricade: 1.5 }, anims: { walk:{row:0,frames:9,fps:8,file:'bankwalk.png'}, attack:{row:0,frames:9,fps:8,file:'bankattack.png'} } },
+        'Brainy Grandma': { rangedAttack: true, anims: { walk:{row:0,frames:9,fps:8,file:'brainwalk.png'}, attack:{row:0,frames:9,fps:8,file:'brainattack.png'} } },
+        'Witch Grandma': { rangedAttack: true, rangedAttackMode: 'firstObject', anims: { walk:{row:0,frames:9,fps:8,file:'witchwalk.png'}, attack:{row:0,frames:9,fps:8,file:'witchattack.png'} } },
+        'Clone Grandma': { noAttack: true, spawnOnDeath: true, anims: { walk:{row:0,frames:9,fps:8,file:'clonewalk.png'} } },
+        'Grandma': { anims: { walk:{row:0,frames:9,fps:8,file:'grandmawalk.png'}, attack:{row:0,frames:9,fps:8,file:'grandmaattack.png'} } },
         'Grandmas Grandma': { abilities: [{type:'aura', subtype:'heal', radius:60, amount:5, interval:2}] },
         'Temple Grandma': { abilities: [{type:'aura', subtype:'shield', radius:60, amount:0.5, interval:2}] },
         'Script Grandma': { statusImmune: ['Distracted'] }
@@ -222,10 +207,17 @@ NightfallM.init = function(div) {
         if (grandmaTypeCache[name]) return grandmaTypeCache[name];
         var base = NightfallM.grandmaData.find(function(g) { return g.name === name; }) || null;
         if (!base) return null;
-        var def = getGrandmaTypeDefaults();
+        var def = grandmaTypeDefaults;
         var over = grandmaTypeOverrides[name] || {};
         var result = Object.assign({}, def, base, over);
-        if (!result.sheetUrl && base.file) result.sheetUrl = getGrandmaSpriteBase() + base.file;
+        var spriteBase = 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/Beta/nightfall/';
+        if (!result.sheetUrl && base.file) result.sheetUrl = spriteBase + base.file;
+        if (result.anims) {
+            for (var k in result.anims) {
+                var a = result.anims[k];
+                if (a.file && !a.url) a.url = spriteBase + a.file;
+            }
+        }
         grandmaTypeCache[name] = result;
         return result;
     };
@@ -296,7 +288,7 @@ NightfallM.init = function(div) {
         if (range > 1) {
             var previewShape = G.selectedTool.type === 'Traps'
                 ? { type: 'circle', x: (x0 + cells.w / 2) * GRID_CELL_SIZE, y: GRID_OFFSET_Y + (y0 + cells.h / 2) * GRID_CELL_SIZE, r: range, minR: 0 }
-                : (function() { var ic = itemToGridCells(G.selectedTool); return getRangeShapeAtPos(G.selectedTool, (x0 + ic.w / 2) * GRID_CELL_SIZE, GRID_OFFSET_Y + (y0 + ic.h / 2) * GRID_CELL_SIZE, x0 * GRID_CELL_SIZE, ic); })();
+                : getRangeShapeAtPos(G.selectedTool, (x0 + cells.w / 2) * GRID_CELL_SIZE, GRID_OFFSET_Y + (y0 + cells.h / 2) * GRID_CELL_SIZE, x0 * GRID_CELL_SIZE, cells);
             html += renderRangeShape(previewShape, 'rgba(255,255,0,0.08)', 'rgba(255,255,0,0.6)');
         }
         previewEl.innerHTML = html;
@@ -311,24 +303,16 @@ NightfallM.init = function(div) {
         G.placedItems.forEach(function(placed) {
             if (G.movingPlacedId && placed.id === G.movingPlacedId) return;
             if (placed.item.placedSprite) {
-                if (G.gameStarted) return;
+                if (G.gameStarted && !placed.item.placedSprite.static) return;
                 var ps = placed.item.placedSprite, c = getPlacedCenter(placed);
-                var psUrl = ps.anims.walk ? ps.anims.walk.url : '';
-                html += '<div class="nightfall-placed-item" data-id="' + placed.id + '" style="position:absolute;left:' + (placed.gridX * GRID_CELL_SIZE) + 'px;top:' + (GRID_OFFSET_Y + placed.gridY * GRID_CELL_SIZE) + 'px;width:' + (c.cells.w * GRID_CELL_SIZE) + 'px;height:' + (c.cells.h * GRID_CELL_SIZE) + 'px;cursor:pointer;pointer-events:auto;"><div style="position:absolute;left:50%;top:50%;width:' + ps.frameW + 'px;height:' + ps.frameH + 'px;background-image:url(' + psUrl + ');background-position:0px 0px;background-repeat:no-repeat;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated;"></div></div>';
+                var psUrl = ps.url || (ps.anims && ps.anims.walk ? ps.anims.walk.url : '');
+                var spriteInner = (G.gameStarted && ps.static) ? '' : '<div style="position:absolute;left:50%;top:50%;width:' + ps.frameW + 'px;height:' + ps.frameH + 'px;background-image:url(' + psUrl + ');background-position:0px 0px;background-repeat:no-repeat;transform:translate(calc(-50% + ' + (ps.offsetX || 0) + 'px),-50%)' + (ps.scale ? ' scale(' + ps.scale + ')' : '') + ';pointer-events:none;image-rendering:pixelated;"></div>';
+                html += '<div class="nightfall-placed-item" data-id="' + placed.id + '" style="position:absolute;left:' + (placed.gridX * GRID_CELL_SIZE) + 'px;top:' + (GRID_OFFSET_Y + placed.gridY * GRID_CELL_SIZE) + 'px;width:' + (c.cells.w * GRID_CELL_SIZE) + 'px;height:' + (c.cells.h * GRID_CELL_SIZE) + 'px;cursor:pointer;pointer-events:auto;">' + spriteInner + '</div>';
                 return;
             }
-            var item = placed.item;
-            var cells = itemToGridCells(item);
-            var icon = getIconPosition(item), iconUrl = icon.url, iconX = icon.x, iconY = icon.y;
-            var width = cells.w * GRID_CELL_SIZE;
-            var height = cells.h * GRID_CELL_SIZE;
-            var attackedClass = placed.beingAttacked ? ' nightfall-attacked' : '';
-            var itemHtml = '<div class="nightfall-placed-item' + attackedClass + '" data-id="' + placed.id + '" style="position:absolute;left:' + (placed.gridX * GRID_CELL_SIZE) + 'px;top:' + (GRID_OFFSET_Y + placed.gridY * GRID_CELL_SIZE) + 'px;width:' + width + 'px;height:' + height + 'px;cursor:pointer;pointer-events:auto;"><div style="position:absolute;left:50%;top:50%;width:48px;height:48px;background-image:url(' + iconUrl + ');background-position:-' + iconX + 'px -' + iconY + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;"></div></div>';
-            if (item.type === 'Traps') {
-                trapsHtml += itemHtml;
-            } else {
-                html += itemHtml;
-            }
+            var item = placed.item, cells = itemToGridCells(item), icon = getIconPosition(item);
+            var itemHtml = '<div class="nightfall-placed-item' + (placed.beingAttacked ? ' nightfall-attacked' : '') + '" data-id="' + placed.id + '" style="position:absolute;left:' + (placed.gridX * GRID_CELL_SIZE) + 'px;top:' + (GRID_OFFSET_Y + placed.gridY * GRID_CELL_SIZE) + 'px;width:' + (cells.w * GRID_CELL_SIZE) + 'px;height:' + (cells.h * GRID_CELL_SIZE) + 'px;cursor:pointer;pointer-events:auto;"><div style="position:absolute;left:50%;top:50%;width:48px;height:48px;background-image:url(' + icon.url + ');background-position:-' + icon.x + 'px -' + icon.y + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;"></div></div>';
+            if (item.type === 'Traps') trapsHtml += itemHtml; else html += itemHtml;
         });
         itemsEl.innerHTML = html;
         trapsEl.innerHTML = trapsHtml;
@@ -338,21 +322,18 @@ NightfallM.init = function(div) {
                 if (Game.elderWrath !== 0) return;
                 var itemEl = e.target.closest('.nightfall-placed-item');
                 if (!itemEl) return;
-                var id = parseFloat(itemEl.getAttribute('data-id'));
-                var placedIndex = G.placedItems.findIndex(function(p) { return p.id === id; });
-                if (placedIndex >= 0) {
-                    var placed = G.placedItems[placedIndex];
-                    clearDrag();
-                    if (!(G.selectedTool && G.selectedTool.name === placed.item.name)) {
-                        G.movingPlacedId = placed.id;
-                        G.selectedTool = placed.item;
-                        G.isDragging = true;
-                        createDragGhost(placed.item);
-                    }
-                    updateToolSelection();
-                    NightfallM.renderPlacedItems();
-                    renderGrid();
+                var placed = G.placedItems.find(function(p) { return p.id == itemEl.getAttribute('data-id'); });
+                if (!placed) return;
+                clearDrag();
+                if (!(G.selectedTool && G.selectedTool.name === placed.item.name)) {
+                    G.movingPlacedId = placed.id;
+                    G.selectedTool = placed.item;
+                    G.isDragging = true;
+                    createDragGhost(placed.item);
                 }
+                updateToolSelection();
+                NightfallM.renderPlacedItems();
+                renderGrid(); renderEntities();
             };
             itemsEl.addEventListener('click', clickHandler);
             trapsEl.addEventListener('click', clickHandler);
@@ -417,7 +398,7 @@ NightfallM.init = function(div) {
             (NightfallM.grandmaData || []).forEach(function(g) {
                 var ft2 = formatFlavorText(g.info);
                 var kills = G.killCounts[g.name] || 0;
-                var tooltipAttrs = (Game.getTooltip ? Game.getTooltip('<div style="padding:8px;min-width:220px;position:relative;"><div class="name">' + g.name + '</div><div class="description">' + ft2.main + '</div>' + ft2.flavor + (kills > 0 ? '<div class="line"></div><div style="font-size:11px;color:#fc0;">Dispatched: ' + kills + '</div>' : '') + '</div>', 'middle', true) : '');
+                var tooltipAttrs = (Game.getTooltip ? Game.getTooltip('<div style="padding:8px;min-width:220px;position:relative;"><div class="name">' + g.name + '</div><div class="description">' + ft2.main + '</div>' + ft2.flavor + '</div>', 'middle', true) : '');
                 html += '<div style="position:relative;width:64px;height:64px;margin:2px;background-image:url(' + ((Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/' + g.file) + ');background-size:64px 64px;background-repeat:no-repeat;cursor:default;user-select:none;-webkit-user-drag:none;" ' + tooltipAttrs + '>' + (kills > 0 ? '<div style="position:absolute;top:-1px;right:-1px;min-width:14px;height:14px;padding:0 2px;background:#c00;border:1px solid #fff;color:#fff;font-size:10px;font-weight:bold;text-align:center;line-height:14px;pointer-events:none;">' + kills + '</div>' : '') + '</div>';
             });
             html += '</div>';
@@ -473,14 +454,9 @@ NightfallM.init = function(div) {
     var timeSpan = document.getElementById('nightfallTime');
 
     NightfallM.timeL = timeSpan;
-    NightfallM.bgUrlNormal = normalBgUrl;
-    NightfallM.bgUrlGpoc = gpocBgUrl;
-    NightfallM.currentBgUrl = startBgUrl;
-    NightfallM.tileBgWidth = tileBgWidth;
-    NightfallM.tilesEl = tilesEl;
-    NightfallM.tilesViewport = tilesViewport;
-    NightfallM.scrollbarEl = scrollbarEl;
-    NightfallM.scrollbarThumb = scrollbarThumb;
+    NightfallM.bgUrlNormal = normalBgUrl; NightfallM.bgUrlGpoc = gpocBgUrl; NightfallM.currentBgUrl = startBgUrl;
+    NightfallM.tileBgWidth = tileBgWidth; NightfallM.tilesEl = tilesEl; NightfallM.tilesViewport = tilesViewport;
+    NightfallM.scrollbarEl = scrollbarEl; NightfallM.scrollbarThumb = scrollbarThumb;
     NightfallM.scoreEl = document.getElementById('nightfallScore');
     NightfallM.tileImgs = tilesEl ? tilesEl.querySelectorAll('.nightfall-tile-img') : [];
 
@@ -541,56 +517,36 @@ NightfallM.init = function(div) {
         NightfallM.activeToolTab = btn.getAttribute('data-tab');
         NightfallM.renderTools();
     });
-    NightfallM.gridEl = document.getElementById('nightfallGrid');
-    NightfallM.trapsEl = document.getElementById('nightfallTraps');
-    NightfallM.placedItemsEl = document.getElementById('nightfallPlacedItems');
-    NightfallM.dragPreviewEl = document.getElementById('nightfallDragPreview');
-    NightfallM.entitiesEl = document.getElementById('nightfallEntities');
-    NightfallM.dragEl = document.getElementById('nightfallDrag');
+    NightfallM.gridEl = document.getElementById('nightfallGrid'); NightfallM.trapsEl = document.getElementById('nightfallTraps');
+    NightfallM.placedItemsEl = document.getElementById('nightfallPlacedItems'); NightfallM.dragPreviewEl = document.getElementById('nightfallDragPreview');
+    NightfallM.entitiesEl = document.getElementById('nightfallEntities'); NightfallM.dragEl = document.getElementById('nightfallDrag');
 
-    renderGrid();
     NightfallM.preloadGrandmaSprites();
 
     function placeSelectedTool(e) {
         if (!G.selectedTool || !G.isDragging || Game.elderWrath !== 0 || !NightfallM.gridEl) return;
         var shiftHeld = e && e.shiftKey;
-        var gridBox = NightfallM.gridEl.getBoundingClientRect();
-        var cursor = getCursorPos();
-        var mx = cursor.x - gridBox.left;
-        var my = cursor.y - gridBox.top;
-        var gridX = Math.floor(mx / GRID_CELL_SIZE);
-        var gridY = Math.floor((my - GRID_OFFSET_Y) / GRID_CELL_SIZE);
+        var gridBox = NightfallM.gridEl.getBoundingClientRect(), cursor = getCursorPos();
+        var gridX = Math.floor((cursor.x - gridBox.left) / GRID_CELL_SIZE);
+        var gridY = Math.floor((cursor.y - gridBox.top - GRID_OFFSET_Y) / GRID_CELL_SIZE);
         var excludeId = (G.movingPlacedId && !shiftHeld) ? G.movingPlacedId : null;
-        var collision = checkCollision(gridX, gridY, G.selectedTool, excludeId);
-        if (gridX >= 0 && gridY >= 0 && !collision) {
-            if (G.movingPlacedId && !(shiftHeld)) {
-                var placed = G.placedItems.find(function(p) { return p.id === G.movingPlacedId; });
-                if (placed) {
-                    placed.gridX = gridX;
-                    placed.gridY = gridY;
-                    placed._center = null;
-                    placed.hp = placed.item.health;
-                    if (placed.item.placedSprite) {
-                        for (var fi2 = 0; fi2 < G.friendlyEntities.length; fi2++) { if (G.friendlyEntities[fi2].placed === placed) { var fe2 = G.friendlyEntities[fi2]; var nc = getPlacedCenter(placed); fe2.x = nc.x; fe2.y = nc.y; fe2.homeX = nc.x; fe2.homeY = nc.y; fe2.lane = placed.gridY + Math.floor(nc.cells.h / 2); fe2.state = 'idle'; fe2.targetId = null; break; } }
-                    }
+        if (gridX < 0 || gridY < 0 || checkCollision(gridX, gridY, G.selectedTool, excludeId)) return;
+        if (G.movingPlacedId && !shiftHeld) {
+            var placed = G.placedItems.find(function(p) { return p.id === G.movingPlacedId; });
+            if (placed) {
+                placed.gridX = gridX; placed.gridY = gridY; placed._center = null; placed.hp = placed.item.health;
+                if (placed.item.placedSprite) {
+                    for (var fi2 = 0; fi2 < G.friendlyEntities.length; fi2++) { if (G.friendlyEntities[fi2].placed === placed) { var fe2 = G.friendlyEntities[fi2]; var nc = getPlacedCenter(placed); fe2.x = nc.x; fe2.y = nc.y; fe2.homeX = nc.x; fe2.homeY = nc.y; fe2.lane = placed.gridY + Math.floor(nc.cells.h / 2); fe2.state = 'idle'; fe2.targetId = null; break; } }
                 }
-            } else {
-                var itemHp = G.selectedTool.health;
-                var newPlaced = { id: Date.now() + Math.random(), item: G.selectedTool, gridX: gridX, gridY: gridY, hp: itemHp };
-                G.placedItems.push(newPlaced);
-                if (G.selectedTool.placedSprite && G.gameStarted) spawnFriendlyEntity(newPlaced);
             }
-            G.laneItemsDirty = true;
-            if (shiftHeld) {
-                G.movingPlacedId = null;
-                G.isDragging = true;
-            } else {
-                clearDrag();
-            }
-            NightfallM.renderTools();
-            NightfallM.renderPlacedItems();
-            renderGrid();
+        } else {
+            var newPlaced = { id: Date.now() + Math.random(), item: G.selectedTool, gridX: gridX, gridY: gridY, hp: G.selectedTool.health };
+            G.placedItems.push(newPlaced);
+            if (G.selectedTool.placedSprite && !G.selectedTool.placedSprite.static && G.gameStarted) spawnFriendlyEntity(newPlaced);
         }
+        G.laneItemsDirty = true;
+        if (shiftHeld) { G.movingPlacedId = null; G.isDragging = true; } else clearDrag();
+        NightfallM.renderTools(); NightfallM.renderPlacedItems(); renderGrid(); renderEntities();
     }
 
     bindOnce(NightfallM.gridEl, '_nightfallGridBound', 'click', placeSelectedTool);
@@ -606,10 +562,8 @@ NightfallM.init = function(div) {
 
             removeMovingPlaced();
 
-            if (G.selectedTool && G.selectedTool.name === itemName) {
-                clearDrag();
-            } else {
-                clearDrag();
+            clearDrag();
+            if (!(G.selectedTool && G.selectedTool.name === itemName)) {
                 G.selectedTool = item;
                 G.isDragging = true;
                 createDragGhost(item);
@@ -622,11 +576,15 @@ NightfallM.init = function(div) {
         G.dragGhost = document.createElement('div');
         G.dragGhost.className = 'nightfall-tool-slot shadowFilter';
         var cells = itemToGridCells(item);
-        var w = cells.w * GRID_CELL_SIZE;
-        var h = cells.h * GRID_CELL_SIZE;
-        G.dragGhost.style.cssText = 'position:absolute;pointer-events:none;z-index:1000000001;width:' + w + 'px;height:' + h + 'px;box-shadow:6px 6px 6px 2px #000;';
-        var icon = getIconPosition(item);
-        G.dragGhost.innerHTML = '<div style="position:absolute;left:50%;top:50%;width:48px;height:48px;background-image:url(' + icon.url + ');background-position:-' + icon.x + 'px -' + icon.y + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;"></div>';
+        G.dragGhost.style.cssText = 'position:absolute;pointer-events:none;z-index:1000000001;width:' + (cells.w * GRID_CELL_SIZE) + 'px;height:' + (cells.h * GRID_CELL_SIZE) + 'px;box-shadow:6px 6px 6px 2px #000;';
+        var ps = item.placedSprite;
+        if (ps) {
+            var psUrl = ps.url || (ps.anims && ps.anims.walk ? ps.anims.walk.url : '');
+            G.dragGhost.innerHTML = '<div style="position:absolute;left:50%;top:50%;width:' + ps.frameW + 'px;height:' + ps.frameH + 'px;background-image:url(' + psUrl + ');background-position:0px 0px;background-repeat:no-repeat;transform:translate(calc(-50% + ' + (ps.offsetX || 0) + 'px),-50%)' + (ps.scale ? ' scale(' + ps.scale + ')' : '') + ';pointer-events:none;image-rendering:pixelated;"></div>';
+        } else {
+            var icon = getIconPosition(item);
+            G.dragGhost.innerHTML = '<div style="position:absolute;left:50%;top:50%;width:48px;height:48px;background-image:url(' + icon.url + ');background-position:-' + icon.x + 'px -' + icon.y + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;"></div>';
+        }
         NightfallM.dragEl.appendChild(G.dragGhost);
     }
 
@@ -647,22 +605,18 @@ NightfallM.init = function(div) {
 
     function onResize() {
         if (!NightfallM.div) return;
-        var newContainerWidth = NightfallM.div.clientWidth || NightfallM.div.offsetWidth || NightfallM.tileBgWidth;
-        var newEffectiveWidth = Math.min(NightfallM.tileBgWidth, newContainerWidth);
+        var newEffectiveWidth = Math.min(NightfallM.tileBgWidth, NightfallM.div.clientWidth || NightfallM.div.offsetWidth || NightfallM.tileBgWidth);
         var newTilesNeeded = Math.max(1, Math.ceil(NightfallM.tileBgWidth / TILE_W));
-        var newStripW = newTilesNeeded * TILE_W;
-        var newScrollbarDisplay = (NightfallM.tileBgWidth > newEffectiveWidth) ? 'block' : 'none';
-        var bgUrl = NightfallM.currentBgUrl || startBgUrl;
-        tilesViewport.style.width = newEffectiveWidth + 'px';        tilesEl.style.width = newStripW + 'px';
-
+        tilesViewport.style.width = newEffectiveWidth + 'px';
+        tilesEl.style.width = newTilesNeeded * TILE_W + 'px';
         var layerEls = [NightfallM.gridEl, NightfallM.trapsEl, NightfallM.placedItemsEl, NightfallM.dragPreviewEl, NightfallM.entitiesEl];
         for (var li = 0; li < layerEls.length; li++) if (layerEls[li]) layerEls[li].style.width = NightfallM.tileBgWidth + 'px';
         setGameLayerScroll(Math.max(-Math.max(0, NightfallM.tileBgWidth - newEffectiveWidth), Math.min(0, parseFloat(tilesEl.style.left || 0))));
-        tilesEl.innerHTML = buildTileImgHTML(newTilesNeeded, bgUrl, TILE_W, TILE_H);
+        tilesEl.innerHTML = buildTileImgHTML(newTilesNeeded, NightfallM.currentBgUrl || startBgUrl, TILE_W, TILE_H);
         NightfallM.tileImgs = tilesEl.querySelectorAll('.nightfall-tile-img');
         var statusEl = document.getElementById('nightfallStatus');
         if (statusEl) statusEl.style.width = newEffectiveWidth + 'px';
-        if (scrollbarEl) { scrollbarEl.style.width = newEffectiveWidth + 'px'; scrollbarEl.style.display = newScrollbarDisplay; }
+        if (scrollbarEl) { scrollbarEl.style.width = newEffectiveWidth + 'px'; scrollbarEl.style.display = (NightfallM.tileBgWidth > newEffectiveWidth) ? 'block' : 'none'; }
         updateScrollbarThumb();
         NightfallM.renderPlacedItems();
         renderGrid();
@@ -716,7 +670,7 @@ function removeMovingPlaced() {
     if (idx >= 0) {
         G.placedItems.splice(idx, 1);
         G.laneItemsDirty = true;
-        NightfallM.renderPlacedItems();
+        NightfallM.renderPlacedItems(); renderEntities();
     }
 }
 
@@ -871,7 +825,7 @@ function findCollisionAt(x, lane, w) {
         if (items[i].item.type === 'Distractions') { distractions.push(items[i]); if (c > bestDistCells) { bestDist = items[i]; bestDistCells = c; } }
         else if (c > blockingCells) { blocking = items[i]; blockingCells = c; }
     }
-    if (distractions.length > 0) return { primary: bestDist, distractions: distractions, deepOverlap: true };
+    if (distractions.length > 0) return { primary: bestDist || distractions[0], distractions: distractions, deepOverlap: true };
     if (blocking) return { primary: blocking, distractions: distractions, deepOverlap: true };
     return null;
 }
@@ -883,18 +837,14 @@ var SPAWN_CONFIG = {
 };
 
 function getSpawnInterval(timeSeconds) {
-    var t = Math.min(timeSeconds / SPAWN_CONFIG.rampTime, 1), eased = t * t * (3 - 2 * t);
-    var rate = SPAWN_CONFIG.startRate + (SPAWN_CONFIG.endRate - SPAWN_CONFIG.startRate) * eased;
-    var fluctuation = SPAWN_CONFIG.intervalFluctuationMin + Math.random() * (SPAWN_CONFIG.intervalFluctuationMax - SPAWN_CONFIG.intervalFluctuationMin);
-    return (1 / rate) * fluctuation;
+    var t = Math.min(timeSeconds / SPAWN_CONFIG.rampTime, 1), rate = SPAWN_CONFIG.startRate + (SPAWN_CONFIG.endRate - SPAWN_CONFIG.startRate) * (t * t * (3 - 2 * t));
+    return (1 / rate) * (SPAWN_CONFIG.intervalFluctuationMin + Math.random() * (SPAWN_CONFIG.intervalFluctuationMax - SPAWN_CONFIG.intervalFluctuationMin));
 }
 
 function pickGrandmaTypeToSpawn(timeSeconds) {
     if (pickGrandmaTypeToSpawn._totalRarity === undefined) {
         var sum = 0;
-        for (var ri = 0; ri < NightfallM.grandmaData.length; ri++) {
-            sum += NightfallM.grandmaData[ri].rarity;
-        }
+        for (var ri = 0; ri < NightfallM.grandmaData.length; ri++) sum += NightfallM.grandmaData[ri].rarity;
         pickGrandmaTypeToSpawn._totalRarity = sum;
     }
     var totalRarity = pickGrandmaTypeToSpawn._totalRarity;
@@ -947,59 +897,64 @@ function triggerTrap(trap, triggeringEnemy) {
     var trapDamage = trap.item.damage || 0;
     var trapRange = trap.item.range;
     var effect = trap.item.effect;
-
     if (!triggeringEnemy.isDead) {
         triggeringEnemy.trapsTriggered = triggeringEnemy.trapsTriggered || {};
         triggeringEnemy.trapsTriggered[trap.id] = true;
         applyTrapEffect(triggeringEnemy, trapDamage, effect);
     }
-
     var now = Date.now() / 1000;
-    var cooldownElapsed = !trap.lastTriggerTime || (now - trap.lastTriggerTime >= 2);
-    if (!cooldownElapsed) return;
+    if (trap.lastTriggerTime && (now - trap.lastTriggerTime < 2)) return;
     trap.lastTriggerTime = now;
     trap.hp -= 10;
-    var trapDestroyed = trap.hp <= 0;
-    var c = getPlacedCenter(trap);
-    var trapRangePx = trapRange <= 1 ? 0 : trapRange;
+    var c = getPlacedCenter(trap), trapRangePx = trapRange <= 1 ? 0 : trapRange;
     for (var i = 0; i < G.enemies.length; i++) {
         var otherEnemy = G.enemies[i];
-        if (otherEnemy.isDead) continue;
-        if (otherEnemy === triggeringEnemy) continue;
+        if (otherEnemy.isDead || otherEnemy === triggeringEnemy) continue;
         if (!otherEnemy.trapsTriggered) otherEnemy.trapsTriggered = {};
         if (otherEnemy.trapsTriggered[trap.id]) continue;
-        var box = getEnemyBox(otherEnemy.x, otherEnemy.lane);
-        var inRange = trapRange > 1 && distSqToBox(box, c.x, c.y) <= trapRangePx * trapRangePx;
-        if (inRange) {
+        if (trapRange > 1 && distSqToBox(getEnemyBox(otherEnemy.x, otherEnemy.lane), c.x, c.y) <= trapRangePx * trapRangePx) {
             otherEnemy.trapsTriggered[trap.id] = true;
             applyTrapEffect(otherEnemy, trapDamage, effect);
         }
     }
-    if (trapDestroyed) removePlacedItem(trap);
+    if (trap.hp <= 0) removePlacedItem(trap);
 }
 
 var AVOIDANCE_LOOKAHEAD = GRID_CELL_SIZE * 2;
-var RANGED_ATTACK_LOOKAHEAD = GRID_CELL_SIZE * 5;
 
-function findRangedTarget(enemy) {
-    var range = enemy.type.rangedAttackRange || RANGED_ATTACK_LOOKAHEAD;
+function findAttackTarget(enemy) {
+    var range = enemy.type.attackRange || 0;
+    if (range <= 0) return null;
+    if (enemy.x < 0) return null;
     var frontX = enemy.x + GRID_CELL_SIZE / 2;
     var attackReach = frontX + range;
     var scanRange = range * 2 + GRID_CELL_SIZE;
     var items = findItemsInLanes(frontX + scanRange / 2, scanRange, getFootprintLanes(enemy.lane), 'nonTraps');
     if (items.length === 0) return null;
-    var nearestWeapon = null, weaponLeft = Infinity;
-    var nearestBarricade = null, barricadeLeft = Infinity;
+    if (enemy.type.rangedAttack && !enemy.type.rangedAttackMode) {
+        var nearestWeapon = null, weaponLeft = Infinity;
+        var nearestBarricade = null, barricadeLeft = Infinity;
+        for (var i = 0; i < items.length; i++) {
+            var it = items[i];
+            var left = getPlacedCenter(it).leftX;
+            if (left < enemy.x) continue;
+            if (it.item.type === 'Offensive' && left < weaponLeft) { nearestWeapon = it; weaponLeft = left; }
+            else if (it.item.type === 'Barricades' && left < barricadeLeft) { nearestBarricade = it; barricadeLeft = left; }
+        }
+        if (nearestWeapon && weaponLeft <= attackReach) return nearestWeapon;
+        if (nearestWeapon && nearestBarricade && weaponLeft <= barricadeLeft + range) return null;
+        if (nearestBarricade && frontX < barricadeLeft && barricadeLeft <= attackReach) return nearestBarricade;
+        return null;
+    }
+    var nearest = null, nearestLeft = Infinity;
     for (var i = 0; i < items.length; i++) {
         var it = items[i];
+        if (it.item.type === 'Distractions') continue;
         var left = getPlacedCenter(it).leftX;
         if (left < enemy.x) continue;
-        if (it.item.type === 'Offensive' && left < weaponLeft) { nearestWeapon = it; weaponLeft = left; }
-        else if (it.item.type === 'Barricades' && left < barricadeLeft) { nearestBarricade = it; barricadeLeft = left; }
+        if (left < nearestLeft) { nearest = it; nearestLeft = left; }
     }
-    if (nearestWeapon && weaponLeft <= attackReach) return nearestWeapon;
-    if (nearestWeapon && nearestBarricade && weaponLeft <= barricadeLeft + range) return null;
-    if (nearestBarricade && frontX < barricadeLeft && barricadeLeft <= attackReach) return nearestBarricade;
+    if (nearest && nearestLeft <= attackReach) return nearest;
     return null;
 }
 
@@ -1088,7 +1043,12 @@ function enemyAttackPlaced(enemy, target, dt) {
     enemy.attackCooldown += dt;
     if (enemy.attackCooldown >= enemy.type.attackInterval) {
         enemy.attackCooldown -= enemy.type.attackInterval;
-        if (target.hp !== undefined) { target.hp -= enemy.type.damage; if (target.hp <= 0) { if (target.item.name === 'Crate') triggerCrateOpen(target); removePlacedItem(target); } }
+        if (target.hp !== undefined) {
+            var dmg = enemy.type.damage;
+            if (enemy.type.rangedAttack && target.item.rangedResist) dmg *= (1 - target.item.rangedResist);
+            target.hp -= dmg; if (target.hp <= 0) { if (target.item.name === 'Crate') triggerCrateOpen(target); removePlacedItem(target); }
+        }
+        if (enemy.type.rangedAttackMode === 'firstObject') { var tc = getPlacedCenter(target); G.boltFx.push({ x: tc.x, bottomY: tc.botY, frame: 0, frameTimer: 0, life: BOLT_DURATION, maxLife: BOLT_DURATION }); }
     }
     updateEntityAnim(enemy, enemy.type.anims, dt);
 }
@@ -1105,27 +1065,29 @@ function updateEnemy(enemy, dt) {
     }
     if (enemy.isDead) return;
     var collision = findCollisionAt(enemy.x, enemy.lane), animHandled = false;
-    var rangedTarget = enemy.type.rangedAttack ? findRangedTarget(enemy) : null;
-    var friendlyTarget = findFriendlyTarget(enemy);
-    if (rangedTarget) {
-        enemyAttackPlaced(enemy, rangedTarget, dt); animHandled = true;
+    var attackTarget = enemy.type.noAttack ? null : findAttackTarget(enemy);
+    var friendlyTarget = enemy.type.noAttack ? null : findFriendlyTarget(enemy);
+    if (attackTarget) {
+        enemyAttackPlaced(enemy, attackTarget, dt); animHandled = true;
     } else if (friendlyTarget) {
         enemy.anim = 'attack';
         if (!friendlyTarget.placed.beingAttacked) friendlyTarget.placed.beingAttacked = true;
         enemy.attackCooldown += dt;
-        if (enemy.attackCooldown >= enemy.type.attackInterval) { enemy.attackCooldown -= enemy.type.attackInterval; friendlyTarget.placed.hp -= enemy.type.damage; }
+        if (enemy.attackCooldown >= enemy.type.attackInterval) { enemy.attackCooldown -= enemy.type.attackInterval; friendlyTarget.placed.hp -= enemy.type.damage; if (enemy.type.rangedAttackMode === 'firstObject') G.boltFx.push({ x: friendlyTarget.x, bottomY: friendlyTarget.y + GRID_CELL_SIZE, frame: 0, frameTimer: 0, life: BOLT_DURATION, maxLife: BOLT_DURATION }); }
         updateEntityAnim(enemy, enemy.type.anims, dt); animHandled = true;
     } else if (collision) {
         var primary = collision.primary;
-        if (primary.item && primary.item.type === 'Distractions') { enemy.anim = 'walk'; enemy.frame = 0; }
+        if (!primary) { enemy.anim = 'walk'; enemy.frame = 0; }
+        else if ((primary.item && primary.item.type === 'Distractions') || enemy.type.noAttack) { enemy.anim = 'walk'; enemy.frame = 0; }
         else { enemyAttackPlaced(enemy, primary, dt); animHandled = true; }
         if (collision.distractions.length > 0) {
             var closest = collision.distractions.reduce(function(a, b) { return Math.abs(enemy.x - b.gridX * GRID_CELL_SIZE) < Math.abs(enemy.x - a.gridX * GRID_CELL_SIZE) ? b : a; });
             closest.triggered = true; closest.grandmaCount = (closest.grandmaCount || 0) + 1;
+            if (closest.item.healRate) { if (!closest._distractedEnemies) closest._distractedEnemies = {}; closest._distractedEnemies[enemy.id] = true; }
         }
     } else { enemy.anim = 'walk'; enemy.attackCooldown = 0; }
     var speedMult = 1, isBlocked = collision ? collision.deepOverlap : false;
-    if (rangedTarget || friendlyTarget) isBlocked = true;
+    if (attackTarget || friendlyTarget) isBlocked = true;
     if (enemy.speedModifierTimer && enemy.speedModifierTimer > 0) {
         enemy.speedModifierTimer -= dt;
         if (enemy.speedModifierTimer <= 0) { enemy.speedModifier = 0; enemy.speedModifierType = null; enemy.speedModifierTimer = 0; }
@@ -1141,7 +1103,6 @@ function updateEnemy(enemy, dt) {
     var enemyGridX = (enemy.x / GRID_CELL_SIZE) | 0, enemyGridY = ((enemy.y - GRID_OFFSET_Y) / GRID_CELL_SIZE) | 0;
     if (enemyGridX >= getGridCols() - 1 && enemyGridY >= 0 && enemyGridY < GRID_ROWS) {
         enemy.isDead = true; G.gameOver = true;
-        console.log('Nightfall game over');
     }
     if (!animHandled) { if (isBlocked || speedMult <= 0) { enemy.anim = 'walk'; enemy.frame = 0; } else updateEntityAnim(enemy, enemy.type.anims, dt); }
 }
@@ -1151,7 +1112,23 @@ function applyDamageToEnemy(enemy, damage) {
     enemy.hp -= actualDamage;
     var scoreRatio = enemy.maxHp > 0 ? enemy.type.hp / enemy.maxHp : 1;
     G.score += actualDamage * scoreRatio;
-    if (enemy.hp <= 0) { enemy.isDead = true; G.killCounts[enemy.type.name] = (G.killCounts[enemy.type.name] || 0) + 1; }
+    if (enemy.hp <= 0) {
+        enemy.isDead = true;
+        G.killCounts[enemy.type.name] = (G.killCounts[enemy.type.name] || 0) + 1;
+        if (enemy.type.spawnOnDeath) {
+            enemy.fadeTimer = 0;
+            var newType = pickGrandmaTypeToSpawn(G.time);
+            for (var attempts = 0; newType && newType.name === enemy.type.name && attempts < 5; attempts++) newType = pickGrandmaTypeToSpawn(G.time);
+            if (newType) {
+                var newEnemy = spawnEnemy(newType, enemy.lane, 0);
+                if (newEnemy) {
+                    newEnemy.x = Math.min(enemy.x, (getGridCols() - 2) * GRID_CELL_SIZE); newEnemy.y = enemy.y;
+                    newEnemy.spawnDelay = SMOKE_DURATION;
+                    G.smokeFx.push({ x: newEnemy.x, y: enemy.y, frame: 0, frameTimer: 0, life: SMOKE_DURATION, maxLife: SMOKE_DURATION });
+                }
+            }
+        }
+    }
 }
 
 function getPlacedCenter(placed) {
@@ -1175,13 +1152,12 @@ function getEnemiesInRangeAt(ent) {
     var leftX = ent.x - cells.w * GRID_CELL_SIZE / 2;
     var shape = getRangeShapeAtPos(item, ent.x, ent.y, leftX, cells);
     if (!shape) return [];
-    var maxRange = item.range || 0;
-    var result = [];
+    var maxRange = item.range || 0, halfW = cells.w * GRID_CELL_SIZE / 2, result = [];
     for (var ei = 0; ei < G.enemies.length; ei++) {
         var enemy = G.enemies[ei];
         if (enemy.isDead) continue;
         var dx = enemy.x - ent.x;
-        if (dx > maxRange + GRID_CELL_SIZE || dx < -(maxRange + GRID_CELL_SIZE)) continue;
+        if (dx > maxRange + GRID_CELL_SIZE + halfW || dx < -(maxRange + GRID_CELL_SIZE + halfW)) continue;
         if (isEnemyInOffensiveRange(enemy, shape) && !isBarricadeBlocking(placed, enemy.x)) result.push(enemy);
     }
     return result;
@@ -1192,21 +1168,15 @@ function isEnemyInOffensiveRange(enemy, shape) {
     if (shape.type === 'circle') {
         if (distSqToBox(r, shape.x, shape.y) > shape.r * shape.r) return false;
         if (shape.minR > 0) {
-            var fx = (shape.x < r.left + r.w / 2) ? r.left + r.w : r.left;
-            var fy = (shape.y < r.top + r.h / 2) ? r.top + r.h : r.top;
-            var fdx = fx - shape.x, fdy = fy - shape.y;
-            if (fdx * fdx + fdy * fdy < shape.minR * shape.minR) return false;
+            var fx = (shape.x < r.left + r.w / 2) ? r.left + r.w : r.left, fy = (shape.y < r.top + r.h / 2) ? r.top + r.h : r.top;
+            if ((fx - shape.x) * (fx - shape.x) + (fy - shape.y) * (fy - shape.y) < shape.minR * shape.minR) return false;
         }
         return true;
     }
-    if (shape.type === 'rect') {
-        return r.left + r.w > shape.left && r.left < shape.left + shape.w &&
-            r.top + r.h > shape.top && r.top < shape.top + shape.h;
-    }
+    if (shape.type === 'rect') return r.left + r.w > shape.left && r.left < shape.left + shape.w && r.top + r.h > shape.top && r.top < shape.top + shape.h;
     if (shape.type === 'arc') {
         if (r.left + r.w <= shape.leftX - shape.range || r.left >= shape.leftX) return false;
-        var checkX = Math.max(r.left, shape.leftX - shape.range);
-        var progress = (shape.leftX - checkX) / shape.range;
+        var progress = (shape.leftX - Math.max(r.left, shape.leftX - shape.range)) / shape.range;
         var halfWidth = shape.arcNarrow + progress * (shape.arcWide - shape.arcNarrow);
         return r.top + r.h > shape.y - halfWidth && r.top < shape.y + halfWidth;
     }
@@ -1318,39 +1288,26 @@ function updateFriendlyEntities(dt) {
             else { ent.anim = 'walk'; ent.frame = 0; ent.frameTimer = 0; }
         }
 
-        if (ent.state === 'walking') {
-            if (!target) {
-                target = acquireNewTarget(ent);
-                if (!target) { ent.state = 'returning'; }
-            }
-            if (target) {
-                var dx = target.x - ent.x, dy = target.y - ent.y, dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist <= GRID_CELL_SIZE) { ent.state = 'attacking'; }
-                else {
-                    moveFriendlyToward(ent, target.x, target.y, dt, placed);
-                    ent.anim = 'walk'; updateEntityAnim(ent, ent.anims, dt);
-                }
-            }
+        if (ent.state === 'walking' || ent.state === 'attacking') {
+            if (!target) { target = acquireNewTarget(ent); if (!target) ent.state = 'returning'; }
         }
-
-        if (ent.state === 'attacking') {
-            if (!target) {
-                target = acquireNewTarget(ent);
-                if (!target) { ent.state = 'returning'; }
-            }
-            if (target) {
-                if (Math.abs(target.x - ent.x) > GRID_CELL_SIZE * 1.5 || Math.abs(target.y - ent.y) > GRID_CELL_SIZE * 1.5) { ent.state = 'walking'; }
-                else {
-                    if (Math.abs(target.x - ent.x) > 0.5) ent.facing = target.x > ent.x ? -1 : 1;
-                    ent.anim = 'attack'; ent.attackCooldown += dt;
-                    if (ent.attackCooldown >= FRIENDLY_ATTACK_INTERVAL) {
-                        ent.attackCooldown -= FRIENDLY_ATTACK_INTERVAL;
-                        var wasAlive = !target.isDead;
-                        applyDamageToEnemy(target, ent.damage);
-                        if (wasAlive && target.isDead) ent.damage += FRIENDLY_KILL_DAMAGE_BONUS;
-                    }
-                    updateEntityAnim(ent, ent.anims, dt);
+        if (ent.state === 'walking' && target) {
+            var dx = target.x - ent.x, dy = target.y - ent.y, dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= GRID_CELL_SIZE) { ent.state = 'attacking'; }
+            else { moveFriendlyToward(ent, target.x, target.y, dt, placed); ent.anim = 'walk'; updateEntityAnim(ent, ent.anims, dt); }
+        }
+        if (ent.state === 'attacking' && target) {
+            if (Math.abs(target.x - ent.x) > GRID_CELL_SIZE * 1.5 || Math.abs(target.y - ent.y) > GRID_CELL_SIZE * 1.5) { ent.state = 'walking'; }
+            else {
+                if (Math.abs(target.x - ent.x) > 0.5) ent.facing = target.x > ent.x ? -1 : 1;
+                ent.anim = 'attack'; ent.attackCooldown += dt;
+                if (ent.attackCooldown >= FRIENDLY_ATTACK_INTERVAL) {
+                    ent.attackCooldown -= FRIENDLY_ATTACK_INTERVAL;
+                    var wasAlive = !target.isDead;
+                    applyDamageToEnemy(target, ent.damage);
+                    if (wasAlive && target.isDead) ent.damage += FRIENDLY_KILL_DAMAGE_BONUS;
                 }
+                updateEntityAnim(ent, ent.anims, dt);
             }
         }
 
@@ -1393,7 +1350,7 @@ function getOffensiveItems() {
     _offensiveItemsCache = [];
     for (var i = 0; i < G.placedItems.length; i++) {
         var placed = G.placedItems[i];
-        if (placed.item.type === 'Offensive' && !placed.item.placedSprite) _offensiveItemsCache.push(placed);
+        if (placed.item.type === 'Offensive' && (!placed.item.placedSprite || placed.item.placedSprite.static)) _offensiveItemsCache.push(placed);
     }
     _offensiveItemsCount = G.placedItems.length;
     return _offensiveItemsCache;
@@ -1412,27 +1369,37 @@ function processOffensiveFire(dt) {
             if (waveHit) G.attackEffects.push({ x: waveX, y: c.y, range: 6, minRange: 0, rangeType: 'wave', life: 0.15, maxLife: 0.15 });
             continue;
         }
-        if (placed.fireCooldown === undefined) placed.fireCooldown = fireRate;
+        if (placed.fireCooldown === undefined) placed.fireCooldown = 0;
         placed.fireCooldown -= dt;
         if (placed.fireCooldown > 0) continue;
-        placed.fireCooldown = fireRate;
         var c2 = getPlacedCenter(placed);
-        var enemiesInZone = getEnemiesInRangeAt({ placed: placed, x: c2.x, y: c2.y }), hitAny = false;
-        if (!pierces) {
+        var enemiesInZone = getEnemiesInRangeAt({ placed: placed, x: c2.x, y: c2.y });
+        if (enemiesInZone.length === 0) { placed.fireCooldown = 0; continue; }
+        placed.fireCooldown = fireRate;
+        if (placed.item.placedSprite && placed.item.placedSprite.static) placed.fireAnimStart = Date.now();
+        if (placed.item.name === 'Cannon') {
+            var projIcon = getIconPosition({ icon: [0, 4, 'nightfall'] });
+            var projEndX = c2.leftX - (placed.item.range || 0);
+            var sortedTargets = enemiesInZone.slice().sort(function(a, b) { return b.x - a.x; });
+            for (var si = 0; si < sortedTargets.length; si++) { if (sortedTargets[si].type.name === 'Clone Grandma') { projEndX = sortedTargets[si].x; break; } }
+            G.projectileFx.push({ x: c2.leftX, y: c2.y, startX: c2.leftX, endX: projEndX, iconUrl: projIcon.url, iconX: projIcon.x, iconY: projIcon.y, life: 0.4, maxLife: 0.4, pendingDamage: damage, pendingTargets: enemiesInZone, pendingPierces: pierces });
+            continue;
+        }
+        var hitAny = false;
+        if (pierces) {
+            enemiesInZone.sort(function(a, b) { return b.x - a.x; });
+            for (var ei = 0; ei < enemiesInZone.length; ei++) { hitAny = true; applyDamageToEnemy(enemiesInZone[ei], damage); if (enemiesInZone[ei].type.name === 'Clone Grandma') break; }
+        } else {
             enemiesInZone.sort(function(a, b) { return b.x - a.x; });
             var blockedRows = {};
             for (var ei = 0; ei < enemiesInZone.length; ei++) {
-                var enemy = enemiesInZone[ei];
-                var alreadyBlocked = false;
+                var enemy = enemiesInZone[ei], alreadyBlocked = false;
                 for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) { if (blockedRows[row]) { alreadyBlocked = true; break; } }
                 if (alreadyBlocked) continue;
                 for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) blockedRows[row] = true;
                 hitAny = true; applyDamageToEnemy(enemy, damage);
             }
-        } else {
-            for (var ei = 0; ei < enemiesInZone.length; ei++) { hitAny = true; applyDamageToEnemy(enemiesInZone[ei], damage); }
         }
-        if (hitAny) G.attackEffects.push({ x: c.x, y: c.y, range: placed.item.range || 0, minRange: placed.item.minRange || 0, rangeType: rangeType, life: 0.4, maxLife: 0.4 });
     }
     for (var ai = G.attackEffects.length - 1; ai >= 0; ai--) { G.attackEffects[ai].life -= dt; if (G.attackEffects[ai].life <= 0) G.attackEffects.splice(ai, 1); }
 }
@@ -1441,18 +1408,11 @@ function buildLaneItems() {
     var lanes = [];
     for (var l = 0; l < GRID_ROWS; l++) lanes.push({ nonTraps: [], traps: [], avoidanceItems: [] });
     for (var i = 0; i < G.placedItems.length; i++) {
-        var placed = G.placedItems[i];
-        var cells = getPlacedCenter(placed).cells;
+        var placed = G.placedItems[i], cells = getPlacedCenter(placed).cells;
         for (var row = placed.gridY; row < placed.gridY + cells.h && row < GRID_ROWS; row++) {
             if (row < 0) continue;
-            if (placed.item.type === 'Traps') {
-                lanes[row].traps.push(placed);
-            } else {
-                lanes[row].nonTraps.push(placed);
-            }
-            if (placed.item.avoidance) {
-                lanes[row].avoidanceItems.push(placed);
-            }
+            (placed.item.type === 'Traps' ? lanes[row].traps : lanes[row].nonTraps).push(placed);
+            if (placed.item.avoidance) lanes[row].avoidanceItems.push(placed);
         }
     }
     G.laneItems = lanes;
@@ -1482,7 +1442,7 @@ function stepSimulation(dt) {
         var _p = G.placedItems[pi];
         _p.beingAttacked = false;
         if (_p.item.type === 'Distractions') {
-            _p.grandmaCount = 0;
+            _p.grandmaCount = 0; if (_p._distractedEnemies) _p._distractedEnemies = {};
             _p.triggered = false;
         }
     }
@@ -1507,13 +1467,24 @@ function stepSimulation(dt) {
             if (fe.fadeTimer <= 0) { removePlacedItem(fe.placed); G.friendlyEntities.splice(fi, 1); }
         }
     }
+    var activeSlots = 0;
     for (var pi = G.placedItems.length - 1; pi >= 0; pi--) {
         var pitem = G.placedItems[pi];
         if (pitem.item.type === 'Distractions' && pitem.triggered && pitem.grandmaCount > 0) {
             pitem.hp -= dt * 10 * (1 - Math.pow(0.9, pitem.grandmaCount));
             if (pitem.hp <= 0) removePlacedItem(pitem);
+            if (pitem.item.name === 'Slot Machine') activeSlots++;
+            if (pitem.item.healRate && pitem._distractedEnemies) {
+                for (var ei = 0; ei < G.enemies.length; ei++) {
+                    var e = G.enemies[ei];
+                    if (e.isDead || !pitem._distractedEnemies[e.id]) continue;
+                    e.hp = Math.min(e.maxHp, e.hp + pitem.item.healRate * dt);
+                }
+            }
         }
     }
+    var newCpsEff = 1 + activeSlots * 0.01;
+    if (!NightfallM.effs || Math.abs((NightfallM.effs.cps || 1) - newCpsEff) > 0.0001) { NightfallM.effs = { cps: newCpsEff }; Game.recalculateGains = 1; }
     for (pi = 0; pi < G.placedItems.length; pi++) {
         pitem = G.placedItems[pi];
         if (pitem.beingAttacked !== pitem._wasAttacked) {
@@ -1534,34 +1505,75 @@ function stepSimulation(dt) {
     for (var fi = G.distractionFx.length - 1; fi >= 0; fi--) {
         if ((G.distractionFx[fi].life -= dt) <= 0) G.distractionFx.splice(fi, 1);
     }
+    for (var si = G.smokeFx.length - 1; si >= 0; si--) {
+        var sf = G.smokeFx[si];
+        sf.frameTimer += dt;
+        while (sf.frameTimer >= 1 / SMOKE_FPS && sf.frame < SMOKE_FRAMES - 1) { sf.frame++; sf.frameTimer -= 1 / SMOKE_FPS; }
+        if ((sf.life -= dt) <= 0) G.smokeFx.splice(si, 1);
+    }
+    for (var bi = G.boltFx.length - 1; bi >= 0; bi--) {
+        var bf = G.boltFx[bi];
+        bf.frameTimer += dt;
+        while (bf.frameTimer >= 1 / BOLT_FPS && bf.frame < BOLT_FRAMES - 1) { bf.frame++; bf.frameTimer -= 1 / BOLT_FPS; }
+        if ((bf.life -= dt) <= 0) G.boltFx.splice(bi, 1);
+    }
+    for (var pri = G.projectileFx.length - 1; pri >= 0; pri--) {
+        var pr = G.projectileFx[pri];
+        var prProgress = 1 - pr.life / pr.maxLife;
+        pr.x = pr.startX + (pr.endX - pr.startX) * prProgress;
+        if ((pr.life -= dt) <= 0) {
+            if (pr.pendingDamage && pr.pendingTargets) {
+                if (pr.pendingPierces) {
+                    pr.pendingTargets.sort(function(a, b) { return b.x - a.x; });
+                    for (var ei = 0; ei < pr.pendingTargets.length; ei++) { if (!pr.pendingTargets[ei].isDead) { applyDamageToEnemy(pr.pendingTargets[ei], pr.pendingDamage); if (pr.pendingTargets[ei].type.name === 'Clone Grandma') break; } }
+                } else {
+                    pr.pendingTargets.sort(function(a, b) { return b.x - a.x; });
+                    var blockedRows = {};
+                    for (var ei = 0; ei < pr.pendingTargets.length; ei++) {
+                        var enemy = pr.pendingTargets[ei]; if (enemy.isDead) continue;
+                        var alreadyBlocked = false;
+                        for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) { if (blockedRows[row]) { alreadyBlocked = true; break; } }
+                        if (alreadyBlocked) continue;
+                        for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) blockedRows[row] = true;
+                        applyDamageToEnemy(enemy, pr.pendingDamage);
+                    }
+                }
+            }
+            G.projectileFx.splice(pri, 1);
+        }
+    }
     if (G.needsRenderPlacedItems) NightfallM.renderPlacedItems();
 }
 
 var entityPool = {};
-function renderEntityEl(c, seen, key, x, y, w, h, url, frame, row, hp, maxHp, zIndex, opacity, flipX) {
+function renderEntityEl(c, seen, key, x, y, w, h, url, frame, row, hp, maxHp, zIndex, opacity, flipX, scale) {
+    scale = scale || 1;
+    var dw = Math.round(w * scale), dh = Math.round(h * scale);
     var el = entityPool[key];
     if (!el) { el = entityPool[key] = document.createElement('div'); el.style.cssText = 'position:absolute;pointer-events:none;'; c.appendChild(el); el._last = {}; }
     seen[key] = 1;
     var s = el.style, l = el._last;
     if (l.z !== zIndex) { s.zIndex = zIndex; l.z = zIndex; }
-    var lx = (x - w/2) | 0, ly = (y - h/2) | 0;
+    var lx = (x - dw/2) | 0, ly = (y - dh/2) | 0;
     if (l.x !== lx) { s.left = lx + 'px'; l.x = lx; }
     if (l.y !== ly) { s.top = ly + 'px'; l.y = ly; }
-    if (l.w !== w) { s.width = w + 'px'; l.w = w; }
-    if (l.h !== h) { s.height = h + 'px'; l.h = h; }
+    if (l.w !== dw) { s.width = dw + 'px'; l.w = dw; }
+    if (l.h !== dh) { s.height = dh + 'px'; l.h = dh; }
     var opStr = opacity < 1 ? opacity.toFixed(2) : '1';
     if (l.op !== opStr) { s.opacity = opStr; l.op = opStr; }
     var tStr = flipX ? 'scaleX(-1)' : '';
     if (l.t !== tStr) { s.transform = tStr; l.t = tStr; }
     if (url) {
-        var bgImg = 'url(' + url + ')', bgPos = '-' + (frame * w) + 'px -' + (row * h) + 'px';
+        var bgImg = 'url(' + url + ')', bgPos = '-' + (frame * dw) + 'px -' + (row * dh) + 'px';
+        var bgSz = scale !== 1 ? 'auto ' + dh + 'px' : '';
         if (l.bg !== bgImg) { s.backgroundImage = bgImg; s.backgroundRepeat = 'no-repeat'; s.imageRendering = 'pixelated'; s.backgroundColor = ''; l.bg = bgImg; }
         if (l.bp !== bgPos) { s.backgroundPosition = bgPos; l.bp = bgPos; }
+        if (l.bs !== bgSz) { s.backgroundSize = bgSz; l.bs = bgSz; }
     } else { if (l.bg !== 'none') { s.backgroundColor = '#f0f'; s.backgroundImage = ''; l.bg = 'none'; } }
     if (hp < maxHp && hp > 0) {
         var pct = Math.max(0, hp / maxHp);
         if (!el._hp) { el._hp = document.createElement('div'); el._hpFill = document.createElement('div'); el._hp.appendChild(el._hpFill); el.appendChild(el._hp); el._hp.style.cssText = 'position:absolute;top:2px;height:4px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.3);pointer-events:none;'; el._hpFill.style.cssText = 'position:absolute;left:0;top:0;height:100%;'; }
-        var hpW = Math.round(w * 0.4), hpL = Math.round(w / 2 - w * 0.2);
+        var hpW = Math.round(dw * 0.4), hpL = Math.round(dw / 2 - dw * 0.2);
         if (el._hp._w !== hpW) { el._hp.style.width = hpW + 'px'; el._hp.style.left = hpL + 'px'; el._hp._w = hpW; }
         if (el._hp._flip !== flipX) { el._hp.style.transform = flipX ? 'scaleX(-1)' : ''; el._hp._flip = flipX; }
         el._hp.style.display = '';
@@ -1590,6 +1602,18 @@ function renderEntities() {
         var fop = fe.isDead ? Math.max(0, fe.fadeTimer / 0.3) : (fe.placed && fe.placed.beingAttacked ? 0.5 + 0.5 * Math.abs(Math.sin(pulseT * 6)) : 1);
         renderEntityEl(c, seen, 'f' + fe.id, fe.x, fe.y, fe.frameW, fe.frameH, fa ? fa.url : '', fe.frame, 0, fe.placed ? fe.placed.hp : 0, fe.maxHp, 1000 + fi, fop, fe.facing === -1);
     }
+    for (var pi = 0; pi < G.placedItems.length; pi++) {
+        var sp = G.placedItems[pi];
+        if (!sp.item.placedSprite || !sp.item.placedSprite.static || !G.gameStarted) continue;
+        var sps = sp.item.placedSprite, sc = getPlacedCenter(sp);
+        var sFrame = 0;
+        if (sp.fireAnimStart) {
+            var sElapsed = (Date.now() - sp.fireAnimStart) / 1000;
+            if (sElapsed < (sps.frames - 1) / sps.fps) sFrame = 1 + Math.floor(sElapsed * sps.fps);
+        }
+        var sOp = sp.beingAttacked ? 0.5 + 0.5 * Math.abs(Math.sin(pulseT * 6)) : 1;
+        renderEntityEl(c, seen, 's' + sp.id, sc.x + (sps.offsetX || 0), sc.y, sps.frameW, sps.frameH, sps.url, sFrame, 0, sp.hp, sp.item.health, 2000 + pi, sOp, false, sps.scale || 1);
+    }
     for (var id in entityPool) if (!seen[id]) { entityPool[id].remove(); delete entityPool[id]; }
     var parts = [], p = 0;
     if (G.debugMode) {
@@ -1597,7 +1621,7 @@ function renderEntities() {
             var e = G.enemies[i], bl = e.x - GRID_CELL_SIZE/2, bt = GRID_OFFSET_Y + e.lane * GRID_CELL_SIZE - GRID_CELL_SIZE;
             parts[p++] = '<div style="position:absolute;left:' + bl + 'px;top:' + bt + 'px;width:' + GRID_CELL_SIZE + 'px;height:' + (GRID_CELL_SIZE*3) + 'px;background:rgba(0,255,0,0.12);border:1px solid #0f0;pointer-events:none;box-sizing:border-box;"></div>';
             parts[p++] = '<div style="position:absolute;left:' + bl + 'px;top:' + bt + 'px;width:' + (GRID_CELL_SIZE+AVOIDANCE_LOOKAHEAD) + 'px;height:' + (GRID_CELL_SIZE*3) + 'px;background:rgba(0,100,255,0.15);border:1px dashed #00f;pointer-events:none;box-sizing:border-box;"></div>';
-            if (e.type.rangedAttack) { var rl = e.x + GRID_CELL_SIZE/2, rrw = e.type.rangedAttackRange || RANGED_ATTACK_LOOKAHEAD; parts[p++] = '<div style="position:absolute;left:' + rl + 'px;top:' + bt + 'px;width:' + rrw + 'px;height:' + (GRID_CELL_SIZE*3) + 'px;background:rgba(150,0,150,0.15);border:1px dashed #a0a;pointer-events:none;box-sizing:border-box;"></div>'; }
+            if (e.type.attackRange > 0) { var rl = e.x + GRID_CELL_SIZE/2, rrw = e.type.attackRange; parts[p++] = '<div style="position:absolute;left:' + rl + 'px;top:' + bt + 'px;width:' + rrw + 'px;height:' + (GRID_CELL_SIZE*3) + 'px;background:rgba(150,0,150,0.15);border:1px dashed #a0a;pointer-events:none;box-sizing:border-box;"></div>'; }
         }
         for (var fi = 0; fi < G.friendlyEntities.length; fi++) {
             var fe2 = G.friendlyEntities[fi], fbl = fe2.x - GRID_CELL_SIZE/2, fbt = fe2.y - GRID_CELL_SIZE;
@@ -1617,6 +1641,9 @@ function renderEntities() {
     }
     for (var ai = 0; ai < G.attackEffects.length; ai++) { var fx2 = G.attackEffects[ai], a2 = (fx2.life / fx2.maxLife * 0.5).toFixed(2); parts[p++] = renderRangeShape(fxToShape(fx2), 'rgba(255,100,0,' + (a2*0.3).toFixed(2) + ')', 'rgba(255,100,0,' + a2 + ')'); }
     for (var fi = 0; fi < G.distractionFx.length; fi++) { var dfx = G.distractionFx[fi], dt2 = 1 - dfx.life / dfx.maxLife; parts[p++] = '<div style="position:absolute;left:' + dfx.x + 'px;top:' + (dfx.y - dfx.rise * dt2 * dt2) + 'px;width:48px;height:48px;background-image:url(' + dfx.iconUrl + ');background-position:-' + dfx.iconX + 'px -' + dfx.iconY + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;opacity:' + (dfx.startAlpha * (1 - dt2)).toFixed(2) + ';"></div>'; }
+    for (var si = 0; si < G.smokeFx.length; si++) { var sf = G.smokeFx[si]; parts[p++] = '<div style="position:absolute;left:' + sf.x + 'px;top:' + sf.y + 'px;width:' + SMOKE_FRAME_W + 'px;height:' + SMOKE_FRAME_H + 'px;background-image:url(' + smokeUrl + ');background-position:-' + (sf.frame * SMOKE_FRAME_W) + 'px 0px;background-repeat:no-repeat;transform:translate(-50%,-50%);pointer-events:none;z-index:5000;image-rendering:pixelated;"></div>'; }
+    for (var pri = 0; pri < G.projectileFx.length; pri++) { var pr = G.projectileFx[pri], prProgress = 1 - pr.life / pr.maxLife, prAlpha = (prProgress < 0.9 ? 1 : (1 - prProgress) / 0.1).toFixed(2); parts[p++] = '<div style="position:absolute;left:' + pr.x + 'px;top:' + pr.y + 'px;width:48px;height:48px;background-image:url(' + pr.iconUrl + ');background-position:-' + pr.iconX + 'px -' + pr.iconY + 'px;background-repeat:no-repeat;transform:translate(-50%,-50%) scale(0.5);pointer-events:none;z-index:5000;opacity:' + prAlpha + ';"></div>'; }
+    for (var bi = 0; bi < G.boltFx.length; bi++) { var bf = G.boltFx[bi]; parts[p++] = '<div style="position:absolute;left:' + (bf.x - BOLT_FRAME_W / 2) + 'px;top:' + (bf.bottomY - BOLT_FRAME_H) + 'px;width:' + BOLT_FRAME_W + 'px;height:' + BOLT_FRAME_H + 'px;background-image:url(' + boltUrl + ');background-position:-' + (bf.frame * BOLT_FRAME_W) + 'px 0px;background-repeat:no-repeat;pointer-events:none;z-index:5000;image-rendering:pixelated;"></div>'; }
     fx.innerHTML = parts.join('');
 }
 
@@ -1626,35 +1653,25 @@ function clearEntityContainer() {
     if (c) c.innerHTML = '';
 }
 
+function clearGameFx() {
+    G.enemies = []; G.attackEffects = []; G.distractionFx = []; G.smokeFx = []; G.projectileFx = []; G.boltFx = []; G.friendlyEntities = [];
+}
+
 function startNightfallGame() {
     if (G.gameStarted) return;
     clearDrag();
     NightfallM.renderTools();
-    G.enemies = [];
-    G.enemyIdCounter = 0;
-    G.simAccumulator = 0;
-    G.lastSpawnTime = 0;
+    clearGameFx();
+    G.enemyIdCounter = 0; G.simAccumulator = 0; G.lastSpawnTime = 0;
     G.nextSpawnInterval = getSpawnInterval(0);
-    G.gameOver = false;
-    G.gameStarted = true;
-    G.score = 0;
-    G.time = 0;
-    G.attackEffects = [];
-    G.distractionFx = [];
+    G.gameOver = false; G.gameStarted = true; G.score = 0; G.time = 0;
     clearEntityContainer();
-    G.killCounts = {};
-    G.savedPlacedItems = [];
-    G.friendlyEntities = [];
-    G.friendlyIdCounter = 0;
+    G.killCounts = {}; G.savedPlacedItems = []; G.friendlyIdCounter = 0;
     for (var pi = 0; pi < G.placedItems.length; pi++) {
         var placed = G.placedItems[pi];
         G.savedPlacedItems.push({ id: placed.id, item: placed.item, gridX: placed.gridX, gridY: placed.gridY, hp: placed.item.health });
-        placed.hp = placed.item.health;
-        placed.fireCooldown = undefined;
-        placed.wavePos = undefined;
-        placed.triggered = false;
-        placed.grandmaCount = 0;
-        if (placed.item.placedSprite) spawnFriendlyEntity(placed);
+        placed.hp = placed.item.health; placed.fireCooldown = undefined; placed.wavePos = undefined; placed.triggered = false; placed.grandmaCount = 0;
+        if (placed.item.placedSprite && !placed.item.placedSprite.static) spawnFriendlyEntity(placed);
     }
     NightfallM.startTime = Date.now();
     initTriggerTiles();
@@ -1663,16 +1680,16 @@ function startNightfallGame() {
 }
 
 function stopNightfallGame() {
-    G.gameStarted = false; G.gameOver = false; G.enemies = []; G.friendlyEntities = [];
-    G.attackEffects = []; G.distractionFx = []; G.lastSpawnTime = 0; NightfallM.startTime = 0;
+    G.gameStarted = false; G.gameOver = false; clearGameFx(); G.lastSpawnTime = 0; NightfallM.startTime = 0;
+    if (NightfallM.effs) { NightfallM.effs = null; Game.recalculateGains = 1; }
     clearEntityContainer();
     if (G.savedPlacedItems && G.savedPlacedItems.length) {
         G.placedItems = G.savedPlacedItems.map(function(s) { return { id: s.id, item: s.item, gridX: s.gridX, gridY: s.gridY, hp: s.hp }; });
         G.savedPlacedItems = null;
         buildLaneItems();
-        G.needsRenderPlacedItems = true;
     }
     NightfallM.renderTools();
+    NightfallM.renderPlacedItems();
 }
 
 function formatNightfallTime(totalSeconds) {
@@ -1691,22 +1708,15 @@ NightfallM.draw = function() {
         NightfallM.currentBgUrl = targetBgUrl;
     }
 
+
     if (G.selectedTool && G.isDragging && NightfallM.dragEl && G.dragGhost && NightfallM.gridEl) {
         var cursor = getCursorPos();
         if (cursor.x !== G.lastDragCursorX || cursor.y !== G.lastDragCursorY) {
-            G.lastDragCursorX = cursor.x;
-            G.lastDragCursorY = cursor.y;
-            var gridBox = NightfallM.gridEl.getBoundingClientRect();
-            var mx = cursor.x - gridBox.left;
-            var my = cursor.y - gridBox.top;
-            var ghostX = Math.floor(mx / GRID_CELL_SIZE);
-            var ghostY = Math.floor((my - GRID_OFFSET_Y) / GRID_CELL_SIZE);
-            G.dragGhostX = ghostX;
-            G.dragGhostY = ghostY;
-            var dragBox = NightfallM.dragEl.getBoundingClientRect();
-            var tx = gridBox.left - dragBox.left + ghostX * GRID_CELL_SIZE;
-            var ty = gridBox.top - dragBox.top + GRID_OFFSET_Y + ghostY * GRID_CELL_SIZE;
-            G.dragGhost.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+            G.lastDragCursorX = cursor.x; G.lastDragCursorY = cursor.y;
+            var gridBox = NightfallM.gridEl.getBoundingClientRect(), dragBox = NightfallM.dragEl.getBoundingClientRect();
+            G.dragGhostX = Math.floor((cursor.x - gridBox.left) / GRID_CELL_SIZE);
+            G.dragGhostY = Math.floor((cursor.y - gridBox.top - GRID_OFFSET_Y) / GRID_CELL_SIZE);
+            G.dragGhost.style.transform = 'translate(' + (gridBox.left - dragBox.left + G.dragGhostX * GRID_CELL_SIZE) + 'px,' + (gridBox.top - dragBox.top + GRID_OFFSET_Y + G.dragGhostY * GRID_CELL_SIZE) + 'px)';
         }
     }
 
@@ -1718,86 +1728,39 @@ NightfallM.draw = function() {
     if (wrath > 0 && !NightfallM.elderWrathActive) {
         NightfallM.elderWrathActive = true;
         startNightfallGame();
-        var initialScore = 0;
-        G.placedItems.forEach(function(placed) {
-            initialScore -= placed.item.cost;
-        });
-        G.score = initialScore;
-    } else if (wrath === 0 && NightfallM.elderWrathActive) {
-        NightfallM.elderWrathActive = false;
-        stopNightfallGame();
-    }
-    if (wrath !== NightfallM.lastWrath) {
-        NightfallM.lastWrath = wrath;
-        NightfallM.renderTools();
-    }
+        G.score = G.placedItems.reduce(function(s, p) { return s - p.item.cost; }, 0);
+    } else if (wrath === 0 && NightfallM.elderWrathActive) { NightfallM.elderWrathActive = false; stopNightfallGame(); }
+    if (wrath !== NightfallM.lastWrath) { NightfallM.lastWrath = wrath; NightfallM.renderTools(); }
     var text;
-    if (wrath > 0 && NightfallM.startTime && !G.gameOver) {
-        text = 'Time: ' + formatNightfallTime(G.time);
-    } else if (G.gameOver) {
-        text = 'Game Over - Time: ' + formatNightfallTime(G.time);
-    } else {
-        G.time = 0;
-        text = 'Awaiting Grandmapocalypse';
-    }
-    if (text !== NightfallM.lastTimeString) {
-        NightfallM.timeL.textContent = text;
-        NightfallM.lastTimeString = text;
-    }
+    if (wrath > 0 && NightfallM.startTime && !G.gameOver) text = 'Time: ' + formatNightfallTime(G.time);
+    else if (G.gameOver) text = 'Game Over - Time: ' + formatNightfallTime(G.time);
+    else { G.time = 0; text = 'Awaiting Grandmapocalypse'; }
+    if (text !== NightfallM.lastTimeString) { NightfallM.timeL.textContent = text; NightfallM.lastTimeString = text; }
     var scoreEl = NightfallM.scoreEl;
     if (scoreEl) {
         if (wrath > 0) {
-            var scoreColor = G.score < 0 ? '#f00' : '#0f0';
-            var displayScore = Math.ceil(G.score);
-            var scoreHtml = 'Score: <span style="color:' + scoreColor + ';">' + displayScore + '</span>';
-            if (scoreHtml !== NightfallM.lastScoreHtml) {
-                scoreEl.innerHTML = scoreHtml;
-                NightfallM.lastScoreHtml = scoreHtml;
-            }
-        } else if (NightfallM.lastScoreHtml !== '') {
-            scoreEl.innerHTML = '';
-            NightfallM.lastScoreHtml = '';
-        }
+            var scoreHtml = 'Score: <span style="color:' + (G.score < 0 ? '#f00' : '#0f0') + ';">' + Math.ceil(G.score) + '</span>';
+            if (scoreHtml !== NightfallM.lastScoreHtml) { scoreEl.innerHTML = scoreHtml; NightfallM.lastScoreHtml = scoreHtml; }
+        } else if (NightfallM.lastScoreHtml !== '') { scoreEl.innerHTML = ''; NightfallM.lastScoreHtml = ''; }
     }
 
     if (G.gameStarted && !G.gameOver) {
         var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-        var last = G.lastFrameTime || now;
-        var dt = Math.min(0.25, (now - last) / 1000);
+        var dt = Math.min(0.25, (now - (G.lastFrameTime || now)) / 1000);
         G.lastFrameTime = now;
-        if (G.simAccumulator === undefined) G.simAccumulator = 0;
         G.simAccumulator += dt * (G.gameSpeed || 1);
         var simRan = false;
-        while (G.simAccumulator >= SIM_STEP) {
-            stepSimulation(SIM_STEP);
-            G.simAccumulator -= SIM_STEP;
-            simRan = true;
-        }
+        while (G.simAccumulator >= SIM_STEP) { stepSimulation(SIM_STEP); G.simAccumulator -= SIM_STEP; simRan = true; }
         if (simRan) {
-            if (G.lastRenderTime === undefined) G.lastRenderTime = 0;
-            if (now - G.lastRenderTime >= 33) {
-                renderEntities();
-                G.lastRenderTime = now;
-            }
-            if (NightfallM.activeToolTab === 'Grandmas' && (!NightfallM.lastKillRenderTime || now - NightfallM.lastKillRenderTime >= 500)) {
-                NightfallM.lastKillRenderTime = now;
-                NightfallM.renderTools();
-            }
+            if (now - (G.lastRenderTime || 0) >= 33) { renderEntities(); G.lastRenderTime = now; }
+            if (NightfallM.activeToolTab === 'Grandmas' && (!NightfallM.lastKillRenderTime || now - NightfallM.lastKillRenderTime >= 500)) { NightfallM.lastKillRenderTime = now; NightfallM.renderTools(); }
         }
     }
 };
 
 NightfallM._buildSaveDataImpl = function() {
-    var enemies = [];
-    for (var i = 0; i < G.enemies.length; i++) {
-        var e = G.enemies[i];
-        enemies.push({ name: e.type.name, x: e.x, y: e.y, lane: e.lane, hp: e.hp, maxHp: e.maxHp, anim: e.anim, frame: e.frame });
-    }
-    return {
-        lastTick: G.lastTick, score: G.score, time: G.time, unlockedItems: G.unlockedItems,
-        gameStarted: G.gameStarted, gameOver: G.gameOver, enemyIdCounter: G.enemyIdCounter, enemies: enemies,
-        lastSpawnTime: G.lastSpawnTime, isVisible: (NightfallM.parent && NightfallM.parent.onMinigame) ? 1 : 0
-    };
+    var enemies = G.enemies.map(function(e) { return { name: e.type.name, x: e.x, y: e.y, lane: e.lane, hp: e.hp, maxHp: e.maxHp, anim: e.anim, frame: e.frame }; });
+    return { score: G.score, time: G.time, unlockedItems: G.unlockedItems, gameStarted: G.gameStarted, gameOver: G.gameOver, enemyIdCounter: G.enemyIdCounter, enemies: enemies, lastSpawnTime: G.lastSpawnTime, isVisible: (NightfallM.parent && NightfallM.parent.onMinigame) ? 1 : 0 };
 };
 
 NightfallM._saveImpl = function() {
@@ -1807,22 +1770,14 @@ NightfallM._saveImpl = function() {
     return encodeURIComponent(json);
 };
 
+
 NightfallM._loadImpl = function(str) {
     var data = null;
     if (str) {
-        try {
-            var decoded = str;
-            try { decoded = decodeURIComponent(str); } catch (decodeErr) { decoded = str; }
-            data = JSON.parse(decoded);
-        } catch (e) { data = null; }
+        try { data = JSON.parse(decodeURIComponent(str)); } catch (e) { try { data = JSON.parse(str); } catch (e2) { data = null; } }
     }
-    if (!data || typeof data !== 'object') {
-        NightfallM._resetImpl(false);
-        return;
-    }
-
+    if (!data || typeof data !== 'object') { NightfallM._resetImpl(); return; }
     function num(v, d) { return typeof v === 'number' ? v : d; }
-    G.lastTick = num(data.lastTick, 0);
     G.score = num(data.score, 0);
     G.time = num(data.time, 0);
     G.unlockedItems = typeof data.unlockedItems === 'object' && data.unlockedItems !== null ? data.unlockedItems : {};
@@ -1834,31 +1789,24 @@ NightfallM._loadImpl = function(str) {
     }
     G.enemyIdCounter = num(data.enemyIdCounter, 0);
     G.lastSpawnTime = num(data.lastSpawnTime, 0);
-
     G.enemies = [];
     if (Array.isArray(data.enemies)) {
         for (var ei = 0; ei < data.enemies.length; ei++) {
             var ed = data.enemies[ei], type = ed && ed.name ? NightfallM.getGrandmaType(ed.name) : null;
-            if (!type) continue;
-            G.enemies.push({ id: ++G.enemyIdCounter, type: type, x: ed.x, y: ed.y, lane: ed.lane, hp: ed.hp, maxHp: ed.maxHp, anim: ed.anim, frame: ed.frame, frameTimer: 0, attackCooldown: 0, isDead: false });
+            if (type) G.enemies.push({ id: ++G.enemyIdCounter, type: type, x: ed.x, y: ed.y, lane: ed.lane, hp: ed.hp, maxHp: ed.maxHp, anim: ed.anim, frame: ed.frame, frameTimer: 0, attackCooldown: 0, isDead: false });
         }
     }
-
     if (NightfallM.parent && data.isVisible) activateMinigame(getGrandma(), 50);
 };
 
-NightfallM._resetImpl = function(hard) {
-    G.lastTick = 0; G.score = 0; G.time = 0; G.unlockedItems = {};
-    G.enemies = []; G.enemyIdCounter = 0; G.simAccumulator = 0; G.lastFrameTime = 0;
-    G.lastSpawnTime = 0; G.difficultyMultiplier = 1; G.gameOver = false; G.gameStarted = false;
-    G.savedPlacedItems = null; G.attackEffects = []; G.distractionFx = []; G.killCounts = {};
+NightfallM._resetImpl = function() {
+    G.score = 0; G.time = 0; G.unlockedItems = {}; clearGameFx(); G.enemyIdCounter = 0; G.simAccumulator = 0; G.lastFrameTime = 0;
+    G.lastSpawnTime = 0; G.difficultyMultiplier = 1; G.gameOver = false; G.gameStarted = false; G.savedPlacedItems = null; G.killCounts = {};
     clearEntityContainer();
     NightfallM.startTime = 0; NightfallM.elderWrathActive = false; NightfallM.lastWrath = undefined;
 };
 
-NightfallM.save = NightfallM._saveImpl;
-NightfallM.load = NightfallM._loadImpl;
-NightfallM.reset = NightfallM._resetImpl;
+NightfallM.save = NightfallM._saveImpl; NightfallM.load = NightfallM._loadImpl; NightfallM.reset = NightfallM._resetImpl;
 
 function initializeNightfallMinigame() {
     var grandma = getGrandma();
@@ -1872,8 +1820,7 @@ function initializeNightfallMinigame() {
         var existingDiv = l('rowSpecial' + grandma.id);
         if (existingDiv) { grandma.minigameDiv = existingDiv; return; }
         grandma.minigameDiv = document.createElement('div');
-        grandma.minigameDiv.id = 'rowSpecial' + grandma.id;
-        grandma.minigameDiv.className = 'rowSpecial';
+        grandma.minigameDiv.id = 'rowSpecial' + grandma.id; grandma.minigameDiv.className = 'rowSpecial';
         if (grandma.l) grandma.l.appendChild(grandma.minigameDiv);
     }
 
@@ -1881,8 +1828,7 @@ function initializeNightfallMinigame() {
         if (!grandma) return;
         if (!grandma.minigameLoaded) { grandma.minigameLoaded = true; grandma.minigameName = grandma.minigameName || 'Nightfall'; grandma.minigameLoading = false; }
         ensureMinigameDiv();
-        NightfallM.launch();
-        NightfallM.init(grandma.minigameDiv);
+        NightfallM.launch(); NightfallM.init(grandma.minigameDiv);
         if (!grandma.minigame) grandma.minigame = NightfallM;
         if (Game.JNE && Game.JNE.nightfallSavedData) NightfallM.load(Game.JNE.nightfallSavedData);
         if (isConsoleLoading && !grandma.minigameUrl) grandma.minigameUrl = 'nightfall';
@@ -1893,26 +1839,17 @@ function initializeNightfallMinigame() {
 
     if (isEnabled || isConsoleLoading) {
         try {
-            var minigameIsStub = !grandma.minigame || !grandma.minigame.init;
-            if (!grandma.minigameLoaded || minigameIsStub || !NightfallM.launched) {
-                bootMinigame();
-            }
-        } catch (e) {
-            grandma.minigameLoading = false;
-            throw e;
-        }
+            if (!grandma.minigameLoaded || !grandma.minigame || !grandma.minigame.init || !NightfallM.launched) bootMinigame();
+        } catch (e) { grandma.minigameLoading = false; throw e; }
         grandma.minigameLoading = false;
         if (!grandma.minigameUrl) grandma.minigameUrl = 'nightfall';
-    } else {
-        grandma.minigameLoading = false;
-    }
+    } else grandma.minigameLoading = false;
 
     if (typeof grandma.switchMinigame === 'function' && !grandma._jneNightfallSwitchPatched) {
         grandma._jneNightfallSwitchOrig = grandma.switchMinigame;
         grandma._jneNightfallSwitchPatched = true;
         grandma.switchMinigame = function(on) {
-            var orig = this._jneNightfallSwitchOrig;
-            var result = (typeof orig === 'function') ? orig.apply(this, arguments) : undefined;
+            var result = (typeof this._jneNightfallSwitchOrig === 'function') ? this._jneNightfallSwitchOrig.apply(this, arguments) : undefined;
             var specialEl = document.getElementById('rowSpecial' + this.id);
             if (specialEl && this.onMinigame && specialEl.style.display === 'none') specialEl.style.display = '';
             return result;
@@ -1930,18 +1867,12 @@ window.initializeNightfallMinigame = initializeNightfallMinigame;
 
 var existingAPI = window.NightfallMinigame || {};
 var publicAPI = {
-    save: NightfallM._saveImpl, load: NightfallM._loadImpl, reset: NightfallM._resetImpl,
+    save: NightfallM._saveImpl, load: NightfallM._loadImpl, reset: NightfallM._resetImpl, buildSaveData: NightfallM._buildSaveDataImpl,
     unlockAll: function() { NightfallM.unlockAll(); }, buildSaveString: function() { try { return JSON.stringify(NightfallM._buildSaveDataImpl()); } catch (e) { return ''; } },
-    buildSaveData: NightfallM._buildSaveDataImpl,
     setDebugMode: function(enabled) { G.debugMode = enabled; }, setGameSpeed: function(speed) { G.gameSpeed = speed; },
-    getSaveData: existingAPI.getSaveData, applySaveData: existingAPI.applySaveData,
-    writeCache: existingAPI.writeCache, requestSave: existingAPI.requestSave
+    getSaveData: existingAPI.getSaveData, applySaveData: existingAPI.applySaveData, writeCache: existingAPI.writeCache, requestSave: existingAPI.requestSave
 };
 for (var key in publicAPI) { if (publicAPI[key] === undefined) delete publicAPI[key]; }
-
-Object.defineProperty(window, 'NightfallMinigame', {
-    value: Object.freeze(Object.assign({ VERSION: NIGHTFALL_VERSION }, publicAPI)),
-    writable: false, enumerable: false, configurable: true
-});
+Object.defineProperty(window, 'NightfallMinigame', { value: Object.freeze(Object.assign({ VERSION: NIGHTFALL_VERSION }, publicAPI)), writable: false, enumerable: false, configurable: true });
 
 })();
