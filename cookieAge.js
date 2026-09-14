@@ -5571,7 +5571,7 @@
                 AddEvent(l('langSelect-'+i),'click',function(lang){return function(){if (true){PlaySound('snd/tick.mp3');localStorageSet('CookieClickerLang',lang);Game.toSave=true;Game.toReload=true;}};}(i));
                 AddEvent(l('langSelect-'+i),'mouseover',function(lang){return function(){PlaySound('snd/smallTick.mp3',0.75);l('languageSelectHeader').innerHTML=Langs[lang].changeLanguage;};}(i));
             }
-            AddEvent(l('langSelect-ancientHieroglyphics'),'click',function(){PlaySound('snd/tick.mp3');window.open('https://imgbox.com/OxJN3kdl','_blank');});
+            AddEvent(l('langSelect-ancientHieroglyphics'),'click',function(){PlaySound('snd/tick.mp3');window.open('https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/assets/stone.png','_blank');});
             AddEvent(l('langSelect-ancientHieroglyphics'),'mouseover',function(){PlaySound('snd/smallTick.mp3',0.75);l('languageSelectHeader').innerHTML='Ancient hieroglyphics';});
         };
     };
