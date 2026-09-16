@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////
-// Mysteries of the Cookie Age - Just Natural Expansion                             //
+// Mysteries of the Cookie Age                      //
 //                                                                                  //
 // Look I cant stop you from digging into the source code but be aware              //
 // that the entire thing is full of spoilers there is no way to hide how puzzles    //
@@ -10,12 +10,10 @@
 (function() {
     'use strict';
     
-    var expansionVersion = '1.0.3';
+    var expansionVersion = '1.0.12';
     var debugMode = false; // Set to true for testing
   
-    var customSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png';   
     var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
-    var mainIconsSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/icons.png';
 
     var debugStartInvestigate = null; // Set to investigate puzzle ID, 'complete' to mark all as done, or null to start from beginning
     var debugStartInfiltrate = null;  // Set to infiltrate puzzle ID, 'complete' to mark all as done, or null to start from beginning
@@ -88,7 +86,7 @@
     ];
 
     // ===== PUZZLE ORDER UTILITIES =====
-    // Get puzzle index based on registry definition order
+    // index based on registry definition order
     function getPuzzleIndex(puzzleId) {
         var index = 0;
         for (var id in cookieAgeData.puzzles.registry) {
@@ -125,22 +123,13 @@
             return false;
         }
         
-        debugLog('Base mod detected');
         return true;
     }
     
     // ===== DEBUGGING UTILITIES =====
-    function debugLog() {
-        if (!debugMode) return;
-        try {
-            var msg = Array.prototype.slice.call(arguments).join(' ');
-            console.log('[Cookie Age Debug]', msg);
-        } catch (e) {}
-    }
-    
     function errorLog() {
         try {
-            var msg = Array.prototype.slice.call(arguments).join(' ');
+            var msg = Array.from(arguments).join(' ');
             console.error('[Cookie Age Error]', msg);
         } catch (e) {}
     }
@@ -172,6 +161,8 @@
             if (trackingKey && cookieAgeData.puzzles[trackingKey] !== undefined) {
                 delete cookieAgeData.puzzles[trackingKey];
             }
+            // Reset setup complete flag so onSetup runs again
+            registryEntry.instance._setupComplete = false;
         }
     }
 
@@ -190,7 +181,6 @@
         
         // Handle investigate track
         if (debugStartInvestigate !== null && debugStartInvestigate !== undefined) {
-            // Check if user wants to complete all puzzles in investigate track
             if (debugStartInvestigate === 'complete') {
                 for (var i = 0; i < INVESTIGATE_PUZZLE_ORDER.length; i++) {
                     var puzzleId = INVESTIGATE_PUZZLE_ORDER[i];
@@ -218,7 +208,6 @@
                         }
                     }
                     
-                    // Set track progress and activate puzzle
                     cookieAgeData.puzzles.tracks.investigate.progress = investigateOrder;
                     cookieAgeData.puzzles.tracks.investigate.active = debugStartInvestigate;
                     
@@ -236,7 +225,6 @@
         
         // Handle infiltrate track
         if (debugStartInfiltrate !== null && debugStartInfiltrate !== undefined) {
-            // Check if user wants to complete all puzzles in infiltrate track
             if (debugStartInfiltrate === 'complete') {
                 for (var j = 0; j < INFILTRATE_PUZZLE_ORDER.length; j++) {
                     var puzzleId2 = INFILTRATE_PUZZLE_ORDER[j];
@@ -264,7 +252,6 @@
                         }
                     }
                     
-                    // Set track progress and activate puzzle
                     cookieAgeData.puzzles.tracks.infiltrate.progress = infiltrateOrder;
                     cookieAgeData.puzzles.tracks.infiltrate.active = debugStartInfiltrate;
                     
@@ -282,7 +269,6 @@
         
         // Handle choose track
         if (debugStartChoose !== null && debugStartChoose !== undefined) {
-            // Check if user wants to complete all puzzles in choose track
             if (debugStartChoose === 'complete') {
                 for (var k = 0; k < CHOOSE_PUZZLE_ORDER.length; k++) {
                     var puzzleId3 = CHOOSE_PUZZLE_ORDER[k];
@@ -310,7 +296,6 @@
                         }
                     }
                     
-                    // Set track progress and activate puzzle
                     cookieAgeData.puzzles.tracks.choose.progress = chooseOrder;
                     cookieAgeData.puzzles.tracks.choose.active = debugStartChoose;
                     
@@ -344,12 +329,10 @@
             return false;
         }
         
-        // Check if audio system is initialized
         if (!cookieAgeData.audio.sounds) {
             return false;
         }
         
-        // Check if we have a URL for this sound
         var soundUrl = cookieAgeData.audio.sounds[name];
         if (!soundUrl) {
             return false;
@@ -363,7 +346,6 @@
         
         try {
             // Use vanilla PlaySound - it's a global function, not Game.PlaySound
-            // Pass volume parameter to let vanilla function handle it with Game.volume
             if (typeof PlaySound !== 'undefined' && typeof soundUrl === 'string') {
                 PlaySound(soundUrl, volume);
                 return true;
@@ -390,7 +372,6 @@
     
     function toggleAudio() {
         cookieAgeData.audio.enabled = !cookieAgeData.audio.enabled;
-        debugLog('Audio', cookieAgeData.audio.enabled ? 'enabled' : 'disabled');
         return cookieAgeData.audio.enabled;
     }
     
@@ -492,7 +473,6 @@
                 }
 
                 Game.registerHook(hookType, callback);
-                debugLog('Hook registered successfully:', description);
                 return true;
             } catch (e) {
                 errorLog('Failed to register hook:', hookType, '-', description, e);
@@ -507,30 +487,23 @@
     // ===== EXPANSION INITIALIZATION =====
     function initializeExpansion() {
         if (expansionState.initialized) {
-            debugLog('Expansion already initialized');
             return;
         }
         
-        // Check if Cookie Age is enabled in the main mod
         if (typeof Game.JNE.enableCookieAge !== 'undefined') {
             if (!Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age extension is disabled in main mod settings');
                 // Clean up achievements if they were previously created
                 if (expansionState.achievementsCreated) {
                     removeMysteryAchievements();
                 }
                 return;
             }
-        } else {
-            debugLog('Cookie Age extension setting not found in main mod, proceeding with initialization');
         }
-        
-        debugLog('Initializing Cookie Age expansion...');
         
         attachBaseModPuzzleHelpers();
 
         try {
-            // Ensure we start from a clean state after hot reloads
+            // start clean after hot reloads
             sanitizeCookieAgeHooks();
 
             // Initialize audio system
@@ -540,13 +513,11 @@
             loadWelcomeAudio();
             loadPuzzleCompletionAudio();
             
-            // Set up advanced checking systems (puzzle system first)
             setupAdvancedChecking();
             
             // Create new achievements after puzzle system is initialized so we can check progress
             createMysteryAchievements();
             
-            // Set up news ticker system
             setupNewsTicker();
             
             // Mark as initialized
@@ -554,7 +525,7 @@
                         
             // If base mod stashed save data, apply it now (toggle-aware restore)
             try {
-                if (typeof window !== 'undefined' && window.CookieAge && window.CookieAge.applySaveData && window.Game && Game.JNE && Game.JNE.cookieAgeSavedData) {
+                if (window.CookieAge && window.CookieAge.applySaveData && Game.JNE && Game.JNE.cookieAgeSavedData) {
                     window.CookieAge.applySaveData(Game.JNE.cookieAgeSavedData);
                     Game.JNE.cookieAgeSavedData = null;
                 }
@@ -576,30 +547,24 @@
     
     // ===== CONDITIONAL INITIALIZATION =====
     function conditionalInitialize() {
-        // Check if we should initialize based on the main mod's setting
-        // Since base mod is guaranteed loaded, Game.JNE.enableCookieAge will always be available
+        // base mod is guaranteed loaded, so enableCookieAge is always available
         if (typeof Game.JNE.enableCookieAge !== 'undefined') {
             if (Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age is enabled, initializing...');
-                
                 // Always initialize without audio - audio is only played from button toggle
                 initializeExpansion();
             } else {
-                debugLog('Cookie Age is disabled, skipping initialization');
                 // Clean up achievements if they were previously created
                 if (expansionState.achievementsCreated) {
                     removeMysteryAchievements();
                 }
             }
         } else {
-            debugLog('Cookie Age setting not found in base mod, proceeding with initialization');
             initializeExpansion();
         }
     }
     
     // ===== GAME OBJECT CLEANUP SYSTEM =====
     function cleanupGameObjectModifications() {
-        debugLog('Cleaning up Game object modifications...');
         
         // Restore ClickSpecialPic if we modified it
         if (Game._originalClickSpecialPic) {
@@ -642,8 +607,7 @@
         // Restore Ascend function if we modified it
         if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks && 
             cookieAgeData.puzzles.hooks.puzzle24_ascendFunction) {
-            // Note: Cannot fully restore without original reference
-            // This is a fallback hook that can't be fully cleaned
+            // can't fully restore without original reference - just drop it
             delete cookieAgeData.puzzles.hooks.puzzle24_ascendFunction;
         }
         
@@ -687,8 +651,6 @@
         if (typeof Game.completeActivePuzzles === 'function') {
             delete Game.completeActivePuzzles;
         }
-        
-        debugLog('Game object modifications cleaned up');
     }
     
     // ===== MYSTERY ACHIEVEMENT SYSTEM =====
@@ -702,17 +664,15 @@
         // Only block achievement creation if explicitly disabled
         // If the setting is undefined, it means it hasn't loaded yet and we should proceed
         if (Game.JNE.enableCookieAge === false) {
-            debugLog('Cookie Age is explicitly disabled, not creating mystery achievements');
             return;
         }
         
-        // Check if achievements need to be created or just restored from disabled state
+        // create or just restore from disabled state?
         var needsCreation = false;
         for (var i = 0; i < mysteryAchievementNames.length; i++) {
             var originalName = mysteryAchievementNames[i];
             var hiddenName = originalName + ' [DISABLED]';
             
-            // Check if achievement exists in either active or disabled state
             if (!Game.Achievements[originalName] && !Game.Achievements[hiddenName]) {
                 needsCreation = true;
                 break;
@@ -721,15 +681,12 @@
         
         if (!needsCreation) {
             // Achievements already exist, restore them from disabled state
-            var restoredCount = 0;
             for (var i = 0; i < mysteryAchievementNames.length; i++) {
                 var originalName = mysteryAchievementNames[i];
                 var hiddenName = originalName + ' [DISABLED]';
                 
-                // Check if achievement is in disabled state (renamed)
                 if (Game.Achievements[hiddenName]) {
                     var ach = Game.Achievements[hiddenName];
-                    debugLog('Restoring achievement from disabled state:', originalName);
                     
                     // Restore to normal pool
                     ach.pool = 'normal';
@@ -737,7 +694,6 @@
                     // Restore won status if it was previously won
                     if (ach._savedWonStatus) {
                         ach.won = 1;
-                        debugLog('Restored won status for:', originalName);
                     }
                     
                     // Restore original name
@@ -745,17 +701,14 @@
                     delete Game.Achievements[hiddenName];
                     delete ach._originalName;
                     
-                    // Update AchievementsById if it has an id
                     if (ach.id !== undefined && Game.AchievementsById[ach.id]) {
                         Game.AchievementsById[ach.id] = ach;
                     }
                     
-                    restoredCount++;
                 } else if (Game.Achievements[originalName]) {
                     // Achievement already has correct name, just ensure it's in normal pool
                     var ach = Game.Achievements[originalName];
                     ach.pool = 'normal';
-                    restoredCount++;
                 }
             }
             
@@ -768,71 +721,66 @@
             {
               name: 'Order of the golden crumb',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>Before ink touched parchment and iron met flame—before our ancestors raised their first cities—there was the Cookie Age. Six great Orders of mystics, bakers, scribes, and oracles worshipped the golden cookie and the ancient cookie deities.</q>',
-              icon: [0, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(0, 15, 'custom'),
               order: baseOrder + 1
             },
             {
               name: 'Order of the impossible batch',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods passed down hidden knowledge and quiet power from one generation to the next, fevered in their devotion. Across the ages, the Orders shaped the world through influence unseen, molding humanity toward the cookie gods they served.</q>',
-              icon: [1, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(1, 15, 'custom'),
               order: baseOrder + 2
             },
             {
               name: 'Order of the shining spoon',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory—small signs and gestures marked friend from foe.</q>',
-              icon: [2, 15, customSpriteSheetUrl],
+              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory, small signs and gestures marked friend from foe.</q>',
+              icon: Game.JNE.icon(2, 15, 'custom'),
               order: baseOrder + 3
             },
             {
               name: 'Order of the cookie eclipse',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws—never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>',
-              icon: [3, 15, customSpriteSheetUrl],
+              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws, never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>',
+              icon: Game.JNE.icon(3, 15, 'custom'),
               order: baseOrder + 4
             },
             {
               name: 'Order of the enchanted whisk',
               desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>',
-              icon: [4, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(4, 15, 'custom'),
               order: baseOrder + 5
             },
             {
               name: 'Order of the eternal cookie',
               desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>',
-              icon: [5, 15, customSpriteSheetUrl],
+              icon: Game.JNE.icon(5, 15, 'custom'),
               order: baseOrder + 6
             }
           ];
         // Check which puzzles are completed to determine which achievements should be created as won
         var completedPuzzles = cookieAgeData.puzzles.completed || [];
         
-        // Create each achievement using the base mod's helper
         for (var index = 0; index < mysteryAchievements.length; index++) {
             var achData = mysteryAchievements[index];
-            
+
             // Check if the milestone puzzle is already completed
             var milestonePuzzle = mysteryMilestonePuzzles[index];
             var shouldBeWon = completedPuzzles.indexOf(milestonePuzzle) !== -1;
-            
-            // Create the achievement without a requirement function (we check manually on puzzle completion)
+
             var achievement = Game.JNE.createAchievement(
                 achData.name,
                 achData.desc,
-                null,  // vanilla icon (not used)
+                achData.icon,  // custom icon
                 achData.order,
-                null,  // no requirement function - achievements awarded manually on puzzle completion
-                achData.icon  // custom icon
+                null  // no requirement function - achievements awarded manually on puzzle completion
             );
-            
-            // Ensure achievement has correct pool
+
             if (achievement) {
                 achievement.pool = 'normal';
-                
+
                 // If the milestone is already achieved, mark the achievement as won silently
                 if (shouldBeWon) {
                     achievement.won = 1;
                     achievement._restoredFromSave = true; // Mark as restored to prevent notification
                     
-                    // Update achievement count
                     if (!Game.AchievementsOwned) Game.AchievementsOwned = 0;
                     Game.AchievementsOwned++;
                     if (Game.stats && Game.stats['Achievements unlocked']) {
@@ -868,7 +816,6 @@
                 Game.Achievements[hiddenName] = achievement;
                 delete Game.Achievements[achievementName];
                 
-                // Update AchievementsById if it has an id
                 if (achievement.id !== undefined && Game.AchievementsById[achievement.id]) {
                     Game.AchievementsById[achievement.id] = achievement;
                 }
@@ -880,35 +827,32 @@
     
     // ===== ADVANCED CHECKING SYSTEM =====
     function setupAdvancedChecking() {
-        // Set up puzzle system
         setupPuzzleSystem();
-        
-        // Set up info menu injection
+
         setupInfoMenuInjection();
     }
     
     // ===== INFO MENU INJECTION SYSTEM =====
     function setupInfoMenuInjection() {
-        // Store original UpdateMenu function
-        const originalUpdateMenu = Game.UpdateMenu;
+        if (Game.JNE && !Game.JNE.menuHooks) {
+            Game.JNE.menuHooks = [];
+        }
         
-        // Override UpdateMenu to inject info menu content
-        Game.UpdateMenu = function() {
-            const result = originalUpdateMenu.call(this);
-            
+        var cookieAgeMenuHook = function() {
             // Handle info menu injection for puzzle 10
             if (Game.onMenu === 'log') {
                 setTimeout(function() {
                     injectBlessingPuzzleInfo();
                 }, 100);
             }
-            
-            return result;
         };
+        
+        if (Game.JNE.menuHooks.indexOf(cookieAgeMenuHook) === -1) {
+            Game.JNE.menuHooks.push(cookieAgeMenuHook);
+        }
     }
     
     function injectBlessingPuzzleInfo() {
-        // Check if this is the current puzzle and it's not completed
         if (!isPuzzleProgressValid('blessing_creator')) {
             return;
         }
@@ -917,7 +861,6 @@
             return;
         }
         
-        // Check if info note is already injected
         if (document.getElementById('blessing-puzzle-info')) {
             return;
         }
@@ -969,7 +912,7 @@
                 loadPuzzleCompletionAudio();
             }
             
-            // Initialize puzzle tracking with new architecture (only if not already initialized)
+            // Initialize puzzle tracking 
             if (!cookieAgeData.puzzles) {
                 cookieAgeData.puzzles = {
                     registry: {}, // Central registry for all puzzles
@@ -1006,12 +949,10 @@
                 };
             }
             
-            // Ensure completed array exists even if puzzles was already initialized
             if (!cookieAgeData.puzzles.completed) {
                 cookieAgeData.puzzles.completed = [];
             }
             
-            // Ensure hint data structure exists even if puzzles was already initialized
             if (!cookieAgeData.puzzles.hints) {
                 cookieAgeData.puzzles.hints = {
                     hintsUsed: 0,
@@ -1025,7 +966,6 @@
                 };
             }
             
-            // Ensure nested structures exist
             if (!cookieAgeData.puzzles.hints.puzzleActivationTimes) {
                 cookieAgeData.puzzles.hints.puzzleActivationTimes = {
                     investigate: null,
@@ -1063,9 +1003,9 @@
                 clue: 'Pay close attention to the world, something new is afoot, but it requires patience and a watchful eye.',
                 hint: '• Keep an eye on the news ticker(clicking it can speed up your journey).<br>• There is only one type of Lily in Cookie Clicker.<br>• Make sure there is nothing else besides a lily.<br>• You must have even more patience than the lily itself.',
                 puzzleClass: ProvingPatiencePuzzle,
-                mainIcon: [10, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 12, 'custom'),
                 completionMessage: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>The mystery has begun. Return to the stats menu to track progress and review your clues.</q>',
-                completionIcon: [10, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(10, 13, 'custom'),
                 dependencies: [],
                 isActive: false,
                 type: 'investigate'
@@ -1077,9 +1017,9 @@
                 hint: '• What does your friend call you that you could use as a name to be seen by them?',
                 description: 'The sign now bears the mark they demanded. Stranger, friend, or foe, you have declared yourself all the same. Many eyes now turn toward you.<q>The path ahead is peril. Wit, not strength, will be your most important asset.</q>',
                 puzzleClass: MakingFriendshipPuzzle,
-                mainIcon: [5, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(5, 17, 'custom'),
                 completionMessage: 'The sign now bears the mark they demanded. Eyes, welcome or hostile, are upon you.<q>The mark is set. In silence, watchers weigh what it means.</q>',
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['proving_patience'],
                 isActive: false,
                 type: 'investigate'
@@ -1091,9 +1031,9 @@
                 clue: 'You have shown your willingness but your tasks are not yet complete.',
                 hint: '• Cookie Clicker has a mail system, you may have forgotten about this particular heavenly upgrade though.',
                 puzzleClass: SmallTokenPuzzle,
-                mainIcon: [34, 8, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(34, 8, 'main'),
                 completionMessage: 'The parcel is gone. In its place, a letter binds you to a greater cause.<q>Your mission begins in earnest. The first rites are revealed.</q>',
-                completionIcon: [2, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['making_friendship'],
                 isActive: false,
                 type: 'investigate'
@@ -1105,9 +1045,9 @@
                 clue: 'We have intercepted a message from a courier of The Order:<br><br>A field of fortune, wide and green,<br>four-leaf charms are thickly seen.<br>Mark an X with their gilded kin,<br>the hidden path to walk within.<br>Yet wait, no hand may turn the ground,<br> till the field holds three dozen crowns.<br>When green and gold together stand,<br>strike the heart at fortune\'s hand.',
                 hint: '• What\'s the only plant that has a golden relative?<br>• Once everything is mature then you need to dig.',
                 description: 'You marked the sign where fortune crossed and unearthed what lay beneath. This was no rite of the Brotherhood, but a secret uncovered in silence.<q>Your ally\'s hand steered you here. The Order would not grant such knowledge willingly. Wrapped in oilcloth beneath the soil lay a thin folio, water-stained and singed. Six headings survive;<br>The Order of the Golden Crumb<br>The Order of the Impossible Batch<br>The O..er of t.e Shining Spoon<br>Th. O.. th. .o…k.. .c…ip…e<br>Th. O..r of th. .n…hant…d .h…sk<br>Th. O..r of th. Et…rn…l ..…k..<br>Keep this close—what\'s missing will matter.</q>',
-                mainIcon: [23, 2, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(23, 2, 'custom'),
                 completionMessage: 'Digging where X marked the spot has revealed a tattered folio.',
-                completionIcon: [1, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 dependencies: ['rite_shifting_measures'],
                 isActive: false,
                 type: 'investigate'
@@ -1119,9 +1059,9 @@
                 clue: 'Return to the first spark, the place of beginnings. There the Creator inscribed a rite to beg favor against the Brotherhood. Do it swiftly, for you will need every ounce of fortune on the path ahead.<q>You\'ll need all the luck you can get after all. Things will continue to become more difficult the longer you remain on this path.</q>',
                 hint: '• Where has Orteil (the Game Creator) provided dated information to the user? <br>• Is there a beginning to that information? Maybe you should read it.<br>• Where else have you seen the word leprechaun in Cookie Clicker?',
                 puzzleClass: BlessingCreatorPuzzle,
-                mainIcon: [4, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(4, 17, 'custom'),
                 completionMessage: 'You curried favor with the Creator. The blessing lingers, but so does the risk.',
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 dependencies: ['brothers_masquerade'], 
                 isActive: false,
                 type: 'investigate'
@@ -1133,9 +1073,9 @@
                 description: 'Classifieds burned. Courier missing. You cut the line and moved to coded relays, pushing a false lead for them to chase.<q>We bought you room, not safety. From now on, speak masked or not at all.</q>',
                 clue: 'The Order found our newspaper drops and our courier never returned. We fear they\'re onto you as well. From here on, every message must be encoded.<q>The Romans had their tricks. XIII should jog your memory.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message1.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• There are many ciphers used throughout history, but the Caesars of the Roman Empire favored one. The number 13 is the key you will need.',          
-                mainIcon: [3, 35, gardenSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(3, 35, 'garden'),
                 completionMessage: 'They followed the decoy; your trail cooled.',
-                completionIcon: [2, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['blessing_creator'],
                 isActive: false,
                 type: 'investigate'
@@ -1146,10 +1086,10 @@
                 puzzleClass: BrotherOntoYouPuzzle,
                 clue: 'The Order is getting better at breaking our ciphers. We have an urgent message, decode it now; time is short.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message4.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• A blind friend would be very helpful in this situation.',
-                mainIcon: [1, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(1, 14, 'custom'),
                 description: 'A name surfaced: Brother Corvin. By dusk he was due before the elders; he never arrived. The shaft took him, and with it the words that would have ended you.<q>This is the line we hoped you wouldn\'t need to cross. Stay calm; stay unseen.</q>',
                 completionMessage: 'The report died in the dark; the elders never spoke your name.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['they_are_watching', 'feast_four'],
                 isActive: false,
                 type: 'investigate'
@@ -1162,8 +1102,8 @@
                 description: 'Silence stretched too long. You slipped a small sign through and it reached us.<q>Stay on mission. They\'re already weighing your loyalties.</q>',
                 puzzleClass: SendWordPuzzle,
                 completionMessage: 'Your sign arrived. The line holds... for now.',
-                mainIcon: [7, 16, customSpriteSheetUrl],
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(7, 16, 'custom'),
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['veiled_ledger', 'brother_onto_you'],
                 isActive: false,
                 type: 'investigate'
@@ -1175,9 +1115,9 @@
                 description: 'You carried out the purge, twenty-seven grandmas cut in a single sweep. Rumors stalled and the watchers shifted their gaze.<q>You can\'t know if all were spies—only that you\'re still alive.</q>',
                 clue: 'Our messages continue to be intercepted; we have to raise the difficulty again. Act urgently and cleanly, or your fate is already sealed.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message2.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Placing letters into two tic-tac-toe boards may help understand this cipher.<br>• Remember the characters from The Peanuts cartoon series, one of their names may aid you in searching.',  
-                mainIcon: [11, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 15, 'custom'),
                 completionMessage: 'Twenty-seven cut. The whispers stopped... for now.',
-                completionIcon: [0, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 16, 'custom'),
                 dependencies: ['veiled_ledger', 'send_word'],
                 isActive: false,
                 type: 'investigate'
@@ -1189,9 +1129,9 @@
                 clue: 'That was too close for comfort. We hope this finds you in good spirits, we need to maintain distance to keep the ruse intact.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message5.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• A little more complex than the Caesar Cipher but letters are still being shifted here.<br>• That stand alone "Z" is a dead giveaway for this type of cipher.',             
                 puzzleClass: CloseCallPuzzle,
-                mainIcon: [13, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 14, 'custom'),
                 completionMessage: 'The bundle moved unnoticed; the watchers saw nothing.',
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 dependencies: ['lawkeeper_walk', 'spy_purge'],
                 isActive: false,
                 type: 'investigate'
@@ -1203,9 +1143,9 @@
                 clue: 'The Order has proved more clever than we could have ever imagined.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message9.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Before radios sailors still needed to communicate at a distance, though slightly outdated these still play an important role in the maritime world.',
                 puzzleClass: FalseBeaconsPuzzle,
-                mainIcon: [12, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 13, 'custom'),
                 completionMessage: 'You ignored the decoys; our mark came back clean.',
-                completionIcon: [2, 16, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['rite_fivefold_casting', 'close_call'],
                 isActive: false,
                 type: 'investigate'
@@ -1217,9 +1157,9 @@
                 clue: 'A letter finds its way to you.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message8.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• In the early days of texting before phones had full keyboards this was the only way to get the job done.<br>• 0s and 1s are special.',
                 puzzleClass: InfiltrationProgressPuzzle,
-                mainIcon: [12, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 17, 'custom'),
                 completionMessage: 'Confirmation received. The line holds.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['ledger_bonds', 'false_beacons'],
                 isActive: false,
                 type: 'investigate'
@@ -1231,8 +1171,8 @@
                 clue: 'You have built trust with The Order and they are on the path to accepting you as their own, stay true to your mission.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message6.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Computers have a lot of ways to encode text to be more readable for machines, this is an older method but not the oldest.<br> • Figuring out what range of letters appear with the numbers will help narrow your search.',
                 puzzleClass: BuiltTrustPuzzle,
-                mainIcon: [11, 13, customSpriteSheetUrl],
-                completionIcon: [0, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 13, 'custom'),
+                completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 completionMessage: 'The sign was seen and noted. Your standing rose.',           
                 dependencies: ['storm_devotion', 'infiltration_progress'],
                 isActive: false,
@@ -1245,9 +1185,9 @@
                 clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;"><video src="https://raw.githubusercontent.com/dfsw/Cookies/main/chruch.mp4" style="width:300px;height:300px;border:2px solid #666;border-radius:4px;" autoplay loop muted playsinline></video></div>',
                 hint: '• Dots and dashes are a good way to send a message over distance without making any noise.<br>• An envoy brings a message, what is another type of person that shares a message? Where can you find them in Cookie Clicker?<br>• Just because a lamp is out doesn\'t mean it no longer exists.',            
                 puzzleClass: WatchKeeperRoundsPuzzle,
-                mainIcon: [9, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 16, 'custom'),
                 completionMessage: 'You cleared the yard without a second look.',
-                completionIcon: [2, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['six_jars_ledger', 'built_trust'],
                 isActive: false,
                 type: 'investigate'
@@ -1259,9 +1199,9 @@
                 clue: 'This stone tablet bears familiar marks, half-remembered. You\'ve seen these symbols before, perhaps it was just a dream spoken in another tongue...<br><br>Search out the stone that can provide the twin keys you need.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message10.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Where would you go to see foreign languages in Cookie Clicker, look carefully.',
                 puzzleClass: RosettaStonePuzzle,
-                mainIcon: [9, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 14, 'custom'),
                 completionMessage: 'The stone held the key. You cracked the script.',
-                completionIcon: [1, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['watch_keeper_rounds'],
                 isActive: false,
                 type: 'investigate'
@@ -1273,8 +1213,8 @@
                 clue: 'Danger is following you. Among the Brotherhood, some have learned a spy\'s description; outfox them to keep your cover.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message7.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• There appears to be extra spacing between some of the columns, it separates them out into equal groups. The robot stamp is already a clue!<br>• Lights are warm when on and cool when off right? Colors can be warm and cool too.',         
                 puzzleClass: MaskWearsThinPuzzle,
-                mainIcon: [15, 17, customSpriteSheetUrl],
-                completionIcon: [1, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(15, 17, 'custom'),
+                completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 completionMessage: 'Face changed. Eyes moved on.',
                 dependencies: ['vaulted_relics', 'rosetta_stone'],
                 isActive: false,
@@ -1287,9 +1227,9 @@
                 clue: 'Remember what we truly are to you and you will have the key you need to decode this communication.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message11.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Some ciphers cannot be broken without the proper key, do you remember what your ally called themselves when they sent you classified ads?',
                 puzzleClass: StillWithUsPuzzle,
-                mainIcon: [3, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(3, 16, 'custom'),
                 completionMessage: 'Sign received. You are still with us.',     
-                completionIcon: [9, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['sigils', 'mask_wears_thin'],
                 isActive: false,
                 type: 'investigate'
@@ -1298,12 +1238,12 @@
                 'silent_choir': {
                 name: 'The silent choir',
                 description: 'You stilled every voice until only the digits sang. In that hush, The Order answered, and marked you as a willing initiate.<q>This was the first secret your ally risked everything to deliver. You now stand at the threshold of the Brotherhood.</q>',
-                clue: 'Each hall has its clamor, but only one may sing.<br>Still every voice, save the beckoning digits.<br>Only then in silence, will The Order speak.<q>The order often speaks through riddles and clues guarding their initiation process from outsiders.</q>',
+                clue: 'Each hall has its clamor, but only one may sing.<br>Still every voice, save the beckoning digits.<br>Only then in muted silence, will The Order speak.<q>The order often speaks through riddles and clues guarding their initiation process from outsiders.</q>',
                 hint: '• There are twenty halls in Cookie Clicker. Only one of them has digits though. Quiet the others.',
                 puzzleClass: SilentChoirPuzzle,
-                mainIcon: [17, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(17, 17, 'custom'),
                 completionMessage: 'Silence falls, digits echo, The Order accepts your presence.<q>They believe you seek to join.</q>',
-                completionIcon: [0, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 14, 'custom'),
                 dependencies: ['small_token'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1312,12 +1252,12 @@
                 'spiral_seasons': {
                 name: 'The wheel of seasons',
                 description: 'You turned the crooked wheel, letting each season rise and fall in The Order\'s rhythm. Their cycle is not nature\'s, yet you followed without hesitation.<q>The Brotherhood notes your obedience. To walk their year is to step further inside.</q>',
-                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the herald in scarlet cloak.<br>The jester of ledgers laughs.<br>The hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return.',
+                clue: 'The wheel does not turn straight.<br>First, crimson vows are sworn.<br>Then comes the judge in scarlet robes.<br>The jester of ledgers laughs.<br>Then the hare hides its shell.<br>Shadows feast in the dark.<br>The bells toll in frost, and at the end, the hungry dead return to knock.<q>Now is as good as a time as any to remind you that ALL Mysteries of the Cookie Age Puzzles can be done with vanilla game elements only.</q>',
                 hint: '• The wheel of time doesn\'t always turn straight, each season has themes; turn them in the correct order.',
                 puzzleClass: SpiralSeasonsPuzzle,
-                mainIcon: [16, 6, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 6, 'main'),
                 completionMessage: 'The wheel has turned, its crooked path obeyed. The Order\'s rhythm flows through your steps.<q>You have shown you can keep their time, no matter how twisted.</q>',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['silent_choir'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1329,9 +1269,9 @@
                 description: 'You cast off ships, raised gates, kindled suns, ruined houses, and lifted spires, each crooked measure bound in its turn. The seal held, and The Order watched.<q>Such rites are spoken to test faith as much as skill. You obeyed, and for now, they are satisfied.</q>',
                 clue: 'The Brothers bind their steps in crooked sums,<br>five measures across sea, gate, sun, coin, and sky.<br><br>First, cast off a handful of Ships in Harbor, then raise half a dozen Crimson Gates.<br>Next, kindle thrice three Scattered Suns, then ruin the Houses of Coin by a dozen pieces.<br>Last, let the Spires of the Firmament climb elevenfold, and the ritual seal shall hold.',
                 hint: '• These sound like buildings, don\'t they? What could ships, red gates, scattered light, houses of money, and tall towers be? How many fingers on a hand sounds like its pretty full no? Despite some common misconceptions a chancemaker is not a casino.',
-                mainIcon: [13, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 12, 'custom'),
                 completionMessage: 'The crooked sums are complete, the seal holds firm.<q>The Order marks your obedience in silence.</q>',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['spiral_seasons'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1343,9 +1283,9 @@
                 description: 'You echoed their chant, childish on its surface yet meaningful to them. The Brothers laughed, voices rising with yours, and for a moment suspicion eased.<q>Every fraternity has its games. Play along, and they may forget to question you.</q>',
                 clue: 'To walk among Brothers, mimic their childish rite.<br>They shout a single charm three times in rising chorus,<br>a game to children, but to The Order a sign of kinship.<br>Do as they do, swiftly and without straying,<br>and the brothers may welcome you with open arms.',
                 hint: '• Magic words could be called charms. Is there somewhere in the game that uses magic?',
-                mainIcon: [16, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 15, 'custom'),
                 completionMessage: 'Once, twice, thrice, the chant complete. Laughter covers suspicion, and for now you blend in.<q>You are counted among them, though only in play.</q>',
-                completionIcon: [7, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 13, 'custom'),
                 dependencies: ['garden_sigil'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1357,9 +1297,9 @@
                 description: 'You seated each spirit in turn, gold, ash, and ink, never together, always alone. The veil quivered, then parted, and the Brothers nodded in approval.<q>This was no game. You carried out their rite with care, and in their eyes, you are changed.</q>',
                 clue: 'The veil is held by three spirits.<br><br>The first, draped in gilt, who mocks all labor and hungers for spoils,<br>he claims the throne of blood.<br><br>The second, born of quake and ash, scattering every work,<br>he sits upon the crown of brilliance.<br><br>The last, the hidden scribe, whose tendrils wrote all that was and will be,<br>the verdant seat belongs to his creation.<br><br>Each has but a single throne.<br>Seat them in their destined order,<br>never with another at their side.<br>When each has risen and fallen alone,<br>the veil will part.',
                 hint: '• Where do spirits reside? Each spirit has different attributes as does each slot/seat where they can be placed.<br>• When seating them make sure they are alone.',
-                mainIcon: [8, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 15, 'custom'),
                 completionMessage: 'The spirits rose and fell upon their thrones, each alone, each in order. The veil parts.<q>The Brotherhood sees you not as a guest, but as one who obeys their rites.</q>',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['initiation_riddle'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1371,9 +1311,9 @@
                 description: 'They taught you to wear Brother Sebastian\'s face: bare brow, raven beard, ivory flesh, prism-shattered eyes. You carried his name and walked unchallenged. For a moment, you weren\'t just imitating, you were him.<q>Even you felt the mask blur. Was it disguise, or revelation?</q>',
                 clue: 'The Brotherhood give freely to their kin, but guards their treasure from strangers.<br>Wear the face and bear the name of Brother Sebastian, brow bare, beard raven and bountiful, ivory flesh, and eyes distorted by prisms.<br>Then shall they grant you their token.',
                 hint: '• Where can you change your appearance in Cookie Clicker? There is even a vanilla achievement for it.<br>• Changing your appearance isn\'t enough to fool anyone if you walk around with your own name still.',
-                mainIcon: [13, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 15, 'custom'),
                 completionMessage: 'The mask held. The Brothers saw Sebastian, not you.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['spirits_thrones'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1385,9 +1325,9 @@
                 clue: 'Count the home of the altars where the spirits rest.<br>Seek the numbers that cannot be broken,<br>save by themselves and the One.<br>Take the first five in their divine order.<br>Raise one, then cast the next down,<br>ever climbing, never the same twice.<br>Each count a vow, each altar a hymn.',
                 hint: '• Where do the spirits reside? Is there a building associated with them?<br>• What is the name of numbers cannot be divided by anything but themselves and one?',
                 puzzleClass: PatternAltarsPuzzle,
-                mainIcon: [13, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 16, 'custom'),
                 completionMessage: 'Altars align and the prime vow answers.<q>Eyes linger longer now. One misstep is all it takes.</q>',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['brothers_masquerade'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1399,9 +1339,9 @@
                 clue: 'Bring the vessel to one part in five of six hundred,<br>and take back five for fortune\'s favor.<br>No drop more, no drop less.<br>Speak the rite in these breaths:<br>Hush the chaos,<br>strike the bargain,<br>stretch the moment,<br>wake what slumbers.',
                 hint: '• Spells need mana, and that vessel must be precisely filled before you can begin.<br>• Each spell has a particular meaning.',
                 puzzleClass: LitanyCrumbsPuzzle,
-                mainIcon: [5, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(5, 16, 'custom'),
                 completionMessage: 'The rite holds; the mixture obeys.<q>A Brother lingers at the threshold, as if waiting to see what else you can be trusted with.</q>',
-                completionIcon: [6, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['pattern_altars'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1413,9 +1353,9 @@
                 clue: 'Where greed resides, a fortune starts from nothing.<br>Not a single grain, then one soon follows<br>The climb has just begun.<br>Each step recalls the two before,<br>A spiral born of memory and more.<br>Like petals drawn or shells aligned,<br>In nature\'s code the path defined.<br>Yet halt the climb at fourteen told,<br>And count the sums in sequence old.',
                 hint: '• Where does greed reside? Can\'t have greed without money right?<br>• Spirals in nature follow a very specific pattern.',
                 puzzleClass: SpiralFortunePuzzle,
-                mainIcon: [16, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 14, 'custom'),
                 completionMessage: 'The spiral grows beneath your hand, each sum in place.<q>They exchange glances now, the kind reserved for those no longer seen as outsiders.</q>',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['litany_crumbs'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1427,9 +1367,9 @@
                 description: 'The wheel held, and time itself bowed to the Brothers\' command.<q>This was no private rite. Eyes fixed upon your hands, measuring every motion. A single mistake would have betrayed you.</q>',
                 clue: 'Teeth keep the time.<br>Mark the quarters,<br>the first and third feed,<br>the second and fourth fall silent.<br><br>Then heed the neighbors of the quarters,<br>those who follow any quarter shall wake,<br>those who stand before any quarter shall sleep.<br><br>When the wheel holds, The Order will convene.',
                 hint: '• Little leeches can be seen as hands on a clock, make sure you have all 12 hands or it\'s not really a clock.',
-                mainIcon: [14, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 14, 'custom'),
                 completionMessage: 'The quarters align and the wheel obeys. No fault is found.',
-                completionIcon: [7, 13, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 13, 'custom'),
                 dependencies: ['spiral_fortune'], 
                 isActive: false,
                 type: 'infiltrate'
@@ -1441,9 +1381,9 @@
                 description: 'You learned their restraint. At each table you left one dish untouched, love unbitten, spring uncracked, shadow unburied, winter unopened. Nearly bare, never empty. The Brothers nodded at a custom older than hunger.<q>Their taboos are the passwords now. Break one, and you break your cover.</q>',
                 clue: 'As the Cookie Eclipse hides its face, so too the Brothers do not glut themselves on every feast<br>From each table they take near all, but never the last dish.<br>One sweet of love left untasted,<br>one shell of spring left uncracked,<br>one bone of shadow left buried,<br>one gift of winter left unopened.<br>When the plates are nearly bare,<br>yet not a single table cleared,<br>their fast is complete.',
                 hint: '• Each season has its treats, you may need to ascend to accomplish this task.',
-                mainIcon: [10, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 15, 'custom'),
                 completionMessage: 'The feast ends unfinished. The Brotherhood is satisfied.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['wrinkler_clock', 'blessing_creator'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1455,9 +1395,9 @@
                 clue: 'The Brothers scorn the crowns of milk and light.<br>Choose instead the halo where thought burns brightest,<br>and the grip of greed that guards its trove.<br>Place them both upon a fiery pet,<br>then lay your hand upon its hide,<br>seven times in patience.',
                 hint: '• Do you happen to have a fiery pet? Does that pet usually have things to do with milk and light? Maybe even radiant light?',
                 puzzleClass: TrialScalesPatiencePuzzle,
-                mainIcon: [6, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(6, 17, 'custom'),
                 completionMessage: 'Scales and hands laid true. The dragon sleeps; The Order\'s gaze lingers.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['feast_four'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1469,9 +1409,9 @@
                 description: 'They set you to work in the open earth, where four red hearts ripened inside a crown of bone-white stalks. You waited, exposed, until everything stood exactly as decreed, no leaf astray, no timing off, and then tore the harvest in a single motion.<q>This was a test in daylight. One hesitance, one extra cut, and your purpose would have shown.</q>',
                 clue: 'Four hearts swell in the hollow,<br>red and full of sweet promise.<br>Around them lies a barren hush,<br>no root, no leaf, only waiting earth.<br>Beyond that silence, a crown of bone-white stalks,<br>roots that do not wither, teeth that do not fall.<br>When the hearts are ripe and the dead still stand,<br>tear down what is mortal all in one motion,<br>and the vow is sealed.',
                 hint: '• Did you know each plant in the garden has specific and descriptive flavor text?<br>• There is a specific key combo to harvest only mature mortal plants, that\'s an important combo to know.',
-                mainIcon: [11, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 16, 'custom'),
                 completionMessage: 'One motion, cleanly done. The hearts fall the sentries remain.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['trial_scales_patience', 'brother_onto_you'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1483,9 +1423,9 @@
                 description: 'They placed the ledger before you, its pages heavy with hidden sums. Grain, shell, nectar, each tallied to the Brotherhood\'s design, each page turned and left bare in its rhythm. You wrote the numbers they demanded, and the seal closed without flaw.<q>This was no mere trial. They trusted you with their reckoning, and you balanced it as if born to their order.</q>',
                 clue: 'The Order keeps its secrets not in words but in accounts.<br>Three tallies must be set upon the ledger:<br>The white grain that sweetens all, a dozen thrice over.<br>The pale confection, seven tens, less three.<br>The golden nectar of the hives, three fifties, and a score besides.<br>Leave every other page bare,<br>and the ledger shall be sealed.',
                 hint: '• Sounds like Sugar, Honey, and White Chocolate, where have you seen those before?',
-                mainIcon: [15, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(15, 16, 'custom'),
                 completionMessage: 'The ledger closes, tallies exact. You are trusted with their numbers.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['garden_hearts'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1497,9 +1437,9 @@
                 description: 'Twenty halls clamored at once, and you silenced all but seven. Each spared voice matched their law: vows, mirrors, suns, and stolen tomorrows. When the tally ended, the chambers rang true.<q>The Brothers watched in silence, weighing not just your obedience but the ease with which you carried it out. Too perfect, and questions may follow.</q>',
                 clue: 'From first help to the final mirror, twenty chambers ring.<br>Stillness claims all but seven, and the first, which the void may never take.<br><br>The hall of vows must murmur still.<br>One chamber that is the square of three cannot be stilled.<br>The mirror at the end must answer.<br>Spare the hall where tomorrow is stolen.<br>Let the second hearth keep its ember.<br>Where suns are scattered, the light must fall through.<br>And keep the count of the twice-born nine.',
                 hint: '• Still is quiet, and quiet is still.<br>• These sound like things you have seen, there are 20 of them, the first one is special don\'t let it throw your counts off.',            
-                mainIcon: [16, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(16, 17, 'custom'),
                 completionMessage: 'The halls fall quiet, seven voices spared. The Brotherhood nods, though some eyes linger.',
-                completionIcon: [0, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(0, 14, 'custom'),
                 dependencies: ['veiled_ledger'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1509,11 +1449,11 @@
                 name: 'The lawkeeper\'s walk',
                 description: 'They sent you alone under The Order\'s gaze, green stone first, then the jewel of sixfold light, and last the crimson square. You kept to the path, no companion, no misstep. The hall weighed you in silence and let the verdict hang.<q>Judgment isn\'t always spoken. Today, it tilts your way, by a hair. Not every Brother is convinced.</q>',
                 puzzleClass: LawkeeperWalkPuzzle,
-                clue: 'The Lawkeeper walks a path of solitude for he is here to judge you.<br>First, upon the stone of green his step must fall.<br>Then, to the jewel of sixfold light he must ascend.<br>Last, he shall rest on the crimson square before his journey concludes.<br>None may stride beside him, for the Law is kept by none but him.',
+                clue: 'The Lawkeeper walks a path of solitude for he is here to judge you.<br>First, upon the stone of green his step must fall.<br>Then, to the jewel of sixfold light he must ascend.<br>Last, he shall rest on the crimson square before his journey concludes.<br>None may stride beside him, and a hush shall fall between each step, for the Law is kept by none but him.',
                 hint: '• The lawkeeper keeps order. Where might have you seen someone in charge of order keeping before?',
-                mainIcon: [22, 19, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(22, 19, 'main'),
                 completionMessage: 'The path is walked alone; judgment holds, for now.',
-                completionIcon: [1, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['ringing_halls', 'spy_purge'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1525,9 +1465,9 @@
                 clue: 'Crown the pole of steadfastness with fire, for it alone endures.<br>In the deeps beneath, no flame may live.<br>Where the first light stirs, strike it silent, yet let its two heralds burn bright.<br>At the place of dying sun, let the blaze roar, but bind both its shoulders fast.<br>Of the four slanting winds, only those that lean toward dawn may shine.<br>Now return to the crown, and remember: what is lit first must be quenched last.<br>When these decrees are fulfilled, the wheel is broken, and the sign is made.',
                 hint: '• 12 points on a compass, what else has 12 points that can all be associated with direction?<br>• Work out each point at a time. The last item must be done last in the chain.',
                 puzzleClass: CompassSentinelPuzzle,
-                mainIcon: [12, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 14, 'custom'),
                 completionMessage: 'The wheel is broken; the whispers grow louder.',          
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['lawkeeper_walk', 'close_call'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1539,9 +1479,9 @@
                 clue: 'The Brothers speak of vows that bind in chains,<br>a complicated rite not meant to be spoken lightly.<br><br>Swear it, break it, swear again,<br>and only thrice may the Matriarchs sleep<br>before waking in truth.<br><br>When their whispers are stilled,<br>the gilded switch shall light the world,<br>the silver veil shall be drawn across the sky,<br>and the year shall be walked in turn,<br>each season passing in its rightful order.<br><br>Thus is the circle sealed.',
                 hint: '• Where can you make and break vows to the grandmatriarchs? What other things can you do in that same area?',
                 puzzleClass: LitanyBrokenVowsPuzzle,
-                mainIcon: [8, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 13, 'custom'),
                 completionMessage: 'The vows bind, break, and bind again. The circle is sealed, yet suspicion stirs.',
-                completionIcon: [1, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['compass_sentinel'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1553,9 +1493,9 @@
                 clue: 'The Brothers whisper of a circle wrought not with stone,<br>but with incantations, five in measure.<br>Begin with the shadow that stirs yet cannot rise.<br>Next bind the failure, lest it spoils the ritual.<br>Set forth a bargain, sealed in coin.<br>Grasp the sand as it slips the glass,<br>stretching each grain beyond its course.<br>Finally, unleash the nimble sprites,<br>their deft hands completing the weave.',
                 hint: '• Shadows stir but they don\'t rise, sounds like a failure to me. Certain conditions cause a failure to always happen here.<br>• What else could sprites mean, folklore can never seem to settle on proper names for these little things?',
                 puzzleClass: RiteFivefoldCastingPuzzle,
-                mainIcon: [6, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(6, 16, 'custom'),
                 completionMessage: 'The five incantations resound. The Brothers\' circle holds you within.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['litany_broken_vows'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1567,9 +1507,9 @@
                 description: 'The crimson hymn rose, ovens quaked, and fortune poured across the earth. While others reached for riches, you turned aside and stepped into the Great Beyond. The Matriarchs shrieked above, and still you held fast.<q>This was a public act, bold and dangerous. In the chaos, you risked everything to prove you would not betray their creed of restraint.</q>',
                 clue: 'When the Grandmatriarchs shriek their crimson hymn,<br>the ovens quake and fortune floods the earth.<br>Yet the faithful must turn from abundance,<br>stepping into the Great Beyond while the chorus still roars.',
                 hint: '• You won\'t want to run from so many cookies but sometimes you have to forgo riches. What is the only way you can truly end this type of frenzy early?',
-                mainIcon: [13, 13, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 13, 'custom'),
                 completionMessage: 'The hymn fades, the storm of fortune passes. You stood apart, and they saw.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['rite_fivefold_casting'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1581,9 +1521,9 @@
                 description: 'They set the hidden sums before you, each number bound to the next in chains of balance. You traced their knots and laid the bonds true, the ledger closing with a weight that was more than ink.<q>To be trusted with their reckoning is to be seen as one of them. But every figure is a snare, and you walked among them without falter.</q>',
                 clue: 'The Order reckons in hidden sums.<br>Let the sky-borne couriers be your measure.<br>The fields of grain lag the couriers by three-score.<br>The veins of the earth are half again the fields<br>and yet the veins and the couriers must be as one.<br>The houses of coin hold the veins plus the couriers.<br>The sanctums of prayer keep a third of those coffers.<br>The broken clocks are the sanctums plus ninety.<br>The recursive engines are half those clocks.<br>when every bond holds, the knot will loosen.',
                 hint: '• Figuring out the names is the first part of the battle, from there you will need to associate the relationships. It\'s a good thing you ascended recently, otherwise you might need to sell too many to be worthwhile; now you can just buy. Only totals matter here.',
-                mainIcon: [8, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 17, 'custom'),
                 completionMessage: 'The bonds hold fast; the ledger closes. Trust deepens.',
-                completionIcon: [6, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['grandmatriarchs_flight'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1595,9 +1535,9 @@
                 description: 'They led you into the hollow where bone-white stalks guard the earth. Between them, blooms waited for order, their pattern incomplete. With careful hands you set the rows, white and mixed, silence and color, until the garden itself bowed to their design.<q>In tending this place, you left a trace of yourself among them. The pattern is theirs, but now it bears your hand.</q>',
                 clue: 'The Six Orders mark their halls with a sign that never dies.<br><br>At its heart, four crowns of the elusive bloom,<br>a petal of foreverness, guardian against the rot, yet whose sweetness hides a trace of poison.<br><br>Not in a single stem, but in limbs of doubled breadth shall these crowns be set, reaching ever out in perfect form.<br><br>The others filled with the forgotten stalks, deathless blooms whose scent clouds the air and whose roots whisper of wrath.<br><br>Raise this deathless sigil, and in its geometry your false devotion shall be believed.',
                 hint: '• Only two are truly immortal. Pay careful attention to the arms/legs/limbs, they are stretched straight out.',
-                mainIcon: [12, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 12, 'custom'),
                 completionMessage: 'The stalks stand tall, the blooms aligned. The pattern holds, and so do you.',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['ledger_bonds'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1609,9 +1549,9 @@
                 clue: 'The storm will tempt you with riches,<br>but the Brothers spurn such glitter.<br>When the sky rains gold,<br>touch none of them.<br>Instead, strike down a quartet of leeches at the cookie\'s heart,<br>and prove your devotion is not swayed by material temptations.',
                 hint: '• When cookies rain from the sky, especially when they are golden, or more specifically red, then you can begin.',
                 puzzleClass: StormDevotionPuzzle,
-                mainIcon: [7, 15, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(7, 15, 'custom'),
                 completionMessage: 'The storm passed, and you stood unshaken. They saw your devotion.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['garden_pattern'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1623,9 +1563,9 @@
                 clue: 'Not all dawns rise with the same face.<br>Some hours dress the world in counterfeit words,<br>and in those hours alone the ritual can be tallied.<br><br>Expand the mess, for employees do not bake on empty stomachs.<br>Strike a recipe from the ledger, for profit brooks no secrecy.<br>Seat a voice in the chamber, that flour may be decreed holy.<br>Increase holdings in the market, for faith untraded is wasted.<br><br>When these balances are kept,<br>the mask holds fast,<br>and the Brothers count you among the faithful.',
                 hint: '• Sometimes buildings have different names and faces.',
                 puzzleClass: FalseDawnPuzzle,
-                mainIcon: [17, 6, mainIconsSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(17, 6, 'main'),
                 completionMessage: 'The balances held. Stewards nodded; the mask didn\'t slip.',
-                completionIcon: [5, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['storm_devotion'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1637,9 +1577,9 @@
                 clue: 'Nine steps bind the shadowed wheel,<br>miss one, and the circle shatters, and you must begin again.<br><br>First, call the sickle and the miser, bind hunger and hoarding in false union.<br>Next, break stone beside the changeling\'s blood.<br>Then crown the crooked fruit with the whisper of arcane fire.<br>Let the mirror reflect the distorted image of superior thought.<br>Bind good fortune to the belly of the beast; greed feeds hunger.<br>At the sixth toll, let the glass falsely reflect the clock-thief, illusion clutching time.<br>The black tithe stands in solitude, unshared, unabashed.<br>Place steel alongside chance, forge and dice in solidarity.<br>And to seal the rite let silence fall across the world.',
                 hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.<br>• Focus on the items themselves not the buildings they belong to.',            
                 puzzleClass: RiteNineFlamesPuzzle,
-                mainIcon: [14, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 16, 'custom'),
                 completionMessage: 'Nine flames tended. The dragon bowed. And part of you bowed with it.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['storm_devotion'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1651,9 +1591,9 @@
                 description: 'They opened the shelves, balances only the faithful may touch. You set the jars to their hidden sums, and the page closed as though your hand had always belonged there.<q>You did not hesitate. Only after, you asked yourself why. The Order of the Eternal Cookie is proud of the mathematical wit you demonstrated.</q>',
                 clue: 'Set six jars upon the shelf.<br>The bitter dark jar holds twice the churned jar. <br>The pale flower keeps a dozen fewer than the darkness. <br>A third-pinch fills the salt from the pale flower.<br>The churn is nine shy of the wheat.<br>The fragile shells hold the wheat and the briny stones together.<br>And the tally of all six must be three gross less nine.<br>Leave every other jar bare, and only then will the page balance.',
                 hint: '• Bitter dark sounds like something you put in a cookie, so do the rest of these in fact. Where have you seen a list of ingredients before?<br>• Pale flowers might make dark seed pods. <br>• Cream isn\'t churned but something else is.',
-                mainIcon: [11, 12, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 12, 'custom'),
                 completionMessage: 'The jars balanced. And so did your steps, more easily than they should have.',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['rite_nine_flames'],
                 isActive: false,
                 type: 'infiltrate'
@@ -1665,9 +1605,9 @@
                 clue: 'Staff every bed in the square ward with caretakers of red.<br>Wait until every post stands tall in its fullness.<br>Only then, clear the two great corridors corner to corner, no foot sets upon those crossing halls.<br>Along each outer wall, keep four in a row;<br>one pace inward, keep but two.<br>When the halls lie empty and the fours-and-twos endure,<br>the Caretaker will notice.',
                 hint: '• Nurses are caretakers, sometimes they wear red. Where have you seen red nurses before?',
                 puzzleClass: NursesFieldsPuzzle,
-                mainIcon: [4, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(4, 16, 'custom'),
                 completionMessage: 'The halls emptied, the pattern endured. And you endured with it.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['six_jars_ledger', 'watch_keeper_rounds'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1679,9 +1619,9 @@
                 clue: 'The bright star guides the way.<br>A westerly wind sets upon her canvas.<br>Shine green from the lee beam through the lee quarter.<br>Keep the taffrail lantern bright.<br>Glow the bowsprit flame.<br>Light the weather quarters before dousing the astern one.<br>Let no other lights shine tonight',
                 hint: '• A ship sailing towards the north star has many lights. 12 points can be used to represent these lights.',
                 puzzleClass: RuleLightsPuzzle,
-                mainIcon: [12, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(12, 16, 'custom'),
                 completionMessage: 'The lamps fall silent, save those they commanded. The Order\'s path shines before you.',
-                completionIcon: [2, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['nurses_fields'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1693,9 +1633,9 @@
                 description: 'The reliquary loomed, iron doors waiting in silence. You laid down treasures not to hold, but to surrender. The vault stirred as if it remembered your offering.<q>What you gave cannot be reclaimed. Nor can the part of yourself you sealed away with it.</q>',
                 clue: 'The Great Orders are not fed by what you hold,<br>but by what you lay aside.<br>Their relics must rest in shadow, honored though never touched.<br>The Orders care not for specifics, only that your honor is sincere <br>Place a treasure for each,<br>the reliquary shall stir, when your task is sealed in iron',
                 hint: '• Where can you place 6 objects in a safe place, maybe even one made out of iron, so they cannot be touched?',
-                mainIcon: [8, 16, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 16, 'custom'),
                 completionMessage: 'The reliquary closed. The cost is yours to bear.',
-                completionIcon: [7, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['rule_lights'],
                 isActive: false, 
                 type: 'infiltrate'
@@ -1707,9 +1647,9 @@
                 description: 'Six fragments, six vows, crown, spark, gleam, heart, shadow, song. You gathered them, bound them, and the ovens roared as the sigil burned bright. You were no longer copying their rites, you were shaping their mark.<q>Your friend would call this betrayal. The Brothers call it proof. And part of you agrees with them.</q>',
                 clue: 'In the beginning six ancient vows were sworn, each leaving a single fragment of the mark.<br>Look not to what they share<br>Seek instead uniqueness, where true meaning dwells.<br><br>From those who worship the shining tool that stirs the dough, take the crown upon its head.<br>From those who make the batch no hand could ever bake, seize the spark that begins its fire.<br>From those who kneel before the crumb that glitters brighter than coin, lift the mark that gleams first.<br>From those that dwell in the shadow that blots the sky, take its hidden heart.<br>From those who took the vow that outlasts time, carve the final shade it casts.<br>From those who used the whisk that dances with magic, draw the penultimate hiss of its song.<br><br>Bind these fragments together.<br>Let the ovens burn beneath this name, and the path will open.',
                 hint: '• You have been given all the names over time, you just need to put them together. Each name lends a single letter.',
-                mainIcon: [8, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(8, 14, 'custom'),
                 completionMessage: 'The fragments bound, the sigil shone. Whose mark did you make, theirs, or yours?',
-                completionIcon: [4, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['vaulted_relics', 'mask_wears_thin'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1721,9 +1661,9 @@
                 description: 'Clay paths, bone sentries, spirals, thorns, crowns. Step by step, you walked their soil, blades at your back, petals at your side, until the northern gate of eternal flowers opened before you. You did not merely walk their maze, you crossed into their world.<q>The Brotherhood will never see you as anything but theirs. The question is no longer whether you can escape, but whether you want to.</q>',
                 clue: 'To meet The Order, you must walk a sacred path.<br>Walk not upon foliage, but on bare clay;<br>All untold and untrodden fall to the baker\'s friend<br><br>Begin a pace distanced from the southern wall, with a single step to the rising sun,<br>stand between twin sentries whose bones do not decay but hasten others.<br><br>With the map now orientated stride forward twice,<br>meeting the spiral that turns towards the hours.<br>Face the dawn, and pass between the twin thorn-cries set in twain, do not linger.<br><br>To your right, the ordered blade keeps its vigil,<br>and before you waits the cats delight.<br><br>Now let the blades fall small upon your back<br>Upon the east horizon twin humble patches of green,<br>and before you in the distance gleams bright their golden kin.<br><br>Abandon the light for the dusk, and past the thorn-cries where they were ordered<br>and halt before the pallid spiral that unwinds against the hours.<br><br>Spirals to south and spirals to west if no missteps.<br>The northern gate flanked by eternal petals marks your exit.',
                 hint: '• You need to start off the map, one pace below and one pace to the right.<br>• You will end up with a single path if everything is right.<br>• There will be areas that aren\'t specified; the riddle provides what these need to be filled with.<br>• The soil matters here but maturity does not.',
-                mainIcon: [13, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(13, 17, 'custom'),
                 completionMessage: 'The petals fall behind you. The path is chosen. Whose path it is, that remains to be decided.',
-                completionIcon: [3, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['sigils', 'still_with_us'], 
                 isActive: false, 
                 type: 'infiltrate'
@@ -1735,9 +1675,9 @@
                 clue: '<style>#tooltipCrate .description .schismClue, #tooltipCrate .description .schismClue q { color:#faeacd !important; }</style>Twelve sit the circle, with festive hats affixed, stewards of the ceaseless march.<br>Their measures are uneven: seven hold the longer reign, five the shorter.<br>Among the lesser, one forever limps, sometimes gaining a step but never the stature of its kin.<span class="schismClue"><br><br><b class="standWithOrder" style="color:#FFE0BD !important;">To stand with The Order let those of longer reign endure; cast the others into shadow.</b><br><br><b class="exposeOrder" style="color:#CFE1FF !important;">To expose The Order and their secrets to the world let those of longer reign fall; cast the others into the light.</b></span>',
                 hint: '• Don\'t forget the festive hats.<br>• When you realize what the ceaseless march is you will have the answer.',                
                 puzzleClass: SchismChoicePuzzle,
-                mainIcon: [10, 14, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 14, 'custom'),
                 completionMessage: 'The choice is made. {{expose:You have chosen to expose The Order and their secrets to the world||order:You have chosen to stand with The Order}}. There is no turning back now.',
-                completionIcon: [10, 14, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(10, 14, 'custom'),
                 dependencies: ['still_with_us', 'garden_maze'],
                 isActive: false,
                 type: 'choose'
@@ -1749,9 +1689,9 @@
                 clue: 'You have chosen {{expose:to expose The Order and their secrets to the world and bring to an end their shadow reign||order:to stand with The Order and serve them in whatever way they need}}. The path ahead is dangerous and difficult, your opponents will spare no effort to thwart you, you must prevail in your mission.<q>There is no going back. Your allegiance has been declared.</q><br><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message12.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• How\'s your Latin? Rome was founded on April 21st, right? Everything is added, not stand alone there.<br>• It\'s counterintuitive but Year 0 doesn\'t actually exist.<br>• A cipher favored by prisoners who have Bibles.',
                 description: '{{expose:You turned their own chronicle into a key, drew the hidden line, and made the hall sing it back in your order. When the last note fell, you burned the bridge behind you.<q>No more hedging—only the work of dragging them into the light.</q>||order:You read the Chronicle as a Brother, pulled the buried instruction, and set the hall to their sequence. When the final tone held, you closed the other channel and stepped fully inside.<q>No more divides—your hand is theirs.</q>}}',
-                mainIcon: [11, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(11, 17, 'custom'),
                 completionMessage: '{{expose:Conviction proved. The Brotherhood line is cut; your signal runs outward alone.||order:Conviction proved. The rebel line is erased; only the Brothers hear you now.}}',
-                completionIcon: [11, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(11, 17, 'custom'),
                 dependencies: ['schism_choice'],
                 isActive: false,
                 type: 'choose'
@@ -1763,9 +1703,9 @@
                 description: '{{expose:The Order would kill for this, technology enough to bend perceptions and the will of humanity. You kept it out of their hands and loosened a hidden seam in their plans.<q>Hide it deep. When the moment breaks, this is the weight that tips the scale.</q>||order:Whoever holds this holds the keys to power. You placed the artifact in the Brotherhood\'s vault, and with it, your trust.<q>With this secured, you are theirs in truth; when the call comes, you move with them.</q>}}',
                 clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/tv.gif" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Channel 3 is important, a screenshot might help you figure out what to do here.<br>• Etaoin is an important word here, but it\'s not a real word.',
-                mainIcon: [14, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(14, 17, 'custom'),
                 completionMessage: '{{expose:The artifact is sealed away from their hands; their reach shortens.||order:The artifact rests in their vaults; the inner circle of The Order marks your name.}}',                    
-                completionIcon: [14, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(14, 17, 'custom'),
                 dependencies: ['embrace_path'],
                 isActive: false,
                 type: 'choose'
@@ -1777,9 +1717,9 @@
                 description: '{{expose:You have blown the doors wide. Ledgers, rites, faces, laid bare and exposed to the public. Their grip loosens, and the world whispers the truth, no longer bound by fear. One task remains before they can regroup, strike while they stagger and end their reign once and for all.<q>By wit, patience, and nerve, you brought them to the brink. One more push.</q>||order:You handed over everything, drops, codes, routes, safe houses, names, and faces, all that was once entrusted to you. The Brotherhood moves like a blade, quiet, coordinated, vicious, final. With your cache in their capable hands, the purge begins.<q>By wit, patience, and nerve, you steadied the world\'s order. One more strike, and there will be no enemies left to fight.</q>}}',
                 clue: 'Every note is a musician every musician is a note only when the full ensemble is gathered will you be able to hear the music. Strike each note as it\'s named, stumble too often or move too slowly and the path stays hidden.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message13.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• 14 notes are needed to play this song. Where can you get 14 notes from?<br>• After the music has been played, where can you redeem something in Cookie Clicker?',
-                mainIcon: [10, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(10, 17, 'custom'),
                 completionMessage: '{{expose:The exchange is complete; the endgame begins.||order:The exchange is complete; the purge begins.}}',
-                    completionIcon: [10, 17, customSpriteSheetUrl],
+                    completionIcon: Game.JNE.icon(10, 17, 'custom'),
                 dependencies: ['loyalty_test'],
                 isActive: false,
                 type: 'choose'
@@ -1791,9 +1731,9 @@
                 description: '{{expose:The Order stands exposed; their sigils are scraped from doors and their ledgers pass hand to hand. Cells scatter, safehouses go cold, and the sects turn on one another in the harsh and unforgiving daylight you dragged them into. Not destroyed, but driven back into the shadows, your lost friends are avenged, your allies sleep easier, and the world whispers your work in half-remembered headlines. By wits, patience, and nerve, you unraveled scores of ciphers, ledgers, and rites few would dare.<q>Hold your head high; you kept your promise, outplayed their watchers and spies, and pulled the underworld elite into the light.</q>||order:They tried to unmask the Brotherhood; instead you steadied its hand. Decoys were laid, leaks sealed, and the rites kept without a misstep; the world now run truer for it. The old sigils shine again behind iron doors. The mask you wore has become a name, and a chair is kept for you when the circle meets. By wits, patience, and nerve, you turned trial after trial into mastery.<q>Hold your head high; you weighed the cold hard facts, outmaneuvered their foes, and chose the greater good in the end.</q>}}',
                 clue: '{{expose:Steel yourself for the final battle to expose The Order. Victory or defeat, everything hangs in the balance.||order:Steel yourself for the final battle to defend The Order. Victory or defeat, everything hangs in the balance.}}<br><br>When a full set of sailors sit above the rose sea the path will reveal itself.<q>They say good fences make good neighbors.</q>',
                 hint: '• How do sailors send complex messages to each other? <br> • A code into a code is annoying, but a fence will help, one of those 3 rail picket ones maybe? <br> • Something seems wrong with this chessboard once you figure out what it is then you are almost there. <br>• Chess clocks have many uses, but these ones are especially key once you read the time.',
-                mainIcon: [9, 17, customSpriteSheetUrl],
+                mainIcon: Game.JNE.icon(9, 17, 'custom'),
                 completionMessage: '{{expose:The Order\'s darkness has been exposed. Truth prevails.||order:The darkness has been vanquished. The Order prevails.}}',
-                completionIcon: [9, 17, customSpriteSheetUrl],
+                completionIcon: Game.JNE.icon(9, 17, 'custom'),
                 dependencies: ['rise_up'],
                 isActive: false,
                 type: 'choose'
@@ -1863,11 +1803,6 @@
         }
     }
     
-    function getActivePuzzleForTrack(trackType) {
-        ensureTracksInitialized();
-        return cookieAgeData.puzzles.tracks[trackType].active;
-    }
-    
     function getNextPuzzleForTrack(trackType) {
         ensureTracksInitialized();
         var track = cookieAgeData.puzzles.tracks[trackType];
@@ -1875,7 +1810,6 @@
         
         var nextPuzzleId = getPuzzleByTrackOrder(trackType, nextOrder);
         
-        // Check if next puzzle is unlocked (dependencies satisfied)
         if (nextPuzzleId && isPuzzleUnlocked(nextPuzzleId)) {
             return nextPuzzleId;
         }
@@ -1917,7 +1851,7 @@
                 continue;
             }
             
-            // Check if this puzzle has dependencies from other tracks that are now satisfied
+            // cross-track dependencies that are now satisfied
             if (puzzle.dependencies && puzzle.dependencies.length > 0) {
                 var allDependenciesSatisfied = true;
                 var hasCrossTrackDep = false;
@@ -1927,12 +1861,10 @@
                     var depPuzzle = cookieAgeData.puzzles.registry[depId];
                     if (!depPuzzle) continue;
                     
-                    // Check if this is a cross-track dependency
                     if (depPuzzle.type !== trackType) {
                         hasCrossTrackDep = true;
                     }
                     
-                    // Check if dependency is satisfied
                     var isCompleted = cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(depId) !== -1;
                     
                     if (!isCompleted) {
@@ -1992,8 +1924,7 @@
                     choose: null
                 };
             }
-            // Set activation time when a new puzzle is activated - but preserve existing time if already set (from save)
-            // This ensures saved cooldown timers are not reset when loading a save
+            // preserve existing activation time (from save) so cooldown timers survive load
             if (!cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType]) {
                 cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();
             }
@@ -2009,7 +1940,6 @@
     }
     
     function initializePuzzleTracks() {
-        // Ensure tracks structure exists
         if (!cookieAgeData.puzzles.tracks) {
             cookieAgeData.puzzles.tracks = {
                 investigate: { active: null, progress: 0 },
@@ -2047,14 +1977,13 @@
     
     // ===== PUZZLE LIFECYCLE MANAGEMENT =====
     function isPuzzleUnlocked(puzzleId) {
-        // Ensure puzzle system is initialized
         ensurePuzzleSystemInitialized();
         ensureTracksInitialized();
         
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) return false;
         
-        // Check if this puzzle is set as active via debug flags - if so, bypass all dependency checks
+        // debug flag bypasses all dependency checks
         if (debugMode) {
             if (puzzle.type === 'investigate' && debugStartInvestigate !== null && debugStartInvestigate !== undefined) {
                 if (debugStartInvestigate === 'complete') {
@@ -2106,7 +2035,6 @@
             var depTrack = depPuzzle.type;
             var depTrackOrder = depPuzzle.trackOrder;
             
-            // Check if dependency is completed by comparing trackOrder with progress
             if (depTrackOrder >= cookieAgeData.puzzles.tracks[depTrack].progress) {
                 return false;
             }
@@ -2130,28 +2058,24 @@
     
     // Universal helper to check if puzzle can be completed (prevents duplicate attempts)
     function canCompletePuzzle(puzzleId) {
-        // Check if puzzle is already completed
         if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
             return false;
         }
-        
-        // Check if puzzle is currently being completed
+
         if (cookieAgeData.puzzles.completing && cookieAgeData.puzzles.completing[puzzleId]) {
             return false;
         }
-        
-        // Check if notification was already shown
+
         if (cookieAgeData.puzzles.notificationsShown && cookieAgeData.puzzles.notificationsShown[puzzleId]) {
             return false;
         }
-        
+
         return true;
     }
     
     // Safe wrapper for completing puzzles - prevents double completion
     function tryCompletePuzzle(puzzleId) {
-        // CRITICAL: Check if already completed IMMEDIATELY to prevent race conditions
-        // This must happen before any initialization or other operations
+        // guard against double completion before anything else
         if (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed && 
             cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
             return false;
@@ -2176,25 +2100,21 @@
         // Mark as completing immediately to block other calls
         cookieAgeData.puzzles.completing[puzzleId] = true;
         
-        // CRITICAL: Mark puzzle as completed IMMEDIATELY here to prevent race conditions
-        // This must happen BEFORE calling completePuzzle() so subsequent calls see it's already done
+        // mark complete before completePuzzle() so re-entrant calls bail out
         if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
             cookieAgeData.puzzles.completed.push(puzzleId);
-            debugLog('[RACE GUARD] Marked', puzzleId, 'as completed immediately in tryCompletePuzzle');
         }
         
-        // Call the actual completion function
         completePuzzle(puzzleId);
         return true;
     }
     
     function completePuzzle(puzzleId) {
-        // Ensure puzzle system is initialized first
         ensurePuzzleSystemInitialized();
         ensureTracksInitialized();
         
-        // Note: We already checked and added to completed array in tryCompletePuzzle()
-        // So we don't need to check again here - that would prevent the first legitimate completion!
+        // already checked and added in tryCompletePuzzle(), don't re-check here
+        // or the first legitimate completion would be blocked
         
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
@@ -2202,22 +2122,19 @@
             return false;
         }
         
-        debugLog('Completing puzzle', puzzleId, ':', puzzle.name);
         
-        // Get track info before any modifications
         var trackType = puzzle.type;
         var track = cookieAgeData.puzzles.tracks[trackType];
 
-        // FIRST: Mark puzzle as completed and advance progress
-        // This ensures completion is recorded even if next puzzle activation fails
-        // Note: already added to completed array in tryCompletePuzzle, but double-check to avoid duplicates
+        // mark complete + advance progress before activating next,
+        // so completion is recorded even if activation fails
+        // (already added in tryCompletePuzzle, double-check to avoid duplicates)
         if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
         cookieAgeData.puzzles.completed.push(puzzleId);
-            debugLog('Marked', puzzleId, 'as completed in completePuzzle (backup)');
         }
         track.progress++;
 
-        // THEN: Clean up the completed puzzle and clear active status
+        // clean up the completed puzzle and clear active status
         deactivateCurrentPuzzle(puzzleId);
         track.active = null;
         
@@ -2226,14 +2143,12 @@
             delete cookieAgeData.puzzles.hints.purchasedHints[puzzleId];
         }
 
-        // Reset hint system activation time for this track when puzzle completes
-        // This ensures the next puzzle can immediately accept hints (after its activation time is set)
+        // reset activation time so the next puzzle can accept hints immediately
         if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.puzzleActivationTimes) {
             cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = null;
         }
 
-        // FINALLY: Try to activate next puzzle in this track
-        // This will set the activation time for the new puzzle
+        // activate next puzzle (sets its activation time)
         activateNextPuzzleForTrack(trackType);
         
         // Check all tracks for newly available puzzles due to cross-track dependencies
@@ -2246,7 +2161,6 @@
                 continue;
             }
             
-            // Check if this track has an active puzzle
             var hasActivePuzzle = cookieAgeData.puzzles.tracks[otherTrackType].active;
             
             if (!hasActivePuzzle) {
@@ -2300,12 +2214,10 @@
             var milestonePuzzle = mysteryMilestonePuzzles[i];
             var achievementName = mysteryAchievementNames[i];
             
-            // Check if this milestone is completed
             if (completedPuzzles.indexOf(milestonePuzzle) !== -1) {
-                // Check if achievement exists and is not already won
                 if (Game.Achievements[achievementName]) {
                     if (!Game.Achievements[achievementName].won) {
-                        // Clear the _restoredFromSave flag if achievement is not won (so it can be awarded properly)
+                        // clear _restoredFromSave so it can be awarded
                         if (Game.Achievements[achievementName]._restoredFromSave) {
                             Game.Achievements[achievementName]._restoredFromSave = false;
                         }
@@ -2366,12 +2278,11 @@
         return parts.length > 0 ? parts.join(' ') : '0s';
     }
     
-    // Get time remaining until puzzle hint becomes available (2 hours after activation)
+    // 2 hours after activation
     function getTimeUntilPuzzleHintAvailable(trackType) {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {
             return null;
         }
-        // Ensure puzzleActivationTimes is initialized
         if (!cookieAgeData.puzzles.hints.puzzleActivationTimes) {
             cookieAgeData.puzzles.hints.puzzleActivationTimes = {
                 investigate: null,
@@ -2389,7 +2300,6 @@
                 // Puzzle is active but no activation time set - set it now and return full cooldown
                 cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();
                 
-                // Return full cooldown time since we just set the activation time
                 return twoHours;
             }
             return null;
@@ -2400,7 +2310,7 @@
         return remaining > 0 ? remaining : 0;
     }
     
-    // Get time remaining until hint cooldown expires (24 hours since last hint)
+    // 24 hours since last hint
     function getTimeUntilHintCooldownExpires() {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.lastHintTime) {
             return 0; // No cooldown if never used
@@ -2411,7 +2321,6 @@
         return remaining > 0 ? remaining : 0;
     }
     
-    // Get all puzzles that are eligible for hints
     function getAvailablePuzzlesForHint() {
         ensurePuzzleSystemInitialized();
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
@@ -2426,24 +2335,21 @@
             var trackType = trackTypes[i];
             var track = cookieAgeData.puzzles.tracks[trackType];
             
-            // Check if track has an active puzzle
             if (!track.active) {
                 continue;
             }
-            
+
             var puzzleId = track.active;
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-            
-            // Check if puzzle is already completed
+
             if (!puzzle || !cookieAgeData.puzzles.completed || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
                 continue;
             }
-            
-            // Check if hint already exists for this track
+
             if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
                 continue;
             }
-            
+
             // Both cooldowns must be satisfied
             if (hintCooldownRemaining > 0) {
                 continue;
@@ -2455,7 +2361,6 @@
                 continue;
             }
             
-            // Check if player has enough sugar lumps
             var cost = getHintCost();
             if (!Game.lumps || Game.lumps < cost) {
                 continue; // Not enough sugar lumps, skip this puzzle
@@ -2472,7 +2377,6 @@
         return eligiblePuzzles;
     }
     
-    // Get active hints that have been purchased 
     function getActiveHints() {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.purchasedHints) {
             return [];
@@ -2485,19 +2389,17 @@
             var trackType = trackTypes[i];
             var track = cookieAgeData.puzzles.tracks[trackType];
             
-            // Check if track has an active puzzle
             if (!track.active) {
                 continue;
             }
-            
+
             var puzzleId = track.active;
-            
-            // Check if puzzle is completed - no hints for completed puzzles
+
+            // no hints for completed puzzles
             if (cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
                 continue;
             }
-            
-            // Check if hint was purchased for this puzzle
+
             if (!cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
                 continue;
             }
@@ -2520,7 +2422,6 @@
         return activeHints;
     }
     
-    // Get track display name for selection prompts
     function getTrackDisplayName(trackType) {
         if (trackType === 'investigate') {
             return 'Investigate the Order of the Cookie';
@@ -2551,8 +2452,7 @@
         if (!puzzle || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
             return false;
         }
-        
-        // Check if hint already exists for this track
+
         if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
             return false;
         }
@@ -2578,7 +2478,6 @@
         // Deduct sugar lumps
         Game.lumps -= cost;
         
-        // Update hint tracking
         cookieAgeData.puzzles.hints.hintsUsed = (cookieAgeData.puzzles.hints.hintsUsed || 0) + 1;
         cookieAgeData.puzzles.hints.lastHintTime = Date.now();
         
@@ -2608,13 +2507,10 @@
         return true;
     }
     
-    // Get tooltip content for hint purchase controller
     function getHintTooltipContent() {
-        // Ensure puzzle system is initialized before accessing hint system
         ensurePuzzleSystemInitialized();
         
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
-            // Return full tooltip HTML with wrapper and icon
             var iconX = 3;
             var iconY = 35;
             var iconUrl = gardenSpriteSheetUrl;
@@ -2624,14 +2520,12 @@
         var html = '';
         var cost = getHintCost();
         var hintsUsed = cookieAgeData.puzzles.hints.hintsUsed || 0;
-        var availablePuzzles = getAvailablePuzzlesForHint();
         var activeHints = getActiveHints();
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
         
         var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:top;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;position:relative;left:30px;top:-4px;"></div>';
         // Use the raw cost number - LBeautify returns an object, not a string
         var costNumber = String(cost);
-        // Check if player can afford the hint
         var canAfford = Game.lumps && Game.lumps >= cost;
         var costColor = canAfford ? 'rgb(140, 255, 102)' : 'rgb(253, 56, 56)';
         var costShadow = canAfford ? '0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e' : '0px 1px 0px #8b2323,0px 0px 6px #8b2323';
@@ -2666,8 +2560,7 @@
             }
         }
         
-        // Check hint cooldown (24h) - show if cooldown is active AND there are potential purchases
-        // This ensures we show the cooldown even when it's blocking all purchases (availablePuzzles.length === 0)
+        // show cooldown even when it blocks all purchases (availablePuzzles.length === 0)
         if (hintCooldownRemaining > 0 && hasPotentialPurchases) {
             hasCooldown = true;
             cooldownMessages.push('<div class="description">Hint cooldown remaining <b style="color:#ff0000;">' + formatCountdown(hintCooldownRemaining) + '</b></div>');
@@ -2725,7 +2618,6 @@
                     if (checkTrack && checkTrack.active) {
                         var checkPuzzleId = checkTrack.active;
                         var checkPuzzle = cookieAgeData.puzzles.registry[checkPuzzleId];
-                        // Check if puzzle is not completed
                         if (checkPuzzle && cookieAgeData.puzzles.completed.indexOf(checkPuzzleId) === -1) {
                             hasActivePuzzle = true;
                             break;
@@ -2763,7 +2655,6 @@
         
         var cost = getHintCost();
         
-        // Check if player has enough sugar lumps before proceeding
         if (!Game.lumps || Game.lumps < cost) {
             // Use same icon format as tooltip - 24px display with transform scale
             var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:middle;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;"></div>';
@@ -2810,14 +2701,12 @@
             var trackName = getTrackDisplayName(trackType);
             var confirmMessage = 'Purchase a hint for <b>' + trackName + '</b> for ' + formattedCost + '?';
             
-            // Use callback ID system to properly handle the purchase
             if (!window.CookieAge) window.CookieAge = {};
             if (!window.CookieAge.hintPurchaseCallbacks) window.CookieAge.hintPurchaseCallbacks = {};
             var callbackId = 'hintPurchase_' + Date.now() + '_' + Math.random();
             window.CookieAge.hintPurchaseCallbacks[callbackId] = function() {
                 var success = purchaseHint(trackType);
                 if (!success) {
-                    // Check if it failed due to insufficient sugar lumps
                     var finalCost = getHintCost();
                     if (!Game.lumps || Game.lumps < finalCost) {
 
@@ -2847,7 +2736,6 @@
         }
         
         // Build selection options - only show track name, never puzzle name
-        // Use callback ID system to properly handle the selection
         if (!window.CookieAge) window.CookieAge = {};
         if (!window.CookieAge.hintTrackSelectionCallbacks) window.CookieAge.hintTrackSelectionCallbacks = {};
         
@@ -2873,7 +2761,6 @@
     
     // ===== TRACK-BASED PROGRESS VALIDATION =====
     function isPuzzleProgressValid(puzzleId) {
-        // Check if puzzle is unlocked based on track progress
         ensureTracksInitialized();
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) return false;
@@ -2907,7 +2794,6 @@
             var depTrack = depPuzzle.type;
             var depTrackOrder = depPuzzle.trackOrder;
             
-            // Check if dependency is completed by comparing trackOrder with progress
             if (depTrackOrder >= cookieAgeData.puzzles.tracks[depTrack].progress) {
                 return false;
             }
@@ -2917,7 +2803,6 @@
     }
     
     function validatePuzzleActive(puzzleId) {
-        // Check if the puzzle is currently active in any track
         ensureTracksInitialized();
         
         var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
@@ -2928,30 +2813,6 @@
     }
     
     // ===== CENTRALIZED HOOK MANAGEMENT =====
-    function registerPuzzleHook(puzzleId, hookType, description) {
-        // Handle both numeric and string puzzle IDs for backward compatibility
-        var actualPuzzleId = typeof puzzleId === 'number' ? getPuzzleIdByIndex(puzzleId) : puzzleId;
-        var numericId = typeof puzzleId === 'number' ? puzzleId : getPuzzleIndex(puzzleId);
-        
-        var hookFunction = function() {
-            checkPuzzle(actualPuzzleId);
-        };
-        
-        var hookKey = 'puzzle' + numericId;
-        cookieAgeData.puzzles.hooks[hookKey] = hookFunction;
-        
-        return safeRegisterHook(hookType, hookFunction, description, hookKey);
-    }
-    
-    function registerPuzzleHookWithCallback(puzzleId, hookType, callback, description) {
-        // Handle both numeric and string puzzle IDs for backward compatibility
-        var numericId = typeof puzzleId === 'number' ? puzzleId : getPuzzleIndex(puzzleId);
-        var hookKey = 'puzzle' + numericId;
-        cookieAgeData.puzzles.hooks[hookKey] = callback;
-        
-        return safeRegisterHook(hookType, callback, description, hookKey);
-    }
-    
     function setupPuzzle(puzzleId) {
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
@@ -2959,9 +2820,6 @@
             return false;
         }
         
-        debugLog('Setting up puzzle', puzzleId, ':', puzzle.name);
-        
-        // Check if this is a class-based puzzle
         if (puzzle.instance) {
             try {
                 return puzzle.instance.setup();
@@ -2994,7 +2852,6 @@
             return false;
         }
         
-        // Check if this is a class-based puzzle
         if (puzzle.instance) {
             try {
                 return puzzle.instance.check.apply(puzzle.instance, args);
@@ -3024,9 +2881,6 @@
             return false;
         }
         
-        debugLog('Cleaning up puzzle', puzzleId, ':', puzzle.name);
-        
-        // Check if this is a class-based puzzle
         if (puzzle.instance) {
             try {
                 return puzzle.instance.cleanup();
@@ -3054,21 +2908,15 @@
     // ===== PUZZLE HOOK CLEANUP =====
     function cleanupPuzzleHooks(puzzleId) {
         // Handle both numeric and string puzzle IDs for backward compatibility
-        var actualPuzzleId = typeof puzzleId === 'number' ? getPuzzleIdByIndex(puzzleId) : puzzleId;
         var numericId = typeof puzzleId === 'number' ? puzzleId : getPuzzleIndex(puzzleId);
         
-        // Clean up specific puzzle hooks
+        // Clean up specific puzzle hooks by scanning registered hook types
         var hookKey = 'puzzle' + numericId;
-        var storedCb = cookieAgeData.puzzles.hooks[hookKey];
-        if (storedCb && Game.removeHook) {
-            try { Game.removeHook('check', storedCb); } catch (_) {}
-            try { Game.removeHook('logic', storedCb); } catch (_) {}
-        }
         if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks) {
             delete cookieAgeData.puzzles.hooks[hookKey];
         }
 
-        // Additionally, scan all hook types and remove any Cookie Age callbacks for this puzzle
+        // Scan all hook types and remove any Cookie Age callbacks for this puzzle
         try {
             if (Game.customHooks) {
                 var suffix = ':puzzle' + numericId;
@@ -3081,7 +2929,6 @@
                 }
             }
         } catch (e) {
-            try { debugLog('Failed extended cleanup for puzzle', numericId, e); } catch (_) {}
         }
     }
     
@@ -3373,7 +3220,6 @@
             }
             
             audioInitialized = true;
-            debugLog('Robust wrinkler audio system initialized with', wrinklerAudioElements.length, 'pre-generated tones');
             return true;
         } catch (e) {
             errorLog('Failed to initialize wrinkler audio system:', e);
@@ -3425,7 +3271,7 @@
                 Game.PlaySound('snd/tick.mp3');
             }
         } catch (fallbackError) {
-            // Silent fail - audio is optional for the puzzle
+            // audio is optional
         }
     }
     
@@ -3446,7 +3292,6 @@
         musicalNoteParticles.push(particle);
     }
     
-    // Update and draw custom musical note particles
     function updateMusicalNoteParticles() {
         if (musicalNoteParticles.length === 0) return;
         
@@ -3454,23 +3299,18 @@
         var customParticleCanvas = Game.LeftBackground;
         if (!customParticleCanvas) return;
         
-        // Check if sprite sheet is loaded
         if (!notesSpriteSheetLoaded || !notesSpriteSheetImage) {
-            return; // Skip drawing if sprite sheet isn't loaded yet
+            return; // skip if sprite sheet isn't loaded yet
         }
         
         // Define sprite size for notes (scaled down from 80x80)
         var customNoteSize = 40; // Half the original size for better visibility
         
-        // Update and draw particles
         for (var i = musicalNoteParticles.length - 1; i >= 0; i--) {
             var customParticle = musicalNoteParticles[i];
-            
-            // Update position
+
             customParticle.x += customParticle.vx;
             customParticle.y += customParticle.vy;
-            
-            // Update life
             customParticle.life -= customParticle.decay;
             
             // Draw if still alive
@@ -3534,7 +3374,6 @@
         }
     }
     
-    // Update message decay timer
     function updateMessageDecay() {
         if (revealedLetters > 0) {
             var currentTime = Date.now();
@@ -3686,7 +3525,6 @@
     };
     
     BasePuzzle.prototype.isValid = function() {
-        var puzzleIndex = this.numericId;
         var progressValid = isPuzzleProgressValid(this.puzzleId);
         var puzzleActive = validatePuzzleActive(this.puzzleId);
         return progressValid && puzzleActive;
@@ -3699,18 +3537,14 @@
     BasePuzzle.prototype.registerHook = function(hookType, callback, description) {
         var hookKey = this.hookKey;
         cookieAgeData.puzzles.hooks[hookKey] = callback;
-        this.hooks.push({ key: hookKey, callback: callback });
+        this.hooks.push({ key: hookKey, callback: callback, type: hookType });
         return safeRegisterHook(hookType, callback, description, hookKey);
     };
-    
+
     BasePuzzle.prototype.removeHooks = function() {
-        var self = this;
         this.hooks.forEach(function(hook) {
-            if (Game.removeHook) {
-                try {
-                    Game.removeHook('check', hook.callback);
-                    Game.removeHook('logic', hook.callback);
-                } catch (e) {}
+            if (Game.removeHook && hook.type) {
+                try { Game.removeHook(hook.type, hook.callback); } catch (e) {}
             }
             delete cookieAgeData.puzzles.hooks[hook.key];
         });
@@ -3964,6 +3798,9 @@
             Game.ClickSpecialPic = Game._originalClickSpecialPic;
             delete Game._originalClickSpecialPic;
         }
+        var tracking = this.getTracking();
+        if (tracking) tracking.hooked = false;
+        this.dragonHooked = false;
     };
     
     TrialScalesPatiencePuzzle.prototype.onCheck = function() {
@@ -4030,7 +3867,6 @@
         }
         
         if (tracking.patternSeenComplete && Game.wrinklers[6] && Game.wrinklers[6].close !== 1) {
-            // Guard against double completion
             if (!tracking.completed) {
                 tracking.completed = true;
             this.complete();
@@ -4119,7 +3955,6 @@
             targetCount = startCount + amountToChange;
         }
         
-        // Check if they did the wrong action
         var wrongAction = false;
         if (stepTarget.action === 'buy' && currentCount < startCount) {
             wrongAction = true;
@@ -4132,7 +3967,6 @@
             return;
         }
         
-        // Check if they changed any other building
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
             if (building.name !== this.targetBuilding) {
@@ -4147,7 +3981,6 @@
             }
         }
         
-        // Check if they exceeded the correct count
         if (stepTarget.action === 'sell' && currentCount < targetCount) {
             this.resetSequence();
             return;
@@ -4156,7 +3989,6 @@
             return;
         }
         
-        // Check if step completed
         if (currentCount === targetCount) {
             tracking.currentStep++;
             
@@ -4221,7 +4053,24 @@
             };
         }
     };
-    
+
+    PatternAltarsPuzzle.prototype.onCleanup = function() {
+        var templeObj = Game.Objects[this.targetBuilding];
+        if (templeObj) {
+            var hookKey = '_originalBuy' + this.puzzleId;
+            var sellHookKey = '_originalSell' + this.puzzleId;
+            if (templeObj[hookKey]) {
+                templeObj.buy = templeObj[hookKey];
+                delete templeObj[hookKey];
+            }
+            if (templeObj[sellHookKey]) {
+                templeObj.sell = templeObj[sellHookKey];
+                delete templeObj[sellHookKey];
+            }
+        }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
+    };
+
     function InfiltrationProgressPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'infiltrationTracking');
     }
@@ -4271,7 +4120,6 @@
         
         var tracking = this.getTracking();
         
-        // Guard against double completion from queued setTimeout calls
         if (tracking.completed) {
             return;
         }
@@ -4478,10 +4326,9 @@
     
     RiteNineFlamesPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        // Get current values before removing property overrides
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
-        
+
         // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
@@ -4493,6 +4340,7 @@
             // Restore as normal writable property with current value
             Game.dragonAura2 = currentAura2;
         }
+        if (tracking) tracking.hooked = false;
     };
     
     function StormDevotionPuzzle(puzzleId, puzzleData, registry) {
@@ -4520,19 +4368,12 @@
     };
     
     StormDevotionPuzzle.prototype.hookStormCookieTracking = function() {
-        var self = this;
-        var tracking = this.getTracking();
-        if (Game.shimmerTypes && Game.shimmerTypes['golden'] && !Game.shimmerTypes['golden']._stormTrackingHooked) {
-            tracking.originalPopFunc = Game.shimmerTypes['golden'].popFunc;
-            Game.shimmerTypes['golden'].popFunc = function(me) {
-                if (self.isValid() && self.getTracking() && self.getTracking().stormActive) {
-                    if (me.force === 'cookie storm drop' || (Game.hasBuff('Cookie storm') && me.forceObj && me.forceObj.type === 'cookie storm drop')) {
-                        self.getTracking().stormCookiesClicked++;
-                    }
-                }
-                return tracking.originalPopFunc.call(this, me);
-            };
-            Game.shimmerTypes['golden']._stormTrackingHooked = true;
+        // Storm tracking is now handled centrally in JustNaturalExpansion.js
+        // via injectGoldenPopFunc(). This function now just ensures the tracking
+        // object is exposed for the central handler to use.
+        if (!Game.JNE) Game.JNE = {};
+        if (!Game.JNE._stormDevotionTracking) {
+            Game.JNE._stormDevotionTracking = this.getTracking();
         }
     };
     
@@ -4586,14 +4427,13 @@
             tracking.stormCookiesClicked = 0;
             tracking.stormStartTime = 0;
             tracking.previousWrinklerStates = {};
-            // Restore original shimmer popFunc
-            if (tracking.originalPopFunc && Game.shimmerTypes && Game.shimmerTypes['golden']) {
-                Game.shimmerTypes['golden'].popFunc = tracking.originalPopFunc;
-            }
+            // shimmer popFunc is now handled centrally in main, no need to restore here
         }
-        if (Game.shimmerTypes && Game.shimmerTypes['golden'] && Game.shimmerTypes['golden']._stormTrackingHooked) {
-            delete Game.shimmerTypes['golden']._stormTrackingHooked;
+        // Clear the central tracking ref so re-setup can set a fresh one
+        if (Game.JNE) {
+            delete Game.JNE._stormDevotionTracking;
         }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function LitanyBrokenVowsPuzzle(puzzleId, puzzleData, registry) {
@@ -4695,19 +4535,27 @@
             };
         }
         var originalShimmeringVeilOff = Game.Upgrades['Shimmering veil [off]'];
-        if (originalShimmeringVeilOff && originalShimmeringVeilOff.buy) {
+        if (originalShimmeringVeilOff && originalShimmeringVeilOff.buy && !originalShimmeringVeilOff.__cookieAgeLitanyWrapped) {
+            originalShimmeringVeilOff.__cookieAgeLitanyWrapped = true;
+            if (!originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy) {
+                originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOff.buy;
+            }
             tracking.originalShimmeringOffBuy = originalShimmeringVeilOff.buy;
             originalShimmeringVeilOff.buy = function() {
-                var result = tracking.originalShimmeringOffBuy.call(this);
+                var result = (originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy || tracking.originalShimmeringOffBuy).call(this);
                 if (result) setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalShimmeringVeilOn = Game.Upgrades['Shimmering veil [on]'];
-        if (originalShimmeringVeilOn && originalShimmeringVeilOn.buy) {
+        if (originalShimmeringVeilOn && originalShimmeringVeilOn.buy && !originalShimmeringVeilOn.__cookieAgeLitanyWrapped) {
+            originalShimmeringVeilOn.__cookieAgeLitanyWrapped = true;
+            if (!originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy) {
+                originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOn.buy;
+            }
             tracking.originalShimmeringOnBuy = originalShimmeringVeilOn.buy;
             originalShimmeringVeilOn.buy = function() {
-                var result = tracking.originalShimmeringOnBuy.call(this);
+                var result = (originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy || tracking.originalShimmeringOnBuy).call(this);
                 if (result) setTimeout(function() { self.check(); }, 0);
                 return result;
             };
@@ -4739,7 +4587,9 @@
         tracking.shimmeringVeilOn = Game.Has('Shimmering veil [off]');
         var currentSeason = Game.season || '';
         if (currentSeason !== tracking.lastSeason && currentSeason !== '') {
-            tracking.seasonSequence.push(currentSeason);
+            if (currentSeason !== 'lunarnewyear') {
+                tracking.seasonSequence.push(currentSeason);
+            }
             tracking.lastSeason = currentSeason;
         }
         var elderCovenantComplete = tracking.elderCovenantToggles >= 3 && currentRevokeElderCovenantState;
@@ -4748,14 +4598,24 @@
         var requiredSeasonSequence = ['valentines', 'fools', 'easter', 'halloween', 'christmas'];
         var seasonSequenceComplete = false;
         if (tracking.seasonSequence.length >= requiredSeasonSequence.length) {
-            var matches = true;
-            for (var i = 0; i < requiredSeasonSequence.length; i++) {
-                if (tracking.seasonSequence[i] !== requiredSeasonSequence[i]) {
-                    matches = false;
+            // fools and easter may appear in either order
+            var acceptableSequences = [
+                ['valentines', 'fools', 'easter', 'halloween', 'christmas'],
+                ['valentines', 'easter', 'fools', 'halloween', 'christmas']
+            ];
+            for (var s = 0; s < acceptableSequences.length; s++) {
+                var matches = true;
+                for (var i = 0; i < acceptableSequences[s].length; i++) {
+                    if (tracking.seasonSequence[i] !== acceptableSequences[s][i]) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    seasonSequenceComplete = true;
                     break;
                 }
             }
-            seasonSequenceComplete = matches;
         }
         var stepConditions = [elderCovenantComplete, goldenSwitchComplete, shimmeringVeilComplete, seasonSequenceComplete];
         if (!tracking.stepCompleted[0]) {
@@ -4820,12 +4680,22 @@
             var shimmeringVeilOn = Game.Upgrades['Shimmering veil [on]'];
             if (shimmeringVeilOn) shimmeringVeilOn.buy = tracking.originalShimmeringOnBuy;
         }
+        // Clear wrapping flags so re-setup can re-hook
+        var upgradesToClean = ['Elder Covenant', 'Revoke Elder Covenant', 'Golden switch [off]', 'Golden switch [on]', 'Shimmering veil [off]', 'Shimmering veil [on]'];
+        for (var i = 0; i < upgradesToClean.length; i++) {
+            var upg = Game.Upgrades[upgradesToClean[i]];
+            if (upg) {
+                delete upg.__cookieAgeLitanyWrapped;
+                delete upg.__cookieAgeLitanyOriginalBuy;
+            }
+        }
         // Restore season property to its default writable state
         Object.defineProperty(Game, 'season', {
             value: Game.season,
             writable: true,
             configurable: true
         });
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function WatchKeeperRoundsPuzzle(puzzleId, puzzleData, registry) {
@@ -5082,18 +4952,15 @@
         // Load the notes sprite sheet
         loadNotesSpriteSheet();
         
-        // Initialize robust audio system for musical tones
         initWrinklerAudioSystem();
         
         // Replace the wrinkler squish sound function with our musical version
         if (Game.playWrinklerSquishSound && tracking.originalPlayWrinklerSquishSound) {
             var self = this;
             Game.playWrinklerSquishSound = function() {
-                // Check if rise_up puzzle is active
                 var tracking = self.getTracking();
                 if (self.isValid()) {
-                    // Check if all 14 wrinklers are present and have close value of 1
-                    var maxWrinklers = Game.getWrinklersMax();
+                    // all 14 wrinklers present with close value of 1?
                     var activeWrinklers = 0;
                     var allClose = true;
                     
@@ -5154,7 +5021,6 @@
                     }
                 }
                 
-                // Call original function for vanilla behavior
                 if (tracking.originalPlayWrinklerSquishSound) {
                     tracking.originalPlayWrinklerSquishSound();
                 }
@@ -5169,10 +5035,7 @@
                 tracking.originalDrawWrinklers = originalDrawWrinklers;
                 
                 Game.DrawWrinklers = function() {
-                    // Call original function first
                     originalDrawWrinklers.call(this);
-                    
-                    // Update message decay timer
                     updateMessageDecay();
                     
                     // Draw our custom musical note particles
@@ -5206,6 +5069,7 @@
         if (typeof musicalNoteParticles !== 'undefined') {
             musicalNoteParticles.length = 0;
         }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function DefeatEvilPuzzle(puzzleId, puzzleData, registry) {
@@ -5299,7 +5163,7 @@
                 break;
             }
         }
-        // Ensure there are exactly 12 winklers total (no more, no less)
+        // exactly 12 winklers, no more no less
         var totalWinklerCount = 0;
         if (Game.wrinklers) {
             for (var j in Game.wrinklers) {
@@ -5469,6 +5333,23 @@
             Game.DrawWrinklers = tracking._originalDrawWrinklers;
             delete tracking._originalDrawWrinklers;
         }
+        // Remove Game.bgType property override and restore as plain writable property
+        if (tracking && tracking._originalBackgroundHook) {
+            var currentBgType = Game.bgType;
+            delete Game.bgType;
+            Game.bgType = currentBgType;
+            tracking._originalBackgroundHook = false;
+        }
+        // Restore Farm minigame harvest hook
+        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
+            var M = Game.Objects['Farm'].minigame;
+            if (M._defeatEvilHarvestHooked && M._originalHarvest) {
+                M.harvest = M._originalHarvest;
+                delete M._originalHarvest;
+                delete M._defeatEvilHarvestHooked;
+            }
+        }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function EmbracePathPuzzle(puzzleId, puzzleData, registry) {
@@ -5535,6 +5416,7 @@
         if (tracking && tracking.originalSetSound && Game.jukebox) {
             Game.jukebox.setSound = tracking.originalSetSound;
         }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function SchismChoicePuzzle(puzzleId, puzzleData, registry) {
@@ -5673,21 +5555,33 @@
         var requiredSequence = ['christmas', 'halloween', 'easter', 'fools', 'valentines'];
         var currentSequence = tracking.sequence;
         
-        // Validate incrementally - check if current sequence matches the prefix of required sequence
+        // fools and easter may appear in either order 
+        var acceptableSequences = [
+            ['christmas', 'halloween', 'easter', 'fools', 'valentines'],
+            ['christmas', 'halloween', 'fools', 'easter', 'valentines']
+        ];
+        
+        // Validate incrementally - check if current sequence matches the prefix of any acceptable sequence
         if (currentSequence.length > requiredSequence.length) {
             // Too long, reset
             this.resetSequence();
         } else {
-            // Check if each element matches so far
-            var matches = true;
-            for (var i = 0; i < currentSequence.length; i++) {
-                if (currentSequence[i] !== requiredSequence[i]) {
-                    matches = false;
+            var matchesAny = false;
+            for (var s = 0; s < acceptableSequences.length; s++) {
+                var matches = true;
+                for (var i = 0; i < currentSequence.length; i++) {
+                    if (currentSequence[i] !== acceptableSequences[s][i]) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    matchesAny = true;
                     break;
                 }
             }
             
-            if (!matches) {
+            if (!matchesAny) {
                 // Sequence doesn't match, reset
                 this.resetSequence();
             } else if (currentSequence.length >= requiredSequence.length) {
@@ -5709,7 +5603,7 @@
         var currentSeason = Game.season;
         delete Game.season;
         Game.season = currentSeason;
-        
+
         // Restore vanilla language selection
         Game.showLangSelection = function(firstLaunch) {
             var str='';
@@ -5724,6 +5618,7 @@
                 AddEvent(l('langSelect-'+i),'mouseover',function(lang){return function(){PlaySound('snd/smallTick.mp3',0.75);l('languageSelectHeader').innerHTML=Langs[lang].changeLanguage;};}(i));
             }
         };
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
     function StillWithUsPuzzle(puzzleId, puzzleData, registry) {
@@ -5792,6 +5687,8 @@
             Game.ClickSpecialPic = Game._originalClickSpecialPicStillWithUs;
             delete Game._originalClickSpecialPicStillWithUs;
         }
+        var tracking = this.getTracking();
+        if (tracking) tracking.hooked = false;
     };
     
     StillWithUsPuzzle.prototype.onCheck = function() {
@@ -5877,7 +5774,6 @@
         
         var tracking = this.getTracking();
         
-        // Guard against double completion
         if (tracking.completed) {
             return;
         }
@@ -5901,6 +5797,10 @@
         var tracking = this.getTracking();
         if (tracking && tracking.originalSetSound && Game.jukebox) {
             Game.jukebox.setSound = tracking.originalSetSound;
+        }
+        if (tracking) {
+            tracking.hooked = false;
+            tracking.originalSetSound = null;
         }
     };
     
@@ -6029,6 +5929,12 @@
         var amountToChange = stepTarget.amount;
         var stepComplete = false;
         
+       // player may have sold buildings before this step started
+        if (stepTarget.action === 'sell' && currentCount > startCount) {
+            tracking.stepStartCounts[currentStep] = currentCount;
+            startCount = currentCount;
+        }
+        
         if (currentStep === 0 && stepTarget.building === 'Farm') {
             stepComplete = (currentCount > startCount);
         } else {
@@ -6095,7 +6001,6 @@
         tracking.sequenceComplete = false;
         tracking.initialCountsSet = false;
         
-        // Update initial counts to current state for all buildings
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
             tracking.initialBuildingCounts[building.name] = building.amount;
@@ -6142,7 +6047,22 @@
             };
         }
     };
-    
+
+    FalseDawnPuzzle.prototype.onCleanup = function() {
+        for (var i = 0; i < Game.ObjectsById.length; i++) {
+            var building = Game.ObjectsById[i];
+            if (building._originalBuyFalseDawn) {
+                building.buy = building._originalBuyFalseDawn;
+                delete building._originalBuyFalseDawn;
+            }
+            if (building._originalSellFalseDawn) {
+                building.sell = building._originalSellFalseDawn;
+                delete building._originalSellFalseDawn;
+            }
+        }
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
+    };
+
     function LitanyCrumbsPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'litanySpellTracking');
     }
@@ -6158,43 +6078,48 @@
                 'Resurrect Abomination'
             ],
             currentSequence: [],
-            maxMagicRequired: 115,
-            originalCastSpell: null,
-            hooked: false
+            maxMagicRequired: 115
         };
     };
-    
+
     LitanyCrumbsPuzzle.prototype.onSetup = function() {
         if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
             this.hookGrimoire();
         } else {
             var self = this;
             this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.getTracking().hooked) {
+                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
                     self.hookGrimoire();
                 }
             }, 'Check for grimoire availability');
         }
     };
-    
+
     LitanyCrumbsPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M && M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            tracking.originalCastSpell = M.castSpell;
-            var self = this;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                setTimeout(function() {
-                    self.checkSpellCast(spell);
-                }, 0);
-                return result;
-            };
-            
-            tracking.hooked = true;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        if (M.castSpell._cookieAgeLitanyCrumbs) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
+            return;
         }
+
+        var originalCastSpell = M.castSpell;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
+                setTimeout(function() {
+                    instance.checkSpellCast(spell);
+                }, 0);
+            }
+            return result;
+        };
+        wrapper._cookieAgeLitanyCrumbs = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     
     LitanyCrumbsPuzzle.prototype.checkSpellCast = function(spell) {
@@ -6236,10 +6161,11 @@
     };
     
     LitanyCrumbsPuzzle.prototype.onCleanup = function() {
-        var tracking = this.getTracking();
-        if (tracking && tracking.originalCastSpell && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            Game.Objects['Wizard tower'].minigame.castSpell = tracking.originalCastSpell;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeLitanyCrumbs) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     
     LitanyCrumbsPuzzle.prototype.onCheck = function() {
@@ -6264,43 +6190,48 @@
             ],
             expectedResults: [false, true, true, true, true],
             currentSequence: [],
-            currentResults: [],
-            originalCastSpell: null,
-            hooked: false
+            currentResults: []
         };
     };
-    
+
     RiteFivefoldCastingPuzzle.prototype.onSetup = function() {
         if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
             this.hookGrimoire();
         } else {
             var self = this;
             this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.getTracking().hooked) {
+                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
                     self.hookGrimoire();
                 }
             }, 'Check for grimoire availability');
         }
     };
-    
+
     RiteFivefoldCastingPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M && M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            tracking.originalCastSpell = M.castSpell;
-            var self = this;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                setTimeout(function() {
-                    self.checkSpellCast(spell, result);
-                }, 0);
-                return result;
-            };
-            
-            tracking.hooked = true;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        if (M.castSpell._cookieAgeRiteFivefold) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
+            return;
         }
+
+        var originalCastSpell = M.castSpell;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
+                setTimeout(function() {
+                    instance.checkSpellCast(spell, result);
+                }, 0);
+            }
+            return result;
+        };
+        wrapper._cookieAgeRiteFivefold = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     
     RiteFivefoldCastingPuzzle.prototype.checkSpellCast = function(spell, result) {
@@ -6334,10 +6265,11 @@
     };
     
     RiteFivefoldCastingPuzzle.prototype.onCleanup = function() {
-        var tracking = this.getTracking();
-        if (tracking && tracking.originalCastSpell && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            Game.Objects['Wizard tower'].minigame.castSpell = tracking.originalCastSpell;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeRiteFivefold) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     
     RiteFivefoldCastingPuzzle.prototype.onCheck = function() {
@@ -6389,7 +6321,7 @@
             var slotProxy = new Proxy(originalSlot, {
                 set: function(target, property, value) {
                     target[property] = value;
-                    // Call directly - no setTimeout needed since we're already in the mutation handler
+                    // already in the mutation handler, no setTimeout needed
                         self.checkSequence();
                     return true;
                 }
@@ -6409,7 +6341,6 @@
         
         var tracking = this.getTracking();
         
-        // Guard against double/triple completion from queued setTimeout calls
         if (tracking.completed) {
             return;
         }
@@ -6428,7 +6359,6 @@
         var spiritName = tracking.spiritName;
         var currentPhase = tracking.stepPhase;
         
-        // Get currently slotted gods
         var godsCurrentlySlotted = [];
         for (var throneIndex = 0; throneIndex < pantheon.slot.length; throneIndex++) {
             var slotValue = pantheon.slot[throneIndex];
@@ -6480,7 +6410,7 @@
                 tracking.currentStep++;
                 
                 if (tracking.currentStep >= tracking.expectedSequence.length) {
-                    // Set completed BEFORE calling complete() to prevent double completion
+                    // set before complete() to prevent double completion
                     tracking.completed = true;
                     this.complete();
                 } else {
@@ -6490,7 +6420,6 @@
             } else if (rigidelInCorrectSlot && !hasOtherSpirits) {
                 // Still correctly placed
             } else if (rigidelInWrongSlot && !hasOtherSpirits) {
-                // Check if moved to next slot
                 var nextStep = currentStep + 1;
                 if (nextStep < tracking.expectedSequence.length) {
                     var nextExpectedSlot = tracking.expectedSequence[nextStep];
@@ -6525,10 +6454,17 @@
     
     LawkeeperWalkPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        if (tracking && tracking.hooked && tracking.originalSlot) {
-            if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-                Game.Objects['Temple'].minigame.slot = tracking.originalSlot;
+        if (tracking && tracking.hooked && tracking.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
+            var pantheon = Game.Objects['Temple'].minigame;
+            // Only restore if the current slot is actually our proxy
+            if (pantheon.slot === tracking.slotProxy) {
+                pantheon.slot = tracking.originalSlot;
             }
+        }
+        if (tracking) {
+            tracking.hooked = false;
+            tracking.originalSlot = null;
+            tracking.slotProxy = null;
         }
     };
     
@@ -6750,7 +6686,7 @@
             ['EMPTY', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'EMPTY']
         ];
         
-        // Check if current pattern matches either step or neither (which resets progress)
+        // matches either step or neither (neither resets progress)
         var matchesStep1 = this.validateGardenPattern(M, step1Pattern, true);
         var matchesStep2 = this.validateGardenPattern(M, step2Pattern, false);
         
@@ -6928,7 +6864,6 @@
             return;
         }
         
-        // Check if any Tidygrass is growing in the garden
         var hasTidygrass = false;
         
         for (var y = 0; y < M.plot.length; y++) {
@@ -7029,7 +6964,6 @@
             return false;
         }
         
-        // Check if entire garden is filled with mature Golden Clovers
         var isComplete = true;
         
         for (var y = 0; y < M.plot.length; y++) {
@@ -7085,7 +7019,6 @@
     SpiralFortunePuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         
-        // Guard against double/triple completion
         if (tracking.completed) {
             return;
         }
@@ -7492,7 +7425,6 @@
         
         var tracking = this.getTracking();
         
-        // Guard against double completion
         if (tracking.completed) {
             return;
         }
@@ -7576,7 +7508,6 @@
     GardenSigilPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     GardenSigilPuzzle.prototype.constructor = GardenSigilPuzzle;
     GardenSigilPuzzle.prototype.onSetup = function() {
-        // Call parent's onSetup to register the main check hook
         SimpleHookPuzzle.prototype.onSetup.call(this);
         
         this.setupHarvestHook();
@@ -7663,7 +7594,7 @@
                 } else {
                 }
                 
-                // Call original harvest function (which might be vanilla or another puzzle's wrapper)
+                // might be vanilla or another puzzle's wrapper
                 var result = M[hookKey].apply(this, arguments);
                 
                 // Complete puzzle AFTER harvest if conditions were met BEFORE harvest
@@ -7683,7 +7614,7 @@
             var M = Game.Objects['Farm'].minigame;
             var hookKey = '_originalHarvest_gardenSigil';
             var hookFlag = '_gardenSigilHarvestHooked';
-            
+
             // Only restore if we actually hooked it and the current function is our wrapper
             if (M[hookFlag] && M[hookKey]) {
                 // Check if the current harvest function is our wrapper by checking if it exists and references our hookKey
@@ -7692,9 +7623,9 @@
                 }
                 delete M[hookKey];
                 delete M[hookFlag];
-                M._gardenSigilPuzzleCompleted = true;
             }
         }
+        this.harvestHooked = false;
     };
     GardenSigilPuzzle.prototype.onCheck = function() {
         
@@ -7770,8 +7701,6 @@
             lastSpellId: null,
             consecutiveCastCount: 0,
             firstCastTime: null,
-            originalCastSpell: null,
-            hooked: false,
             completed: false
         };
     };
@@ -7786,30 +7715,31 @@
         }, 'Check for grimoire minigame availability');
     };
     InitiationRiddlePuzzle.prototype.setupSpellHook = function() {
-        if (!Game.Objects['Wizard tower'] || !Game.Objects['Wizard tower'].minigame) {
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell) return;
+
+        // If already hooked by us, just update the puzzle reference and skip re-wrapping
+        if (M.castSpell._cookieAgeInitiationRiddle) {
+            M.castSpell._puzzleInstance = this;
+            this.spellHooked = true;
             return;
         }
-        
-        var M = Game.Objects['Wizard tower'].minigame;
-        var tracking = this.getTracking();
-        
-        if (M.castSpell && typeof M.castSpell === 'function' && !tracking.hooked) {
-            var self = this;
-            tracking.originalCastSpell = M.castSpell;
-            
-            M.castSpell = function(spell, obj) {
-                var result = tracking.originalCastSpell.call(this, spell, obj);
-                
+
+        var originalCastSpell = M.castSpell;
+        var wrapper = function(spell, obj) {
+            var result = originalCastSpell.apply(this, arguments);
+            var instance = wrapper._puzzleInstance;
+            if (instance) {
                 setTimeout(function() {
-                    self.checkSpellCast(spell);
+                    instance.checkSpellCast(spell);
                 }, 0);
-                
-                return result;
-            };
-            
-            tracking.hooked = true;
-            this.spellHooked = true;
-        }
+            }
+            return result;
+        };
+        wrapper._cookieAgeInitiationRiddle = true;
+        wrapper._puzzleInstance = this;
+        M.castSpell = wrapper;
+        this.spellHooked = true;
     };
     InitiationRiddlePuzzle.prototype.checkSpellCast = function(spell) {
         if (!this.isValid()) {
@@ -7818,7 +7748,6 @@
         
         var tracking = this.getTracking();
         
-        // Guard against double completion
         if (tracking.completed) {
             return;
         }
@@ -7847,14 +7776,12 @@
         }
     };
     InitiationRiddlePuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            var M = Game.Objects['Wizard tower'].minigame;
-            var tracking = this.getTracking();
-            
-            if (tracking && tracking.hooked && tracking.originalCastSpell) {
-                M.castSpell = tracking.originalCastSpell;
-            }
+
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell && M.castSpell._cookieAgeInitiationRiddle) {
+            M.castSpell._puzzleInstance = null;
         }
+        this.spellHooked = false;
     };
     InitiationRiddlePuzzle.prototype.onCheck = function() {
         // Check happens in spell cast hook
@@ -7909,7 +7836,7 @@
             var slotProxy = new Proxy(originalSlot, {
                 set: function(target, property, value) {
                     target[property] = value;
-                    // Call directly - no setTimeout needed since we're already in the mutation handler
+                    // already in the mutation handler, no setTimeout needed
                         self.checkSequenceStep();
                     return true;
                 }
@@ -7930,7 +7857,6 @@
         
         var sequence = this.getTracking();
         
-        // Guard against double/triple completion from queued setTimeout calls
         if (sequence.completed) {
             return;
         }
@@ -8049,14 +7975,20 @@
         sequence.stepStartTime = null;
     };
     SpiritsThronesPuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
+        var sequence = this.getTracking();
+        if (sequence && sequence.hooked && sequence.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
             var pantheon = Game.Objects['Temple'].minigame;
-            var sequence = this.getTracking();
-            
-            if (sequence && sequence.hooked && sequence.originalSlot) {
+            // Only restore if the current slot is actually our proxy
+            if (pantheon.slot === sequence.slotProxy) {
                 pantheon.slot = sequence.originalSlot;
             }
         }
+        if (sequence) {
+            sequence.hooked = false;
+            sequence.originalSlot = null;
+            sequence.slotProxy = null;
+        }
+        this.pantheonHooked = false;
     };
     SpiritsThronesPuzzle.prototype.onCheck = function() {
         // Check happens in Proxy hook
@@ -8115,7 +8047,7 @@
         var allConditionsMet = hairValid && hairColorValid && skinColorValid && extrasValid && bakeryNameValid;
         
         if (allConditionsMet) {
-            // Set completed flag IMMEDIATELY before calling complete() to block other check() calls
+            // set before complete() to block other check() calls
             tracking.completed = true;
             tracking.hooksDisabled = true;
             // Now call complete() - the flag is already set to prevent race conditions
@@ -8216,10 +8148,9 @@
     };
     TheyAreWatchingPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        // Get current values before removing property overrides
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
-        
+
         // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
@@ -8231,6 +8162,8 @@
             // Restore as normal writable property with current value
             Game.dragonAura2 = currentAura2;
         }
+        if (tracking) tracking.hooked = false;
+        this.auraHooked = false;
     };
     TheyAreWatchingPuzzle.prototype.onCheck = function() {
         // Check happens when aura properties are set
@@ -8306,6 +8239,7 @@
                 M._lilyPuzzleHooked = false;
             }
         }
+        this.lilyHooked = false;
     };
     ProvingPatiencePuzzle.prototype.onCheck = function() {
         // Check happens in onDie hook
@@ -8398,6 +8332,8 @@
                 configurable: true
             });
         }
+        if (tracking) tracking.hooked = false;
+        this.seasonHooked = false;
     };
     SpiralSeasonsPuzzle.prototype.onCheck = function() {
         // Check happens in season setter hook
@@ -8510,6 +8446,11 @@
         if (stepStartCount === undefined) {
             return;
         }
+         // player may have sold buildings before this step started
+        if (stepTarget.action === 'sell' && currentCount > stepStartCount) {
+            tracking.stepStartCounts[currentStep] = currentCount;
+            stepStartCount = currentCount;
+        }
         
         // Check if they're working on the wrong building type
         var wrongBuildingChanged = false;
@@ -8534,7 +8475,6 @@
             tracking.stepStartCounts = [];
             tracking.sequenceComplete = false;
             
-            // Update initial counts to current state
             for (var k = 0; k < Game.ObjectsById.length; k++) {
                 var b = Game.ObjectsById[k];
                 tracking.initialBuildingCounts[b.name] = b.amount;
@@ -8549,7 +8489,6 @@
             return;
         }
         
-        // Check if the current step is complete
         var targetCount;
         if (stepTarget.action === 'sell') {
             targetCount = stepStartCount - stepTarget.amount;
@@ -8563,7 +8502,7 @@
             tracking.currentStep++;
             
             if (tracking.currentStep >= tracking.stepTargets.length) {
-                // Set sequenceComplete BEFORE calling complete() to prevent double completion
+                // set before complete() to prevent double completion
                 tracking.sequenceComplete = true;
                 this.complete();
             } else {
@@ -8589,107 +8528,7 @@
         }
     };
     
-    // Building sell tracking: Track specific building sales, reset on wrong building
-    function BuildingSellTrackingPuzzle(puzzleId, puzzleData, registry, buildingName, requiredAmount) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'buildingSellTracking');
-        this.targetBuilding = buildingName;
-        this.requiredAmount = requiredAmount;
-        this.sellHooked = false;
-    }
-    BuildingSellTrackingPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
-    BuildingSellTrackingPuzzle.prototype.constructor = BuildingSellTrackingPuzzle;
-    BuildingSellTrackingPuzzle.prototype.initializeTracking = function() {
-        var initialCounts = {};
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            initialCounts[building.name] = building.amount;
-        }
-        return {
-            buildingsSold: 0,
-            initialBuildingCounts: initialCounts,
-            completed: false
-        };
-    };
-    BuildingSellTrackingPuzzle.prototype.onSetup = function() {
-        this.hookBuildingSells();
-    };
-    BuildingSellTrackingPuzzle.prototype.hookBuildingSells = function() {
-        if (this.sellHooked) {
-            return;
-        }
-        
-        var self = this;
-        var hookKey = '_originalSell' + this.puzzleId;
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            
-            if (!building[hookKey]) {
-                building[hookKey] = building.sell;
-                
-                (function(bldg, origSell) {
-                    bldg.sell = function(amount, bypass) {
-                        var buildingName = bldg.name;
-                        var countBefore = bldg.amount;
-                        var result = origSell.call(bldg, amount, bypass);
-                        var countAfter = bldg.amount;
-                        var actualSold = countBefore - countAfter;
-                        
-                        setTimeout(function() {
-                            self.checkBuildingSell(buildingName, actualSold);
-                        }, 0);
-                        
-                        return result;
-                    };
-                })(building, building[hookKey]);
-            }
-        }
-        
-        this.sellHooked = true;
-    };
-    BuildingSellTrackingPuzzle.prototype.checkBuildingSell = function(soldBuildingName, amountSold) {
-        if (!this.isValid()) {
-            return;
-        }
-        
-        var tracking = this.getTracking();
-        if (tracking.completed) {
-            return;
-        }
-        
-        if (soldBuildingName === this.targetBuilding && amountSold > 0) {
-            tracking.buildingsSold += amountSold;
-            
-            if (tracking.buildingsSold >= this.requiredAmount) {
-                tracking.completed = true;
-                this.complete();
-            }
-        } else if (soldBuildingName !== this.targetBuilding && amountSold > 0) {
-            tracking.buildingsSold = 0;
-            tracking.completed = false;
-            
-            for (var i = 0; i < Game.ObjectsById.length; i++) {
-                var building = Game.ObjectsById[i];
-                tracking.initialBuildingCounts[building.name] = building.amount;
-            }
-        }
-    };
-    BuildingSellTrackingPuzzle.prototype.onCleanup = function() {
-        var hookKey = '_originalSell' + this.puzzleId;
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            if (building[hookKey]) {
-                building.sell = building[hookKey];
-                delete building[hookKey];
-            }
-        }
-    };
-    BuildingSellTrackingPuzzle.prototype.onCheck = function() {
-        // Check happens in sell hook
-        return;
-    };
-    
-    // Spy Purge: Sell exactly 27 grandmas from peak, check every 60 seconds
+    // Spy Purge
     function SpyPurgePuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'spyPurgeTracking');
         this.sellHooked = false;
@@ -8794,6 +8633,8 @@
             if (grandma._originalSpyPurgeSell) { grandma.sell = grandma._originalSpyPurgeSell; delete grandma._originalSpyPurgeSell; }
             if (grandma._originalSpyPurgeBuy) { grandma.buy = grandma._originalSpyPurgeBuy; delete grandma._originalSpyPurgeBuy; }
         }
+        this.sellHooked = false;
+        this.buyHooked = false;
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
@@ -8902,6 +8743,8 @@
             if (mine._originalBrotherOntoSell) { mine.sell = mine._originalBrotherOntoSell; delete mine._originalBrotherOntoSell; }
             if (mine._originalBrotherOntoBuy) { mine.buy = mine._originalBrotherOntoBuy; delete mine._originalBrotherOntoBuy; }
         }
+        this.sellHooked = false;
+        this.buyHooked = false;
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
     
@@ -8958,11 +8801,6 @@
                 }
                 var afterPlot = M.plot[bPos[0]][bPos[1]];
                 if (afterPlot && afterPlot[0] > 0) {
-                    var afterPlantName = (function() {
-                        if (!afterPlot || afterPlot[0] <= 0) { return null; }
-                        var afterPlant = M.plantsById[afterPlot[0] - 1];
-                        return afterPlant ? afterPlant.name : null;
-                    })();
                     return;
                 }
             }
@@ -9112,54 +8950,30 @@
     function getMissingPuzzleCompletionRequirements() {
         var missingRequirements = [];
 
-        if (!Game || !Game.Objects) {
-            missingRequirements.push({ type: 'system', label: 'Game state unavailable' });
+        if (!Game || !Game.Objects || !Game.JNE || !Game.JNE.puzzleBuildingRequirements) {
+            missingRequirements.push({ type: 'system', label: 'Just Natural Expansion mod required' });
             return missingRequirements;
         }
 
-        var buildingRequirements = [
-            { key: 'Farm', label: 'Level 9 farms', level: 9 },
-            { key: 'Wizard tower', label: 'Level 1 wizard towers', level: 1 },
-            { key: 'Temple', label: 'Level 1 temples', level: 1 },
-            { key: 'Bank', label: 'Level 1 banks', level: 1 }
-        ];
-
+        var buildingRequirements = Game.JNE.puzzleBuildingRequirements;
         for (var i = 0; i < buildingRequirements.length; i++) {
             var requirement = buildingRequirements[i];
             var building = Game.Objects[requirement.key];
-
             if (!building || typeof building.level !== 'number' || building.level < requirement.level) {
                 missingRequirements.push({ type: 'building', label: requirement.label });
             }
         }
 
-        var requiredAllTimeCookies = 8e55;
         var totalCookiesBaked = Game.cookiesEarned + Game.cookiesReset;
-
-        if (!Number.isFinite(totalCookiesBaked) || totalCookiesBaked < requiredAllTimeCookies) {
-            missingRequirements.push({ type: 'progress', label: '80 septendecillion cookies baked all time' });
+        if (Game.ascensionMode != 103) {
+            if (!Number.isFinite(totalCookiesBaked) || totalCookiesBaked < Game.JNE.puzzleMinCookies) {
+                missingRequirements.push({ type: 'progress', label: '80 septendecillion cookies baked all time' });
+            }
         }
 
-        var requiredHeavenlyUpgrades = [
-            'Inspired checklist',
-            'Golden switch',
-            'Shimmering veil',
-            'Season switcher',
-            'Elder spice',
-            'How to bake your dragon',
-            'Classic dairy selection',
-            'Basic wallpaper assortment',
-            'Heralds',
-            'Wrapping paper', 
-            'Fanciful dairy selection',
-            'Distinguished wallpaper assortment',
-            'Sound test',
-            'Pet the dragon'
-        ];
-
+        var requiredHeavenlyUpgrades = Game.JNE.puzzleRequiredUpgrades;
         for (var j = 0; j < requiredHeavenlyUpgrades.length; j++) {
             var upgradeName = requiredHeavenlyUpgrades[j];
-
             if (!Game.Has(upgradeName)) {
                 missingRequirements.push({ type: 'upgrade', label: upgradeName });
             }
@@ -9168,7 +8982,6 @@
         return missingRequirements;
     }
 
-    // Helper method for testing - set current puzzle number
     function setPuzzleProgress(puzzleNumber) {
         ensurePuzzleSystemInitialized();
 
@@ -9186,14 +8999,12 @@
             Game.JNE = {};
         }
         
-        var oldProgress = Game.JNE.cookieAgeProgress || 0;
         Game.JNE.cookieAgeProgress = puzzleNumber;
 
         // For testing: unlock all puzzles up to the target puzzle (bypass dependencies)
         var targetPuzzleId = getPuzzleIdByIndex(puzzleNumber);
         if (targetPuzzleId) {
             
-            // Ensure completed puzzles array exists
             if (!cookieAgeData.puzzles.completed) {
                 cookieAgeData.puzzles.completed = [];
             }
@@ -9210,7 +9021,6 @@
         return puzzleNumber;
     }
     
-    // Helper method for testing - get current puzzle info
     function getPuzzleInfo() {
         // Use track-based system instead of old progress-based system
         ensureTracksInitialized();
@@ -9235,20 +9045,38 @@
         };
     }
     
-    // Helper method for testing - mark puzzle as completed (bypass dependencies)
+    // bypasses completing/notificationsShown state so completion always succeeds
     function markPuzzleCompleted(puzzleId) {
+        ensurePuzzleSystemInitialized();
+        ensureTracksInitialized();
+
         if (!cookieAgeData.puzzles.completed) {
             cookieAgeData.puzzles.completed = [];
         }
-        
-        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-            cookieAgeData.puzzles.completed.push(puzzleId);
+        if (!cookieAgeData.puzzles.completing) {
+            cookieAgeData.puzzles.completing = {};
         }
-        
-        return cookieAgeData.puzzles.completed;
+        if (!cookieAgeData.puzzles.notificationsShown) {
+            cookieAgeData.puzzles.notificationsShown = {};
+        }
+
+        // Clear blocking state so tryCompletePuzzle won't bail out
+        delete cookieAgeData.puzzles.completing[puzzleId];
+        delete cookieAgeData.puzzles.notificationsShown[puzzleId];
+
+        // If already in completed array, remove it so tryCompletePuzzle can run full logic
+        var idx = cookieAgeData.puzzles.completed.indexOf(puzzleId);
+        if (idx !== -1) {
+            cookieAgeData.puzzles.completed.splice(idx, 1);
+        }
+
+        var result = tryCompletePuzzle(puzzleId);
+        if (!result) {
+            console.warn('[Cookie Age] markPuzzleCompleted: tryCompletePuzzle returned false for', puzzleId);
+        }
+        return result;
     }
     
-    // Helper method for testing - mark all dependencies as completed for a puzzle
     function unlockPuzzleForTesting(puzzleId) {
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
@@ -9263,69 +9091,89 @@
         return true;
     }
     
-    // Helper method for testing - reset puzzle system and set target puzzle
-    function resetAndSetPuzzle(puzzleNumber) {
-        
-        // Deactivate current puzzle first
-        if (typeof deactivateCurrentPuzzle === 'function') {
-            deactivateCurrentPuzzle();
+    function resetAndSetPuzzle(puzzleId) {
+        ensurePuzzleSystemInitialized();
+        ensureTracksInitialized();
+
+        var puzzle = cookieAgeData.puzzles.registry[puzzleId];
+        if (!puzzle) {
+            console.warn('[Cookie Age] resetAndSetPuzzle: puzzle not in registry:', puzzleId);
+            return false;
         }
-        
-        // Clear completed puzzles
-        cookieAgeData.puzzles.completed = [];
-        
-        // Now set the puzzle progress (which will mark dependencies as completed)
-        setPuzzleProgress(puzzleNumber);
+        var trackType = puzzle.type;
+        var track = cookieAgeData.puzzles.tracks[trackType];
+
+        // Deactivate current puzzle in this track
+        if (track.active) {
+            deactivateCurrentPuzzle(track.active);
+        }
+        track.active = null;
+
+        // Reset this track: clear blocking state and completed entries for its puzzles
+        if (!cookieAgeData.puzzles.completing) cookieAgeData.puzzles.completing = {};
+        if (!cookieAgeData.puzzles.notificationsShown) cookieAgeData.puzzles.notificationsShown = {};
+        if (!cookieAgeData.puzzles.completed) cookieAgeData.puzzles.completed = [];
+        var orderArr = trackType === 'investigate' ? INVESTIGATE_PUZZLE_ORDER
+            : trackType === 'infiltrate' ? INFILTRATE_PUZZLE_ORDER
+            : CHOOSE_PUZZLE_ORDER;
+        for (var i = 0; i < orderArr.length; i++) {
+            var pid = orderArr[i];
+            delete cookieAgeData.puzzles.completing[pid];
+            delete cookieAgeData.puzzles.notificationsShown[pid];
+            var idx = cookieAgeData.puzzles.completed.indexOf(pid);
+            if (idx !== -1) cookieAgeData.puzzles.completed.splice(idx, 1);
+        }
+
+        // Mark prior puzzles in this track as completed and set progress to target
+        for (var j = 0; j < puzzle.trackOrder; j++) {
+            cookieAgeData.puzzles.completed.push(orderArr[j]);
+        }
+        track.progress = puzzle.trackOrder;
+
+        // Force-activate the target puzzle
+        track.active = puzzleId;
+        puzzle.isActive = true;
+        setupPuzzle(puzzleId);
+
+        if (debugMode) console.log('[Cookie Age] resetAndSetPuzzle:', puzzleId, 'in', trackType);
+        return true;
     }
     
-    // Helper method to complete currently active puzzle(s) and move to next
     function completeActivePuzzles() {
         ensurePuzzleSystemInitialized();
         ensureTracksInitialized();
         var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
         var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
         var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
-        
+
+        if (debugMode) console.log('[Cookie Age] completeActivePuzzles:', { investigate: investigateActive, infiltrate: infiltrateActive, choose: chooseActive });
+
         var completed = [];
-        
-        if (investigateActive) {
-            var puzzle = cookieAgeData.puzzles.registry[investigateActive];
-            if (puzzle) {
-                tryCompletePuzzle(investigateActive);
-                completed.push(investigateActive + ' (' + puzzle.name + ')');
+        var failed = [];
+
+        var activeIds = [investigateActive, infiltrateActive, chooseActive];
+        for (var i = 0; i < activeIds.length; i++) {
+            var activeId = activeIds[i];
+            if (!activeId) continue;
+            var puzzle = cookieAgeData.puzzles.registry[activeId];
+            if (!puzzle) continue;
+            var label = activeId + ' (' + puzzle.name + ')';
+            if (tryCompletePuzzle(activeId)) {
+                completed.push(label);
+            } else {
+                failed.push(label);
             }
         }
-        
-        if (infiltrateActive) {
-            var puzzle = cookieAgeData.puzzles.registry[infiltrateActive];
-            if (puzzle) {
-                tryCompletePuzzle(infiltrateActive);
-                completed.push(infiltrateActive + ' (' + puzzle.name + ')');
-            }
-        }
-        
-        if (chooseActive) {
-            var puzzle = cookieAgeData.puzzles.registry[chooseActive];
-            if (puzzle) {
-                tryCompletePuzzle(chooseActive);
-                completed.push(chooseActive + ' (' + puzzle.name + ')');
-            }
-        }
-        
-        if (completed.length > 0) {
-            console.log('[Cookie Age] Completed active puzzles:', completed.join(', '));
-            return completed;
-        } else {
-            console.log('[Cookie Age] No active puzzles to complete');
-            return [];
-        }
+
+        if (completed.length) console.log('[Cookie Age] Completed:', completed.join(', '));
+        if (failed.length) console.warn('[Cookie Age] Blocked by completing/notificationsShown:', failed.join(', '));
+        return completed;
     }
     
-    // Make helper methods available globally for console testing
-    // Gate mutation-oriented console helpers behind debugMode to prevent cheating via console
+    // gate console mutation helpers behind debugMode
     function __requireDebugForConsole() {
         if (!debugMode) {
-            try { console.warn('[Cookie Age] Console command disabled unless debugMode is true.'); } catch (_) {}
+            console.warn('[Cookie Age] Console command disabled unless debugMode is true.');
             return false;
         }
         return true;
@@ -9344,9 +9192,9 @@
         if (!__requireDebugForConsole()) return;
         unlockPuzzleForTesting(puzzleId);
     };
-    Game.resetAndSetPuzzle = function(puzzleNumber) {
+    Game.resetAndSetPuzzle = function(puzzleId) {
         if (!__requireDebugForConsole()) return;
-        resetAndSetPuzzle(puzzleNumber);
+        resetAndSetPuzzle(puzzleId);
     };
     Game.completeActivePuzzles = function() {
         if (!__requireDebugForConsole()) return [];
@@ -9354,11 +9202,9 @@
     };
     
     function ensurePuzzleSystemInitialized() {
-        // Ensure puzzle system is initialized if it doesn't exist
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {
             setupPuzzleSystem();
         } else {
-            // Ensure hints system is initialized even if puzzles structure exists
             if (!cookieAgeData.puzzles.hints) {
                 cookieAgeData.puzzles.hints = {
                     hintsUsed: 0,
@@ -9371,7 +9217,6 @@
                     purchasedHints: {}
                 };
             }
-            // Ensure completed array exists
             if (!cookieAgeData.puzzles.completed) {
                 cookieAgeData.puzzles.completed = [];
             }
@@ -9481,7 +9326,6 @@
             return text;
         }
         
-        // Check if exposePathPicked is set
         var pathChoice = cookieAgeData.puzzles ? cookieAgeData.puzzles.exposePathPicked : null;
         
         // If no path choice made yet, return text as-is (for schism_choice before completion)
@@ -9497,63 +9341,12 @@
         return processedText;
     }
     
-    function getPuzzleStatus() {
-        // Ensure puzzle system is initialized
-        ensurePuzzleSystemInitialized();
-        
-        var investigateActive = getActivePuzzleForTrack('investigate');
-        var infiltrateActive = getActivePuzzleForTrack('infiltrate');
-        
-        // Get current puzzle for backward compatibility (first active puzzle)
-        var currentPuzzle = null;
-        var currentProgress = 0;
-        
-        if (investigateActive) {
-            currentPuzzle = cookieAgeData.puzzles.registry[investigateActive];
-            currentProgress = cookieAgeData.puzzles.tracks.investigate.progress;
-        } else if (infiltrateActive) {
-            currentPuzzle = cookieAgeData.puzzles.registry[infiltrateActive];
-            currentProgress = cookieAgeData.puzzles.tracks.infiltrate.progress;
-        }
-        
-        // Calculate total completed puzzles across both tracks
-        var totalCompleted = (cookieAgeData.puzzles.tracks.investigate.progress || 0) + 
-                            (cookieAgeData.puzzles.tracks.infiltrate.progress || 0);
-        
-        return {
-            currentProgress: currentProgress,
-            currentPuzzle: currentPuzzle ? {
-                id: currentPuzzle.trackOrder,
-                name: currentPuzzle.name,
-                description: processConditionalText(currentPuzzle.description),
-                isActive: true,
-                isUnlocked: true,
-                type: currentPuzzle.type
-            } : null,
-            totalPuzzles: Object.keys(cookieAgeData.puzzles.registry).length,
-            totalCompleted: totalCompleted,
-            tracks: {
-                investigate: {
-                    progress: cookieAgeData.puzzles.tracks.investigate.progress,
-                    active: investigateActive
-                },
-                infiltrate: {
-                    progress: cookieAgeData.puzzles.tracks.infiltrate.progress,
-                    active: infiltrateActive
-                }
-            }
-        };
-    }
-    
     // ===== NEWS TICKER SYSTEM =====
     var newsTickerFunction = null;
    
     function setupNewsTicker() {
-        debugLog('Setting up news ticker for Mysteries of the Cookie...');
-        
         // Don't set up if already active
         if (newsTickerFunction) {
-            debugLog('News ticker already active, skipping setup');
             return;
         }
         
@@ -9569,9 +9362,7 @@
                 }
                 
                 ensureTracksInitialized();
-                var investigateProgress = cookieAgeData.puzzles.tracks.investigate.progress || 0;
                 var infiltrateProgress = cookieAgeData.puzzles.tracks.infiltrate.progress || 0;
-                var totalProgress = investigateProgress + infiltrateProgress;
 
 				// Classified ads keyed to active puzzles
 				if (validatePuzzleActive('proving_patience')) {
@@ -9696,40 +9487,29 @@
             };
             
             Game.modHooks['ticker'].push(newsTickerFunction);
-        } else {
-            debugLog('News ticker system not available, skipping ticker setup');
         }
     }
     
     function removeNewsTicker() {
-        debugLog('Removing news ticker for Mysteries of the Cookie...');
-        
         if (Game.modHooks && Game.modHooks['ticker'] && newsTickerFunction) {
             var index = Game.modHooks['ticker'].indexOf(newsTickerFunction);
             if (index > -1) {
                 Game.modHooks['ticker'].splice(index, 1);
-                debugLog('News ticker removed successfully');
-            } else {
-                debugLog('News ticker function not found in ticker array');
             }
             newsTickerFunction = null;
-        } else {
-            debugLog('Cannot remove news ticker - system not available or function not set');
         }
     }
     
     // ===== PUBLIC API FOR TESTING =====
-    // These functions will be available in the console for testing
     window.CookieAge = {
-        version: expansionVersion,
+        VERSION: expansionVersion,
         getMissingPuzzleCompletionRequirements: getMissingPuzzleCompletionRequirements,
         getSaveData: function() {
             try {
-                // Ensure structures exist without over-initializing UI/audio
+                // don't over-initialize UI/audio here
                 if (!cookieAgeData) return null;
                 if (!cookieAgeData.puzzles) return { version: expansionVersion, tracks: { lastCompleted: { investigate: null, infiltrate: null, choose: null } }, exposePathPicked: null };
 
-                // Helper to get last completed ID for a track from progress or completed list
                 function getLastCompletedId(trackType) {
                     if (!cookieAgeData.puzzles.tracks) return null;
                     var progress = (cookieAgeData.puzzles.tracks[trackType] && cookieAgeData.puzzles.tracks[trackType].progress) || 0;
@@ -9775,7 +9555,7 @@
                     } : null
                 };
             } catch (e) {
-                try { console.error('[Cookie Age] getSaveData failed:', e); } catch (_) {}
+                console.error('[Cookie Age] getSaveData failed:', e);
                 return null;
             }
         },
@@ -9801,8 +9581,7 @@
                     };
                 }
 
-                // CRITICAL: Clean up any currently active puzzles BEFORE clearing state
-                // This prevents hooks/listeners from old puzzles interfering with new save data
+                // clean up active puzzles before clearing state so old hooks don't fire
                 var currentActivePuzzles = [];
                 if (cookieAgeData.puzzles.tracks) {
                     if (cookieAgeData.puzzles.tracks.investigate && cookieAgeData.puzzles.tracks.investigate.active) {
@@ -9827,7 +9606,7 @@
                             puzzle.isActive = false;
                         }
                     } catch (e) {
-                        try { errorLog('Error cleaning up puzzle during save load:', puzzleId, e); } catch (_) {}
+                        errorLog('Error cleaning up puzzle during save load:', puzzleId, e);
                     }
                 }
 
@@ -9964,16 +9743,13 @@
 
                 // Optional debug overrides – only when debugMode and any debug flag is set
                 if (typeof debugMode !== 'undefined' && debugMode) {
-                    var hasAnyDebug = (typeof debugStartInvestigate !== 'undefined' && debugStartInvestigate !== null && debugStartInvestigate !== undefined) ||
-                        (typeof debugStartInfiltrate !== 'undefined' && debugStartInfiltrate !== null && debugStartInfiltrate !== undefined) ||
-                        (typeof debugStartChoose !== 'undefined' && debugStartChoose !== null && debugStartChoose !== undefined) ||
-                        (typeof debugExposePathPicked !== 'undefined' && debugExposePathPicked !== null && debugExposePathPicked !== undefined);
-                    if (hasAnyDebug && typeof applyDebugStartPuzzles === 'function') {
+                    var hasAnyDebug = debugStartInvestigate || debugStartInfiltrate || debugStartChoose || debugExposePathPicked;
+                    if (hasAnyDebug) {
                         applyDebugStartPuzzles();
                     }
                 }
             } catch (e) {
-                try { console.error('[Cookie Age] applySaveData failed:', e); } catch (_) {}
+                console.error('[Cookie Age] applySaveData failed:', e);
             }
         },
         debug: function() {
@@ -9990,21 +9766,14 @@
             });
         },
         reinitialize: function() {
-            debugLog('Reinitializing Cookie Age expansion...');
             expansionState.initialized = false;
             expansionState.achievementsCreated = false;
             
-            // Check if Cookie Age is enabled and initialize directly
             if (Game.JNE && Game.JNE.enableCookieAge) {
-                debugLog('Cookie Age is enabled, initializing directly...');
                 initializeExpansion();
-            } else {
-                debugLog('Cookie Age is disabled, skipping initialization');
             }
         },
         enable: function() {
-            debugLog('Enabling Cookie Age expansion...');
-            
             if (!expansionState.initialized) {
                 initializeExpansion();
             } else {
@@ -10012,14 +9781,12 @@
                 if (!expansionState.achievementsCreated) {
                     createMysteryAchievements();
                 }
-                // Ensure news ticker is active
                 if (!newsTickerFunction) {
                     setupNewsTicker();
                 }
             }
         },
         disable: function() {
-            debugLog('Disabling Cookie Age expansion...');
             this.cleanup();
             console.log('[Cookie Age] Disabled');
         },
@@ -10036,7 +9803,6 @@
             removeNewsTicker();
         },
         cleanup: function() {
-            debugLog('Cleaning up Cookie Age expansion...');
             removeNewsTicker();
             
             // Clean up all Game object modifications
@@ -10069,9 +9835,7 @@
                 }
             }
             
-            // Reset initialization flags to ensure proper re-initialization on re-enable
-            // CRITICAL: This ensures that when Cookie Age is re-enabled, setupPuzzleSystem
-            // will properly reinitialize tracks and restore saved data
+            // Reset init flags so setupPuzzleSystem re-runs on re-enable
             if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {
                 cookieAgeData.puzzles.tracks._initialized = false;
             }
@@ -10082,7 +9846,6 @@
             console.log('[Cookie Age] Cleanup completed');
         },
         forceEnable: function() {
-            debugLog('Force enabling Cookie Age expansion...');
             expansionState.initialized = false;
             initializeExpansion();
         },
@@ -10137,13 +9900,13 @@
         },
         completeCurrentPuzzle: function(trackType) {
             if (!debugMode) {
-                try { console.warn('[Cookie Age] Console command disabled unless debugMode is true.'); } catch (_) {}
+                console.warn('[Cookie Age] Console command disabled unless debugMode is true.');
                 return false;
             }
 
             var entries = getActivePuzzleEntries(trackType);
             if (!entries.length) {
-                try { console.warn('[Cookie Age] No active puzzles to complete.'); } catch (_) {}
+                console.warn('[Cookie Age] No active puzzles to complete.');
                 return false;
             }
 
@@ -10154,12 +9917,12 @@
                     completedAny = true;
                     var registryPuzzle = cookieAgeData.puzzles.registry ? cookieAgeData.puzzles.registry[entry.id] : null;
                     var puzzleName = registryPuzzle ? registryPuzzle.name : entry.id;
-                    try { console.log('[Cookie Age] Completed puzzle:', puzzleName); } catch (_) {}
+                    console.log('[Cookie Age] Completed puzzle:', puzzleName);
                 }
             }
 
             if (!completedAny) {
-                try { console.warn('[Cookie Age] Active puzzle completion failed.'); } catch (_) {}
+                console.warn('[Cookie Age] Active puzzle completion failed.');
             }
 
             return completedAny;
@@ -10178,7 +9941,7 @@
             }
 
             if (!entries || !entries.length) {
-                try { console.warn('[Cookie Age] Unable to activate first puzzle.'); } catch (_) {}
+                console.warn('[Cookie Age] Unable to activate first puzzle.');
                 return false;
             }
 
@@ -10187,7 +9950,7 @@
         checkCurrentPuzzle: function(trackType) {
             var entries = getActivePuzzleEntries(trackType);
             if (!entries.length) {
-                try { console.warn('[Cookie Age] No active puzzles to check.'); } catch (_) {}
+                console.warn('[Cookie Age] No active puzzles to check.');
                 return false;
             }
 
@@ -10201,7 +9964,7 @@
             }
 
             if (!checkedAny) {
-                try { console.warn('[Cookie Age] Active puzzle check did not return true.'); } catch (_) {}
+                console.warn('[Cookie Age] Active puzzle check did not return true.');
             }
 
             return checkedAny;
@@ -10270,13 +10033,32 @@
         },
         completePuzzle: function(puzzleId) {
             if (!debugMode) {
-                try { console.warn('[Cookie Age] Console command disabled unless debugMode is true.'); } catch (_) {}
+                console.warn('[Cookie Age] Console command disabled unless debugMode is true.');
                 return false;
             }
             return completePuzzle(puzzleId);
         },
         processConditionalText: function(text) {
             return processConditionalText(text);
+        },
+        isPuzzleAchievement: function(name) {
+            return mysteryAchievementNames.indexOf(name) !== -1;
+        },
+        resetData: function() {
+            if (cookieAgeData.puzzles) {
+                for (var id in cookieAgeData.puzzles.registry) {
+                    var p = cookieAgeData.puzzles.registry[id];
+                    if (p.instance && p.instance.removeHooks) try { p.instance.removeHooks(); } catch (e) {}
+                }
+                if (cookieAgeData.puzzles.hooks) {
+                    for (var k in cookieAgeData.puzzles.hooks) {
+                        if (cookieAgeData.puzzles.hooks[k] && Game.removeHook) {
+                            try { Game.removeHook('check', cookieAgeData.puzzles.hooks[k]); } catch (e) {}
+                        }
+                    }
+                }
+            }
+            cookieAgeData.puzzles = null;
         }
     };
     
@@ -10310,16 +10092,6 @@
         // Initialize immediately - base mod is guaranteed to be loaded
         conditionalInitialize();
     }
-    
-    // ===== CONSOLE COMPATIBILITY =====
-    // For console testing, we need to handle the case where this code is pasted directly
-    if (typeof window !== 'undefined' && window.Game) {
-        // Running in browser console
-        debugLog('Running in console mode');
-        main();
-    } else {
-        // Running as a mod file
-        debugLog('Running as mod file');
-        main();
-    }
+
+    main();
 })();

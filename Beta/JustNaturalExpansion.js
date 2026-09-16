@@ -264,6 +264,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!upgrade) {
             continue;
         }
+        // heavenly-managed upgrades (donuts, garden drops) are unlocked via Game.UnlockAt, not category toggles
+        if (upgrade._heavenlyUpgrade) continue;
         var shouldUnlock = enable;
         if (enable && typeof upgrade.unlockCondition === 'function') {
             try {
@@ -939,6 +941,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
 
     function queueAchievementAward(achievementName) {
+        if ((Game.JNE && Game.JNE.isLoadingFromSave) || Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)) return;
         if (!Game.Achievements || !Game.Achievements[achievementName]) {
             return;
         }
@@ -987,7 +990,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             modSettings.hasUsedModOutsideShadowMode = true;
             
             // Award the "Beyond the Leaderboard" achievement if it exists and hasn't been won
-            if (Game.Achievements['Beyond the Leaderboard'] && !Game.Achievements['Beyond the Leaderboard'].won) {
+            if (Game.ascensionMode != ACCOMPLISHMINT_ID && !(modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID) && Game.Achievements['Beyond the Leaderboard'] && !Game.Achievements['Beyond the Leaderboard'].won) {
                 Game.Win('Beyond the Leaderboard');
             }
         }
@@ -3462,6 +3465,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     
                     const injection = 
                         "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
+                        "if(Game.ascensionMode==104){m/=4;}\n" +
                         "if(Game.Has('Order of the Golden Crumb')){m*=0.95;}\n" +
                         "if(Game.Has('Order of the Impossible Batch')){m*=0.95;}\n" +
                         "if(Game.Has('Order of the Eternal Cookie')){m*=0.95;}\n" +
@@ -4353,6 +4357,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     function markAchievementWon(achievementName) {
+        if ((Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)) && accomplishmintSuppressed[achievementName]) return;
         if (Game.Achievements[achievementName] && !Game.Achievements[achievementName].won) {
             // Prevent overwriting achievements that were restored from save
             if (Game.Achievements[achievementName]._restoredFromSave) {
@@ -4395,6 +4400,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     function checkAndMarkBeyondTheLeaderboard() {
+        if (Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID) || (Game.JNE && Game.JNE.isLoadingFromSave)) return;
         // Mark "Beyond the Leaderboard" as won if any upgrade is enabled or shadow mode is disabled
         if (modSettings.enableCookieUpgrades || modSettings.enableBuildingUpgrades || modSettings.enableKittenUpgrades || modSettings.enableMinigames || modSettings.enableHeavenlyUpgrades || !shadowAchievementMode) {
             modSettings.hasUsedModOutsideShadowMode = true;
@@ -7324,11 +7330,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     restorePuzzleSnapshot(runSnap, true);
                     if (runSnap.counters) accompCounterIO(runSnap.counters, true);
                     initializeSessionBaselines();
+                    accompClearUntil = 0; // restored run state is authoritative, don't re-lock
                 }
                 // remark achievements won during the run so a reload can't reaward them 
                 accomplishmintWon = {};
                 (modSaveData.accomplishmintWon || []).forEach(function(n) { accomplishmintWon[n] = true; var a = Game.Achievements[n]; if (a) a.won = 1; });
                 recountOwned();
+                for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.kitten && !u.bought) u.unlocked = 0; }
+                checkUpgradeUnlockConditions.lastRun = 0;
+                checkUpgradeUnlockConditions();
+                Game.upgradesToRebuild = 1;
             }
         } catch (_) {}
 
@@ -7920,14 +7931,20 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Accomplishmint (104)
     var ACCOMPLISHMINT_ID = 104;
-    var accomplishmintActive = false, accomplishmintEnded = false, accomplishmintEndTime = 0, accomplishmintSnapshot = null, accomplishmintLastLumpT = 0, accomplishmintLastSweepT = 0, accomplishmintWon = {}, accomplishmintBest = 0;
+    var accomplishmintActive = false, accomplishmintEnded = false, accomplishmintEndTime = 0, accomplishmintSnapshot = null, accomplishmintLastLumpT = 0, accomplishmintLastSweepT = 0, accomplishmintWon = {}, accomplishmintBest = 0, accompClearUntil = 0, accomplishmintLoadedCleaned = false;
     // achievements suppressed during challenge 
-    var accomplishmintSuppressed = { 'Keeper of the conservatory': 1, 'The whole pantry': 1 };
+    var accomplishmintSuppressed = { 'Keeper of the conservatory': 1, 'The whole pantry': 1, 'Beyond the Leaderboard': 1, 'Third-party': 1 };
     var accomplishmintOrig = {}; 
     // upgrades un-earned for the challenge
     var accomplishmintDisabledUpgrades = ['Starter kit', 'Starter kitchen', 'Sugar predictor', 'Sugar insight', 'Positive feedback loop'];
     var accompDisabledSet = {};
     for (var i = 0; i < accomplishmintDisabledUpgrades.length; i++) accompDisabledSet[accomplishmintDisabledUpgrades[i]] = 1;
+    function vanillaKittenThreshold(u) {
+        if (!u || u.kitten !== 1 || typeof u.tier !== 'number') return -1;
+        // vanilla thresholds: tier1=0.5*25, tier2=1*25, tier3=2*25, ...
+        if (u.tier === 1) return 13;
+        return (u.tier - 1) * 25;
+    }
     // global stats zeroed for the challenge
     var accompZeroKeys = 'cookies cookiesEarned nextResearch researchT goldenClicks goldenClicksLocal missedGoldenClicks reindeerClicked wrinklersPopped resets pledges elderWrath cookieClicks handmadeCookies cookiesPsRawHighest cookiesSucked fortuneGC fortuneCPS santaLevel dragonLevel dragonAura dragonAura2 seasonT seasonUses prestige heavenlyChips heavenlyChipsSpent heavenlyCookies cookiesReset TickerClicks'.split(' ');
 
@@ -7939,7 +7956,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             [Game.Objects['Farm'] && Game.Objects['Farm'].minigame, 'farm', ['harvests', 'harvestsTotal']],
             [Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame, 'grim', ['spellsCast', 'spellsCastTotal']],
             [Game.Objects['Bank'] && Game.Objects['Bank'].minigame, 'bank', ['profit']],
-            [P, 'potions', ['potionsBrewed', 'totalPotionsBrewed']]
+            [P, 'potions', ['potionsBrewed', 'totalPotionsBrewed']],
+            [Game.JNE, 'jne', ['cookieFishCaught', 'bingoJackpotWins']]
         ];
         for (var t = 0; t < targets.length; t++) {
             var M = targets[t][0], key = targets[t][1], ks = targets[t][2];
@@ -7959,8 +7977,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     function setupAccomplishmint() {
         if (!accomplishmintActive) {
-            checkModAchievements();
             accomplishmintActive = true;
+            accomplishmintLoadedCleaned = false;
             accomplishmintSnapshot = takePuzzleSnapshot();
             accomplishmintSnapshot.lifetime = JSON.parse(JSON.stringify(lifetimeData));
             accomplishmintSnapshot.modTracking = JSON.parse(JSON.stringify(modTracking));
@@ -7984,13 +8002,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
          for (var name in Game.Objects) { var b = Game.Objects[name]; b.amount = 0; b.bought = 0; b.free = 0; b.highest = 0; b.totalCookies = 0; b.level = 0; b.refresh(); }
         Game.BuildingsOwned = 0;
         for (var i = 0; i < accompZeroKeys.length; i++) Game[accompZeroKeys[i]] = 0;
+        trackedWrinklersPopped = 0;
+        trackedStockMarketAssets = 0;
+        lastAscensionCount = Game.resets;
+        hasCapturedThisAscension = false;
         Game.season = Game.baseSeason;
         accompZeroObj(lifetimeData); accompZeroObj(modTracking); accompZeroObj(sessionBaselines); accompZeroObj(sessionDeltas);
         // disable Cookie Age for this run
         if (modSettings.enableCookieAge && typeof window.applyCookieAgeChange === 'function') window.applyCookieAgeChange(false, false);
-        // lock all seasonal drops so Keepsakes doesn't carry them over
-        if (Game.seasonDrops) for (var i = 0; i < Game.seasonDrops.length; i++) { var du = Game.Upgrades[Game.seasonDrops[i]]; if (du) { du.unlocked = 0; du.bought = 0; } }
-         for (var i in Game.Upgrades) { var lu = Game.Upgrades[i]; if (lu.lasting || (lu._heavenlyUpgrade && lu.pool !== 'prestige')) { lu.unlocked = 0; lu.bought = 0; } }
+        for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.pool !== 'prestige' && u.pool !== 'toggle') { u.unlocked = 0; u.bought = 0; } }
+        accompClearUntil = Date.now() + 1000;
         Game.lumps = 3; Game.lumpT = Date.now(); Game.lumpCurrentType = 0; Game.lumpsTotal = 0;
         Game.computeLumpTimes();
         Game.addClass('lumpsOn'); 
@@ -8019,13 +8040,35 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (!accomplishmintEnded && typeof what === 'string' && Game.Achievements[what] && !Game.Achievements[what].won) accomplishmintWon[what] = true;
             return o.apply(this, arguments);
         }; });
+        wrapInto(accomplishmintOrig, Game, 'Unlock', function(o) { return function(what) {
+            if (accomplishmintActive) {
+                var u = Game.Upgrades[what];
+                if (u && u.kitten && !u.bought) {
+                    var req = vanillaKittenThreshold(u);
+                    if (req > 0 && Game.AchievementsOwned < req) return;
+                }
+            }
+            return o.apply(this, arguments);
+        }; });
         wrapInto(accomplishmintOrig, Game, 'EarnHeavenlyChips', function(o) { return function() { return o.call(this, 0); }; });
         wrapInto(accomplishmintOrig, Game, 'dropRateMult', function(o) { return function() { return o() * 3; }; });
-        wrapInto(accomplishmintOrig, Game.shimmerTypes.golden, 'getTimeMod', function(o) { return function(me, m) { return o.call(this, me, m / 4); }; });
         wrapInto(accomplishmintOrig, Game, 'computeLumpType', function(o) { return function() { o(); Game.lumpCurrentType = 0; }; });
         wrapInto(accomplishmintOrig, Game, 'computeLumpTimes', function(o) { return function() { o(); Game.lumpMatureAge = 300000; Game.lumpRipeAge = 305000; Game.lumpOverripeAge = 310000; }; });
         wrapInto(accomplishmintOrig, Game, 'SetResearch', function(o) { return function(what, time) { o(what, time); Game.researchT = Game.fps * 60; }; });
-        wrapInto(accomplishmintOrig, Game, 'Logic', function(o) { return function() { if (accomplishmintEnded && !Game.OnAscend && !Game.AscendTimer) return; return o.apply(this, arguments); }; });
+        wrapInto(accomplishmintOrig, Game, 'Logic', function(o) { return function() {
+            if (accomplishmintEnded && !Game.OnAscend && !Game.AscendTimer) return;
+            if (accomplishmintActive && !accomplishmintLoadedCleaned) {
+                // one-time post-load cleanup: anything that leaked in after setupAccomplishmint() cleared state must be stripped before vanilla Logic uses it
+                accomplishmintLoadedCleaned = true;
+                var leaked = 0;
+                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; leaked++; } }
+                if (leaked > 0) {
+                    recountOwned();
+                    for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.kitten && !u.bought) u.unlocked = 0; }
+                }
+            }
+            return o.apply(this, arguments);
+        }; });
     }
 
     function removeAccomplishmintWrappers() { unwrapAll(accomplishmintOrig); }
@@ -8058,6 +8101,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         accomplishmintActive = accomplishmintEnded = false;
         accomplishmintWon = {};
         accomplishmintSnapshot = null;
+        accompClearUntil = 0;
+        accomplishmintLoadedCleaned = false;
         var el = l('accompTimer');
         if (el) el.remove();
     }
@@ -8069,6 +8114,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             // restore state when the mode ends 
             if (accomplishmintActive && Game.ascensionMode !== ACCOMPLISHMINT_ID) { teardownAccomplishmint(!Game.OnAscend); return; }
             if (!accomplishmintActive) return;
+            // post-ascend hooks may re-unlock carried-over upgrades right after setup; hold the lock for the first second, then natural unlock conditions take over
+            if (Date.now() < accompClearUntil) {
+                for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.pool !== 'prestige' && u.pool !== 'toggle') { u.unlocked = 0; u.bought = 0; } }
+            }
             // sugar lumps are always normal 
             if (Game.lumpCurrentType !== 0) Game.lumpCurrentType = 0;
             accompCounterIO(accomplishmintSnapshot.counters, false);
@@ -8081,6 +8130,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; swept = true; } }
                 if (swept) recountOwned();
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.tier !== 'fortune' && accompDisabledSet[u.name] && (u.bought || u.unlocked)) { u.bought = 0; u.unlocked = 0; } }
+                // safety net: vanilla logic may re-unlock kittens based on stale/old achievement counts
+                for (var i in Game.Upgrades) { var u = Game.Upgrades[i], req = vanillaKittenThreshold(u); if (req > 0 && !u.bought && u.unlocked && Game.AchievementsOwned < req) u.unlocked = 0; }
             }
             if (!accomplishmintEnded && Date.now() - accomplishmintLastLumpT >= 300000) { Game.lumps++; accomplishmintLastLumpT = Date.now(); }
             var remaining = Math.max(0, accomplishmintEndTime - Date.now());
@@ -9015,7 +9066,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     function checkModAchievements() {
-        if (!Game || !Game.Achievements) return;
+        if (!Game || !Game.Achievements || Game.OnAscend || (Game.JNE && Game.JNE.isLoadingFromSave)) return;
 
         // Check all mod achievements using authoritative list
         if (modAchievementNames.length) {

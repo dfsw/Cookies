@@ -1342,8 +1342,8 @@
             if (!Game.registerHook || Game._regiftingHooked) return;
             Game._regiftingHooked = true;
             Game.registerHook('reset', function(hard) {
-                // Skip effect in Born Again mode
-                if (Game.ascensionMode == 1) return;
+                // season drops only carry over on normal ascensions
+                if (Game.ascensionMode != 0) return;
                 if (hard) return;
 
                 if (!Game.seasonDrops || !Array.isArray(Game.seasonDrops)) return;
