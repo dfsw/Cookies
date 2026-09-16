@@ -264,7 +264,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!upgrade) {
             continue;
         }
-        // heavenly-managed upgrades (donuts, garden drops) are unlocked via Game.UnlockAt, not category toggles
         if (upgrade._heavenlyUpgrade) continue;
         var shouldUnlock = enable;
         if (enable && typeof upgrade.unlockCondition === 'function') {
@@ -989,7 +988,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!enabled) {
             modSettings.hasUsedModOutsideShadowMode = true;
             
-            // Award the "Beyond the Leaderboard" achievement if it exists and hasn't been won
             if (Game.ascensionMode != ACCOMPLISHMINT_ID && !(modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID) && Game.Achievements['Beyond the Leaderboard'] && !Game.Achievements['Beyond the Leaderboard'].won) {
                 Game.Win('Beyond the Leaderboard');
             }
@@ -7330,7 +7328,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     restorePuzzleSnapshot(runSnap, true);
                     if (runSnap.counters) accompCounterIO(runSnap.counters, true);
                     initializeSessionBaselines();
-                    accompClearUntil = 0; // restored run state is authoritative, don't re-lock
+                    accompClearUntil = 0; // restored run state is truth
                 }
                 // remark achievements won during the run so a reload can't reaward them 
                 accomplishmintWon = {};
@@ -7970,7 +7968,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     function registerAccomplishmintMode() {
         if (!Game.ascensionModes || Game.ascensionModes[ACCOMPLISHMINT_ID]) return;
-        var baseDesc = 'All achievements are temporarily set to unwon. Within a 60 minute game window see how many you can win.<br><br>We have sped up various aspects of the game to make it a bit more exciting, increased CpS, sugar growth times, mana regeneration, garden ticks, golden cookie spawn times, random drop chance, and more!<div class="line"></div><b>No prestige, sugar, or achievement progress</b> is retained from this ascension.';
+        var baseDesc = 'All achievements are <b>temporarily</b> set to unwon. Within a <b>60 minute</b> game window see how many you can win.<br><br>We have <b>sped up</b> various aspects of the game to make it a bit more exciting, increased CpS, sugar growth times, mana regeneration, garden ticks, golden cookie spawn times, random drop chance, and more!<div class="line"></div><b>No prestige, sugar, or achievement progress</b> is retained from this ascension.';
         Game.ascensionModes[ACCOMPLISHMINT_ID] = { name: 'Accomplishmint', dname: 'Accomplishmint', icon: [9, 17, getSpriteSheet('custom')] };
         Object.defineProperty(Game.ascensionModes[ACCOMPLISHMINT_ID], 'desc', { get: function() { return baseDesc + (accomplishmintBest > 0 ? '<div class="line"></div>Highest score: <b>' + accomplishmintBest + ' achievement' + (accomplishmintBest !== 1 ? 's' : '') + '</b>' : ''); } });
     }
@@ -8058,7 +8056,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         wrapInto(accomplishmintOrig, Game, 'Logic', function(o) { return function() {
             if (accomplishmintEnded && !Game.OnAscend && !Game.AscendTimer) return;
             if (accomplishmintActive && !accomplishmintLoadedCleaned) {
-                // one-time post-load cleanup: anything that leaked in after setupAccomplishmint() cleared state must be stripped before vanilla Logic uses it
+                // post load cleanup
                 accomplishmintLoadedCleaned = true;
                 var leaked = 0;
                 for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; leaked++; } }
@@ -8114,7 +8112,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             // restore state when the mode ends 
             if (accomplishmintActive && Game.ascensionMode !== ACCOMPLISHMINT_ID) { teardownAccomplishmint(!Game.OnAscend); return; }
             if (!accomplishmintActive) return;
-            // post-ascend hooks may re-unlock carried-over upgrades right after setup; hold the lock for the first second, then natural unlock conditions take over
+            // hold the lock for 1 second then natural unlock conditions take over
             if (Date.now() < accompClearUntil) {
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.pool !== 'prestige' && u.pool !== 'toggle') { u.unlocked = 0; u.bought = 0; } }
             }
@@ -8130,7 +8128,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; swept = true; } }
                 if (swept) recountOwned();
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.tier !== 'fortune' && accompDisabledSet[u.name] && (u.bought || u.unlocked)) { u.bought = 0; u.unlocked = 0; } }
-                // safety net: vanilla logic may re-unlock kittens based on stale/old achievement counts
+                //stupid kitten BS
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i], req = vanillaKittenThreshold(u); if (req > 0 && !u.bought && u.unlocked && Game.AchievementsOwned < req) u.unlocked = 0; }
             }
             if (!accomplishmintEnded && Date.now() - accomplishmintLastLumpT >= 300000) { Game.lumps++; accomplishmintLastLumpT = Date.now(); }
