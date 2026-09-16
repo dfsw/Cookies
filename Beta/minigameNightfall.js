@@ -1385,10 +1385,9 @@ function processOffensiveFire(dt) {
             G.projectileFx.push({ x: c2.leftX, y: c2.y, startX: c2.leftX, endX: projEndX, iconUrl: projIcon.url, iconX: projIcon.x, iconY: projIcon.y, life: 0.4, maxLife: 0.4, pendingDamage: damage, pendingTargets: enemiesInZone, pendingPierces: pierces });
             continue;
         }
-        var hitAny = false;
         if (pierces) {
             enemiesInZone.sort(function(a, b) { return b.x - a.x; });
-            for (var ei = 0; ei < enemiesInZone.length; ei++) { hitAny = true; applyDamageToEnemy(enemiesInZone[ei], damage); if (enemiesInZone[ei].type.name === 'Clone Grandma') break; }
+            for (var ei = 0; ei < enemiesInZone.length; ei++) { applyDamageToEnemy(enemiesInZone[ei], damage); if (enemiesInZone[ei].type.name === 'Clone Grandma') break; }
         } else {
             enemiesInZone.sort(function(a, b) { return b.x - a.x; });
             var blockedRows = {};
@@ -1397,7 +1396,7 @@ function processOffensiveFire(dt) {
                 for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) { if (blockedRows[row]) { alreadyBlocked = true; break; } }
                 if (alreadyBlocked) continue;
                 for (var row = enemy.lane - 1; row <= enemy.lane + 1; row++) blockedRows[row] = true;
-                hitAny = true; applyDamageToEnemy(enemy, damage);
+                applyDamageToEnemy(enemy, damage);
             }
         }
     }

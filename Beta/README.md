@@ -55,13 +55,33 @@ The mobile version of Cookie Clicker does not support mods at this time.
 - **Heavenly Upgrade Expansions**: There are several mods that add additional heavenly upgrades, while JNE strives to be a good neighbor in this ecosystem you may experience unexpected behavior or functionality running several of these at once. 
 
 
-## Changelog    
+## Changelog  
+
+### Version 0.7.0 - Major Version - A New Challenge
+* New challenge mode, Puzzle Mode. Allows you to play without earning prestige but with everything unlocked to complete the puzzle pack. Puzzles are no longer restricted to end game players, anyone who can ascend can complete them now. 
+* New challenge mode, Accomplishmint. Temporarily reset all your achievements and play against a sped up version of Cookie Clicker to see how many achievements you can earn in 60 minute limited version of Cookie Clicker. 
+* Two new kittens have found their way into the mix for those who are really pushing those achievement counts up. 
+* New fish icons and achievements.  
+* General art updates.
+* Puzzles that require seasonal orders are now more accepting of the order that April Fools day and Easter may appear in certain calendar years.
+* Fixed a couple of end-level puzzles with various issues, thanks Leah! 
+* Minor bug fixes, improvements, and continued code cleanup. 
+
+### Version 0.6.8
+* Fixed a bug that could prevent some achievements from showing when running the game in non-English. 
+* When adding reagents to the potions brew queue if the reagents will brew an already known potion the text of the button will now be updated to green. 
+* Fixed a bug that would not let you buy some upgrades even if you had enough for them (buy price was calculated before discounts).
+* Fixed a bug that could reaward terminal minigame achievements. 
+* Golden stopwatch time remaining countdown has smarter formatting. 
+* Version number is now less punny however the next version number becomes risky. 
+* Minor bug fixes, improvements, and continued code cleanup. 
 
 ### Version 0.6.7
 * Fixed a handful of puzzles that would not detect a proper solve after save scumming. 
 * Added a toggle button in options to turn on extra stats for those who missed that data after the last patch. These are mostly tracking for progress on items for expansion achievements when those achievements have been won already. This setting is off by default. 
 * Fixed a bug that would prevent reindeer from spawning if the user ascended while Decoction of Winter misbrew effect was active. Also tweaked a handful of other edge case issues with this potion. 
 * After an ascension donut upgrades were not made available until a refresh or save load, this has been fixed. 
+* Fixed a mod conflict that could result in dragon aura swaps in Terminal from causing the dragon aura window to misrender. 
 * Minor bug fixes, improvements, and continued code cleanup. 
 
 ### Version 0.6.6

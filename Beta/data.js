@@ -277,6 +277,30 @@ window.JNEData = {
                 unlockCondition: function() {
                     return Game.AchievementsOwned >= 1000;
                 }
+            },
+            {
+                name: 'Kitten Equity Partners',
+                desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
+                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Buying up purrsuits left and right, boss.</q>',
+                price: 9e86, // 900 septenvigintillion
+                icon: [18, 13, 'custom'],
+                pool: 'kitten',
+                kitten: 111,
+                unlockCondition: function() {
+                    return Game.AchievementsOwned >= 1050;
+                }
+            },
+            {
+                name: 'Kitten Senators',
+                desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
+                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Representing the interests of all feline constituents.</q>',
+                price: 9e89, // 900 octovigintillion
+                icon: [18, 14, 'custom'],
+                pool: 'kitten',
+                kitten: 112,
+                unlockCondition: function() {
+                    return Game.AchievementsOwned >= 1100;
+                }
             }
         ],
         building: [
@@ -3577,6 +3601,13 @@ window.JNEData = {
                 descs: ["Burst <b>2 shiny wrinklers</b> across all ascensions.<q>You're a monster, do you know that?</q>", "Burst <b>5 shiny wrinklers</b> across all ascensions.<q>You really have to stop here, there aren\'t many of these left in the world.</q>", "Burst <b>10 shiny wrinklers</b> across all ascensions.<q>People like you are evil, no one will ever see another one of these, you ruined it for everyone.</q>"],
                 customIcons: [[21, 13, 'custom'], [21, 14, 'custom'], [21, 15, 'custom']],
                 orders: [35000.272, 35000.282, 35000.292]
+            },
+            cookieFish: {
+                names: ["Reel fortunate", "Fast and the flounderous"],
+                thresholds: [777, "fastFish"],
+                descs: ["Catch <b>777</b> fish.<q>There are plenty of fish in the sea. Well, fewer now.</q>", "Catch <b>3</b> fish within <b>3 seconds</b>.<q>I live my life one Filet-O-Fish at a time. For those three seconds or less, I'm free.</q>"],
+                customIcons: [[0, 25, 'custom'], [1, 25, 'custom']],
+                orders: [35000.293, 35000.294]
             },
             reindeer: {
                 names: ["Reindeer destroyer", "Reindeer obliterator", "Reindeer extinction event", "Reindeer apocalypse"],
