@@ -5595,7 +5595,7 @@
                 desc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.',
                 ddesc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
                 price: 800000e17,
-                icon: JNE.icon(13, 13, 'custom'),
+                icon: JNE.icon(14, 13, 'custom'),
                 posX: -3166,
                 posY: -763,
                 require: ['Improved golden cookie predictor']
