@@ -3960,9 +3960,9 @@ window.JNEData = {
         accomplishmint: {
             names: ["Ready set go"],
             thresholds: [321],
-            descs: ["Earn <b>321 achievements</b> in the Accomplishmint challenge mode.<q>On your marks, get ready, click click click!</q>"],
+            descs: ["Earn <b>321 achievements</b> in the <b>Accomplishmint challenge</b> mode.<q>On your marks, get ready, click click click!</q>"],
             customIcons: [[9, 17, 'custom']],
-            orders: [40000.144]
+            orders: [400000.144]
         }
         }
     },
