@@ -626,6 +626,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             modAchievementNames.forEach(name => {
                 if (Game.Achievements[name]) {
                     Game.Achievements[name].won = 0;
+                    Game.Achievements[name]._restoredFromSave = false;
                 }
             });
             
@@ -4278,8 +4279,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         ach.baseDesc = finalDesc;
         ach.ddesc = finalDesc;
       
-        // achievement pool depends on shadow mode
-        if (shadowAchievementMode) {
+        if (name === 'Beyond the Leaderboard') {
+            ach.pool = 'shadow';
+            ach.order = order;
+        } else if (shadowAchievementMode) {
             ach.pool = 'shadow';
             ach.order = order + 50000; // Add 50,000 to preserve relative ordering
         } else {
@@ -4367,7 +4370,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if ((Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)) && accomplishmintSuppressed[achievementName]) return;
         if (Game.Achievements[achievementName] && !Game.Achievements[achievementName].won) {
             // Prevent overwriting achievements that were restored from save
-            if (Game.Achievements[achievementName]._restoredFromSave) {
+            if (Game.Achievements[achievementName]._restoredFromSave && Game.Achievements[achievementName].won) {
                 return;
             }
             // Only trigger notification if mod has initialized
@@ -8065,7 +8068,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 // post load cleanup
                 accomplishmintLoadedCleaned = true;
                 var leaked = 0;
-                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; leaked++; } }
+                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; ra._restoredFromSave = false; leaked++; } }
                 if (leaked > 0) {
                     recountOwned();
                     for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.kitten && !u.bought) u.unlocked = 0; }
@@ -8132,7 +8135,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (Date.now() - accomplishmintLastSweepT >= 1000) {
                 accomplishmintLastSweepT = Date.now();
                  var swept = false;
-                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; swept = true; } }
+                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; ra._restoredFromSave = false; swept = true; } }
                 if (swept) recountOwned();
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.tier !== 'fortune' && accompDisabledSet[u.name] && (u.bought || u.unlocked)) { u.bought = 0; u.unlocked = 0; } }
                 //stupid kitten BS
