@@ -473,7 +473,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var hasCapturedThisAscension = false;
     var lastAscensionCount = 0;
     var trackedWrinklersPopped = 0;
-    var trackedStockMarketAssets = 0;
+    var lastStockMarketProfit = 0;
+    var lastAscensionMode = 0;
     var isReincarnating = false;
     
     function initializeSessionBaselines() {
@@ -486,7 +487,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         sessionBaselines.pledges = Game.pledges || 0;
         sessionBaselines.stockMarketAssets = (Game.Objects['Bank'] && Game.Objects['Bank'].minigame ? Game.Objects['Bank'].minigame.profit || 0 : 0);
         trackedWrinklersPopped = Game.wrinklersPopped || 0;
-        trackedStockMarketAssets = (Game.Objects['Bank'] && Game.Objects['Bank'].minigame ? Game.Objects['Bank'].minigame.profit || 0 : 0);
         Object.keys(sessionDeltas).forEach(key => sessionDeltas[key] = 0);
     }
     
@@ -513,16 +513,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Game.JNE && Game.JNE.isLoadingFromSave) return;
         if (Game.OnAscend === 0 && !isReincarnating) {
             trackedWrinklersPopped = Game.wrinklersPopped || 0;
-            trackedStockMarketAssets = (Game.Objects['Bank'] && Game.Objects['Bank'].minigame ? Game.Objects['Bank'].minigame.profit || 0 : 0);
         }
         
         if (Game.resets !== lastAscensionCount) {
             hasCapturedThisAscension = false;
             lastAscensionCount = Game.resets || 0;
             lifetimeData.wrinklersPopped = trackedWrinklersPopped + (lifetimeData.wrinklersPopped || 0);
-            lifetimeData.stockMarketAssets = trackedStockMarketAssets + (lifetimeData.stockMarketAssets || 0);
             trackedWrinklersPopped = 0;
-            trackedStockMarketAssets = 0;
             isReincarnating = false;
             captureLifetimeData();
         }
@@ -530,6 +527,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     
     function handleReincarnate() {
         isReincarnating = true;
+        if (Game.ascensionMode !== PUZZLE_MODE_ID && Game.ascensionMode !== ACCOMPLISHMINT_ID && lastAscensionMode !== PUZZLE_MODE_ID && lastAscensionMode !== ACCOMPLISHMINT_ID) {
+            lifetimeData.stockMarketAssets = (lifetimeData.stockMarketAssets || 0) + (lastStockMarketProfit || 0);
+            if (Game.toSave !== undefined) Game.toSave = 1;
+        }
+        lastStockMarketProfit = 0;
         lifetimeData.lastGardenSacrificeTime = 0;
         currentRunData.maxCombinedTotal = 0;
         modTracking.templeSwapsTotal = 0;
@@ -1808,12 +1810,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function injectMenus() {
         if (!Game._jneOriginalUpdateMenuJNE) Game._jneOriginalUpdateMenuJNE = Game.UpdateMenu;
 
-        // patch vanilla writeIcon for null icons
+        // patch vanilla writeIcon for null icons 
         if (!Game._jneOriginalWriteIcon) {
             Game._jneOriginalWriteIcon = Game.writeIcon;
             Game.writeIcon = function(icon) {
                 if (!icon || !Array.isArray(icon) || icon.length < 2) {
-                    console.warn('writeIcon called with invalid icon:', icon);
                     icon = [0, 0, 'https://orteil.dashnet.org/cookieclicker/img/icons.png'];
                 }
                 return Game._jneOriginalWriteIcon(icon);
@@ -1821,22 +1822,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
 
         Game.UpdateMenu = function() {
-            // Fix null icons on achievements and upgrades before rendering
-            if (Game.Achievements) {
-                for (var name in Game.Achievements) {
-                    if (Game.Achievements[name] && !Game.Achievements[name].icon) {
-                        Game.Achievements[name].icon = [0, 0, getSpriteSheet('main')];
-                    }
-                }
-            }
-            if (Game.Upgrades) {
-                for (var name in Game.Upgrades) {
-                    if (Game.Upgrades[name] && !Game.Upgrades[name].icon) {
-                        Game.Upgrades[name].icon = [0, 0, getSpriteSheet('main')];
-                    }
-                }
-            }
-
             const result = Game._jneOriginalUpdateMenuJNE.call(this);
 
             // registered menu hooks from other modules
@@ -2377,7 +2362,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     if (modAchievementNames) {
                         modAchievementNames.forEach(name => {
                             if (Game.Achievements[name]) {
-                                if (Game.Achievements[name].pool !== 'shadow') {
+                                // "Beyond the Leaderboard" is always a shadow achievement, even outside shadow mode
+                                if (name !== 'Beyond the Leaderboard') {
                                     totalModAchievements++;
                                     if (Game.Achievements[name].won) {
                                         modAchievementsUnlocked++;
@@ -3894,6 +3880,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         registerHook('check', checkModAchievements, 'Check mod achievement conditions');
         
         // Lifetime tracking hooks
+        wrapInto(reincarnateOrig, Game, 'Reincarnate', function(orig) {
+            return function(bypass) {
+                var bank = Game.Objects['Bank'] && Game.Objects['Bank'].minigame;
+                lastStockMarketProfit = bank ? bank.profit || 0 : 0;
+                lastAscensionMode = Game.ascensionMode;
+                return orig.apply(this, arguments);
+            };
+        });
         registerHook('check', handleCheck, 'Monitor for ascension and capture values');
         registerHook('reincarnate', handleReincarnate, 'Log reincarnate event');
         registerHook('reset', handleReset, 'Clear data on full reset');
@@ -7396,6 +7390,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     }
                     debugLog('continueModInitialization: restored lifetime data from save data');
                 }
+
             } catch (error) {
                 console.warn('Error restoring save data, falling back to defaults:', error);
                 debugLog('continueModInitialization: error restoring save data, using defaults');
@@ -7781,6 +7776,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var puzzleModeActive = false;
     var puzzleSnapshot = null;
     var puzzleOrig = {};
+    var reincarnateOrig = {};
 
     // challenge-mode helpers
     function wrapInto(store, obj, key, make) { if (!(key in store)) store[key] = [obj, obj[key]]; obj[key] = make(store[key][1]); }
@@ -7921,7 +7917,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function teardownPuzzleMode(skipRestore) {
         if (!puzzleModeActive) return;
         removePuzzleWrappers();
-        if (!skipRestore) restorePuzzleSnapshot(puzzleSnapshot, false);
+        if (!skipRestore) {
+            restorePuzzleSnapshot(puzzleSnapshot, false);
+        }
         puzzleModeActive = false;
         puzzleSnapshot = null;
     }
@@ -7992,7 +7990,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             accomplishmintSnapshot.cookieAgeEnabled = !!modSettings.enableCookieAge;
             accomplishmintSnapshot.counters = {};
             accomplishmintSnapshot.fullDate = Game.fullDate;
-            accomplishmintSnapshot.ascendTracking = [lastAscensionCount, hasCapturedThisAscension, trackedWrinklersPopped, trackedStockMarketAssets];
+            accomplishmintSnapshot.ascendTracking = [lastAscensionCount, hasCapturedThisAscension, trackedWrinklersPopped];
             installAccomplishmintWrappers();
         }
         accomplishmintEnded = false;
@@ -8010,7 +8008,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.BuildingsOwned = 0;
         for (var i = 0; i < accompZeroKeys.length; i++) Game[accompZeroKeys[i]] = 0;
         trackedWrinklersPopped = 0;
-        trackedStockMarketAssets = 0;
         lastAscensionCount = Game.resets;
         hasCapturedThisAscension = false;
         Game.season = Game.baseSeason;
@@ -8099,7 +8096,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             accompCounterIO(accomplishmintSnapshot.counters, true);
             Game.fullDate = accomplishmintSnapshot.fullDate;
             if (accomplishmintSnapshot.cookieAgeEnabled && !modSettings.enableCookieAge && typeof window.applyCookieAgeChange === 'function') window.applyCookieAgeChange(true, false);
-            if (accomplishmintSnapshot.ascendTracking) { lastAscensionCount = accomplishmintSnapshot.ascendTracking[0]; hasCapturedThisAscension = accomplishmintSnapshot.ascendTracking[1]; trackedWrinklersPopped = accomplishmintSnapshot.ascendTracking[2]; trackedStockMarketAssets = accomplishmintSnapshot.ascendTracking[3]; }
+            if (accomplishmintSnapshot.ascendTracking) { lastAscensionCount = accomplishmintSnapshot.ascendTracking[0]; hasCapturedThisAscension = accomplishmintSnapshot.ascendTracking[1]; trackedWrinklersPopped = accomplishmintSnapshot.ascendTracking[2]; }
             if (Game.shimmerTypes && Game.shimmerTypes['golden']) { var _g = Game.shimmerTypes['golden']; _g.minTime = _g.getMinTime(_g); _g.maxTime = _g.getMaxTime(_g); }
             initializeSessionBaselines();
         }
