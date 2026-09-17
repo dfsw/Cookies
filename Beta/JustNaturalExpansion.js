@@ -135,7 +135,6 @@
         reindeerClicked: 0,
         wrinklersPopped: 0,
         pledges: 0,
-        stockMarketAssets: 0,
         lanternsClicked: 0
     };
     
@@ -144,7 +143,6 @@
         reindeerClicked: 0,
         wrinklersPopped: 0,
         pledges: 0,
-        stockMarketAssets: 0,
         lanternsClicked: 0
     };
     
@@ -473,8 +471,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var hasCapturedThisAscension = false;
     var lastAscensionCount = 0;
     var trackedWrinklersPopped = 0;
-    var lastStockMarketProfit = 0;
-    var lastAscensionMode = 0;
     var isReincarnating = false;
     
     function initializeSessionBaselines() {
@@ -485,7 +481,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         sessionBaselines.reindeerClicked = Game.reindeerClicked || 0;
         sessionBaselines.wrinklersPopped = Game.wrinklersPopped || 0;
         sessionBaselines.pledges = Game.pledges || 0;
-        sessionBaselines.stockMarketAssets = (Game.Objects['Bank'] && Game.Objects['Bank'].minigame ? Game.Objects['Bank'].minigame.profit || 0 : 0);
         trackedWrinklersPopped = Game.wrinklersPopped || 0;
         Object.keys(sessionDeltas).forEach(key => sessionDeltas[key] = 0);
     }
@@ -527,11 +522,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     
     function handleReincarnate() {
         isReincarnating = true;
-        if (Game.ascensionMode !== PUZZLE_MODE_ID && Game.ascensionMode !== ACCOMPLISHMINT_ID && lastAscensionMode !== PUZZLE_MODE_ID && lastAscensionMode !== ACCOMPLISHMINT_ID) {
-            lifetimeData.stockMarketAssets = (lifetimeData.stockMarketAssets || 0) + (lastStockMarketProfit || 0);
-            if (Game.toSave !== undefined) Game.toSave = 1;
-        }
-        lastStockMarketProfit = 0;
         lifetimeData.lastGardenSacrificeTime = 0;
         currentRunData.maxCombinedTotal = 0;
         modTracking.templeSwapsTotal = 0;
@@ -3883,9 +3873,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // Lifetime tracking hooks
         wrapInto(reincarnateOrig, Game, 'Reincarnate', function(orig) {
             return function(bypass) {
-                var bank = Game.Objects['Bank'] && Game.Objects['Bank'].minigame;
-                lastStockMarketProfit = bank ? bank.profit || 0 : 0;
-                lastAscensionMode = Game.ascensionMode;
+                if (bypass && !puzzleModeActive && !accomplishmintActive) {
+                    var bank = Game.Objects['Bank'] && Game.Objects['Bank'].minigame;
+                    lifetimeData.stockMarketAssets = (lifetimeData.stockMarketAssets || 0) + (bank ? bank.profit || 0 : 0);
+                    if (Game.toSave !== undefined) Game.toSave = 1;
+                }
                 return orig.apply(this, arguments);
             };
         });
