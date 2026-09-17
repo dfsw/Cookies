@@ -1853,6 +1853,21 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             // Handle options menu injection
             if (Game.onMenu === 'prefs') {
                 let menuContainer = document.getElementById('menu');
+                // In Orteil wisdom gift buttons are hidden in every non normal gameplay mode so we shove this back in
+                if (menuContainer && Game.ascensionMode != 0 && Game.Has('Wrapping paper') && !document.getElementById('giftStuff')) {
+                    let title = menuContainer.querySelector('.title');
+                    if (title) {
+                        let can = Game.cookies >= 1000000000 && !Game.hasBuff('Gifted out');
+                        let gift = document.createElement('div');
+                        gift.id = 'giftStuff';
+                        gift.className = 'optionBox';
+                        gift.style.cssText = 'float:right;text-align:right;clear:both;overflow:hidden;margin-top:-32px;' + (can ? '' : 'opacity:0.5;');
+                        gift.innerHTML = '<div class="icon" style="display:inline-block;float:right;margin:-4px;width:48px;height:48px;position:relative;background-position:' + (-34 * 48) + 'px ' + (-6 * 48) + 'px;"></div><br>' +
+                            '<a class="option" ' + Game.clickStr + '="if (Game.cookies<1000000000 || Game.hasBuff(\'Gifted out\')){return false;}PlaySound(\'snd/tick.mp3\');Game.promptGiftSend();" style="position:relative;margin:0px;margin-bottom:2px;float:right;" ' + Game.getTooltip('<div style="min-width:200px;text-align:center;font-size:11px;" id="tooltipGiftRedeem"><b>' + loc("Send a gift") + '</b>' + (Game.hasBuff('Gifted out') ? '<br>' + loc("You've already sent or redeemed a gift recently.") : '') + (Game.cookies < 1000000000 ? '<br>' + loc("You need at least %1 cookies in bank to send and receive gifts.", loc("%1 cookie", LBeautify(1000000000))) : '') + '</div>', 'this') + '>' + loc("Send") + '</a><br>' +
+                            '<a class="option" ' + Game.clickStr + '="if (Game.cookies<1000000000 || Game.hasBuff(\'Gifted out\')){return false;}PlaySound(\'snd/tick.mp3\');Game.promptGiftRedeem();" style="position:relative;margin:0px;float:right;" ' + Game.getTooltip('<div style="min-width:200px;text-align:center;font-size:11px;" id="tooltipGiftRedeem"><b>' + loc("Redeem a gift") + '</b>' + (Game.hasBuff('Gifted out') ? '<br>' + loc("You've already sent or redeemed a gift recently.") : '') + (Game.cookies < 1000000000 ? '<br>' + loc("You need at least %1 cookies in bank to send and receive gifts.", loc("%1 cookie", LBeautify(1000000000))) : '') + '</div>', 'this') + '>' + loc("Redeem") + '</a>';
+                        title.appendChild(gift);
+                    }
+                }
                 if (menuContainer && !document.getElementById('just-natural-expansion-settings')) {
                     let settingsDiv = document.createElement('div');
                     settingsDiv.id = 'just-natural-expansion-settings';
