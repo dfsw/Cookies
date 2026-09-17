@@ -1521,6 +1521,11 @@
                             Game.JNE.fishCatchTimes.shift();
                         }
                         
+                        if (Game.JNE.markAchievementWon) {
+                            if (Game.JNE.getLifetimeCookieFish && Game.JNE.getLifetimeCookieFish() >= 777) Game.JNE.markAchievementWon('Reel fortunate');
+                            if (Game.JNE.fishCatchTimes.length >= 3) Game.JNE.markAchievementWon('Fast and the flounderous');
+                        }
+                        
                         var val = Game.cookiesPs * 60;
                         var moni = Math.max(25, val);
                         Game.Earn(moni);

@@ -5359,15 +5359,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         // Track shiny wrinklers popped (me.type==1)
                         return Game.JNE.getLifetimeShinyWrinklers() >= threshold;
                     case 'cookieFish':
-                        if (threshold === "fastFish") {
-                            var catches = Game.JNE.fishCatchTimes || [];
-                            var now = Date.now();
-                            while (catches.length > 0 && catches[0] < now - 3000) {
-                                catches.shift();
-                            }
-                            return catches.length >= 3;
-                        }
-                        return Game.JNE.getLifetimeCookieFish() >= threshold;
+                        return false; // Awarded directly on fish pop
                     case 'reindeer':
                         return Game.JNE.getLifetimeReindeer() >= threshold;
                     case 'lanternClicks':
