@@ -3945,7 +3945,7 @@ window.JNEData = {
         },
         prestigeUpgrades: {
             names: ["Beyond Prestige"],
-            thresholds: [129], // All 129 prestige upgrades
+            thresholds: [129],
             descs: ["Own all <b>129</b> original heavenly upgrades.<q>Prestige is just a stepping stone to whatever the hell this is.</q>"],
             customIcons: [[20, 7]],
             orders: [6001.598]
@@ -3956,6 +3956,13 @@ window.JNEData = {
             descs: ["Fully initiate into the Great Orders of the Cookie Age. Owning this achievement causes research to go <b>25%</b> faster, and random drops to appear <b>10%</b> more often.<q>A golden cookie sigil is forever affixed to your lapel, you refuse to elaborate further, if someone says the words strawberry milk and peanut butter cookies you immediately leave the room.</q>"],
             customIcons: [[19, 13, 'custom']],
             orders: [400000.3]
+        },
+        accomplishmint: {
+            names: ["Ready set go"],
+            thresholds: [321],
+            descs: ["Earn <b>321 achievements</b> in the Accomplishmint challenge mode.<q>On your marks, get ready, click click click!</q>"],
+            customIcons: [[9, 17, 'custom']],
+            orders: [40000.144]
         }
         }
     },

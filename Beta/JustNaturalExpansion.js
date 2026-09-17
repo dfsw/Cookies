@@ -5777,6 +5777,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     case 'vanillaAchievements':
                     case 'botanicalPerfection':
                         return false; // Handled by checkModAchievements()
+                    case 'accomplishmint':
+                        return false; // Awarded by teardownAccomplishmint()
 
                     default:
                         console.warn('Unknown achievement type:', type);
@@ -8111,6 +8113,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
         var score = Object.keys(accomplishmintWon).length;
         if (score > accomplishmintBest) accomplishmintBest = score;
+        if (score >= 321 && Game.Achievements['Ready set go'] && !Game.Achievements['Ready set go'].won) markAchievementWon('Ready set go');
         accomplishmintActive = accomplishmintEnded = false;
         accomplishmintWon = {};
         accomplishmintSnapshot = null;
