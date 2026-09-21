@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////
-// Mysteries of the Cookie Age                      //
+// Mysteries of the Cookie Age                                                      //
 //                                                                                  //
 // Look I cant stop you from digging into the source code but be aware              //
 // that the entire thing is full of spoilers there is no way to hide how puzzles    //
@@ -9,466 +9,196 @@
 
 (function() {
     'use strict';
-    
-    var expansionVersion = '1.0.12';
-    var debugMode = false; // Set to true for testing
-  
+
+    var expansionVersion = '1.0.13';
+    var debugMode = false;
+
     var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
 
-    var debugStartInvestigate = null; // Set to investigate puzzle ID, 'complete' to mark all as done, or null to start from beginning
-    var debugStartInfiltrate = null;  // Set to infiltrate puzzle ID, 'complete' to mark all as done, or null to start from beginning
-    var debugStartChoose = null;  // Set to choose puzzle ID, 'complete' to mark all as done, or null to start from beginning
-    var debugExposePathPicked = null;  // Set to true for "Expose the Order", false for "Stand with the Order", or null to not set
-   
-    // ===== DETERMINISTIC TRACK ORDER SYSTEM =====
-    // Define explicit puzzle order arrays to ensure consistent track ordering
-    // These arrays serve as both the source of truth for puzzle IDs and their order
-    var INVESTIGATE_PUZZLE_ORDER = [
-        'proving_patience',        // trackOrder: 0
-        'making_friendship',       // trackOrder: 1
-        'small_token',             // trackOrder: 2
-        'garden_sigil',            // trackOrder: 3
-        'blessing_creator',        // trackOrder: 4
-        'they_are_watching',       // trackOrder: 5
-        'brother_onto_you',        // trackOrder: 6
-        'send_word',               // trackOrder: 7
-        'spy_purge',               // trackOrder: 8
-        'close_call',              // trackOrder: 9
-        'false_beacons',           // trackOrder: 10
-        'infiltration_progress',   // trackOrder: 11
-        'built_trust',             // trackOrder: 12
-        'watch_keeper_rounds',     // trackOrder: 13
-        'rosetta_stone',           // trackOrder: 14
-        'mask_wears_thin',         // trackOrder: 15
-        'still_with_us'            // trackOrder: 16
-    ];
+    var PUZZLE_ORDER = {
+        investigate: [
+            'proving_patience',
+            'making_friendship',
+            'small_token',
+            'garden_sigil',
+            'blessing_creator',
+            'they_are_watching',
+            'brother_onto_you',
+            'send_word',
+            'spy_purge',
+            'close_call',
+            'false_beacons',
+            'infiltration_progress',
+            'built_trust',
+            'watch_keeper_rounds',
+            'rosetta_stone',
+            'mask_wears_thin',
+            'still_with_us'
+        ],
+        infiltrate: [
+            'silent_choir',
+            'spiral_seasons',
+            'rite_shifting_measures',
+            'initiation_riddle',
+            'spirits_thrones',
+            'brothers_masquerade',
+            'pattern_altars',
+            'litany_crumbs',
+            'spiral_fortune',
+            'wrinkler_clock',
+            'feast_four',
+            'trial_scales_patience',
+            'garden_hearts',
+            'veiled_ledger',
+            'ringing_halls',
+            'lawkeeper_walk',
+            'compass_sentinel',
+            'litany_broken_vows',
+            'rite_fivefold_casting',
+            'grandmatriarchs_flight',
+            'ledger_bonds',
+            'garden_pattern',
+            'storm_devotion',
+            'false_dawn',
+            'rite_nine_flames',
+            'six_jars_ledger',
+            'nurses_fields',
+            'rule_lights',
+            'vaulted_relics',
+            'sigils',
+            'garden_maze'
+        ],
+        choose: [
+            'schism_choice',
+            'embrace_path',
+            'loyalty_test',
+            'rise_up',
+            'defeat_evil'
+        ]
+    };
 
-    var INFILTRATE_PUZZLE_ORDER = [
-        'silent_choir',            // trackOrder: 0
-        'spiral_seasons',          // trackOrder: 1
-        'rite_shifting_measures',  // trackOrder: 2
-        'initiation_riddle',       // trackOrder: 3
-        'spirits_thrones',         // trackOrder: 4
-        'brothers_masquerade',     // trackOrder: 5
-        'pattern_altars',          // trackOrder: 6
-        'litany_crumbs',           // trackOrder: 7
-        'spiral_fortune',          // trackOrder: 8
-        'wrinkler_clock',          // trackOrder: 9
-        'feast_four',              // trackOrder: 10
-        'trial_scales_patience',   // trackOrder: 11
-        'garden_hearts',           // trackOrder: 12
-        'veiled_ledger',           // trackOrder: 13
-        'ringing_halls',           // trackOrder: 14
-        'lawkeeper_walk',          // trackOrder: 15
-        'compass_sentinel',        // trackOrder: 16
-        'litany_broken_vows',      // trackOrder: 17
-        'rite_fivefold_casting',   // trackOrder: 18
-        'grandmatriarchs_flight',  // trackOrder: 19
-        'ledger_bonds',            // trackOrder: 20
-        'garden_pattern',          // trackOrder: 21
-        'storm_devotion',          // trackOrder: 22
-        'false_dawn',              // trackOrder: 23
-        'rite_nine_flames',        // trackOrder: 24
-        'six_jars_ledger',         // trackOrder: 25
-        'nurses_fields',           // trackOrder: 26
-        'rule_lights',             // trackOrder: 27
-        'vaulted_relics',          // trackOrder: 28
-        'sigils',                  // trackOrder: 29
-        'garden_maze'              // trackOrder: 30
-    ];
-
-    var CHOOSE_PUZZLE_ORDER = [
-        'schism_choice',           // trackOrder: 0
-        'embrace_path',            // trackOrder: 1
-        'loyalty_test',            // trackOrder: 2
-        'rise_up',                 // trackOrder: 3
-        'defeat_evil'              // trackOrder: 4
-    ];
-
-    // ===== PUZZLE ORDER UTILITIES =====
     // index based on registry definition order
     function getPuzzleIndex(puzzleId) {
         var index = 0;
         for (var id in cookieAgeData.puzzles.registry) {
-            if (id === puzzleId) {
-                return index;
-            }
+            if (id === puzzleId) {return index;}
             index++;
         }
         return -1;
     }
-    
+
     function getPuzzleIdByIndex(index) {
         ensurePuzzleSystemInitialized();
-        if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.registry) {
-            return null;
-        }
+        if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.registry) {return null;}
 
         var count = 0;
         for (var id in cookieAgeData.puzzles.registry) {
-            if (count === index) {
-                return id;
-            }
+            if (count === index) {return id;}
             count++;
         }
 
         return null;
     }
-    
-    // ===== COMPATIBILITY CHECK =====
+
     function checkBaseModCompatibility() {
-        // Simple check: if Game.JNE exists, we know Game is loaded and base mod is loaded
         if (!Game.JNE) {
             console.error('[Cookie Age] Base Just Natural Expansion mod not found. Please load the base mod first.');
             return false;
         }
-        
+
         return true;
     }
-    
-    // ===== DEBUGGING UTILITIES =====
+
     function errorLog() {
         try {
             var msg = Array.from(arguments).join(' ');
             console.error('[Cookie Age Error]', msg);
         } catch (e) {}
     }
-    
-    // Apply debug start puzzles - sets each track independently
+
     function resetPuzzleDebugState(puzzleId) {
-        if (!puzzleId || !cookieAgeData || !cookieAgeData.puzzles) {
-            return;
-        }
+        if (!puzzleId || !cookieAgeData || !cookieAgeData.puzzles) {return;}
 
         if (cookieAgeData.puzzles.completed) {
             var completedIndex = cookieAgeData.puzzles.completed.indexOf(puzzleId);
-            if (completedIndex !== -1) {
-                cookieAgeData.puzzles.completed.splice(completedIndex, 1);
-            }
+            if (completedIndex !== -1) {cookieAgeData.puzzles.completed.splice(completedIndex, 1);}
         }
 
-        if (cookieAgeData.puzzles.completing && cookieAgeData.puzzles.completing[puzzleId]) {
-            delete cookieAgeData.puzzles.completing[puzzleId];
-        }
+        if (cookieAgeData.puzzles.completing && cookieAgeData.puzzles.completing[puzzleId]) {delete cookieAgeData.puzzles.completing[puzzleId];}
 
-        if (cookieAgeData.puzzles.notificationsShown && cookieAgeData.puzzles.notificationsShown[puzzleId]) {
-            delete cookieAgeData.puzzles.notificationsShown[puzzleId];
-        }
+        if (cookieAgeData.puzzles.notificationsShown && cookieAgeData.puzzles.notificationsShown[puzzleId]) {delete cookieAgeData.puzzles.notificationsShown[puzzleId];}
 
         var registryEntry = cookieAgeData.puzzles.registry[puzzleId];
         if (registryEntry && registryEntry.instance && registryEntry.instance.trackingKey) {
             var trackingKey = registryEntry.instance.trackingKey;
-            if (trackingKey && cookieAgeData.puzzles[trackingKey] !== undefined) {
-                delete cookieAgeData.puzzles[trackingKey];
-            }
-            // Reset setup complete flag so onSetup runs again
+            if (trackingKey && cookieAgeData.puzzles[trackingKey] !== undefined) {delete cookieAgeData.puzzles[trackingKey];}
             registryEntry.instance._setupComplete = false;
         }
     }
 
-    function applyDebugStartPuzzles() {
-        // Initialize completed array if needed
-        if (!cookieAgeData.puzzles.completed) {
-            cookieAgeData.puzzles.completed = [];
-        }
-        
-        if (!cookieAgeData.puzzles.tracks) {
-            cookieAgeData.puzzles.tracks = {
-                investigate: { active: null, progress: 0 },
-                infiltrate: { active: null, progress: 0 }
-            };
-        }
-        
-        // Handle investigate track
-        if (debugStartInvestigate !== null && debugStartInvestigate !== undefined) {
-            if (debugStartInvestigate === 'complete') {
-                for (var i = 0; i < INVESTIGATE_PUZZLE_ORDER.length; i++) {
-                    var puzzleId = INVESTIGATE_PUZZLE_ORDER[i];
-                    if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-                        cookieAgeData.puzzles.completed.push(puzzleId);
-                    }
-                }
-                cookieAgeData.puzzles.tracks.investigate.progress = INVESTIGATE_PUZZLE_ORDER.length;
-                cookieAgeData.puzzles.tracks.investigate.active = null;
-            } else {
-                var investigatePuzzle = cookieAgeData.puzzles.registry[debugStartInvestigate];
-                if (!investigatePuzzle) {
-                    errorLog('Debug start investigate puzzle not found:', debugStartInvestigate);
-                } else if (investigatePuzzle.type !== 'investigate') {
-                    errorLog('Puzzle', debugStartInvestigate, 'is not an investigate puzzle!');
-                } else {
-                    var investigateOrder = investigatePuzzle.trackOrder;
-                    resetPuzzleDebugState(debugStartInvestigate);
-                    
-                    // Mark all previous investigate puzzles as completed
-                    for (var i = 0; i < investigateOrder; i++) {
-                        var puzzleId = INVESTIGATE_PUZZLE_ORDER[i];
-                        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-                            cookieAgeData.puzzles.completed.push(puzzleId);
-                        }
-                    }
-                    
-                    cookieAgeData.puzzles.tracks.investigate.progress = investigateOrder;
-                    cookieAgeData.puzzles.tracks.investigate.active = debugStartInvestigate;
-                    
-                    // Mark puzzle as active
-                    var activePuzzle = cookieAgeData.puzzles.registry[debugStartInvestigate];
-                    if (activePuzzle) {
-                        activePuzzle.isActive = true;
-                    }
-                    
-                    // Setup the puzzle
-                    setupPuzzle(debugStartInvestigate);
-                }
-            }
-        }
-        
-        // Handle infiltrate track
-        if (debugStartInfiltrate !== null && debugStartInfiltrate !== undefined) {
-            if (debugStartInfiltrate === 'complete') {
-                for (var j = 0; j < INFILTRATE_PUZZLE_ORDER.length; j++) {
-                    var puzzleId2 = INFILTRATE_PUZZLE_ORDER[j];
-                    if (cookieAgeData.puzzles.completed.indexOf(puzzleId2) === -1) {
-                        cookieAgeData.puzzles.completed.push(puzzleId2);
-                    }
-                }
-                cookieAgeData.puzzles.tracks.infiltrate.progress = INFILTRATE_PUZZLE_ORDER.length;
-                cookieAgeData.puzzles.tracks.infiltrate.active = null;
-            } else {
-                var infiltratePuzzle = cookieAgeData.puzzles.registry[debugStartInfiltrate];
-                if (!infiltratePuzzle) {
-                    errorLog('Debug start infiltrate puzzle not found:', debugStartInfiltrate);
-                } else if (infiltratePuzzle.type !== 'infiltrate') {
-                    errorLog('Puzzle', debugStartInfiltrate, 'is not an infiltrate puzzle!');
-                } else {
-                    var infiltrateOrder = infiltratePuzzle.trackOrder;
-                    resetPuzzleDebugState(debugStartInfiltrate);
-                    
-                    // Mark all previous infiltrate puzzles as completed
-                    for (var j = 0; j < infiltrateOrder; j++) {
-                        var puzzleId2 = INFILTRATE_PUZZLE_ORDER[j];
-                        if (cookieAgeData.puzzles.completed.indexOf(puzzleId2) === -1) {
-                            cookieAgeData.puzzles.completed.push(puzzleId2);
-                        }
-                    }
-                    
-                    cookieAgeData.puzzles.tracks.infiltrate.progress = infiltrateOrder;
-                    cookieAgeData.puzzles.tracks.infiltrate.active = debugStartInfiltrate;
-                    
-                    // Mark puzzle as active
-                    var activePuzzle = cookieAgeData.puzzles.registry[debugStartInfiltrate];
-                    if (activePuzzle) {
-                        activePuzzle.isActive = true;
-                    }
-                    
-                    // Setup the puzzle
-                    setupPuzzle(debugStartInfiltrate);
-                }
-            }
-        }
-        
-        // Handle choose track
-        if (debugStartChoose !== null && debugStartChoose !== undefined) {
-            if (debugStartChoose === 'complete') {
-                for (var k = 0; k < CHOOSE_PUZZLE_ORDER.length; k++) {
-                    var puzzleId3 = CHOOSE_PUZZLE_ORDER[k];
-                    if (cookieAgeData.puzzles.completed.indexOf(puzzleId3) === -1) {
-                        cookieAgeData.puzzles.completed.push(puzzleId3);
-                    }
-                }
-                cookieAgeData.puzzles.tracks.choose.progress = CHOOSE_PUZZLE_ORDER.length;
-                cookieAgeData.puzzles.tracks.choose.active = null;
-            } else {
-                var choosePuzzle = cookieAgeData.puzzles.registry[debugStartChoose];
-                if (!choosePuzzle) {
-                    errorLog('Debug start choose puzzle not found:', debugStartChoose);
-                } else if (choosePuzzle.type !== 'choose') {
-                    errorLog('Puzzle', debugStartChoose, 'is not a choose puzzle!');
-                } else {
-                    var chooseOrder = choosePuzzle.trackOrder;
-                    resetPuzzleDebugState(debugStartChoose);
-                    
-                    // Mark all previous choose puzzles as completed
-                    for (var k = 0; k < chooseOrder; k++) {
-                        var puzzleId3 = CHOOSE_PUZZLE_ORDER[k];
-                        if (cookieAgeData.puzzles.completed.indexOf(puzzleId3) === -1) {
-                            cookieAgeData.puzzles.completed.push(puzzleId3);
-                        }
-                    }
-                    
-                    cookieAgeData.puzzles.tracks.choose.progress = chooseOrder;
-                    cookieAgeData.puzzles.tracks.choose.active = debugStartChoose;
-                    
-                    // Mark puzzle as active
-                    var activePuzzle = cookieAgeData.puzzles.registry[debugStartChoose];
-                    if (activePuzzle) {
-                        activePuzzle.isActive = true;
-                    }
-                    
-                    // Setup the puzzle
-                    setupPuzzle(debugStartChoose);
-                }
-            }
-        }
-        
-        // Apply debug path choice if specified
-        if (debugExposePathPicked !== null && debugExposePathPicked !== undefined) {
-            cookieAgeData.puzzles.exposePathPicked = debugExposePathPicked;
-        }
-    }
-    
-    // ===== AUDIO SYSTEM =====
-    function initializeAudioSystem() {
-        // Initialize audio settings
-        cookieAgeData.audio.enabled = true;
-        return true;
-    }
-    
-    function playAudioSound(name, options) {
-        if (!cookieAgeData.audio.enabled) {
-            return false;
-        }
-        
-        if (!cookieAgeData.audio.sounds) {
-            return false;
-        }
-        
-        var soundUrl = cookieAgeData.audio.sounds[name];
-        if (!soundUrl) {
-            return false;
-        }
-        
-        // Extract volume from options (defaults to 1 if not provided)
-        var volume = 1;
-        if (options && typeof options.volume === 'number') {
-            volume = options.volume;
-        }
-        
+    var expansionSoundUrl = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@bf87f7a/orderofthecookie.mp3';
+
+    function playExpansionSound() {
+        if (!cookieAgeData.audio.enabled) return;
         try {
-            // Use vanilla PlaySound - it's a global function, not Game.PlaySound
-            if (typeof PlaySound !== 'undefined' && typeof soundUrl === 'string') {
-                PlaySound(soundUrl, volume);
-                return true;
-            }
-            return false;
-            
-        } catch (error) {
-            errorLog('Failed to play audio sound:', name, error);
-            return false;
-        }
+            if (typeof PlaySound !== 'undefined') PlaySound(expansionSoundUrl);
+        } catch (e) {}
     }
-    
-    // Simplified sound loading - just store URLs
-    function loadAudioSound(name, url) {
-        try {
-            // Store the URL for PlaySound or custom fallback
-            cookieAgeData.audio.sounds[name] = url;
-            return true;
-        } catch (error) {
-            errorLog('Failed to load audio sound:', name, error);
-            return false;
-        }
-    }
-    
+
     function toggleAudio() {
         cookieAgeData.audio.enabled = !cookieAgeData.audio.enabled;
         return cookieAgeData.audio.enabled;
     }
-    
-    function loadWelcomeAudio() {
-        var welcomeAudioUrl = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@bf87f7a/orderofthecookie.mp3';
-        loadAudioSound('welcome', welcomeAudioUrl);
-    }
-    
-    function loadPuzzleCompletionAudio() {
-        var puzzleCompletionAudioUrl = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@bf87f7a/orderofthecookie.mp3';
-        loadAudioSound('puzzleCompletion', puzzleCompletionAudioUrl);
-    }
-     
-    // ===== EXPANSION DATA STRUCTURES =====
+
     var cookieAgeData = {
-        achievements: {
-            // New achievement categories will go here
-            advanced: {
-                names: [],
-                thresholds: [],
-                descs: [],
-                vanillaTarget: null,
-                customIcons: []
-            }
-        },
-        tracking: {
-            // New tracking data will go here
-            advancedStats: {}
-        },
         audio: {
-            // Audio system data
-            sounds: {}, // URLs for PlaySound
             enabled: true
         }
     };
-    
-    // Mystery achievement names and their corresponding puzzle milestones
-    var mysteryAchievementNames = [
-        'Order of the golden crumb',      // small_token
-        'Order of the impossible batch',    // brother_onto_you
-        'Order of the shining spoon',      // ledger_bonds
-        'Order of the cookie eclipse',     // rosetta_stone
-        'Order of the enchanted whisk',     // garden_maze
-        'Order of the eternal cookie',      // defeat_evil
+
+    var mysteryMilestones = [
+        { puzzle: 'small_token',      achievement: 'Order of the golden crumb', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>Before ink touched parchment and iron met flame—before our ancestors raised their first cities—there was the Cookie Age. Six great Orders of mystics, bakers, scribes, and oracles worshipped the golden cookie and the ancient cookie deities.</q>' },
+        { puzzle: 'brother_onto_you', achievement: 'Order of the impossible batch', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods passed down hidden knowledge and quiet power from one generation to the next, fevered in their devotion. Across the ages, the Orders shaped the world through influence unseen, molding humanity toward the cookie gods they served.</q>' },
+        { puzzle: 'ledger_bonds',     achievement: 'Order of the shining spoon', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory, small signs and gestures marked friend from foe.</q>' },
+        { puzzle: 'rosetta_stone',    achievement: 'Order of the cookie eclipse', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws, never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>' },
+        { puzzle: 'garden_maze',      achievement: 'Order of the enchanted whisk', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>' },
+        { puzzle: 'defeat_evil',      achievement: 'Order of the eternal cookie', desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>' }
     ];
-    
-    var mysteryMilestonePuzzles = [
-        'small_token',
-        'brother_onto_you',
-        'ledger_bonds',
-        'rosetta_stone',
-        'garden_maze',
-        'defeat_evil'
-    ];
-    
+
     var expansionState = {
         initialized: false,
         achievementsCreated: false,
         trackingActive: false
     };
-    
-    // ===== HOOK COMPATIBILITY =====
+
     // Remove any previously-registered Cookie Age hooks left from hot reloads
     function sanitizeCookieAgeHooks() {
         try {
-            if (!Game.customHooks) return;
-            for (var type in Game.customHooks) {
-                if (!Array.isArray(Game.customHooks[type])) continue;
-                // Filter out any prior Cookie Age callbacks
-                Game.customHooks[type] = Game.customHooks[type].filter(function(fn) {
+            if (!Game.modHooks) return;
+            for (var type in Game.modHooks) {
+                if (!Array.isArray(Game.modHooks[type])) continue;
+                            Game.modHooks[type] = Game.modHooks[type].filter(function(fn) {
                     return !(fn && fn.__cookieAge === true);
                 });
             }
         } catch (e) {
-            // Keep console clean during normal gameplay; only log real failures
             try { errorLog('Failed to sanitize Cookie Age hooks:', e); } catch (_) {}
         }
     }
 
     function safeRegisterHook(hookType, callback, description, key) {
-        // Use Game.registerHook directly since the base mod's registerHook is not globally accessible
         if (Game.registerHook) {
             try {
-                // Mark callback and assign a deterministic key for idempotency
-                var stableKey = 'cookieAge:' + hookType + ':' + (key || (description || 'anon'));
+                        var stableKey = 'cookieAge:' + hookType + ':' + (description || 'anon') + ':' + (key || 'global');
                 try {
                     callback.__cookieAge = true;
                     callback.__cookieAgeKey = stableKey;
                 } catch (_) {}
 
-                // If a function with the same key already exists for this hook type, skip
-                if (Game.customHooks && Array.isArray(Game.customHooks[hookType])) {
-                    for (var i = 0; i < Game.customHooks[hookType].length; i++) {
-                        var existing = Game.customHooks[hookType][i];
-                        if (existing && existing.__cookieAgeKey === stableKey) {
-                            return true;
-                        }
+                    if (Game.modHooks && Array.isArray(Game.modHooks[hookType])) {
+                    for (var i = 0; i < Game.modHooks[hookType].length; i++) {
+                        var existing = Game.modHooks[hookType][i];
+                        if (existing && existing.__cookieAgeKey === stableKey) {return true;}
                     }
                 }
 
@@ -483,46 +213,26 @@
             return false;
         }
     }
-    
-    // ===== EXPANSION INITIALIZATION =====
+
     function initializeExpansion() {
-        if (expansionState.initialized) {
-            return;
-        }
-        
+        if (expansionState.initialized) {return;}
+
         if (typeof Game.JNE.enableCookieAge !== 'undefined') {
             if (!Game.JNE.enableCookieAge) {
-                // Clean up achievements if they were previously created
-                if (expansionState.achievementsCreated) {
-                    removeMysteryAchievements();
-                }
+                if (expansionState.achievementsCreated) {removeMysteryAchievements();}
                 return;
             }
         }
-        
-        attachBaseModPuzzleHelpers();
 
         try {
             // start clean after hot reloads
             sanitizeCookieAgeHooks();
-
-            // Initialize audio system
-            initializeAudioSystem();
-            
-            // Load and setup welcome sound on mod load
-            loadWelcomeAudio();
-            loadPuzzleCompletionAudio();
-            
-            setupAdvancedChecking();
-            
-            // Create new achievements after puzzle system is initialized so we can check progress
-            createMysteryAchievements();
-            
+            setupPuzzleSystem();
+            setupInfoMenuInjection();
+            createMysteryAchievements();  // Create new achievements after puzzle system is initialized so we can check progress
             setupNewsTicker();
-            
-            // Mark as initialized
             expansionState.initialized = true;
-                        
+
             // If base mod stashed save data, apply it now (toggle-aware restore)
             try {
                 if (window.CookieAge && window.CookieAge.applySaveData && Game.JNE && Game.JNE.cookieAgeSavedData) {
@@ -530,88 +240,46 @@
                     Game.JNE.cookieAgeSavedData = null;
                 }
             } catch (_) {}
-            
-            // Emit completion event
-            if (Game.emit) {
+
+                if (Game.emit) {
                 Game.emit('cookieAgeInitialized', {
                     version: expansionVersion,
                     achievements: expansionState.achievementsCreated,
                     tracking: expansionState.trackingActive
                 });
             }
-            
+
         } catch (error) {
             errorLog('Failed to initialize expansion:', error);
         }
     }
-    
-    // ===== CONDITIONAL INITIALIZATION =====
-    function conditionalInitialize() {
-        // base mod is guaranteed loaded, so enableCookieAge is always available
-        if (typeof Game.JNE.enableCookieAge !== 'undefined') {
-            if (Game.JNE.enableCookieAge) {
-                // Always initialize without audio - audio is only played from button toggle
-                initializeExpansion();
-            } else {
-                // Clean up achievements if they were previously created
-                if (expansionState.achievementsCreated) {
-                    removeMysteryAchievements();
-                }
-            }
-        } else {
-            initializeExpansion();
-        }
-    }
-    
-    // ===== GAME OBJECT CLEANUP SYSTEM =====
+
     function cleanupGameObjectModifications() {
-        
-        // Restore ClickSpecialPic if we modified it
-        if (Game._originalClickSpecialPic) {
-            Game.ClickSpecialPic = Game._originalClickSpecialPic;
-            delete Game._originalClickSpecialPic;
-        }
-        if (Game._originalClickSpecialPicStillWithUs) {
-            Game.ClickSpecialPic = Game._originalClickSpecialPicStillWithUs;
-            delete Game._originalClickSpecialPicStillWithUs;
-        }
-        
-        // Restore DrawWrinklers if we modified it
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.defeatEvilTracking && 
+
+        if (cookieAgeData.puzzles && cookieAgeData.puzzles.defeatEvilTracking &&
             cookieAgeData.puzzles.defeatEvilTracking._originalDrawWrinklers) {
             Game.DrawWrinklers = cookieAgeData.puzzles.defeatEvilTracking._originalDrawWrinklers;
             delete cookieAgeData.puzzles.defeatEvilTracking._originalDrawWrinklers;
         }
-        
-        // Restore playWrinklerSquishSound if we modified it
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking && 
+
+        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking &&
             cookieAgeData.puzzles.riseUpTracking.originalPlayWrinklerSquishSound) {
             Game.playWrinklerSquishSound = cookieAgeData.puzzles.riseUpTracking.originalPlayWrinklerSquishSound;
             delete cookieAgeData.puzzles.riseUpTracking.originalPlayWrinklerSquishSound;
         }
-        
-        // Restore promptGiftRedeem if we modified it
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking && 
+
+        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking &&
             cookieAgeData.puzzles.riseUpTracking.originalPromptGiftRedeem) {
             Game.promptGiftRedeem = cookieAgeData.puzzles.riseUpTracking.originalPromptGiftRedeem;
             delete cookieAgeData.puzzles.riseUpTracking.originalPromptGiftRedeem;
         }
-        
-        // Restore DrawWrinklers from riseUpTracking
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking && 
+
+        if (cookieAgeData.puzzles && cookieAgeData.puzzles.riseUpTracking &&
             cookieAgeData.puzzles.riseUpTracking.originalDrawWrinklers) {
             Game.DrawWrinklers = cookieAgeData.puzzles.riseUpTracking.originalDrawWrinklers;
             delete cookieAgeData.puzzles.riseUpTracking.originalDrawWrinklers;
         }
-        
-        // Restore Ascend function if we modified it
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks && 
-            cookieAgeData.puzzles.hooks.puzzle24_ascendFunction) {
-            // can't fully restore without original reference - just drop it
-            delete cookieAgeData.puzzles.hooks.puzzle24_ascendFunction;
-        }
-        
-        // Clean up dragon aura modifications if any exist
+
         if (Game._originalSelectDragonAura) {
             Game.SelectDragonAura = Game._originalSelectDragonAura;
             delete Game._originalSelectDragonAura;
@@ -624,257 +292,150 @@
             Game.UpgradeDragon = Game._originalUpgradeDragon;
             delete Game._originalUpgradeDragon;
         }
-        
-        // Remove Game.JNE properties we added (only our properties, not the object itself)
+
         if (Game.JNE && typeof Game.JNE === 'object') {
             // Only remove properties we added, not the entire JNE object
-            // as other mods may use it
             delete Game.JNE.enableCookieAge;
         }
-        
-        // Remove our public API functions
-        if (typeof Game.setPuzzleProgress === 'function') {
-            delete Game.setPuzzleProgress;
-        }
-        if (typeof Game.getPuzzleInfo === 'function') {
-            delete Game.getPuzzleInfo;
-        }
-        if (typeof Game.markPuzzleCompleted === 'function') {
-            delete Game.markPuzzleCompleted;
-        }
-        if (typeof Game.unlockPuzzleForTesting === 'function') {
-            delete Game.unlockPuzzleForTesting;
-        }
-        if (typeof Game.resetAndSetPuzzle === 'function') {
-            delete Game.resetAndSetPuzzle;
-        }
-        if (typeof Game.completeActivePuzzles === 'function') {
-            delete Game.completeActivePuzzles;
-        }
+
+        if (typeof Game.resetAndSetPuzzle === 'function') {delete Game.resetAndSetPuzzle;}
     }
-    
-    // ===== MYSTERY ACHIEVEMENT SYSTEM =====
+
     function createMysteryAchievements() {
-        
+
         if (!Game.JNE || !Game.JNE.createAchievement) {
             errorLog('createAchievement helper not available from base mod');
             return;
         }
-        
+
         // Only block achievement creation if explicitly disabled
-        // If the setting is undefined, it means it hasn't loaded yet and we should proceed
-        if (Game.JNE.enableCookieAge === false) {
-            return;
-        }
-        
-        // create or just restore from disabled state?
+        if (Game.JNE.enableCookieAge === false) {return;}
+
         var needsCreation = false;
-        for (var i = 0; i < mysteryAchievementNames.length; i++) {
-            var originalName = mysteryAchievementNames[i];
+        for (var i = 0; i < mysteryMilestones.length; i++) {
+            var originalName = mysteryMilestones[i].achievement;
             var hiddenName = originalName + ' [DISABLED]';
-            
+
             if (!Game.Achievements[originalName] && !Game.Achievements[hiddenName]) {
                 needsCreation = true;
                 break;
             }
         }
-        
+
         if (!needsCreation) {
-            // Achievements already exist, restore them from disabled state
-            for (var i = 0; i < mysteryAchievementNames.length; i++) {
-                var originalName = mysteryAchievementNames[i];
+            for (var i = 0; i < mysteryMilestones.length; i++) {
+                var originalName = mysteryMilestones[i].achievement;
                 var hiddenName = originalName + ' [DISABLED]';
-                
+
                 if (Game.Achievements[hiddenName]) {
                     var ach = Game.Achievements[hiddenName];
-                    
-                    // Restore to normal pool
-                    ach.pool = 'normal';
-                    
-                    // Restore won status if it was previously won
-                    if (ach._savedWonStatus) {
-                        ach.won = 1;
-                    }
-                    
-                    // Restore original name
-                    Game.Achievements[originalName] = ach;
+                        ach.pool = 'normal';
+                        if (ach._savedWonStatus) {ach.won = 1;}
+
+                        Game.Achievements[originalName] = ach;
                     delete Game.Achievements[hiddenName];
                     delete ach._originalName;
-                    
-                    if (ach.id !== undefined && Game.AchievementsById[ach.id]) {
-                        Game.AchievementsById[ach.id] = ach;
-                    }
-                    
+
+                    if (ach.id !== undefined && Game.AchievementsById[ach.id]) {Game.AchievementsById[ach.id] = ach;}
+
                 } else if (Game.Achievements[originalName]) {
-                    // Achievement already has correct name, just ensure it's in normal pool
                     var ach = Game.Achievements[originalName];
                     ach.pool = 'normal';
                 }
             }
-            
+
             expansionState.achievementsCreated = true;
             return;
         }
-        
-        var baseOrder = 500001; 
-        var mysteryAchievements = [
-            {
-              name: 'Order of the golden crumb',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>Before ink touched parchment and iron met flame—before our ancestors raised their first cities—there was the Cookie Age. Six great Orders of mystics, bakers, scribes, and oracles worshipped the golden cookie and the ancient cookie deities.</q>',
-              icon: Game.JNE.icon(0, 15, 'custom'),
-              order: baseOrder + 1
-            },
-            {
-              name: 'Order of the impossible batch',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods passed down hidden knowledge and quiet power from one generation to the next, fevered in their devotion. Across the ages, the Orders shaped the world through influence unseen, molding humanity toward the cookie gods they served.</q>',
-              icon: Game.JNE.icon(1, 15, 'custom'),
-              order: baseOrder + 2
-            },
-            {
-              name: 'Order of the shining spoon',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory, small signs and gestures marked friend from foe.</q>',
-              icon: Game.JNE.icon(2, 15, 'custom'),
-              order: baseOrder + 3
-            },
-            {
-              name: 'Order of the cookie eclipse',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws, never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>',
-              icon: Game.JNE.icon(3, 15, 'custom'),
-              order: baseOrder + 4
-            },
-            {
-              name: 'Order of the enchanted whisk',
-              desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>',
-              icon: Game.JNE.icon(4, 15, 'custom'),
-              order: baseOrder + 5
-            },
-            {
-              name: 'Order of the eternal cookie',
-              desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>',
-              icon: Game.JNE.icon(5, 15, 'custom'),
-              order: baseOrder + 6
-            }
-          ];
-        // Check which puzzles are completed to determine which achievements should be created as won
-        var completedPuzzles = cookieAgeData.puzzles.completed || [];
-        
-        for (var index = 0; index < mysteryAchievements.length; index++) {
-            var achData = mysteryAchievements[index];
 
-            // Check if the milestone puzzle is already completed
-            var milestonePuzzle = mysteryMilestonePuzzles[index];
-            var shouldBeWon = completedPuzzles.indexOf(milestonePuzzle) !== -1;
+        var baseOrder = 500001;
+        var completedPuzzles = cookieAgeData.puzzles.completed || [];
+
+        for (var index = 0; index < mysteryMilestones.length; index++) {
+            var milestone = mysteryMilestones[index];
+            var shouldBeWon = completedPuzzles.indexOf(milestone.puzzle) !== -1;
 
             var achievement = Game.JNE.createAchievement(
-                achData.name,
-                achData.desc,
-                achData.icon,  // custom icon
-                achData.order,
-                null  // no requirement function - achievements awarded manually on puzzle completion
+                milestone.achievement,
+                milestone.desc,
+                Game.JNE.icon(index, 15, 'custom'),
+                baseOrder + index + 1,
+                null  //achievements awarded manually on puzzle completion
             );
 
             if (achievement) {
                 achievement.pool = 'normal';
 
-                // If the milestone is already achieved, mark the achievement as won silently
                 if (shouldBeWon) {
                     achievement.won = 1;
                     achievement._restoredFromSave = true; // Mark as restored to prevent notification
-                    
+
                     if (!Game.AchievementsOwned) Game.AchievementsOwned = 0;
                     Game.AchievementsOwned++;
-                    if (Game.stats && Game.stats['Achievements unlocked']) {
-                        Game.stats['Achievements unlocked']++;
-                    }
-                    
+                    if (Game.stats && Game.stats['Achievements unlocked']) {Game.stats['Achievements unlocked']++;}
+
                 }
             }
         }
-        
+
         expansionState.achievementsCreated = true;
     }
-    
+
     function removeMysteryAchievements() {
-        mysteryAchievementNames.forEach(function(achievementName) {
+        mysteryMilestones.forEach(function(milestone) {
+            var achievementName = milestone.achievement;
             if (Game.Achievements[achievementName]) {
                 var achievement = Game.Achievements[achievementName];
-                
-                // Store the won status before hiding
-                if (achievement.won) {
-                    achievement._savedWonStatus = true;
-                }
-                
+
+                if (achievement.won) {achievement._savedWonStatus = true;}
+
                 // Move to shadow pool and clear won status because there is no other way to really get rid of an achievement that I can figure out
                 achievement.pool = 'shadow';
                 achievement.won = 0;
-                
+
                 // Rename the achievement so it can't be awarded while disabled
                 var hiddenName = achievementName + ' [DISABLED]';
                 achievement._originalName = achievementName;
-                
+
                 // Move to new name in the achievements object
                 Game.Achievements[hiddenName] = achievement;
                 delete Game.Achievements[achievementName];
-                
-                if (achievement.id !== undefined && Game.AchievementsById[achievement.id]) {
-                    Game.AchievementsById[achievement.id] = achievement;
-                }
+
+                if (achievement.id !== undefined && Game.AchievementsById[achievement.id]) {Game.AchievementsById[achievement.id] = achievement;}
             }
         });
-        
+
         expansionState.achievementsCreated = false;
     }
-    
-    // ===== ADVANCED CHECKING SYSTEM =====
-    function setupAdvancedChecking() {
-        setupPuzzleSystem();
 
-        setupInfoMenuInjection();
-    }
-    
-    // ===== INFO MENU INJECTION SYSTEM =====
     function setupInfoMenuInjection() {
-        if (Game.JNE && !Game.JNE.menuHooks) {
-            Game.JNE.menuHooks = [];
-        }
-        
+        if (Game.JNE && !Game.JNE.menuHooks) {Game.JNE.menuHooks = [];}
+
         var cookieAgeMenuHook = function() {
-            // Handle info menu injection for puzzle 10
             if (Game.onMenu === 'log') {
                 setTimeout(function() {
                     injectBlessingPuzzleInfo();
                 }, 100);
             }
         };
-        
-        if (Game.JNE.menuHooks.indexOf(cookieAgeMenuHook) === -1) {
-            Game.JNE.menuHooks.push(cookieAgeMenuHook);
-        }
+
+        if (Game.JNE.menuHooks.indexOf(cookieAgeMenuHook) === -1) {Game.JNE.menuHooks.push(cookieAgeMenuHook);}
     }
-    
+
     function injectBlessingPuzzleInfo() {
-        if (!isPuzzleProgressValid('blessing_creator')) {
-            return;
-        }
-        
-        if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf('blessing_creator') !== -1) {
-            return;
-        }
-        
-        if (document.getElementById('blessing-puzzle-info')) {
-            return;
-        }
-        
-        // Find the info menu container
+        if (!isPuzzleProgressValid('blessing_creator')) {return;}
+
+        if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf('blessing_creator') !== -1) {return;}
+
+        if (document.getElementById('blessing-puzzle-info')) {return;}
+
         let menuContainer = document.getElementById('menu');
-        if (!menuContainer) {
-            return;
-        }
-        
+        if (!menuContainer) {return;}
+
         // Look for the specific subsection with title "08/08/2013 - game launch"
         let gameLaunchSubsection = null;
         let subsections = menuContainer.querySelectorAll('.subsection.update');
-        
+
         for (let i = 0; i < subsections.length; i++) {
             let title = subsections[i].querySelector('.title');
             if (title && title.textContent.includes('08/08/2013 - game launch')) {
@@ -882,37 +443,23 @@
                 break;
             }
         }
-        
-        if (!gameLaunchSubsection) {
-            return;
-        }
-        
-        // Create the info note insertion
+
+        if (!gameLaunchSubsection) {return;}
+
         let infoNote = document.createElement('div');
         infoNote.id = 'blessing-puzzle-info';
         infoNote.className = 'listing';
         infoNote.innerHTML = '&bull; This might not make sense right now, but if you ever find yourself tangling with The Order of the Cookie. Send a gift of Leprechaun luck, and I shall bless your steps and ward you from what stirs beyond.';
-        
-        // Insert after the last listing in the subsection
+
         gameLaunchSubsection.appendChild(infoNote);
     }
-    
+
     function removeBlessingPuzzleInfo() {
         let infoNote = document.getElementById('blessing-puzzle-info');
-        if (infoNote) {
-            infoNote.remove();
-        }
+        if (infoNote) {infoNote.remove();}
     }
     function setupPuzzleSystem() {
         try {
-            // Initialize audio system and load sounds if not already done
-            if (!cookieAgeData.audio || !cookieAgeData.audio.sounds || Object.keys(cookieAgeData.audio.sounds).length === 0) {
-                initializeAudioSystem();
-                loadWelcomeAudio();
-                loadPuzzleCompletionAudio();
-            }
-            
-            // Initialize puzzle tracking 
             if (!cookieAgeData.puzzles) {
                 cookieAgeData.puzzles = {
                     registry: {}, // Central registry for all puzzles
@@ -945,14 +492,12 @@
                         },
                         purchasedHints: {} // Track which puzzles have hints purchased: { puzzleId: true }
                     },
-                    completed: [] // Array of completed puzzle IDs
+                    completed: []
                 };
             }
-            
-            if (!cookieAgeData.puzzles.completed) {
-                cookieAgeData.puzzles.completed = [];
-            }
-            
+
+            if (!cookieAgeData.puzzles.completed) {cookieAgeData.puzzles.completed = [];}
+
             if (!cookieAgeData.puzzles.hints) {
                 cookieAgeData.puzzles.hints = {
                     hintsUsed: 0,
@@ -965,7 +510,7 @@
                     purchasedHints: {}
                 };
             }
-            
+
             if (!cookieAgeData.puzzles.hints.puzzleActivationTimes) {
                 cookieAgeData.puzzles.hints.puzzleActivationTimes = {
                     investigate: null,
@@ -973,29 +518,19 @@
                     choose: null
                 };
             }
-            if (!cookieAgeData.puzzles.hints.purchasedHints) {
-                cookieAgeData.puzzles.hints.purchasedHints = {};
-            }
-            
-            // Initialize puzzle registry (only if not already initialized)
-            if (!cookieAgeData.puzzles.registry || Object.keys(cookieAgeData.puzzles.registry).length === 0) {
-                initializePuzzleRegistry();
-            }
-            
-            // Initialize tracks if not already done
-            if (!cookieAgeData.puzzles.tracks._initialized) {
-                initializePuzzleTracks();
-            }
+            if (!cookieAgeData.puzzles.hints.purchasedHints) {cookieAgeData.puzzles.hints.purchasedHints = {};}
+
+            if (!cookieAgeData.puzzles.registry || Object.keys(cookieAgeData.puzzles.registry).length === 0) {initializePuzzleRegistry();}
+
+            if (!cookieAgeData.puzzles.tracks._initialized) {initializePuzzleTracks();}
         } catch (e) {
             errorLog('Error in setupPuzzleSystem:', e);
             console.error('Full error:', e);
         }
     }
-    
-    // ===== PUZZLE REGISTRY SYSTEM =====
+
     function initializePuzzleRegistry() {
-        
-        // Define all puzzles in a centralized registry
+
         cookieAgeData.puzzles.registry = {
             'proving_patience': {
                 name: 'Proving your patience',
@@ -1007,10 +542,9 @@
                 completionMessage: 'The Shimmerlily\'s final breath carried your silence into hidden places. Whoever waits in shadow has taken notice.<q>The mystery has begun. Return to the stats menu to track progress and review your clues.</q>',
                 completionIcon: Game.JNE.icon(10, 13, 'custom'),
                 dependencies: [],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-    
+
                 'making_friendship': {
                 name: 'Mark of intent',
                 clue: 'You have proven your patience, await word from your new "friend".',
@@ -1021,10 +555,9 @@
                 completionMessage: 'The sign now bears the mark they demanded. Eyes, welcome or hostile, are upon you.<q>The mark is set. In silence, watchers weigh what it means.</q>',
                 completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['proving_patience'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-    
+
                 'small_token': {
                 name: 'A small token',
                 description: 'The parcel vanished into unseen hands. Upon your return, a letter awaited, its seal unbroken until now.<q>My bravest friend,<br><br>You must infiltrate the Brotherhood and expose The Order of the Cookie. We know not what dangers wait, only that discovery means ruin. Still, we have risked all to uncover the first rites of passage and initiation. Take them, and tread carefully, trust no one.</q>',
@@ -1035,10 +568,9 @@
                 completionMessage: 'The parcel is gone. In its place, a letter binds you to a greater cause.<q>Your mission begins in earnest. The first rites are revealed.</q>',
                 completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['making_friendship'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'garden_sigil': {
                 name: 'The garden sigil',
                 puzzleClass: GardenSigilPuzzle,
@@ -1049,10 +581,9 @@
                 completionMessage: 'Digging where X marked the spot has revealed a tattered folio.',
                 completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 dependencies: ['rite_shifting_measures'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'blessing_creator': {
                 name: 'Blessing from the creator',
                 description: 'Orteil himself turned his gaze toward you, a fleeting sign of favor amid growing suspicion. The Brotherhood whispers more loudly now, and even your friend cannot shield you for long.<q>You\'ll need every ounce of luck from here on. Their eyes are sharper, and our reach cannot save you forever.</q>',
@@ -1062,25 +593,23 @@
                 mainIcon: Game.JNE.icon(4, 17, 'custom'),
                 completionMessage: 'You curried favor with the Creator. The blessing lingers, but so does the risk.',
                 completionIcon: Game.JNE.icon(0, 17, 'custom'),
-                dependencies: ['brothers_masquerade'], 
-                isActive: false,
-                type: 'investigate'
+                dependencies: ['brothers_masquerade'],
+                isActive: false
                 },
-               
+
                 'they_are_watching': {
                 name: 'They are watching you',
                 puzzleClass: TheyAreWatchingPuzzle,
                 description: 'Classifieds burned. Courier missing. You cut the line and moved to coded relays, pushing a false lead for them to chase.<q>We bought you room, not safety. From now on, speak masked or not at all.</q>',
                 clue: 'The Order found our newspaper drops and our courier never returned. We fear they\'re onto you as well. From here on, every message must be encoded.<q>The Romans had their tricks. XIII should jog your memory.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message1.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
-                hint: '• There are many ciphers used throughout history, but the Caesars of the Roman Empire favored one. The number 13 is the key you will need.',          
+                hint: '• There are many ciphers used throughout history, but the Caesars of the Roman Empire favored one. The number 13 is the key you will need.',
                 mainIcon: Game.JNE.icon(3, 35, 'garden'),
                 completionMessage: 'They followed the decoy; your trail cooled.',
                 completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['blessing_creator'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'brother_onto_you': {
                 name: 'A brother is onto you',
                 puzzleClass: BrotherOntoYouPuzzle,
@@ -1091,10 +620,9 @@
                 completionMessage: 'The report died in the dark; the elders never spoke your name.',
                 completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['they_are_watching', 'feast_four'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'send_word': {
                 name: 'Send word',
                 clue: 'It has been too long, my friend, you\'ve gone deep into your task.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message3.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
@@ -1105,41 +633,38 @@
                 mainIcon: Game.JNE.icon(7, 16, 'custom'),
                 completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['veiled_ledger', 'brother_onto_you'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-     
+
                 'spy_purge': {
                 name: 'Shadows in the ranks',
                 puzzleClass: SpyPurgePuzzle,
                 description: 'You carried out the purge, twenty-seven grandmas cut in a single sweep. Rumors stalled and the watchers shifted their gaze.<q>You can\'t know if all were spies—only that you\'re still alive.</q>',
                 clue: 'Our messages continue to be intercepted; we have to raise the difficulty again. Act urgently and cleanly, or your fate is already sealed.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message2.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
-                hint: '• Placing letters into two tic-tac-toe boards may help understand this cipher.<br>• Remember the characters from The Peanuts cartoon series, one of their names may aid you in searching.',  
+                hint: '• Placing letters into two tic-tac-toe boards may help understand this cipher.<br>• Remember the characters from The Peanuts cartoon series, one of their names may aid you in searching.',
                 mainIcon: Game.JNE.icon(11, 15, 'custom'),
                 completionMessage: 'Twenty-seven cut. The whispers stopped... for now.',
                 completionIcon: Game.JNE.icon(0, 16, 'custom'),
                 dependencies: ['veiled_ledger', 'send_word'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'close_call': {
                 name: 'Close call',
-                description: 'The Lawkeeper\'s circuit ended and the hall exhaled. You put space between the last drop and our line without leaving a mark.<q>Judgment tilted your way by a hair, don\'t test it.</q>',           
+                description: 'The Lawkeeper\'s circuit ended and the hall exhaled. You put space between the last drop and our line without leaving a mark.<q>Judgment tilted your way by a hair, don\'t test it.</q>',
                 clue: 'That was too close for comfort. We hope this finds you in good spirits, we need to maintain distance to keep the ruse intact.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message5.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
-                hint: '• A little more complex than the Caesar Cipher but letters are still being shifted here.<br>• That stand alone "Z" is a dead giveaway for this type of cipher.',             
+                hint: '• A little more complex than the Caesar Cipher but letters are still being shifted here.<br>• That stand alone "Z" is a dead giveaway for this type of cipher.',
                 puzzleClass: CloseCallPuzzle,
                 mainIcon: Game.JNE.icon(13, 14, 'custom'),
                 completionMessage: 'The bundle moved unnoticed; the watchers saw nothing.',
                 completionIcon: Game.JNE.icon(0, 17, 'custom'),
                 dependencies: ['lawkeeper_walk', 'spy_purge'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'false_beacons': {
                 name: 'False beacons',
-                description: 'They seeded decoys. You moved only on our mark and returned a quiet countersign. Their bait went unused.<q>Mark first, message second. Beware of being led astray.</q>',            
+                description: 'They seeded decoys. You moved only on our mark and returned a quiet countersign. Their bait went unused.<q>Mark first, message second. Beware of being led astray.</q>',
                 clue: 'The Order has proved more clever than we could have ever imagined.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message9.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Before radios sailors still needed to communicate at a distance, though slightly outdated these still play an important role in the maritime world.',
                 puzzleClass: FalseBeaconsPuzzle,
@@ -1147,10 +672,9 @@
                 completionMessage: 'You ignored the decoys; our mark came back clean.',
                 completionIcon: Game.JNE.icon(2, 16, 'custom'),
                 dependencies: ['rite_fivefold_casting', 'close_call'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'infiltration_progress': {
                 name: 'Infiltration progress',
                 description: 'You\'re deep inside their routine now, and doubts grow on all sides. Your quiet confirmation landed and eased them... for now.<q>Hold course; proximity isn\'t belonging.</q>',
@@ -1161,10 +685,9 @@
                 completionMessage: 'Confirmation received. The line holds.',
                 completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['ledger_bonds', 'false_beacons'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-    
+
                 'built_trust': {
                 name: 'Built trust',
                 description: 'You offered a quiet sign in the garden and let it stand. Word moved through the halls: steady hands, steady heart.<q>Use their trust.</q>',
@@ -1173,26 +696,24 @@
                 puzzleClass: BuiltTrustPuzzle,
                 mainIcon: Game.JNE.icon(11, 13, 'custom'),
                 completionIcon: Game.JNE.icon(0, 17, 'custom'),
-                completionMessage: 'The sign was seen and noted. Your standing rose.',           
+                completionMessage: 'The sign was seen and noted. Your standing rose.',
                 dependencies: ['storm_devotion', 'infiltration_progress'],
-                isActive: false,
-                type: 'investigate'
-                },	
-                
+                isActive: false
+                },
+
                 'watch_keeper_rounds': {
                 name: 'Watchkeeper rounds',
                 description: 'You crossed under patrol using the cadence they trust. The watch counted, nodded, and let you pass.<q>In that yard, cadence beats courage.</q>',
-                clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;"><video src="https://raw.githubusercontent.com/dfsw/Cookies/main/chruch.mp4" style="width:300px;height:300px;border:2px solid #666;border-radius:4px;" autoplay loop muted playsinline></video></div>',
-                hint: '• Dots and dashes are a good way to send a message over distance without making any noise.<br>• An envoy brings a message, what is another type of person that shares a message? Where can you find them in Cookie Clicker?<br>• Just because a lamp is out doesn\'t mean it no longer exists.',            
+                clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;"><img id="jneChurchLamp" src="https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/church_off.webp" style="width:300px;height:300px;border:2px solid #666;border-radius:4px;" alt=""></div>',
+                hint: '• Dots and dashes are a good way to send a message over distance without making any noise.<br>• An envoy brings a message, what is another type of person that shares a message? Where can you find them in Cookie Clicker?<br>• Just because a lamp is out doesn\'t mean it no longer exists.',
                 puzzleClass: WatchKeeperRoundsPuzzle,
                 mainIcon: Game.JNE.icon(9, 16, 'custom'),
                 completionMessage: 'You cleared the yard without a second look.',
                 completionIcon: Game.JNE.icon(2, 17, 'custom'),
                 dependencies: ['six_jars_ledger', 'built_trust'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'rosetta_stone': {
                 name: 'Rosetta stone',
                 description: 'The Order presses closer at every turn. You stay only a half-step ahead.<q>Exhausted by the chase, you aren\'t sure how much longer you can keep this up... or whether you still want to.</q>',
@@ -1203,24 +724,22 @@
                 completionMessage: 'The stone held the key. You cracked the script.',
                 completionIcon: Game.JNE.icon(1, 17, 'custom'),
                 dependencies: ['watch_keeper_rounds'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'mask_wears_thin': {
                 name: 'Mask wears thin',
                 description: 'A description began to circulate; height, eye-color, hair, stance. You altered your appearance before dawn and the whispers passed you by.<q>They hunt a sketch; be the smudge instead.</q>',
                 clue: 'Danger is following you. Among the Brotherhood, some have learned a spy\'s description; outfox them to keep your cover.<div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/message7.png" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
-                hint: '• There appears to be extra spacing between some of the columns, it separates them out into equal groups. The robot stamp is already a clue!<br>• Lights are warm when on and cool when off right? Colors can be warm and cool too.',         
+                hint: '• There appears to be extra spacing between some of the columns, it separates them out into equal groups. The robot stamp is already a clue!<br>• Lights are warm when on and cool when off right? Colors can be warm and cool too.',
                 puzzleClass: MaskWearsThinPuzzle,
                 mainIcon: Game.JNE.icon(15, 17, 'custom'),
                 completionIcon: Game.JNE.icon(1, 16, 'custom'),
                 completionMessage: 'Face changed. Eyes moved on.',
                 dependencies: ['vaulted_relics', 'rosetta_stone'],
-                isActive: false,
-                type: 'investigate'
+                isActive: false
                 },
-                
+
                 'still_with_us': {
                 name: 'Still with us',
                 description: 'Silence bred doubt. You answered with a signal, stripped of ornament, and it reached us unnoticed.<q>We believe you remain on mission, but their pull is strong, you are close do not weaken.</q>',
@@ -1228,12 +747,11 @@
                 hint: '• Some ciphers cannot be broken without the proper key, do you remember what your ally called themselves when they sent you classified ads?',
                 puzzleClass: StillWithUsPuzzle,
                 mainIcon: Game.JNE.icon(3, 16, 'custom'),
-                completionMessage: 'Sign received. You are still with us.',     
+                completionMessage: 'Sign received. You are still with us.',
                 completionIcon: Game.JNE.icon(9, 13, 'custom'),
                 dependencies: ['sigils', 'mask_wears_thin'],
-                isActive: false,
-                type: 'investigate'
-                },   
+                isActive: false
+                },
 
                 'silent_choir': {
                 name: 'The silent choir',
@@ -1244,11 +762,10 @@
                 mainIcon: Game.JNE.icon(17, 17, 'custom'),
                 completionMessage: 'Silence falls, digits echo, The Order accepts your presence.<q>They believe you seek to join.</q>',
                 completionIcon: Game.JNE.icon(0, 14, 'custom'),
-                dependencies: ['small_token'], 
-                isActive: false,
-                type: 'infiltrate'
-                },		 
-                
+                dependencies: ['small_token'],
+                isActive: false
+                },
+
                 'spiral_seasons': {
                 name: 'The wheel of seasons',
                 description: 'You turned the crooked wheel, letting each season rise and fall in The Order\'s rhythm. Their cycle is not nature\'s, yet you followed without hesitation.<q>The Brotherhood notes your obedience. To walk their year is to step further inside.</q>',
@@ -1259,10 +776,9 @@
                 completionMessage: 'The wheel has turned, its crooked path obeyed. The Order\'s rhythm flows through your steps.<q>You have shown you can keep their time, no matter how twisted.</q>',
                 completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['silent_choir'],
-                isActive: false,
-                type: 'infiltrate'
-                },		
-                        
+                isActive: false
+                },
+
                 'rite_shifting_measures': {
                 name: 'The rite of shifting measures',
                 puzzleClass: RiteShiftingMeasuresPuzzle,
@@ -1273,10 +789,9 @@
                 completionMessage: 'The crooked sums are complete, the seal holds firm.<q>The Order marks your obedience in silence.</q>',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['spiral_seasons'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'initiation_riddle': {
                 name: 'Initiation games',
                 puzzleClass: InitiationRiddlePuzzle,
@@ -1287,10 +802,9 @@
                 completionMessage: 'Once, twice, thrice, the chant complete. Laughter covers suspicion, and for now you blend in.<q>You are counted among them, though only in play.</q>',
                 completionIcon: Game.JNE.icon(7, 13, 'custom'),
                 dependencies: ['garden_sigil'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'spirits_thrones': {
                 name: 'Spirits upon their thrones',
                 puzzleClass: SpiritsThronesPuzzle,
@@ -1301,10 +815,9 @@
                 completionMessage: 'The spirits rose and fell upon their thrones, each alone, each in order. The veil parts.<q>The Brotherhood sees you not as a guest, but as one who obeys their rites.</q>',
                 completionIcon: Game.JNE.icon(2, 14, 'custom'),
                 dependencies: ['initiation_riddle'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'brothers_masquerade': {
                 name: 'The brothers\' masquerade',
                 puzzleClass: BrothersMasqueradePuzzle,
@@ -1314,11 +827,10 @@
                 mainIcon: Game.JNE.icon(13, 15, 'custom'),
                 completionMessage: 'The mask held. The Brothers saw Sebastian, not you.',
                 completionIcon: Game.JNE.icon(3, 14, 'custom'),
-                dependencies: ['spirits_thrones'], 
-                isActive: false,
-                type: 'infiltrate'
+                dependencies: ['spirits_thrones'],
+                isActive: false
                 },
-                
+
                 'pattern_altars': {
                 name: 'The pattern of the altars',
                 description: 'You counted what cannot be broken and took the first five in their sacred order. One raised, the next cast down, ever climbing, never the same twice. The hall felt the older mathematics stir, and the Brothers watched without blinking.<q>The further you go, the thinner the margin. Precision is no longer a courtesy; it is cover.</q>',
@@ -1328,11 +840,10 @@
                 mainIcon: Game.JNE.icon(13, 16, 'custom'),
                 completionMessage: 'Altars align and the prime vow answers.<q>Eyes linger longer now. One misstep is all it takes.</q>',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
-                dependencies: ['brothers_masquerade'], 
-                isActive: false,
-                type: 'infiltrate'
+                dependencies: ['brothers_masquerade'],
+                isActive: false
                 },
-                
+
                 'litany_crumbs': {
                 name: 'Magical rites of passage',
                 description: 'You measured to the mark and spoke the breaths in order, quieting chaos, striking the bargain, stretching time, waking what slept. The vessel settled precisely, and a hush moved through the room.<q>Someone notes your steadiness. A new hand begins to open doors rather than close them.</q>',
@@ -1343,10 +854,9 @@
                 completionMessage: 'The rite holds; the mixture obeys.<q>A Brother lingers at the threshold, as if waiting to see what else you can be trusted with.</q>',
                 completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['pattern_altars'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'spiral_fortune': {
                 name: 'The spiral of fortune',
                 description: 'From nothing came one, then another, each step recalling the last two. A spiral took shape, petals and shells hidden in numbers, and the Brothers watched as you counted without falter.<q>This was no child\'s game. You were shown a pattern that only the initiated know, and you walked it as if born to it.</q>',
@@ -1356,11 +866,10 @@
                 mainIcon: Game.JNE.icon(16, 14, 'custom'),
                 completionMessage: 'The spiral grows beneath your hand, each sum in place.<q>They exchange glances now, the kind reserved for those no longer seen as outsiders.</q>',
                 completionIcon: Game.JNE.icon(2, 14, 'custom'),
-                dependencies: ['litany_crumbs'], 
-                isActive: false,
-                type: 'infiltrate'
+                dependencies: ['litany_crumbs'],
+                isActive: false
                 },
-                
+
                 'wrinkler_clock': {
                 name: 'The demonic clock',
                 puzzleClass: WrinklerClockPuzzle,
@@ -1370,11 +879,10 @@
                 mainIcon: Game.JNE.icon(14, 14, 'custom'),
                 completionMessage: 'The quarters align and the wheel obeys. No fault is found.',
                 completionIcon: Game.JNE.icon(7, 13, 'custom'),
-                dependencies: ['spiral_fortune'], 
-                isActive: false,
-                type: 'infiltrate'
+                dependencies: ['spiral_fortune'],
+                isActive: false
                 },
-                
+
                 'feast_four': {
                 name: 'The unfinished feast',
                 puzzleClass: FeastFourPuzzle,
@@ -1385,9 +893,8 @@
                 completionMessage: 'The feast ends unfinished. The Brotherhood is satisfied.',
                 completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['wrinkler_clock', 'blessing_creator'],
-                isActive: false,
-                type: 'infiltrate'
-                },           
+                isActive: false
+                },
 
                 'trial_scales_patience': {
                 name: 'The trial of scales',
@@ -1399,10 +906,9 @@
                 completionMessage: 'Scales and hands laid true. The dragon sleeps; The Order\'s gaze lingers.',
                 completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['feast_four'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'garden_hearts': {
                 name: 'The hidden garden',
                 puzzleClass: GardenHeartsPuzzle,
@@ -1413,10 +919,9 @@
                 completionMessage: 'One motion, cleanly done. The hearts fall the sentries remain.',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['trial_scales_patience', 'brother_onto_you'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'veiled_ledger': {
                 name: 'The veiled ledger',
                 puzzleClass: VeiledLedgerPuzzle,
@@ -1427,24 +932,22 @@
                 completionMessage: 'The ledger closes, tallies exact. You are trusted with their numbers.',
                 completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['garden_hearts'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'ringing_halls': {
                 name: 'The ringing of the halls',
                 puzzleClass: RingingHallsPuzzle,
                 description: 'Twenty halls clamored at once, and you silenced all but seven. Each spared voice matched their law: vows, mirrors, suns, and stolen tomorrows. When the tally ended, the chambers rang true.<q>The Brothers watched in silence, weighing not just your obedience but the ease with which you carried it out. Too perfect, and questions may follow.</q>',
                 clue: 'From first help to the final mirror, twenty chambers ring.<br>Stillness claims all but seven, and the first, which the void may never take.<br><br>The hall of vows must murmur still.<br>One chamber that is the square of three cannot be stilled.<br>The mirror at the end must answer.<br>Spare the hall where tomorrow is stolen.<br>Let the second hearth keep its ember.<br>Where suns are scattered, the light must fall through.<br>And keep the count of the twice-born nine.',
-                hint: '• Still is quiet, and quiet is still.<br>• These sound like things you have seen, there are 20 of them, the first one is special don\'t let it throw your counts off.',            
+                hint: '• Still is quiet, and quiet is still.<br>• These sound like things you have seen, there are 20 of them, the first one is special don\'t let it throw your counts off.',
                 mainIcon: Game.JNE.icon(16, 17, 'custom'),
                 completionMessage: 'The halls fall quiet, seven voices spared. The Brotherhood nods, though some eyes linger.',
                 completionIcon: Game.JNE.icon(0, 14, 'custom'),
                 dependencies: ['veiled_ledger'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'lawkeeper_walk': {
                 name: 'The lawkeeper\'s walk',
                 description: 'They sent you alone under The Order\'s gaze, green stone first, then the jewel of sixfold light, and last the crimson square. You kept to the path, no companion, no misstep. The hall weighed you in silence and let the verdict hang.<q>Judgment isn\'t always spoken. Today, it tilts your way, by a hair. Not every Brother is convinced.</q>',
@@ -1455,10 +958,9 @@
                 completionMessage: 'The path is walked alone; judgment holds, for now.',
                 completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['ringing_halls', 'spy_purge'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'compass_sentinel': {
                 name: 'The compass rose',
                 description: 'They gave you the star, the seas, the dawn, the dusk, each edge of the wheel to bind and silence. You set the sentinel and lit the watchfires exactly as they demanded, but the circle closed around you tighter than before.<q>Some Brothers whisper now. Your precision impresses, but your intent is a question unsatisfied. One misstep and the mask shatters.</q>',
@@ -1466,13 +968,12 @@
                 hint: '• 12 points on a compass, what else has 12 points that can all be associated with direction?<br>• Work out each point at a time. The last item must be done last in the chain.',
                 puzzleClass: CompassSentinelPuzzle,
                 mainIcon: Game.JNE.icon(12, 14, 'custom'),
-                completionMessage: 'The wheel is broken; the whispers grow louder.',          
+                completionMessage: 'The wheel is broken; the whispers grow louder.',
                 completionIcon: Game.JNE.icon(3, 14, 'custom'),
                 dependencies: ['lawkeeper_walk', 'close_call'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'litany_broken_vows': {
                 name: 'The litany of broken vows',
                 description: 'You swore, broke, swore again, each vow chaining you tighter to their creed. The Matriarchs slept and woke in turn, the sky shrouded in silver, the seasons marched their circle. The Brothers marked every word.<q>Vows are no jest in this hall. To break them is to prove devotion twisted to their will. But some eyes searched deeper, wondering what you truly serve.</q>',
@@ -1483,10 +984,9 @@
                 completionMessage: 'The vows bind, break, and bind again. The circle is sealed, yet suspicion stirs.',
                 completionIcon: Game.JNE.icon(1, 14, 'custom'),
                 dependencies: ['compass_sentinel'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'rite_fivefold_casting': {
                 name: 'The rite of five incantations',
                 description: 'You spoke the fivefold words, shadow hushed, fury bound, bargain sealed, sand stretched, sprites unleashed. Each syllable echoed in the chamber until the circle thrummed with power. The Brothers listened in silence, weighing every breath.<q>This was no outer rite. You have been made to stand within the circle of the Enchanted Whisk, and each word spoken binds you tighter to their gaze.</q>',
@@ -1497,10 +997,9 @@
                 completionMessage: 'The five incantations resound. The Brothers\' circle holds you within.',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['litany_broken_vows'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'grandmatriarchs_flight': {
                 name: 'The grandmatriarchs\' flight',
                 puzzleClass: GrandmatriarchsFlightPuzzle,
@@ -1511,10 +1010,9 @@
                 completionMessage: 'The hymn fades, the storm of fortune passes. You stood apart, and they saw.',
                 completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['rite_fivefold_casting'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'ledger_bonds': {
                 name: 'The ledger of bonds',
                 puzzleClass: LedgerBondsPuzzle,
@@ -1525,10 +1023,9 @@
                 completionMessage: 'The bonds hold fast; the ledger closes. Trust deepens.',
                 completionIcon: Game.JNE.icon(6, 14, 'custom'),
                 dependencies: ['grandmatriarchs_flight'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'garden_pattern': {
                 name: 'The undying',
                 puzzleClass: GardenPatternPuzzle,
@@ -1538,11 +1035,10 @@
                 mainIcon: Game.JNE.icon(12, 12, 'custom'),
                 completionMessage: 'The stalks stand tall, the blooms aligned. The pattern holds, and so do you.',
                 completionIcon: Game.JNE.icon(2, 14, 'custom'),
-                dependencies: ['ledger_bonds'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['ledger_bonds'],
+                isActive: false
                 },
-                
+
                 'storm_devotion': {
                 name: 'Devotion through the storm',
                 description: 'The heavens split and gold fell like rain. Brothers clawed for riches, but you held back, hands bound in restraint. At the cookie\'s heart, you struck down the parasite, not the treasure.<q>This was no game of riddles but a trial of faith under fire. To take nothing when everything was within reach, that is what they demanded, and you gave it.</q>',
@@ -1552,11 +1048,10 @@
                 mainIcon: Game.JNE.icon(7, 15, 'custom'),
                 completionMessage: 'The storm passed, and you stood unshaken. They saw your devotion.',
                 completionIcon: Game.JNE.icon(7, 14, 'custom'),
-                dependencies: ['garden_pattern'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['garden_pattern'],
+                isActive: false
                 },
-                
+
                 'false_dawn': {
                 name: 'False dawn',
                 description: 'You moved inside their "counterfeit hour," quietly widening the mess, striking a recipe from the books, seating a voice, and making the offering, exactly as written. No alarms, only ledger stamps and small nods from stewards.<q>They call it false dawn: rules bend for those who know the language. Your name just rose on lists you were never meant to see.</q>',
@@ -1567,24 +1062,22 @@
                 completionMessage: 'The balances held. Stewards nodded; the mask didn\'t slip.',
                 completionIcon: Game.JNE.icon(5, 14, 'custom'),
                 dependencies: ['storm_devotion'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'rite_nine_flames': {
                 name: 'The rite of nine flames',
                 description: 'They entrusted you with the dragon\'s heart: nine flames, alone or in harmony, never the same. You performed the rite flawlessly, the chamber echoing with your voice as though it had always belonged there.<q>For the first time, you wondered: what if your mission ended here, among them? The thought didn\'t frighten you. It comforted you.</q>',
                 clue: 'Nine steps bind the shadowed wheel,<br>miss one, and the circle shatters, and you must begin again.<br><br>First, call the sickle and the miser, bind hunger and hoarding in false union.<br>Next, break stone beside the changeling\'s blood.<br>Then crown the crooked fruit with the whisper of arcane fire.<br>Let the mirror reflect the distorted image of superior thought.<br>Bind good fortune to the belly of the beast; greed feeds hunger.<br>At the sixth toll, let the glass falsely reflect the clock-thief, illusion clutching time.<br>The black tithe stands in solitude, unshared, unabashed.<br>Place steel alongside chance, forge and dice in solidarity.<br>And to seal the rite let silence fall across the world.',
-                hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.<br>• Focus on the items themselves not the buildings they belong to.',            
+                hint: '• Your dragon can wear many hats, it\'s important to remember that. These sound like they could be some of those hats.<br>• Silence at the end is key, don\'t forget to leave the dragon quiet.<br>• Focus on the items themselves not the buildings they belong to.',
                 puzzleClass: RiteNineFlamesPuzzle,
                 mainIcon: Game.JNE.icon(14, 16, 'custom'),
                 completionMessage: 'Nine flames tended. The dragon bowed. And part of you bowed with it.',
                 completionIcon: Game.JNE.icon(7, 14, 'custom'),
-                dependencies: ['storm_devotion'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['storm_devotion'],
+                isActive: false
                 },
-                
+
                 'six_jars_ledger': {
                 name: 'The six jars ledger',
                 puzzleClass: SixJarsLedgerPuzzle,
@@ -1595,10 +1088,9 @@
                 completionMessage: 'The jars balanced. And so did your steps, more easily than they should have.',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
                 dependencies: ['rite_nine_flames'],
-                isActive: false,
-                type: 'infiltrate'
+                isActive: false
                 },
-    
+
                 'nurses_fields': {
                 name: 'Nurses in fields of Flanders',
                 description: 'You walked the ward as though it were yours, filling beds, clearing corridors, leaving the patterns that were asked. The Caretaker nodded once and passed on.<q>Somewhere between the jars and the ward, you stopped pretending. When did that happen?</q>',
@@ -1608,11 +1100,10 @@
                 mainIcon: Game.JNE.icon(4, 16, 'custom'),
                 completionMessage: 'The halls emptied, the pattern endured. And you endured with it.',
                 completionIcon: Game.JNE.icon(3, 14, 'custom'),
-                dependencies: ['six_jars_ledger', 'watch_keeper_rounds'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['six_jars_ledger', 'watch_keeper_rounds'],
+                isActive: false
                 },
-                
+
                 'rule_lights': {
                 name: 'Celestial navigation',
                 description: 'They led you into the dark, you arranged the lamps until the night bent to their order. In that stillness, the path was clear.<q>You once sought to expose their secrets. Now you carry their lanterns. The line between watching and belonging fades with every step.</q>',
@@ -1622,11 +1113,10 @@
                 mainIcon: Game.JNE.icon(12, 16, 'custom'),
                 completionMessage: 'The lamps fall silent, save those they commanded. The Order\'s path shines before you.',
                 completionIcon: Game.JNE.icon(2, 14, 'custom'),
-                dependencies: ['nurses_fields'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['nurses_fields'],
+                isActive: false
                 },
-                
+
                 'vaulted_relics': {
                 name: 'Behind iron doors',
                 puzzleClass: VaultedRelicsPuzzle,
@@ -1637,10 +1127,9 @@
                 completionMessage: 'The reliquary closed. The cost is yours to bear.',
                 completionIcon: Game.JNE.icon(7, 14, 'custom'),
                 dependencies: ['rule_lights'],
-                isActive: false, 
-                type: 'infiltrate'
+                isActive: false
                 },
-                
+
                 'sigils': {
                 name: 'Hidden vows',
                 puzzleClass: SigilsPuzzle,
@@ -1650,11 +1139,10 @@
                 mainIcon: Game.JNE.icon(8, 14, 'custom'),
                 completionMessage: 'The fragments bound, the sigil shone. Whose mark did you make, theirs, or yours?',
                 completionIcon: Game.JNE.icon(4, 14, 'custom'),
-                dependencies: ['vaulted_relics', 'mask_wears_thin'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['vaulted_relics', 'mask_wears_thin'],
+                isActive: false
                 },
-                
+
                 'garden_maze': {
                 name: 'Walking the maze of the order',
                 puzzleClass: GardenMazePuzzle,
@@ -1664,25 +1152,23 @@
                 mainIcon: Game.JNE.icon(13, 17, 'custom'),
                 completionMessage: 'The petals fall behind you. The path is chosen. Whose path it is, that remains to be decided.',
                 completionIcon: Game.JNE.icon(3, 14, 'custom'),
-                dependencies: ['sigils', 'still_with_us'], 
-                isActive: false, 
-                type: 'infiltrate'
+                dependencies: ['sigils', 'still_with_us'],
+                isActive: false
                 },
 
                 'schism_choice': {
                 name: 'A fork in the road',
                 description: 'You have chosen {{expose:to expose The Order and their secrets||order:to stand with The Order}}. Now you must walk the path you have embraced.<q>There is no going back. Your allegiance has been declared.</q>',
                 clue: '<style>#tooltipCrate .description .schismClue, #tooltipCrate .description .schismClue q { color:#faeacd !important; }</style>Twelve sit the circle, with festive hats affixed, stewards of the ceaseless march.<br>Their measures are uneven: seven hold the longer reign, five the shorter.<br>Among the lesser, one forever limps, sometimes gaining a step but never the stature of its kin.<span class="schismClue"><br><br><b class="standWithOrder" style="color:#FFE0BD !important;">To stand with The Order let those of longer reign endure; cast the others into shadow.</b><br><br><b class="exposeOrder" style="color:#CFE1FF !important;">To expose The Order and their secrets to the world let those of longer reign fall; cast the others into the light.</b></span>',
-                hint: '• Don\'t forget the festive hats.<br>• When you realize what the ceaseless march is you will have the answer.',                
+                hint: '• Don\'t forget the festive hats.<br>• When you realize what the ceaseless march is you will have the answer.',
                 puzzleClass: SchismChoicePuzzle,
                 mainIcon: Game.JNE.icon(10, 14, 'custom'),
                 completionMessage: 'The choice is made. {{expose:You have chosen to expose The Order and their secrets to the world||order:You have chosen to stand with The Order}}. There is no turning back now.',
                 completionIcon: Game.JNE.icon(10, 14, 'custom'),
                 dependencies: ['still_with_us', 'garden_maze'],
-                isActive: false,
-                type: 'choose'
+                isActive: false
                 },
-                
+
             'embrace_path': {
                 name: 'Embrace the path',
                 puzzleClass: EmbracePathPuzzle,
@@ -1693,24 +1179,22 @@
                 completionMessage: '{{expose:Conviction proved. The Brotherhood line is cut; your signal runs outward alone.||order:Conviction proved. The rebel line is erased; only the Brothers hear you now.}}',
                 completionIcon: Game.JNE.icon(11, 17, 'custom'),
                 dependencies: ['schism_choice'],
-                isActive: false,
-                type: 'choose'
+                isActive: false
             },
-    
+
             'loyalty_test': {
                 name: 'Test of loyalty',
                 puzzleClass: LoyaltyTestPuzzle,
                 description: '{{expose:The Order would kill for this, technology enough to bend perceptions and the will of humanity. You kept it out of their hands and loosened a hidden seam in their plans.<q>Hide it deep. When the moment breaks, this is the weight that tips the scale.</q>||order:Whoever holds this holds the keys to power. You placed the artifact in the Brotherhood\'s vault, and with it, your trust.<q>With this secured, you are theirs in truth; when the call comes, you move with them.</q>}}',
-                clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;"><img src="https://raw.githubusercontent.com/dfsw/Cookies/main/tv.gif" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
+                clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;"><img id="jneLoyaltyTv" src="https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/tv/tv_0.webp" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
                 hint: '• Channel 3 is important, a screenshot might help you figure out what to do here.<br>• Etaoin is an important word here, but it\'s not a real word.',
                 mainIcon: Game.JNE.icon(14, 17, 'custom'),
-                completionMessage: '{{expose:The artifact is sealed away from their hands; their reach shortens.||order:The artifact rests in their vaults; the inner circle of The Order marks your name.}}',                    
+                completionMessage: '{{expose:The artifact is sealed away from their hands; their reach shortens.||order:The artifact rests in their vaults; the inner circle of The Order marks your name.}}',
                 completionIcon: Game.JNE.icon(14, 17, 'custom'),
                 dependencies: ['embrace_path'],
-                isActive: false,
-                type: 'choose'
+                isActive: false
                 },
-                
+
             'rise_up': {
                 name: 'Rise up',
                 puzzleClass: RiseUpPuzzle,
@@ -1721,10 +1205,9 @@
                 completionMessage: '{{expose:The exchange is complete; the endgame begins.||order:The exchange is complete; the purge begins.}}',
                     completionIcon: Game.JNE.icon(10, 17, 'custom'),
                 dependencies: ['loyalty_test'],
-                isActive: false,
-                type: 'choose'
+                isActive: false
                 },
-                
+
             'defeat_evil': {
                 name: 'The final battle',
                 puzzleClass: DefeatEvilPuzzle,
@@ -1735,15 +1218,12 @@
                 completionMessage: '{{expose:The Order\'s darkness has been exposed. Truth prevails.||order:The darkness has been vanquished. The Order prevails.}}',
                 completionIcon: Game.JNE.icon(9, 17, 'custom'),
                 dependencies: ['rise_up'],
-                isActive: false,
-                type: 'choose'
+                isActive: false
                 }
         };
 
-        // Assign trackOrder to each puzzle based on their type and current order
         assignTrackOrders();
-        
-        // Create instances for puzzles that have class definitions
+
         for (var puzzleId in cookieAgeData.puzzles.registry) {
             var puzzleData = cookieAgeData.puzzles.registry[puzzleId];
             if (puzzleData && puzzleData.puzzleClass) {
@@ -1755,159 +1235,113 @@
             }
         }
     }
-    
-    // ===== TRACK ORDER ASSIGNMENT =====
+
     function assignTrackOrders() {
-        // Assign trackOrder using explicit ordering arrays for deterministic results
-        for (var i = 0; i < INVESTIGATE_PUZZLE_ORDER.length; i++) {
-            var puzzleId = INVESTIGATE_PUZZLE_ORDER[i];
-            var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-            if (puzzle) {
-                puzzle.trackOrder = i;
-            }
-        }
-        
-        for (var j = 0; j < INFILTRATE_PUZZLE_ORDER.length; j++) {
-            var puzzleId = INFILTRATE_PUZZLE_ORDER[j];
-            var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-            if (puzzle) {
-                puzzle.trackOrder = j;
-            }
-        }
-        
-        for (var k = 0; k < CHOOSE_PUZZLE_ORDER.length; k++) {
-            var puzzleId = CHOOSE_PUZZLE_ORDER[k];
-            var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-            if (puzzle) {
-                puzzle.trackOrder = k;
+        for (var trackType in PUZZLE_ORDER) {
+            var order = PUZZLE_ORDER[trackType];
+            for (var i = 0; i < order.length; i++) {
+                var puzzle = cookieAgeData.puzzles.registry[order[i]];
+                if (puzzle) {
+                    puzzle.type = trackType;
+                    puzzle.trackOrder = i;
+                }
             }
         }
     }
-    
-    // ===== TRACK MANAGEMENT FUNCTIONS =====
+
     function getPuzzleByTrackOrder(trackType, order) {
-        // Use explicit ordering arrays for deterministic results
-        if (trackType === 'investigate' && order < INVESTIGATE_PUZZLE_ORDER.length) {
-            return INVESTIGATE_PUZZLE_ORDER[order];
-        } else if (trackType === 'infiltrate' && order < INFILTRATE_PUZZLE_ORDER.length) {
-            return INFILTRATE_PUZZLE_ORDER[order];
-        } else if (trackType === 'choose' && order < CHOOSE_PUZZLE_ORDER.length) {
-            return CHOOSE_PUZZLE_ORDER[order];
-        }
-        return null;
+        var orderArr = PUZZLE_ORDER[trackType];
+        return (orderArr && order < orderArr.length) ? orderArr[order] : null;
     }
-    
+
     function ensureTracksInitialized() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {
-            setupPuzzleSystem();
-        }
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {setupPuzzleSystem();}
     }
-    
+
     function getNextPuzzleForTrack(trackType) {
         ensureTracksInitialized();
         var track = cookieAgeData.puzzles.tracks[trackType];
-        var nextOrder = track.progress; // Next puzzle is at current progress index
-        
+        var nextOrder = track.progress;
+
         var nextPuzzleId = getPuzzleByTrackOrder(trackType, nextOrder);
-        
-        if (nextPuzzleId && isPuzzleUnlocked(nextPuzzleId)) {
-            return nextPuzzleId;
-        }
-        
+
+        if (nextPuzzleId && isPuzzleUnlocked(nextPuzzleId)) {return nextPuzzleId;}
+
         return null;
     }
-    
+
     function checkCrossTrackUnlocks(trackType) {
-        // Check all puzzles in this track to see if any have dependencies satisfied
         ensureTracksInitialized();
-        var puzzleOrder;
-        if (trackType === 'investigate') {
-            puzzleOrder = INVESTIGATE_PUZZLE_ORDER;
-        } else if (trackType === 'infiltrate') {
-            puzzleOrder = INFILTRATE_PUZZLE_ORDER;
-        } else if (trackType === 'choose') {
-            puzzleOrder = CHOOSE_PUZZLE_ORDER;
-        } else {
-            return false;
-        }
-        
+        var puzzleOrder = PUZZLE_ORDER[trackType];
+        if (!puzzleOrder) return false;
+
         for (var i = 0; i < puzzleOrder.length; i++) {
             var puzzleId = puzzleOrder[i];
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-            
+
             if (!puzzle) continue;
-            
-            // Skip if this puzzle is already active in any track
+
             var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
             var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
             var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
             var isActive = investigateActive === puzzleId || infiltrateActive === puzzleId || chooseActive === puzzleId;
-            if (isActive) {
-                continue;
-            }
-            
-            // Skip puzzles that are already completed
-            if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
-                continue;
-            }
-            
+            if (isActive) {continue;}
+
+            if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {continue;}
+
             // cross-track dependencies that are now satisfied
             if (puzzle.dependencies && puzzle.dependencies.length > 0) {
                 var allDependenciesSatisfied = true;
                 var hasCrossTrackDep = false;
-                
+
                 for (var j = 0; j < puzzle.dependencies.length; j++) {
                     var depId = puzzle.dependencies[j];
                     var depPuzzle = cookieAgeData.puzzles.registry[depId];
                     if (!depPuzzle) continue;
-                    
-                    if (depPuzzle.type !== trackType) {
-                        hasCrossTrackDep = true;
-                    }
-                    
+
+                    if (depPuzzle.type !== trackType) {hasCrossTrackDep = true;}
+
                     var isCompleted = cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(depId) !== -1;
-                    
+
                     if (!isCompleted) {
                         allDependenciesSatisfied = false;
                         break;
                     }
                 }
-                
-                // If this puzzle has cross-track dependencies that are all satisfied, activate it
-                // BUT only if it's the next puzzle in sequence (to avoid skipping puzzles)
+
+                // If this puzzle has cross-track dependencies that are all satisfied, activate it BUT only if it's the next puzzle in sequence
                 var currentProgress = cookieAgeData.puzzles.tracks[trackType].progress;
-                
+
                 if (hasCrossTrackDep && allDependenciesSatisfied && isPuzzleUnlocked(puzzleId) && puzzle.trackOrder === currentProgress) {
+                    var previousActive = cookieAgeData.puzzles.tracks[trackType].active;
+                    if (previousActive && previousActive !== puzzleId) {deactivateCurrentPuzzle(previousActive);}
                     cookieAgeData.puzzles.tracks[trackType].active = puzzleId;
+                    puzzle.isActive = true;
                     setupPuzzle(puzzleId);
                     return true;
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     function activateNextPuzzleForTrack(trackType) {
         ensureTracksInitialized();
         var currentActive = cookieAgeData.puzzles.tracks[trackType].active;
-        
-        // Clean up current active puzzle if one exists
+
         if (currentActive) {
+            deactivateCurrentPuzzle(currentActive);
             var currentPuzzle = cookieAgeData.puzzles.registry[currentActive];
-            if (currentPuzzle && currentPuzzle.cleanup) {
-                currentPuzzle.cleanup();
-            }
+            if (currentPuzzle) {currentPuzzle.isActive = false;}
         }
-        
+
         var nextPuzzle = getNextPuzzleForTrack(trackType);
         if (nextPuzzle) {
             cookieAgeData.puzzles.tracks[trackType].active = nextPuzzle;
             var puzzle = cookieAgeData.puzzles.registry[nextPuzzle];
-            if (puzzle) {
-                puzzle.isActive = true;
-            }
-            
+            if (puzzle) {puzzle.isActive = true;}
+
             // Record activation timestamp for hint system - ensure hints system is initialized
             if (!cookieAgeData.puzzles.hints) {
                 cookieAgeData.puzzles.hints = {
@@ -1925,20 +1359,22 @@
                 };
             }
             // preserve existing activation time (from save) so cooldown timers survive load
-            if (!cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType]) {
-                cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();
+            if (!cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType]) {cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();}
+
+            // Retry failed setups on the next check tick so a transient failure doesn't stall the track
+            if (puzzle && !setupPuzzle(nextPuzzle) && Game.registerHook) {
+                var retryHook = function() {
+                    if (cookieAgeData.puzzles.tracks[trackType].active !== nextPuzzle || setupPuzzle(nextPuzzle)) {Game.removeHook('check', retryHook);}
+                };
+                retryHook.__cookieAge = true;
+                Game.registerHook('check', retryHook);
             }
-            
-            setupPuzzle(nextPuzzle);
         } else {
-            // No next puzzle available, clear active and activation time
             cookieAgeData.puzzles.tracks[trackType].active = null;
-            if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.puzzleActivationTimes) {
-                cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = null;
-            }
+            if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.puzzleActivationTimes) {cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = null;}
         }
     }
-    
+
     function initializePuzzleTracks() {
         if (!cookieAgeData.puzzles.tracks) {
             cookieAgeData.puzzles.tracks = {
@@ -1948,280 +1384,141 @@
                 _initialized: false
             };
         }
-        
+
         // Mark as initialized BEFORE activating puzzles to prevent infinite loop
         cookieAgeData.puzzles.tracks._initialized = true;
-        
-        // Check if any debug start puzzles are set (only when debugMode is true)
-        if (debugMode && (debugStartInvestigate !== null || debugStartInfiltrate !== null || debugStartChoose !== null)) {
-            applyDebugStartPuzzles();
-            
-            // For any track not set by debug (null), activate first puzzle normally
-            if (debugStartInvestigate === null && !cookieAgeData.puzzles.tracks.investigate.active) {
-                activateNextPuzzleForTrack('investigate');
-            }
-            if (debugStartInfiltrate === null && !cookieAgeData.puzzles.tracks.infiltrate.active) {
-                activateNextPuzzleForTrack('infiltrate');
-            }
-            if (debugStartChoose === null && !cookieAgeData.puzzles.tracks.choose.active) {
-                activateNextPuzzleForTrack('choose');
-            }
-            return;
-        }
-        
-        // Normal initialization - activate first puzzle in each track
+
         activateNextPuzzleForTrack('investigate');
         activateNextPuzzleForTrack('infiltrate');
         activateNextPuzzleForTrack('choose');
     }
-    
-    // ===== PUZZLE LIFECYCLE MANAGEMENT =====
+
     function isPuzzleUnlocked(puzzleId) {
         ensurePuzzleSystemInitialized();
-        ensureTracksInitialized();
-        
-        var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-        if (!puzzle) return false;
-        
-        // debug flag bypasses all dependency checks
-        if (debugMode) {
-            if (puzzle.type === 'investigate' && debugStartInvestigate !== null && debugStartInvestigate !== undefined) {
-                if (debugStartInvestigate === 'complete') {
-                    return true; // All investigate puzzles are unlocked when set to 'complete'
-                }
-                var debugPuzzle = cookieAgeData.puzzles.registry[debugStartInvestigate];
-                if (debugPuzzle && puzzle.trackOrder <= debugPuzzle.trackOrder) {
-                    return true;
-                }
-                // If this is the exact puzzle set via debug, bypass dependency checks
-                if (puzzleId === debugStartInvestigate) {
-                    return true;
-                }
-            }
-            if (puzzle.type === 'infiltrate' && debugStartInfiltrate !== null && debugStartInfiltrate !== undefined) {
-                if (debugStartInfiltrate === 'complete') {
-                    return true; // All infiltrate puzzles are unlocked when set to 'complete'
-                }
-                var debugPuzzle2 = cookieAgeData.puzzles.registry[debugStartInfiltrate];
-                if (debugPuzzle2 && puzzle.trackOrder <= debugPuzzle2.trackOrder) {
-                    return true;
-                }
-                // If this is the exact puzzle set via debug, bypass dependency checks
-                if (puzzleId === debugStartInfiltrate) {
-                    return true;
-                }
-            }
-            if (puzzle.type === 'choose' && debugStartChoose !== null && debugStartChoose !== undefined) {
-                if (debugStartChoose === 'complete') {
-                    return true; // All choose puzzles are unlocked when set to 'complete'
-                }
-                var debugPuzzle3 = cookieAgeData.puzzles.registry[debugStartChoose];
-                if (debugPuzzle3 && puzzle.trackOrder <= debugPuzzle3.trackOrder) {
-                    return true;
-                }
-                // If this is the exact puzzle set via debug, bypass dependency checks
-                if (puzzleId === debugStartChoose) {
-                    return true;
-                }
-            }
-        }
-        
-        // Check cross-track dependencies
-        for (var i = 0; i < puzzle.dependencies.length; i++) {
-            var depId = puzzle.dependencies[i];
-            var depPuzzle = cookieAgeData.puzzles.registry[depId];
-            if (!depPuzzle) continue;
-            
-            var depTrack = depPuzzle.type;
-            var depTrackOrder = depPuzzle.trackOrder;
-            
-            if (depTrackOrder >= cookieAgeData.puzzles.tracks[depTrack].progress) {
-                return false;
-            }
-        }
-        return true;
+        return isPuzzleProgressValid(puzzleId);
     }
-    
+
     function deactivateCurrentPuzzle(puzzleId) {
-        // Clean up the specific puzzle that was completed
-        if (!puzzleId) {
-            return;
-        }
-        
+        if (!puzzleId) {return;}
+
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-        if (puzzle && puzzle.isActive) {
-            // Use generic cleanup handler with the specific puzzle ID
+        if (puzzle && (puzzle.isActive || (puzzle.instance && puzzle.instance._setupComplete))) {
             cleanupPuzzle(puzzleId);
             puzzle.isActive = false;
         }
     }
-    
-    // Universal helper to check if puzzle can be completed (prevents duplicate attempts)
+
     function canCompletePuzzle(puzzleId) {
-        if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
-            return false;
-        }
+        if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {return false;}
 
-        if (cookieAgeData.puzzles.completing && cookieAgeData.puzzles.completing[puzzleId]) {
-            return false;
-        }
+        if (cookieAgeData.puzzles.completing && cookieAgeData.puzzles.completing[puzzleId]) {return false;}
 
-        if (cookieAgeData.puzzles.notificationsShown && cookieAgeData.puzzles.notificationsShown[puzzleId]) {
-            return false;
-        }
+        if (cookieAgeData.puzzles.notificationsShown && cookieAgeData.puzzles.notificationsShown[puzzleId]) {return false;}
 
         return true;
     }
-    
-    // Safe wrapper for completing puzzles - prevents double completion
+
     function tryCompletePuzzle(puzzleId) {
-        // guard against double completion before anything else
-        if (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed && 
+        if (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed &&
             cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
             return false;
         }
-        
-        // Use universal helper to check if puzzle can be completed
-        if (!canCompletePuzzle(puzzleId)) {
-            return false;
-        }
-        
-        // Initialize arrays if they don't exist
-        if (!cookieAgeData.puzzles.completed) {
-            cookieAgeData.puzzles.completed = [];
-        }
-        if (!cookieAgeData.puzzles.completing) {
-            cookieAgeData.puzzles.completing = {};
-        }
-        if (!cookieAgeData.puzzles.notificationsShown) {
-            cookieAgeData.puzzles.notificationsShown = {};
-        }
-        
+
+        if (!canCompletePuzzle(puzzleId)) {return false;}
+
+        if (!cookieAgeData.puzzles.completed) {cookieAgeData.puzzles.completed = [];}
+        if (!cookieAgeData.puzzles.completing) {cookieAgeData.puzzles.completing = {};}
+        if (!cookieAgeData.puzzles.notificationsShown) {cookieAgeData.puzzles.notificationsShown = {};}
+
         // Mark as completing immediately to block other calls
         cookieAgeData.puzzles.completing[puzzleId] = true;
-        
+
         // mark complete before completePuzzle() so re-entrant calls bail out
-        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-            cookieAgeData.puzzles.completed.push(puzzleId);
-        }
-        
+        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {cookieAgeData.puzzles.completed.push(puzzleId);}
+
         completePuzzle(puzzleId);
         return true;
     }
-    
+
     function completePuzzle(puzzleId) {
         ensurePuzzleSystemInitialized();
         ensureTracksInitialized();
-        
         // already checked and added in tryCompletePuzzle(), don't re-check here
-        // or the first legitimate completion would be blocked
-        
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
             errorLog('Cannot complete puzzle', puzzleId, '- not found in registry');
             return false;
         }
-        
-        
+
         var trackType = puzzle.type;
         var track = cookieAgeData.puzzles.tracks[trackType];
 
-        // mark complete + advance progress before activating next,
-        // so completion is recorded even if activation fails
-        // (already added in tryCompletePuzzle, double-check to avoid duplicates)
-        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
-        cookieAgeData.puzzles.completed.push(puzzleId);
-        }
+        // mark complete + advance progress before activating next, so completion is recorded even if activation fails
+        if (cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {cookieAgeData.puzzles.completed.push(puzzleId);}
         track.progress++;
 
-        // clean up the completed puzzle and clear active status
         deactivateCurrentPuzzle(puzzleId);
         track.active = null;
-        
-        // Remove hint from purchased hints when puzzle is completed
-        if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
-            delete cookieAgeData.puzzles.hints.purchasedHints[puzzleId];
-        }
+
+        if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {delete cookieAgeData.puzzles.hints.purchasedHints[puzzleId];}
 
         // reset activation time so the next puzzle can accept hints immediately
-        if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.puzzleActivationTimes) {
-            cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = null;
-        }
+        if (cookieAgeData.puzzles.hints && cookieAgeData.puzzles.hints.puzzleActivationTimes) {cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = null;}
 
-        // activate next puzzle (sets its activation time)
         activateNextPuzzleForTrack(trackType);
-        
-        // Check all tracks for newly available puzzles due to cross-track dependencies
+
         var allTrackTypes = ['investigate', 'infiltrate', 'choose'];
         for (var i = 0; i < allTrackTypes.length; i++) {
             var otherTrackType = allTrackTypes[i];
 
             // Skip the track that just completed (it already activated its next puzzle)
-            if (otherTrackType === trackType) {
-                continue;
-            }
-            
+            if (otherTrackType === trackType) {continue;}
+
             var hasActivePuzzle = cookieAgeData.puzzles.tracks[otherTrackType].active;
-            
+
             if (!hasActivePuzzle) {
                 activateNextPuzzleForTrack(otherTrackType);
             } else {
-                // Even if there's an active puzzle, check if any puzzle in this track now has dependencies satisfied
                 checkCrossTrackUnlocks(otherTrackType);
             }
         }
-        
-        // Play completion audio
-        playAudioSound('puzzleCompletion');
-        
-        // Show completion message from registry (only if not already shown)
+
+        playExpansionSound();
+
         if (!cookieAgeData.puzzles.notificationsShown || !cookieAgeData.puzzles.notificationsShown[puzzleId]) {
             var message = processConditionalText(puzzle.completionMessage);
             var icon = puzzle.completionIcon;
             new Game.Note('Puzzle solved!', message, icon, 64800); // 18 hours
-            
-            // Mark notification as shown
-            if (!cookieAgeData.puzzles.notificationsShown) {
-                cookieAgeData.puzzles.notificationsShown = {};
-            }
+
+            if (!cookieAgeData.puzzles.notificationsShown) {cookieAgeData.puzzles.notificationsShown = {};}
             cookieAgeData.puzzles.notificationsShown[puzzleId] = true;
         }
 
-        // Force UI refresh to show updated puzzle completion status
         if (Game.UpdateMenu) {
             setTimeout(function() {
                 Game.UpdateMenu();
             }, 100);
         }
 
-        // Clear the in-progress flag now that completion is done
-        if (cookieAgeData.puzzles.completing) {
-            delete cookieAgeData.puzzles.completing[puzzleId];
-        }
-        
-        // Check and award all achievements whose conditions might now be met
+        if (cookieAgeData.puzzles.completing) {delete cookieAgeData.puzzles.completing[puzzleId];}
+
         checkAndAwardAllAchievements(puzzleId);
 
         return true;
     }
-    
-    // Check if a completed puzzle corresponds to a mystery achievement milestone and award it
+
     function checkAndAwardMysteryAchievement(puzzleId) {
         var completedPuzzles = cookieAgeData.puzzles.completed || [];
-        
-        // Check ALL mystery achievements to see if any should now be awarded
-        for (var i = 0; i < mysteryMilestonePuzzles.length; i++) {
-            var milestonePuzzle = mysteryMilestonePuzzles[i];
-            var achievementName = mysteryAchievementNames[i];
-            
+
+        for (var i = 0; i < mysteryMilestones.length; i++) {
+            var milestonePuzzle = mysteryMilestones[i].puzzle;
+            var achievementName = mysteryMilestones[i].achievement;
+
             if (completedPuzzles.indexOf(milestonePuzzle) !== -1) {
                 if (Game.Achievements[achievementName]) {
                     if (!Game.Achievements[achievementName].won) {
                         // clear _restoredFromSave so it can be awarded
-                        if (Game.Achievements[achievementName]._restoredFromSave) {
-                            Game.Achievements[achievementName]._restoredFromSave = false;
-                        }
-                        // Award the achievement using the base mod's helper
+                        if (Game.Achievements[achievementName]._restoredFromSave) {Game.Achievements[achievementName]._restoredFromSave = false;}
                         try {
                             if (Game.JNE && Game.JNE.markAchievementWon) {
                                 Game.JNE.markAchievementWon(achievementName);
@@ -2241,21 +1538,16 @@
             }
         }
     }
-    
-    // Check all achievements to see if any conditions are now met after puzzle completion
+
     function checkAndAwardAllAchievements(puzzleId) {
         checkAndAwardMysteryAchievement(puzzleId);
     }
-    
-    // ===== HINT SYSTEM FUNCTIONS =====
+
      function getHintCost() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {
-            return 1;
-        }
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {return 1;}
         return (cookieAgeData.puzzles.hints.hintsUsed || 0) + 1;
     }
-    
-    // Format milliseconds as "Xh Ym" or "Ym" or "Xs"
+
     function formatCountdown(ms) {
         if (ms <= 0) return '0s';
         var seconds = Math.floor(ms / 1000);
@@ -2263,26 +1555,18 @@
         var hours = Math.floor(minutes / 60);
         seconds = seconds % 60;
         minutes = minutes % 60;
-        
+
         var parts = [];
-        if (hours > 0) {
-            parts.push(hours + 'h');
-        }
-        if (minutes > 0) {
-            parts.push(minutes + 'm');
-        }
-        if (seconds > 0 && hours === 0) {
-            parts.push(seconds + 's');
-        }
-        
+        if (hours > 0) {parts.push(hours + 'h');}
+        if (minutes > 0) {parts.push(minutes + 'm');}
+        if (seconds > 0 && hours === 0) {parts.push(seconds + 's');}
+
         return parts.length > 0 ? parts.join(' ') : '0s';
     }
-    
+
     // 2 hours after activation
     function getTimeUntilPuzzleHintAvailable(trackType) {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {
-            return null;
-        }
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints) {return null;}
         if (!cookieAgeData.puzzles.hints.puzzleActivationTimes) {
             cookieAgeData.puzzles.hints.puzzleActivationTimes = {
                 investigate: null,
@@ -2291,15 +1575,14 @@
             };
         }
         var activationTime = cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType];
-        var twoHours = 2 * 60 * 60 * 1000; // 2 hours
+        var twoHours = 2 * 60 * 60 * 1000;
 
         if (!activationTime) {
-            // If there's an active puzzle but no activation time, set it now and enforce cooldown
             var track = cookieAgeData.puzzles.tracks && cookieAgeData.puzzles.tracks[trackType];
             if (track && track.active) {
                 // Puzzle is active but no activation time set - set it now and return full cooldown
                 cookieAgeData.puzzles.hints.puzzleActivationTimes[trackType] = Date.now();
-                
+
                 return twoHours;
             }
             return null;
@@ -2309,220 +1592,159 @@
         var remaining = twoHours - elapsed;
         return remaining > 0 ? remaining : 0;
     }
-    
+
     // 24 hours since last hint
     function getTimeUntilHintCooldownExpires() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.lastHintTime) {
-            return 0; // No cooldown if never used
-        }
-        var hintCooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.lastHintTime) {return 0;} // No cooldown if never used
+        var hintCooldownMs = 24 * 60 * 60 * 1000;
         var elapsed = Date.now() - cookieAgeData.puzzles.hints.lastHintTime;
         var remaining = hintCooldownMs - elapsed;
         return remaining > 0 ? remaining : 0;
     }
-    
+
     function getAvailablePuzzlesForHint() {
         ensurePuzzleSystemInitialized();
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
-            return [];
-        }
-        
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {return [];}
+
         var eligiblePuzzles = [];
         var trackTypes = ['investigate', 'infiltrate', 'choose'];
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
-        
+
         for (var i = 0; i < trackTypes.length; i++) {
             var trackType = trackTypes[i];
             var track = cookieAgeData.puzzles.tracks[trackType];
-            
-            if (!track.active) {
-                continue;
-            }
+
+            if (!track.active) {continue;}
 
             var puzzleId = track.active;
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
 
-            if (!puzzle || !cookieAgeData.puzzles.completed || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
-                continue;
-            }
+            if (!puzzle || !cookieAgeData.puzzles.completed || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {continue;}
 
-            if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
-                continue;
-            }
+            if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {continue;}
 
-            // Both cooldowns must be satisfied
-            if (hintCooldownRemaining > 0) {
-                continue;
-            }
-            
-            // Check puzzle cooldown
+            if (hintCooldownRemaining > 0) {continue;}
+
             var puzzleCooldownRemaining = getTimeUntilPuzzleHintAvailable(trackType);
-            if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {
-                continue;
-            }
-            
+            if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {continue;}
+
             var cost = getHintCost();
-            if (!Game.lumps || Game.lumps < cost) {
-                continue; // Not enough sugar lumps, skip this puzzle
-            }
-            
-            // Puzzle is eligible
+            if (!Game.lumps || Game.lumps < cost) {continue;} // Not enough sugar lumps, skip this puzzle
+
             eligiblePuzzles.push({
                 trackType: trackType,
                 puzzleId: puzzleId,
                 puzzle: puzzle
             });
         }
-        
+
         return eligiblePuzzles;
     }
-    
+
     function getActiveHints() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.purchasedHints) {
-            return [];
-        }
-        
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.hints.purchasedHints) {return [];}
+
         var activeHints = [];
         var trackTypes = ['investigate', 'infiltrate', 'choose'];
-        
+
         for (var i = 0; i < trackTypes.length; i++) {
             var trackType = trackTypes[i];
             var track = cookieAgeData.puzzles.tracks[trackType];
-            
-            if (!track.active) {
-                continue;
-            }
+
+            if (!track.active) {continue;}
 
             var puzzleId = track.active;
 
             // no hints for completed puzzles
-            if (cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
-                continue;
-            }
+            if (cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {continue;}
+            if (!cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {continue;}
 
-            if (!cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
-                continue;
-            }
-            
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
             if (puzzle) {
-                // Use hint property
                 var hintText = puzzle.hint || '';
                 if (hintText) {
                     activeHints.push({
                         trackType: trackType,
                         puzzleId: puzzleId,
-                        puzzleName: puzzle.name,
                         hintText: hintText
                     });
                 }
             }
         }
-        
+
         return activeHints;
     }
-    
+
     function getTrackDisplayName(trackType) {
         if (trackType === 'investigate') {
             return 'Investigate the Order of the Cookie';
         } else if (trackType === 'infiltrate') {
             return 'Infiltrate the Brotherhood';
-        } else if (trackType === 'choose') {
-            return 'Choose Your Allegiance';
-        }
+        } else if (trackType === 'choose') {return 'Choose Your Allegiance';}
         return trackType;
     }
-    
-    // Purchase a hint for a specific track
+
     function purchaseHint(trackType) {
         ensurePuzzleSystemInitialized();
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.tracks) {
-            return false;
-        }
-        
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.tracks) {return false;}
+
         var track = cookieAgeData.puzzles.tracks[trackType];
-        if (!track || !track.active) {
-            return false;
-        }
-        
+        if (!track || !track.active) {return false;}
+
         var puzzleId = track.active;
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-        
-        // Validate puzzle exists and is not completed
-        if (!puzzle || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {
-            return false;
-        }
 
-        if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
-            return false;
-        }
-        
-        // Both cooldowns must be satisfied - check hint cooldown
+        if (!puzzle || cookieAgeData.puzzles.completed.indexOf(puzzleId) !== -1) {return false;}
+        if (cookieAgeData.puzzles.hints.purchasedHints && cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {return false;}
+
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
-        if (hintCooldownRemaining > 0) {
-            return false;
-        }
-        
-        // Check puzzle cooldown 
+        if (hintCooldownRemaining > 0) {return false;}
+
         var puzzleCooldownRemaining = getTimeUntilPuzzleHintAvailable(trackType);
-        if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {
-            return false;
-        }
-        
-        // Check sugar lumps
+        if (puzzleCooldownRemaining === null || puzzleCooldownRemaining > 0) {return false;}
+
         var cost = getHintCost();
-        if (!Game.lumps || Game.lumps < cost) {
-            return false;
-        }
-        
-        // Deduct sugar lumps
+        if (!Game.lumps || Game.lumps < cost) {return false;}
+
         Game.lumps -= cost;
-        
         cookieAgeData.puzzles.hints.hintsUsed = (cookieAgeData.puzzles.hints.hintsUsed || 0) + 1;
         cookieAgeData.puzzles.hints.lastHintTime = Date.now();
-        
-        // Mark hint as purchased for this puzzle
-        if (!cookieAgeData.puzzles.hints.purchasedHints) {
-            cookieAgeData.puzzles.hints.purchasedHints = {};
-        }
+
+        if (!cookieAgeData.puzzles.hints.purchasedHints) {cookieAgeData.puzzles.hints.purchasedHints = {};}
         cookieAgeData.puzzles.hints.purchasedHints[puzzleId] = true;
-        
-        // Refresh tooltip if it's open
+
         if (Game.tooltip && Game.tooltip.lock === 'hintPurchase') {
             Game.tooltip.dynamic = 1;
             setTimeout(function() {
-                if (Game.tooltip && Game.tooltip.lock === 'hintPurchase') {
-                    Game.tooltip.draw();
-                }
+                if (Game.tooltip && Game.tooltip.lock === 'hintPurchase') {Game.tooltip.draw();}
             }, 10);
         }
-        
-        // Refresh stats menu
+
         if (Game.UpdateMenu) {
             setTimeout(function() {
                 Game.UpdateMenu();
             }, 50);
         }
-        
+
         return true;
     }
-    
+
     function getHintTooltipContent() {
         ensurePuzzleSystemInitialized();
-        
+
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.hints || !cookieAgeData.puzzles.completed) {
             var iconX = 3;
             var iconY = 35;
             var iconUrl = gardenSpriteSheetUrl;
             return '<div style="padding:8px 4px;min-width:350px;position:relative;" id="tooltipCrate"><div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-position: -' + (iconX * 48) + 'px -' + (iconY * 48) + 'px; background-image: url(\'' + iconUrl + '\');"></div><div class="name">Purchase Hint</div><div class="description">Not available</div></div>';
         }
-        
+
         var html = '';
         var cost = getHintCost();
         var hintsUsed = cookieAgeData.puzzles.hints.hintsUsed || 0;
         var activeHints = getActiveHints();
         var hintCooldownRemaining = getTimeUntilHintCooldownExpires();
-        
+
         var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:top;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;position:relative;left:30px;top:-4px;"></div>';
         // Use the raw cost number - LBeautify returns an object, not a string
         var costNumber = String(cost);
@@ -2532,17 +1754,13 @@
         var costDisplay = '<b style="color:' + costColor + ';text-shadow:' + costShadow + ';white-space:nowrap;">' + sugarLumpIcon + ' ' + costNumber + '</b>';
         html += '<div class="name">Purchase Hint<span style="float:right;line-height:1.2;">' + costDisplay + '</span></div>';
         html += '<div class="line"></div>';
-        
-        // Show description text when no hints are active
+
         if (activeHints.length === 0) {
             html += '<div class="description" style="margin-top:4px;">Provides a small hint for active puzzles to help you along the way. Each puzzle has a <b>single</b> hint. You can use one hint every <b>24 hours</b>, and you must wait at least <b>two hours</b> after unlocking a puzzle before using a hint on it.<br><br>Each hint is more expensive than the last.<br></div>';        }
-        
-        // Check cooldowns - check ALL active puzzles for cooldowns, not just eligible ones
-        // Show any cooldown that is blocking a purchase
+
         var hasCooldown = false;
         var cooldownMessages = [];
-        
-        // First, check if there are any puzzles that could potentially buy hints (don't have hints yet)
+
         var hasPotentialPurchases = false;
         var trackTypes = ['investigate', 'infiltrate', 'choose'];
         for (var i = 0; i < trackTypes.length; i++) {
@@ -2559,16 +1777,13 @@
                 }
             }
         }
-        
+
         // show cooldown even when it blocks all purchases (availablePuzzles.length === 0)
         if (hintCooldownRemaining > 0 && hasPotentialPurchases) {
             hasCooldown = true;
             cooldownMessages.push('<div class="description">Hint cooldown remaining <b style="color:#ff0000;">' + formatCountdown(hintCooldownRemaining) + '</b></div>');
         }
-        
-        // Check puzzle cooldowns for all active puzzles (not just eligible ones)
-        // Show puzzle cooldown if it's blocking the purchase of a hint for that puzzle
-        // Process ALL tracks to ensure all cooldowns are shown
+
         for (var j = 0; j < trackTypes.length; j++) {
             var trackType = trackTypes[j];
             var track = cookieAgeData.puzzles.tracks[trackType];
@@ -2580,8 +1795,6 @@
                 if (puzzle && cookieAgeData.puzzles.completed.indexOf(puzzleId) === -1) {
                     if (!cookieAgeData.puzzles.hints.purchasedHints || !cookieAgeData.puzzles.hints.purchasedHints[puzzleId]) {
                         var puzzleCooldown = getTimeUntilPuzzleHintAvailable(trackType);
-                        // Show cooldown if it exists and would block a purchase (cooldown > 0)
-                        // Always show puzzle cooldown when it's blocking a purchase
                         if (puzzleCooldown !== null && puzzleCooldown > 0) {
                             hasCooldown = true;
                             var trackName = getTrackDisplayName(trackType);
@@ -2591,13 +1804,13 @@
                 }
             }
         }
-        
+
         if (hasCooldown) {
             html += cooldownMessages.join('');
             html += '<div class="line"></div>';
         }
-        
-        // Show active hints - only show track name, never puzzle name
+
+        // Show active hints - only show track name, not puzzle name
         if (activeHints.length > 0) {
             html += '<div class="description"><b>Active Hints:</b></div>';
             for (var j = 0; j < activeHints.length; j++) {
@@ -2607,8 +1820,7 @@
             }
             html += '<div class="line"></div>';
         }
-        
-        // Show availability status
+
         if (!hasCooldown) {
             var hasActivePuzzle = false;
             if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {
@@ -2625,38 +1837,30 @@
                     }
                 }
             }
-            
-            if (!hasActivePuzzle) {
-                html += '<div class="description" style="color:#888;">No puzzles available for hints</div>';
-            }
+
+            if (!hasActivePuzzle) {html += '<div class="description" style="color:#888;">No puzzles available for hints</div>';}
         }
-        
-        // Show hints used at bottom 
+
         if (hintsUsed >= 1) {
             var hintText = hintsUsed === 1 ? 'hint' : 'hints';
             html += '<div class="description" style="text-align:center;font-size:10px;color:#aaa;">' + hintsUsed + ' ' + hintText + ' used</div>';
         }
-        
-        //icon
+
         var iconX = 3;
         var iconY = 35;
         var iconUrl = gardenSpriteSheetUrl;
         var wrappedHtml = '<div style="padding:8px 4px;min-width:350px;position:relative;" id="tooltipCrate"><div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-position: -' + (iconX * 48) + 'px -' + (iconY * 48) + 'px; background-image: url(\'' + iconUrl + '\');"></div>' + html + '</div>';
-        
+
         return wrappedHtml;
     }
-    
-    // Show track selection prompt for hint purchase
+
     function showHintTrackSelection() {
         var availablePuzzles = getAvailablePuzzlesForHint();
-        if (availablePuzzles.length === 0) {
-            return;
-        }
-        
+        if (availablePuzzles.length === 0) {return;}
+
         var cost = getHintCost();
-        
+
         if (!Game.lumps || Game.lumps < cost) {
-            // Use same icon format as tooltip - 24px display with transform scale
             var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:middle;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;"></div>';
             var sugarLumpText = '';
             if (typeof loc !== 'undefined' && typeof LBeautify !== 'undefined') {
@@ -2665,16 +1869,15 @@
                 sugarLumpText = cost + ' sugar lump' + (cost !== 1 ? 's' : '');
             }
             var formattedCost = '<b style="color:#8cff66;text-shadow:0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e;">' + sugarLumpIcon + ' ' + sugarLumpText + '</b>';
-            Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + formattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>', 
+            Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + formattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>',
                 [['OK', 'Game.ClosePrompt();', 'float:right']]);
             return;
         }
-        
+
         var doPurchase = function(trackType) {
-            // Check sugar lumps again before showing confirmation (might have changed)
+            // Check sugar lumps again before showing confirmation
             var currentCost = getHintCost();
             if (!Game.lumps || Game.lumps < currentCost) {
-                // Use same icon format as tooltip - 24px display with transform scale
                 var sugarLumpIcon = '<div style="width:48px;height:48px;display:inline-block;vertical-align:middle;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;margin-right:4px;overflow:hidden;"></div>';
                 var sugarLumpText = '';
                 if (typeof loc !== 'undefined' && typeof LBeautify !== 'undefined') {
@@ -2683,12 +1886,11 @@
                     sugarLumpText = currentCost + ' sugar lump' + (currentCost !== 1 ? 's' : '');
                 }
                 var formattedCost = '<b style="color:#8cff66;text-shadow:0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e;">' + sugarLumpIcon + ' ' + sugarLumpText + '</b>';
-                Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + formattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>', 
+                Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + formattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>',
                     [['OK', 'Game.ClosePrompt();', 'float:right']]);
                 return;
             }
-            
-            // Show confirmation dialog before spending sugar lump
+
             var sugarLumpIcon = '<span style="display:inline-block;width:24px;height:24px;overflow:hidden;vertical-align:middle;line-height:0;font-size:0;margin:0;padding:0;"><div style="width:48px;height:48px;background:url(img/icons.png);background-position:-1392px -672px;background-size:auto;background-repeat:no-repeat;transform:scale(0.5);transform-origin:top left;"></div></span>';
             var sugarLumpText = '';
             if (typeof loc !== 'undefined' && typeof LBeautify !== 'undefined') {
@@ -2697,10 +1899,10 @@
                 sugarLumpText = currentCost + ' sugar lump' + (currentCost !== 1 ? 's' : '');
             }
             var formattedCost = '<b style="color:#8cff66;text-shadow:0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e;display:inline-block;vertical-align:middle;line-height:1.2;">' + sugarLumpIcon + sugarLumpText + '</b>';
-            
+
             var trackName = getTrackDisplayName(trackType);
             var confirmMessage = 'Purchase a hint for <b>' + trackName + '</b> for ' + formattedCost + '?';
-            
+
             if (!window.CookieAge) window.CookieAge = {};
             if (!window.CookieAge.hintPurchaseCallbacks) window.CookieAge.hintPurchaseCallbacks = {};
             var callbackId = 'hintPurchase_' + Date.now() + '_' + Math.random();
@@ -2718,108 +1920,81 @@
                             errorSugarLumpText = finalCost + ' sugar lump' + (finalCost !== 1 ? 's' : '');
                         }
                         var errorFormattedCost = '<b style="color:#8cff66;text-shadow:0px 1px 0px #4d8c2e,0px 0px 6px #4d8c2e;">' + errorSugarLumpIcon + ' ' + errorSugarLumpText + '</b>';
-                        Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + errorFormattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>', 
+                        Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">You need ' + errorFormattedCost + ' to purchase a hint.<br>You currently have <b>' + (Game.lumps || 0) + ' sugar lump' + ((Game.lumps || 0) !== 1 ? 's' : '') + '</b>.</div>',
                             [['OK', 'Game.ClosePrompt();', 'float:right']]);
                     }
                 }
             };
-            
-            Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">' + confirmMessage + '</div>', 
-                [['Yes', 'Game.ClosePrompt(); if(window.CookieAge && window.CookieAge.hintPurchaseCallbacks && window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]) { window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"](); delete window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]; }', 'float:left'], 
+
+            Game.Prompt('<h3>Purchase Hint</h3><div class="block" style="font-size:11px;">' + confirmMessage + '</div>',
+                [['Yes', 'Game.ClosePrompt(); if(window.CookieAge && window.CookieAge.hintPurchaseCallbacks && window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]) { window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"](); delete window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]; }', 'float:left'],
                 ['No', 'Game.ClosePrompt(); if(window.CookieAge && window.CookieAge.hintPurchaseCallbacks && window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]) { delete window.CookieAge.hintPurchaseCallbacks["' + callbackId + '"]; }', 'float:right']]);
         };
-        
+
         if (availablePuzzles.length === 1) {
-            // Only one option, show confirmation and purchase
             doPurchase(availablePuzzles[0].trackType);
             return;
         }
-        
-        // Build selection options - only show track name, never puzzle name
+
         if (!window.CookieAge) window.CookieAge = {};
         if (!window.CookieAge.hintTrackSelectionCallbacks) window.CookieAge.hintTrackSelectionCallbacks = {};
-        
+
         var buttons = [];
         for (var i = 0; i < availablePuzzles.length; i++) {
             var puzzle = availablePuzzles[i];
             var trackType = puzzle.trackType;
             var label = getTrackDisplayName(trackType);
             var callbackId = 'hintTrackSelection_' + Date.now() + '_' + i + '_' + Math.random();
-            
+
             window.CookieAge.hintTrackSelectionCallbacks[callbackId] = function(trackType) {
                 return function() {
                     Game.ClosePrompt();
                     doPurchase(trackType);
                 };
             }(trackType);
-            
+
             buttons.push([label, 'Game.ClosePrompt(); if(window.CookieAge && window.CookieAge.hintTrackSelectionCallbacks && window.CookieAge.hintTrackSelectionCallbacks["' + callbackId + '"]) { window.CookieAge.hintTrackSelectionCallbacks["' + callbackId + '"](); delete window.CookieAge.hintTrackSelectionCallbacks["' + callbackId + '"]; }']);
         }
-        
+
         Game.Prompt('<h3>Select Track for Hint</h3><div class="block" style="font-size:11px;"><div>Which track would you like a hint for?</div></div>', buttons);
     }
-    
-    // ===== TRACK-BASED PROGRESS VALIDATION =====
+
     function isPuzzleProgressValid(puzzleId) {
         ensureTracksInitialized();
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) return false;
-        
-        // Apply debug override - check the appropriate track's debug variable
-        if (debugMode && puzzle.type === 'investigate' && debugStartInvestigate !== null && debugStartInvestigate !== undefined) {
-            if (debugStartInvestigate === 'complete') {
-                return true; // All investigate puzzles are valid when set to 'complete'
-            }
-            var debugPuzzle = cookieAgeData.puzzles.registry[debugStartInvestigate];
-            if (debugPuzzle && puzzle.trackOrder <= debugPuzzle.trackOrder) {
-                return true;
-            }
-        }
-        if (debugMode && puzzle.type === 'infiltrate' && debugStartInfiltrate !== null && debugStartInfiltrate !== undefined) {
-            if (debugStartInfiltrate === 'complete') {
-                return true; // All infiltrate puzzles are valid when set to 'complete'
-            }
-            var debugPuzzle2 = cookieAgeData.puzzles.registry[debugStartInfiltrate];
-            if (debugPuzzle2 && puzzle.trackOrder <= debugPuzzle2.trackOrder) {
-                return true;
-            }
-        }
-        
-        // Check cross-track dependencies
+
         for (var i = 0; i < puzzle.dependencies.length; i++) {
             var depId = puzzle.dependencies[i];
             var depPuzzle = cookieAgeData.puzzles.registry[depId];
             if (!depPuzzle) continue;
-            
+
             var depTrack = depPuzzle.type;
             var depTrackOrder = depPuzzle.trackOrder;
-            
-            if (depTrackOrder >= cookieAgeData.puzzles.tracks[depTrack].progress) {
-                return false;
-            }
+
+            if (depTrackOrder >= cookieAgeData.puzzles.tracks[depTrack].progress) {return false;}
         }
-        
+
         return true;
     }
-    
+
     function validatePuzzleActive(puzzleId) {
         ensureTracksInitialized();
-        
+
         var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
         var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
         var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
-        
+
         return puzzleId === investigateActive || puzzleId === infiltrateActive || puzzleId === chooseActive;
     }
-    
-    // ===== CENTRALIZED HOOK MANAGEMENT =====
+
     function setupPuzzle(puzzleId) {
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
             errorLog('Cannot setup puzzle', puzzleId, '- not found in registry');
             return false;
         }
-        
+
         if (puzzle.instance) {
             try {
                 return puzzle.instance.setup();
@@ -2828,59 +2003,18 @@
                 return false;
             }
         }
-        
-        // Fallback to function-based puzzle for backwards compatibility
-        if (puzzle.setup && typeof puzzle.setup === 'function') {
-            try {
-                puzzle.setup();
-                return true;
-            } catch (e) {
-                errorLog('Error setting up puzzle', puzzleId, ':', e);
-                return false;
-            }
-        } else {
-            errorLog('No setup function defined for puzzle', puzzleId);
-            return false;
-        }
-    }
-    
-    function checkPuzzle(puzzleId, ...args) {
-        // Handle both numeric and string puzzle IDs for backward compatibility
-        var actualPuzzleId = typeof puzzleId === 'number' ? getPuzzleIdByIndex(puzzleId) : puzzleId;
-        var puzzle = cookieAgeData.puzzles.registry[actualPuzzleId];
-        if (!puzzle) {
-            return false;
-        }
-        
-        if (puzzle.instance) {
-            try {
-                return puzzle.instance.check.apply(puzzle.instance, args);
-            } catch (e) {
-                errorLog('Error checking puzzle instance', puzzleId, ':', e);
-                return false;
-            }
-        }
-        
-        // Fallback to function-based puzzle for backwards compatibility
-        if (puzzle.check && typeof puzzle.check === 'function') {
-            try {
-                return puzzle.check.apply(null, args);
-            } catch (e) {
-                errorLog('Error checking puzzle', puzzleId, ':', e);
-                return false;
-            }
-        }
-        
+
+        errorLog('No instance for puzzle', puzzleId);
         return false;
     }
-    
+
     function cleanupPuzzle(puzzleId) {
         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
         if (!puzzle) {
             errorLog('Cannot cleanup puzzle', puzzleId, '- not found in registry');
             return false;
         }
-        
+
         if (puzzle.instance) {
             try {
                 return puzzle.instance.cleanup();
@@ -2889,40 +2023,25 @@
                 return false;
             }
         }
-        
-        // Fallback to function-based puzzle for backwards compatibility
-        if (puzzle.cleanup && typeof puzzle.cleanup === 'function') {
-            try {
-                puzzle.cleanup();
-                return true;
-            } catch (e) {
-                errorLog('Error cleaning up puzzle', puzzleId, ':', e);
-                return false;
-            }
-        } else {
-            errorLog('No cleanup function defined for puzzle', puzzleId);
-            return false;
-        }
+
+        errorLog('No instance for puzzle', puzzleId);
+        return false;
     }
-    
-    // ===== PUZZLE HOOK CLEANUP =====
+
     function cleanupPuzzleHooks(puzzleId) {
         // Handle both numeric and string puzzle IDs for backward compatibility
         var numericId = typeof puzzleId === 'number' ? puzzleId : getPuzzleIndex(puzzleId);
-        
-        // Clean up specific puzzle hooks by scanning registered hook types
-        var hookKey = 'puzzle' + numericId;
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks) {
-            delete cookieAgeData.puzzles.hooks[hookKey];
-        }
 
-        // Scan all hook types and remove any Cookie Age callbacks for this puzzle
+        var hookKey = 'puzzle' + numericId;
+
+        if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks) {delete cookieAgeData.puzzles.hooks[hookKey];}
+
         try {
-            if (Game.customHooks) {
+            if (Game.modHooks) {
                 var suffix = ':puzzle' + numericId;
-                for (var type in Game.customHooks) {
-                    if (!Array.isArray(Game.customHooks[type])) continue;
-                    Game.customHooks[type] = Game.customHooks[type].filter(function(fn) {
+                for (var type in Game.modHooks) {
+                    if (!Array.isArray(Game.modHooks[type])) continue;
+                    Game.modHooks[type] = Game.modHooks[type].filter(function(fn) {
                         if (!fn || fn.__cookieAgeKey === undefined) return true;
                         return !(typeof fn.__cookieAgeKey === 'string' && fn.__cookieAgeKey.endsWith(suffix));
                     });
@@ -2931,15 +2050,10 @@
         } catch (e) {
         }
     }
-    
-    // =================================================================
-    // PUZZLE-SPECIFIC HELPER FUNCTIONS
-    // =================================================================
+
     function showChessBoardPuzzle() {
-        if (document.getElementById('cookieAgeSkyPrompt')) {
-            return;
-        }
-        
+        if (document.getElementById('cookieAgeSkyPrompt')) {return;}
+
         var promptDiv = document.createElement('div');
         promptDiv.id = 'cookieAgeSkyPrompt';
         promptDiv.style.cssText = `
@@ -2954,7 +2068,7 @@
             align-items: center;
             justify-content: center;
         `;
-        
+
         var contentDiv = document.createElement('div');
         contentDiv.className = 'framed';
         contentDiv.style.cssText = `
@@ -2964,7 +2078,7 @@
             max-height: 80vh;
             overflow-y: auto;
         `;
-        
+
         contentDiv.innerHTML = `
             <div style="position: relative;">
                 <div id="cookieAgePromptCloseX" style="position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 18px; font-weight: bold; color: #ccc; z-index: 10001;" onclick="document.getElementById('cookieAgeSkyPrompt').parentNode.removeChild(document.getElementById('cookieAgeSkyPrompt'));">×</div>
@@ -2976,29 +2090,25 @@
                 </div>
             </div>
         `;
-        
+
         promptDiv.appendChild(contentDiv);
         document.body.appendChild(promptDiv);
-        
+
         promptDiv.addEventListener('click', function(e) {
-            if (e.target === promptDiv) {
-                document.getElementById('cookieAgeSkyPrompt').parentNode.removeChild(document.getElementById('cookieAgeSkyPrompt'));
-            }
+            if (e.target === promptDiv) {document.getElementById('cookieAgeSkyPrompt').parentNode.removeChild(document.getElementById('cookieAgeSkyPrompt'));}
         });
-        
+
         var escapeHandler = function(e) {
             if (e.key === 'Escape') {
                 var promptElement = document.getElementById('cookieAgeSkyPrompt');
-                if (promptElement && promptElement.parentNode) {
-                    promptElement.parentNode.removeChild(promptElement);
-                }
+                if (promptElement && promptElement.parentNode) {promptElement.parentNode.removeChild(promptElement);}
                 document.removeEventListener('keydown', escapeHandler);
             }
         };
         document.addEventListener('keydown', escapeHandler);
     }
-    
-    // Wrinkler audio system
+
+    // Wrinkler audio system, yup you read that right, I shit you not
     var WRINKLER_TONE_DURATION = 500;
     var INSTRUMENTAL_CONFIG = {
         harmonics: {
@@ -3018,7 +2128,7 @@
         },
         amplitude: 0.18
     };
-    
+
     var WRINKLER_TONE_FREQUENCIES = [
         261.625565, // 0: C4
         293.664768, // 1: D4
@@ -3034,16 +2144,16 @@
         783.990872, // 11: G5
         880.000000, // 12: A5
         987.766603, // 13: B5
-        311.127000  // 14: wrong note (E♭4) 
+        311.127000  // 14: wrong note (E♭4)
     ];
-    
+
     var notesSpriteSheetUrl = 'https://raw.githubusercontent.com/dfsw/Cookies/main/notes.png';
     var notesSpriteSheetImage = null;
     var notesSpriteSheetLoaded = false;
-    
+
     function loadNotesSpriteSheet() {
         if (notesSpriteSheetLoaded) return;
-        
+
         var img = new Image();
         img.onload = function() {
             notesSpriteSheetImage = img;
@@ -3052,7 +2162,7 @@
         img.onerror = function() {};
         img.src = notesSpriteSheetUrl;
     }
-    
+
     var WRINKLER_NOTE_SPRITES = [
         [0, 0], // C4 - middle C (quarter note, G clef)
         [1, 0], // D4 - eighth note
@@ -3069,44 +2179,42 @@
         [12, 0], // A5 - natural
         [13, 0]  // B5 - sharp
     ];
-    
+
     var wrinklerAudioElements = [];
     var audioInitialized = false;
-    
+
     var musicalNoteParticles = [];
-    
+
     var hiddenMessage = "Now redeem Secret";
     var revealedLetters = 0;
     var currentSequenceIndex = 0;
     var lastNoteTime = 0;
-    
+
     // Sequence for rise_up puzzle
     var NOTE_SEQUENCE = [9,11,10,9,13,11,8,5,9,11,10,9,6,8,7,4,2,0,3,1,12,7,4,5];
-    
+
     function initWrinklerAudioSystem() {
         if (audioInitialized) return true;
-        
+
         try {
-            // Create audio elements for each wrinkler tone (15 total: 14 notes + 1 wrong note)
             for (var i = 0; i < 15; i++) {
                 var audio = new Audio();
                 audio.preload = 'auto';
                 audio.volume = 0.3; // Lower volume to match original
-                
-                // Generate data URL for sine wave tone
+
                 var frequency = WRINKLER_TONE_FREQUENCIES[i];
                 var duration = WRINKLER_TONE_DURATION;
                 var sampleRate = 44100;
                 var samples = Math.floor(sampleRate * duration / 1000);
                 var buffer = new ArrayBuffer(44 + samples * 2);
                 var view = new DataView(buffer);
-                
+
                 var writeString = function(offset, string) {
                     for (var i = 0; i < string.length; i++) {
                         view.setUint8(offset + i, string.charCodeAt(i));
                     }
                 };
-                
+
                 writeString(0, 'RIFF');
                 view.setUint32(4, 36 + samples * 2, true);
                 writeString(8, 'WAVE');
@@ -3120,12 +2228,12 @@
                 view.setUint16(34, 16, true);
                 writeString(36, 'data');
                 view.setUint32(40, samples * 2, true);
-                
+
                 if (i === 14) {
                     for (var j = 0; j < samples; j++) {
                         var time = j / sampleRate;
                         var sample = 0;
-                        
+
                         sample += Math.sin(2 * Math.PI * frequency * time) * 0.35;
                         sample += Math.sin(2 * Math.PI * frequency * 1.2 * time) * 0.3;
                         sample += Math.sin(2 * Math.PI * frequency * 1.4 * time) * 0.25;
@@ -3133,15 +2241,15 @@
                         sample += Math.sin(2 * Math.PI * frequency * 1.8 * time) * 0.15;
                         sample += Math.sin(2 * Math.PI * frequency * 2.3 * time) * 0.1;
                         sample += Math.sin(2 * Math.PI * frequency * 2.7 * time) * 0.08;
-                        
+
                         var jarringMod = Math.sin(2 * Math.PI * 4 * time) * 0.03;
                         sample += Math.sin(2 * Math.PI * frequency * (1 + jarringMod) * time) * 0.2;
-                        
+
                         var envelope = 1;
                         var attackTime = samples * 0.005;
                         var sustainTime = samples * 0.6;
                         var decayTime = samples * 0.35;
-                        
+
                         if (j < attackTime) {
                             envelope = j / attackTime;
                         } else if (j < attackTime + sustainTime) {
@@ -3152,41 +2260,41 @@
                         } else {
                             envelope = 0.05;
                         }
-                        
+
                         sample *= envelope * 0.28;
                         sample = Math.tanh(sample * 4.0);
-                        
+
                         view.setInt16(44 + j * 2, sample * 32767, true);
                     }
                 } else {
-                    // Generate normal instrumental-sounding tone with harmonics
+                    // Generate normal instrumental-sounding tone with harmonics with the help of AI because im not insane
                     for (var j = 0; j < samples; j++) {
                         var time = j / sampleRate;
                         var sample = 0;
-                        
+
                         // Fundamental frequency (main note)
                         sample += Math.sin(2 * Math.PI * frequency * time) * 0.6;
-                        
+
                         // Add harmonics for richer sound using config
                         sample += Math.sin(2 * Math.PI * frequency * 2 * time) * INSTRUMENTAL_CONFIG.harmonics.octave;
                         sample += Math.sin(2 * Math.PI * frequency * 3 * time) * INSTRUMENTAL_CONFIG.harmonics.fifth;
                         sample += Math.sin(2 * Math.PI * frequency * 4 * time) * INSTRUMENTAL_CONFIG.harmonics.doubleOctave;
-                        
+
                         // Smooth detune drift (slow phase movement, no static)
                         var drift = 1 + 0.002 * Math.sin(2 * Math.PI * 0.2 * time) + 0.0015 * Math.sin(2 * Math.PI * 0.05 * time);
                         sample += Math.sin(2 * Math.PI * frequency * drift * time) * 0.6;
-                        
+
                         // Add slight vibrato for more organic sound using config
                         var vibrato = Math.sin(2 * Math.PI * INSTRUMENTAL_CONFIG.vibrato.frequency * time) * INSTRUMENTAL_CONFIG.vibrato.depth;
                         sample += Math.sin(2 * Math.PI * frequency * (1 + vibrato) * time) * 0.1;
-                        
+
                         // Apply ADSR envelope for more natural attack/decay using config
                         var envelope = 1;
                         var attackTime = samples * INSTRUMENTAL_CONFIG.envelope.attack;
                         var decayTime = samples * INSTRUMENTAL_CONFIG.envelope.decay;
                         var sustainLevel = INSTRUMENTAL_CONFIG.envelope.sustain;
                         var releaseTime = samples * INSTRUMENTAL_CONFIG.envelope.release;
-                        
+
                         if (j < attackTime) {
                             // Attack phase - quick rise
                             envelope = j / attackTime;
@@ -3200,25 +2308,24 @@
                             // Release phase - fade out
                             envelope = sustainLevel * ((samples - j) / releaseTime);
                         }
-                        
+
                         // Apply envelope and dynamic brightness (highs fade faster)
                         var brightness = Math.pow(envelope, 1.5);
                         sample = sample * envelope * brightness * INSTRUMENTAL_CONFIG.amplitude;
-                        
+
                         //clipping
                         sample = Math.tanh(sample * 2.0);
-                        
+
                         view.setInt16(44 + j * 2, sample * 32767, true);
                     }
                 }
-                
-                // Create blob and set as source
+
                 var blob = new Blob([buffer], { type: 'audio/wav' });
                 audio.src = URL.createObjectURL(blob);
-                
+
                 wrinklerAudioElements.push(audio);
             }
-            
+
             audioInitialized = true;
             return true;
         } catch (e) {
@@ -3226,56 +2333,44 @@
             return false;
         }
     }
-    
-    // Play a tone using pre-generated HTML5 Audio elements
+
     function playWrinklerTone(frequency, duration) {
-        // Initialize audio system if not already done
         if (!audioInitialized) {
             if (!initWrinklerAudioSystem()) {
                 playFallbackAudio();
                 return;
             }
         }
-        
+
         try {
-            // Find the audio element for this frequency
             var frequencyIndex = WRINKLER_TONE_FREQUENCIES.indexOf(frequency);
             if (frequencyIndex >= 0 && frequencyIndex < wrinklerAudioElements.length) {
                 var audio = wrinklerAudioElements[frequencyIndex];
-                
-                // Reset audio to beginning and play
+
                 audio.currentTime = 0;
                 audio.play().catch(function(e) {
-                    // If play fails, try fallback
                     playFallbackAudio();
                 });
             } else {
-                // Frequency not found, use fallback
                 playFallbackAudio();
             }
         } catch (e) {
-            // Any error, use fallback
             playFallbackAudio();
         }
     }
-    
-    // Fallback audio using game's existing system
+
     function playFallbackAudio() {
         try {
-            // Try multiple fallback methods
             if (typeof PlaySound !== 'undefined') {
                 PlaySound('snd/tick.mp3');
             } else if (Game.Audio && Game.Audio.playSound) {
                 Game.Audio.playSound('snd/tick.mp3');
-            } else if (Game.PlaySound) {
-                Game.PlaySound('snd/tick.mp3');
-            }
+            } else if (Game.PlaySound) {Game.PlaySound('snd/tick.mp3');}
         } catch (fallbackError) {
             // audio is optional
         }
     }
-    
-    // Create a drifting musical note particle
+
     function createMusicalNoteParticle(x, y, noteSprite) {
         var particle = {
             x: x,
@@ -3288,52 +2383,44 @@
             color: '#fff',
             shadowColor: 'rgba(0,0,0,0.8)'
         };
-        
+
         musicalNoteParticles.push(particle);
     }
-    
+
     function updateMusicalNoteParticles() {
         if (musicalNoteParticles.length === 0) return;
-        
+
         // Use our own canvas context variable - don't reuse game variables
         var customParticleCanvas = Game.LeftBackground;
         if (!customParticleCanvas) return;
-        
-        if (!notesSpriteSheetLoaded || !notesSpriteSheetImage) {
-            return; // skip if sprite sheet isn't loaded yet
-        }
-        
+
+        if (!notesSpriteSheetLoaded || !notesSpriteSheetImage) {return;} // skip if sprite sheet isn't loaded yet
+
         // Define sprite size for notes (scaled down from 80x80)
         var customNoteSize = 40; // Half the original size for better visibility
-        
+
         for (var i = musicalNoteParticles.length - 1; i >= 0; i--) {
             var customParticle = musicalNoteParticles[i];
 
             customParticle.x += customParticle.vx;
             customParticle.y += customParticle.vy;
             customParticle.life -= customParticle.decay;
-            
-            // Draw if still alive
+
             if (customParticle.life > 0) {
                 customParticleCanvas.save();
                 customParticleCanvas.globalAlpha = customParticle.life;
-                
-                // Draw sprite shadow
+
                 customParticleCanvas.globalCompositeOperation = 'source-over';
                 customParticleCanvas.globalAlpha = customParticle.life * 0.3;
                 customParticleCanvas.drawImage(
                     notesSpriteSheetImage, // loaded sprite sheet image
-                    customParticle.sprite[0] * 80, // source x (80px per sprite)
-                    customParticle.sprite[1] * 80, // source y
-                    80, // source width
-                    80, // source height
+                    customParticle.sprite[0] * 80, customParticle.sprite[1] * 80,  80, 80,
                     customParticle.x + 2, // dest x (shadow offset)
                     customParticle.y + 2, // dest y (shadow offset)
                     customNoteSize, // dest width
                     customNoteSize  // dest height
                 );
-                
-                // Draw main sprite
+
                 customParticleCanvas.globalAlpha = customParticle.life;
                 customParticleCanvas.drawImage(
                     notesSpriteSheetImage, // loaded sprite sheet image
@@ -3346,78 +2433,66 @@
                     customNoteSize, // dest width
                     customNoteSize  // dest height
                 );
-                
+
                 customParticleCanvas.restore();
             } else {
-                // Remove dead particle
                 musicalNoteParticles.splice(i, 1);
             }
         }
     }
-    
+
     function checkNoteSequence(playedIndex) {
         lastNoteTime = Date.now();
-        
+
         var expectedNote = NOTE_SEQUENCE[currentSequenceIndex];
-        
+
         if (playedIndex === expectedNote) {
             revealedLetters++;
             currentSequenceIndex = (currentSequenceIndex + 1) % NOTE_SEQUENCE.length;
-            
-            if (revealedLetters >= hiddenMessage.length) {
-                revealedLetters = hiddenMessage.length;
-            }
+
+            if (revealedLetters >= hiddenMessage.length) {revealedLetters = hiddenMessage.length;}
         } else {
-            // Reset on wrong note
             revealedLetters = 0;
             currentSequenceIndex = 0;
         }
     }
-    
+
     function updateMessageDecay() {
         if (revealedLetters > 0) {
             var currentTime = Date.now();
-            
-            // Initialize timer if this is the first time
+
             if (lastNoteTime === 0) {
                 lastNoteTime = currentTime;
                 return;
             }
-            
+
             var timeSinceLastDecay = currentTime - lastNoteTime;
-            
+
             // Every 2.5 seconds remove a letter
             if (timeSinceLastDecay >= 2500) {
                 revealedLetters = Math.max(0, revealedLetters - 1);
                 lastNoteTime = currentTime; // Reset timer for next decay
-                
-                
-                if (revealedLetters === 0) {
-                    currentSequenceIndex = 0;
-                }
+
+                if (revealedLetters === 0) {currentSequenceIndex = 0;}
             }
         }
     }
-    
-    // Draw the hidden message
+
     function drawHiddenMessage() {
         if (revealedLetters === 0) return;
-        
-        // Use our own canvas context variable - don't reuse game variables
+
         var customCanvas = Game.LeftBackground;
         if (!customCanvas) return;
-        
-        // Define our own styling variables - completely independent
+
         var customRevealedText = hiddenMessage.substring(0, revealedLetters);
         var customFontSize = 16;
         var customFontFamily = 'Arial';
         var customFontWeight = 'bold';
         var customFont = customFontWeight + ' ' + customFontSize + 'px ' + customFontFamily;
-        
-        // Our own positioning variables
+
         var customCenterX = Game.cookieOriginX;
         var customCenterY = Game.cookieOriginY + 50; // Move up closer to cookie
-        
+
         var customBackgroundColor = '#1a1a1a';
         var customBorderColor = '#333333';
         var customTextColor = '#ffffff';
@@ -3425,7 +2500,7 @@
         var customCornerRadius = 20;
         var customPadding = 12;
         var customBackgroundAlpha = 0.8;
-        
+
         customCanvas.save();
         customCanvas.font = customFont;
         customCanvas.textAlign = 'center';
@@ -3433,19 +2508,18 @@
         var customTextWidth = customCanvas.measureText(customRevealedText).width;
         var customTextHeight = customFontSize;
         customCanvas.restore();
-        
+
         var customBoxWidth = customTextWidth + (customPadding * 2);
         var customBoxHeight = customTextHeight + (customPadding * 2);
         var customBoxX = customCenterX - (customBoxWidth / 2);
         var customBoxY = customCenterY - (customBoxHeight / 2);
-        
+
         customCanvas.save();
-        customCanvas.globalAlpha = customBackgroundAlpha; // Apply transparency
+        customCanvas.globalAlpha = customBackgroundAlpha;
         customCanvas.fillStyle = customBackgroundColor;
         customCanvas.strokeStyle = customBorderColor;
         customCanvas.lineWidth = customBorderWidth;
-        
-        // Draw rounded rectangle using our own path
+
         customCanvas.beginPath();
         customCanvas.moveTo(customBoxX + customCornerRadius, customBoxY);
         customCanvas.lineTo(customBoxX + customBoxWidth - customCornerRadius, customBoxY);
@@ -3460,8 +2534,7 @@
         customCanvas.fill();
         customCanvas.stroke();
         customCanvas.restore();
-        
-        // Draw text 
+
         customCanvas.save();
         customCanvas.fillStyle = customTextColor;
         customCanvas.font = customFont;
@@ -3470,10 +2543,7 @@
         customCanvas.fillText(customRevealedText, customCenterX, customCenterY);
         customCanvas.restore();
     }
-    
-    // =================================================================
-    // PUZZLE FRAMEWORK - BASE CLASSES AND UTILITIES
-    // =================================================================
+
     function BasePuzzle(puzzleId, puzzleData, registry) {
         this.puzzleId = puzzleId;
         this.puzzleData = puzzleData;
@@ -3483,27 +2553,30 @@
         this.hooks = [];
         this._setupComplete = false;
     }
-    
+
     BasePuzzle.prototype.setup = function() {
-        if (this._setupComplete) {
-            return true;
-        }
-        
+        if (this._setupComplete) {return true;}
+
         try {
             this.onSetup();
             this._setupComplete = true;
             return true;
         } catch (e) {
             errorLog('Error setting up puzzle', this.puzzleId, ':', e);
+            try {
+                this.onCleanup();
+            } catch (cleanupError) {
+                errorLog('Error rolling back puzzle setup', this.puzzleId, ':', cleanupError);
+            }
+            this.removeHooks();
+            this._setupComplete = false;
             return false;
         }
     };
-    
+
     BasePuzzle.prototype.check = function(...args) {
-        if (!this.isValid()) {
-            return false;
-        }
-        
+        if (!this.isValid()) {return false;}
+
         try {
             return this.onCheck.apply(this, args);
         } catch (e) {
@@ -3511,203 +2584,164 @@
             return false;
         }
     };
-    
+
     BasePuzzle.prototype.cleanup = function() {
+        var succeeded = true;
         try {
             this.onCleanup();
+        } catch (e) {
+            succeeded = false;
+            errorLog('Error cleaning up puzzle', this.puzzleId, ':', e);
+        } finally {
             this.removeHooks();
             this._setupComplete = false;
-            return true;
-        } catch (e) {
-            errorLog('Error cleaning up puzzle', this.puzzleId, ':', e);
-            return false;
         }
+        return succeeded;
     };
-    
+
     BasePuzzle.prototype.isValid = function() {
+        if (!this._setupComplete) return false;
         var progressValid = isPuzzleProgressValid(this.puzzleId);
         var puzzleActive = validatePuzzleActive(this.puzzleId);
         return progressValid && puzzleActive;
     };
-    
+
     BasePuzzle.prototype.complete = function() {
         return tryCompletePuzzle(this.puzzleId);
     };
-    
+
     BasePuzzle.prototype.registerHook = function(hookType, callback, description) {
         var hookKey = this.hookKey;
+        if (!safeRegisterHook(hookType, callback, description, hookKey)) {throw new Error('Failed to register ' + hookType + ' hook for ' + this.puzzleId);}
         cookieAgeData.puzzles.hooks[hookKey] = callback;
         this.hooks.push({ key: hookKey, callback: callback, type: hookType });
-        return safeRegisterHook(hookType, callback, description, hookKey);
+        return true;
     };
 
     BasePuzzle.prototype.removeHooks = function() {
         this.hooks.forEach(function(hook) {
-            if (Game.removeHook && hook.type) {
-                try { Game.removeHook(hook.type, hook.callback); } catch (e) {}
-            }
+            if (Game.removeHook && hook.type) {try { Game.removeHook(hook.type, hook.callback); } catch (e) {}}
             delete cookieAgeData.puzzles.hooks[hook.key];
         });
         this.hooks = [];
     };
-    
+
     // Abstract methods to be overridden
     BasePuzzle.prototype.onSetup = function() {
-        // Override in subclasses
     };
-    
+
     BasePuzzle.prototype.onCheck = function(...args) {
-        // Override in subclasses
         return false;
     };
-    
+
     BasePuzzle.prototype.onCleanup = function() {
-        // Override in subclasses
     };
-    
-    /**
-     * Simple hook puzzle - automatically registers 'check' hook
-     */
+
     function SimpleHookPuzzle(puzzleId, puzzleData, registry) {
         BasePuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    
+
     SimpleHookPuzzle.prototype = Object.create(BasePuzzle.prototype);
     SimpleHookPuzzle.prototype.constructor = SimpleHookPuzzle;
-    
+
     SimpleHookPuzzle.prototype.onSetup = function() {
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check ' + this.puzzleData.name + ' puzzle');
     };
-    
-    /**
-     * State tracking puzzle - manages tracking data automatically
-     */
+
     function StateTrackingPuzzle(puzzleId, puzzleData, registry, trackingKey) {
         BasePuzzle.call(this, puzzleId, puzzleData, registry);
         this.trackingKey = trackingKey || puzzleId + '_tracking';
     }
-    
+
     StateTrackingPuzzle.prototype = Object.create(BasePuzzle.prototype);
     StateTrackingPuzzle.prototype.constructor = StateTrackingPuzzle;
-    
+
     StateTrackingPuzzle.prototype.getTracking = function() {
-        if (!cookieAgeData.puzzles[this.trackingKey]) {
-            cookieAgeData.puzzles[this.trackingKey] = this.initializeTracking();
-        }
+        if (!cookieAgeData.puzzles[this.trackingKey]) {cookieAgeData.puzzles[this.trackingKey] = this.initializeTracking();}
         return cookieAgeData.puzzles[this.trackingKey];
     };
-    
+
     StateTrackingPuzzle.prototype.initializeTracking = function() {
         return {};
     };
-    
+
     StateTrackingPuzzle.prototype.onCleanup = function() {
-        if (cookieAgeData.puzzles[this.trackingKey] !== undefined) {
-            delete cookieAgeData.puzzles[this.trackingKey];
-        }
+        if (cookieAgeData.puzzles[this.trackingKey] !== undefined) {delete cookieAgeData.puzzles[this.trackingKey];}
     };
-    
-    /**
-     * Minigame hook puzzle - handles function wrapping and cleanup
-     */
-    function MinigameHookPuzzle(puzzleId, puzzleData, registry) {
-        BasePuzzle.call(this, puzzleId, puzzleData, registry);
-        this.minigameHooks = [];
+
+    function GrimoireHookPuzzle(puzzleId, puzzleData, registry, trackingKey) {
+        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, trackingKey);
+        this.spellHooked = false;
+        this.originalCastSpell = null;
+        this.castSpellWrapper = null;
     }
-    
-    MinigameHookPuzzle.prototype = Object.create(BasePuzzle.prototype);
-    MinigameHookPuzzle.prototype.constructor = MinigameHookPuzzle;
-    
-    MinigameHookPuzzle.prototype.hookMinigameFunction = function(buildingName, funcName, wrapper) {
-        var buildingObj = Game.Objects[buildingName];
-        if (!buildingObj || !buildingObj.minigame) {
-            return false;
+
+    GrimoireHookPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    GrimoireHookPuzzle.prototype.constructor = GrimoireHookPuzzle;
+
+    GrimoireHookPuzzle.prototype.onSetup = function() {
+        this.hookGrimoire();
+        if (!this.spellHooked) {
+            var self = this;
+            this.registerHook('check', function() {
+                if (!self.spellHooked) self.hookGrimoire();
+            }, 'Check for grimoire availability');
         }
-        
-        var M = buildingObj.minigame;
-        if (!M[funcName] || typeof M[funcName] !== 'function') {
-            return false;
-        }
-        
-        var original = M[funcName];
-        var hookKey = '_original' + funcName.charAt(0).toUpperCase() + funcName.slice(1) + '_' + this.puzzleId;
-        var hookFlag = '_' + this.puzzleId + 'Hooked';
-        
-        // Store original and wrap if not already hooked
-        if (!M[hookKey]) {
-            M[hookKey] = original;
-            M[funcName] = function(...args) {
-                if (wrapper) {
-                    return wrapper.call(this, original, ...args);
-                }
-                return original.apply(this, args);
-            };
-            M[hookFlag] = true;
-            
-            this.minigameHooks.push({
-                buildingObj: buildingObj,
-                buildingName: buildingName,
-                funcName: funcName,
-                hookKey: hookKey,
-                hookFlag: hookFlag,
-                original: original
-            });
-            
-            return true;
-        }
-        
-        return false;
     };
-    
-    MinigameHookPuzzle.prototype.onCleanup = function() {
-        for (var i = 0; i < this.minigameHooks.length; i++) {
-            var hook = this.minigameHooks[i];
-            var M = hook.buildingObj.minigame;
-            
-            if (M && M[hook.hookKey]) {
-                M[hook.funcName] = M[hook.hookKey];
-                delete M[hook.hookKey];
-                delete M[hook.hookFlag];
+
+    GrimoireHookPuzzle.prototype.hookGrimoire = function() {
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (!M || !M.castSpell || this.spellHooked) return;
+
+        var self = this;
+        var originalCastSpell = M.castSpell;
+        this.originalCastSpell = originalCastSpell;
+        this.castSpellWrapper = function(spell) {
+            var result = originalCastSpell.apply(this, arguments);
+            if (self.spellHooked) {
+                setTimeout(function() {
+                    if (self.spellHooked) self.checkSpellCast(spell, result);
+                }, 0);
             }
-        }
-        this.minigameHooks = [];
+            return result;
+        };
+        M.castSpell = this.castSpellWrapper;
+        this.spellHooked = true;
     };
-    
-    /**
-     * Sequence puzzle - handles sequence tracking and validation
-     */
+
+    GrimoireHookPuzzle.prototype.onCleanup = function() {
+        this.spellHooked = false;
+        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
+        if (M && M.castSpell === this.castSpellWrapper) {M.castSpell = this.originalCastSpell;}
+        this.originalCastSpell = null;
+        this.castSpellWrapper = null;
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
+    };
+
     function SequencePuzzle(puzzleId, puzzleData, registry, trackingKey) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, trackingKey);
     }
-    
+
     SequencePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     SequencePuzzle.prototype.constructor = SequencePuzzle;
-    
+
     SequencePuzzle.prototype.validateSequence = function(currentState, requiredSequence) {
-        if (!requiredSequence || requiredSequence.length === 0) {
-            return true;
-        }
-        
-        if (!Array.isArray(currentState.sequence)) {
-            return false;
-        }
-        
-        if (currentState.sequence.length !== requiredSequence.length) {
-            return false;
-        }
-        
+        if (!requiredSequence || requiredSequence.length === 0) {return true;}
+
+        if (!Array.isArray(currentState.sequence)) {return false;}
+
+        if (currentState.sequence.length !== requiredSequence.length) {return false;}
+
         for (var i = 0; i < requiredSequence.length; i++) {
-            if (currentState.sequence[i] !== requiredSequence[i]) {
-                return false;
-            }
+            if (currentState.sequence[i] !== requiredSequence[i]) {return false;}
         }
-        
+
         return true;
     };
-    
+
     SequencePuzzle.prototype.resetSequence = function() {
         var tracking = this.getTracking();
         if (tracking.reset) {
@@ -3715,22 +2749,287 @@
         } else {
             tracking.sequence = [];
             tracking.sequenceIndex = 0;
-            if (tracking.hasOwnProperty('lastSwitchTs')) {
-                tracking.lastSwitchTs = Date.now();
-            }
+            if (tracking.hasOwnProperty('lastSwitchTs')) {tracking.lastSwitchTs = Date.now();}
         }
     };
 
-    // =================================================================
-    // PUZZLE CLASS DEFINITIONS
-    // =================================================================
+    SequencePuzzle.prototype.getBuildingCounts = function() {
+        var counts = {};
+        for (var i = 0; i < Game.ObjectsById.length; i++) {
+            counts[Game.ObjectsById[i].name] = Game.ObjectsById[i].amount;
+        }
+        return counts;
+    };
+
+    SequencePuzzle.prototype.snapshotStepCount = function(tracking, index, buildingName) {
+        var buildingObj = Game.Objects[buildingName];
+        if (buildingObj) tracking.stepStartCounts[index] = buildingObj.amount;
+    };
+
+    SequencePuzzle.prototype.snapshotAllStepCounts = function(tracking) {
+        tracking.stepStartCounts = [];
+        for (var i = 0; i < tracking.stepTargets.length; i++) {
+            this.snapshotStepCount(tracking, i, tracking.stepTargets[i].building);
+        }
+    };
+
+    SequencePuzzle.prototype.hasWrongBuildingChanged = function(tracking, sequenceBuildings) {
+        for (var i = 0; i < Game.ObjectsById.length; i++) {
+            var building = Game.ObjectsById[i];
+            if (sequenceBuildings.indexOf(building.name) === -1 &&
+                building.amount !== (tracking.initialBuildingCounts[building.name] || 0)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    SequencePuzzle.prototype.hookBuildingBuySell = function() {
+        var self = this;
+        Game.ObjectsById.forEach(function(building) {
+            if (!building._cookieAgeOriginalBuy) {
+                building._cookieAgeOriginalBuy = building.buy;
+                building._cookieAgeOriginalSell = building.sell;
+            }
+            building.buy = function(amount) {
+                var result = building._cookieAgeOriginalBuy.call(this, amount);
+                setTimeout(function() { self.check(); }, 0);
+                return result;
+            };
+            building.sell = function(amount, bypass) {
+                var result = building._cookieAgeOriginalSell.call(this, amount, bypass);
+                setTimeout(function() { self.check(); }, 0);
+                return result;
+            };
+        });
+    };
+
+    SequencePuzzle.prototype.unhookBuildingBuySell = function() {
+        Game.ObjectsById.forEach(function(building) {
+            if (building._cookieAgeOriginalBuy) {
+                building.buy = building._cookieAgeOriginalBuy;
+                building.sell = building._cookieAgeOriginalSell;
+                delete building._cookieAgeOriginalBuy;
+                delete building._cookieAgeOriginalSell;
+            }
+        });
+    };
+
+    function PantheonHookPuzzle(puzzleId, puzzleData, registry, trackingKey) {
+        SequencePuzzle.call(this, puzzleId, puzzleData, registry, trackingKey);
+        this.pantheonHooked = false;
+        this.originalPantheonSlot = null;
+        this.pantheonSlotProxy = null;
+    }
+
+    PantheonHookPuzzle.prototype = Object.create(SequencePuzzle.prototype);
+    PantheonHookPuzzle.prototype.constructor = PantheonHookPuzzle;
+
+    PantheonHookPuzzle.prototype.onSetup = function() {
+        this.hookPantheon();
+        if (!this.pantheonHooked) {
+            var self = this;
+            this.registerHook('check', function() {
+                if (!self.pantheonHooked) self.hookPantheon();
+            }, 'Check for temple minigame availability');
+        }
+    };
+
+    PantheonHookPuzzle.prototype.hookPantheon = function() {
+        var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+        if (!M || !Array.isArray(M.slot) || this.pantheonHooked) return;
+
+        var self = this;
+        this.originalPantheonSlot = M.slot;
+        this.pantheonSlotProxy = new Proxy(M.slot, {
+            set: function(target, property, value) {
+                target[property] = value;
+                if (self.pantheonHooked) self.checkPantheonChange();
+                return true;
+            }
+        });
+        M.slot = this.pantheonSlotProxy;
+        this.pantheonHooked = true;
+    };
+
+    PantheonHookPuzzle.prototype.onCleanup = function() {
+        this.pantheonHooked = false;
+        var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+        if (M && M.slot === this.pantheonSlotProxy) {M.slot = this.originalPantheonSlot;}
+        this.originalPantheonSlot = null;
+        this.pantheonSlotProxy = null;
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
+    };
+
+    function GardenHookPuzzle(puzzleId, puzzleData, registry, trackingKey) {
+        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, trackingKey);
+        this.gardenHooked = false;
+        this.originalGardenFn = null;
+        this.gardenWrapper = null;
+        this.gardenHost = null;
+    }
+
+    GardenHookPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    GardenHookPuzzle.prototype.constructor = GardenHookPuzzle;
+
+    GardenHookPuzzle.prototype.gardenHookFn = null;
+
+    GardenHookPuzzle.prototype.onSetup = function() {
+        this.hookGarden();
+        var self = this;
+        this.registerHook('check', function() {
+            var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+            if (!M) return;
+            if (self.gardenHooked && !self.gardenChainContains(M)) {
+                errorLog('Garden hook lost for', self.puzzleId, '- re-hooking');
+                self.gardenHooked = false;
+            }
+            if (!self.gardenHooked) self.hookGarden();
+        }, 'Verify garden hook installed');
+    };
+
+    GardenHookPuzzle.prototype.gardenChainContains = function(M) {
+        var fn = M[this.gardenHookFn], target = this.gardenWrapper, depth = 0;
+        while (fn && fn !== target && depth++ < 30) {
+            if (fn._cookieAgeOriginal) fn = fn._cookieAgeOriginal;
+            else if (fn._potionsHooked) fn = M._jneOriginalHarvest;
+            else if (fn._jneDuketaterHooked) fn = M._jneOriginalHarvestAll;
+            else break;
+        }
+        return fn === target;
+    };
+
+    GardenHookPuzzle.prototype.hookGarden = function() {
+        var fnName = this.gardenHookFn;
+        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+        if (!fnName || !M || typeof M[fnName] !== 'function' || this.gardenHooked) return;
+
+        var self = this;
+        // jne potions/duketater hooks wrap these and call through a stored original
+        var host = fnName;
+        if (fnName === 'harvest' && M[fnName]._potionsHooked && M._jneOriginalHarvest) host = '_jneOriginalHarvest';
+        else if (fnName === 'harvestAll' && M[fnName]._jneDuketaterHooked && M._jneOriginalHarvestAll) host = '_jneOriginalHarvestAll';
+        var original = M[host];
+        this.gardenHost = host;
+        this.originalGardenFn = original;
+        this.gardenWrapper = function() {
+            var context = (self.gardenHooked && self.isValid()) ? self.beforeGardenAction(M, arguments) : null;
+            var result = original.apply(this, arguments);
+            if (context) self.afterGardenAction(M, arguments, context);
+            return result;
+        };
+        this.gardenWrapper._cookieAgeOriginal = original;
+        M[host] = this.gardenWrapper;
+        this.gardenHooked = true;
+    };
+
+    GardenHookPuzzle.prototype.beforeGardenAction = function() { return null; };
+    GardenHookPuzzle.prototype.afterGardenAction = function() {};
+
+    GardenHookPuzzle.prototype.onCleanup = function() {
+        this.gardenHooked = false;
+        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+        if (M && this.gardenHost && M[this.gardenHost] === this.gardenWrapper) {M[this.gardenHost] = this.originalGardenFn;}
+        this.originalGardenFn = null;
+        this.gardenWrapper = null;
+        this.gardenHost = null;
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
+    };
+
+    function StockMarketPuzzle(puzzleId, puzzleData, registry) {
+        SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
+    }
+
+    StockMarketPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
+    StockMarketPuzzle.prototype.constructor = StockMarketPuzzle;
+
+    StockMarketPuzzle.prototype.expectedStocks = null;
+
+    StockMarketPuzzle.prototype.onCheck = function() {
+        var M = Game.Objects['Bank'] && Game.Objects['Bank'].minigame;
+        if (!M || !M.goodsById || !this.expectedStocks) return;
+
+        for (var i in this.expectedStocks) {
+            var good = M.goodsById[i];
+            if (!good || good.stock !== this.expectedStocks[i]) return;
+        }
+        this.complete();
+    };
+
+    function matchesGardenPlot(M, pattern, requireMature) {
+        if (!M || !M.plot || !M.plantsById || !pattern) return false;
+        for (var y = 0; y < M.plot.length && y < pattern.length; y++) {
+            for (var x = 0; x < M.plot[y].length && x < pattern[y].length; x++) {
+                var plotData = M.plot[y][x];
+                if (pattern[y][x] === 'EMPTY') {
+                    if (plotData && plotData[0] > 0) return false;
+                } else {
+                    if (!plotData || plotData[0] <= 0) return false;
+                    var plant = M.plantsById[plotData[0] - 1];
+                    if (!plant || plant.name !== pattern[y][x]) return false;
+                    if (requireMature && (plotData[1] || 0) < plant.mature) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function matchesWrinklerPattern(pattern) {
+        if (!pattern || !Game.wrinklers || Game.wrinklers.length < 12) return false;
+        for (var i = 0; i < pattern.filled.length; i++) {
+            if (Game.wrinklers[pattern.filled[i]].close !== 1) return false;
+        }
+        for (var j = 0; j < pattern.empty.length; j++) {
+            if (Game.wrinklers[pattern.empty[j]].close === 1) return false;
+        }
+        return true;
+    }
+
+    function matchesMutePattern(unmutedBuildings) {
+        if (!unmutedBuildings) return false;
+        for (var i = 0; i < Game.ObjectsById.length; i++) {
+            if (Game.ObjectsById[i].muted !== (unmutedBuildings.indexOf(i) !== -1 ? 0 : 1)) return false;
+        }
+        return true;
+    }
+
+    function WrinklerPatternPuzzle(puzzleId, puzzleData, registry) {
+        SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
+    }
+    WrinklerPatternPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
+    WrinklerPatternPuzzle.prototype.constructor = WrinklerPatternPuzzle;
+    WrinklerPatternPuzzle.prototype.expectedPattern = null;
+    WrinklerPatternPuzzle.prototype.onCheck = function() {
+        if (matchesWrinklerPattern(this.expectedPattern)) this.complete();
+    };
+
+    function GiftAmountPuzzle(puzzleId, puzzleData, registry, expectedGift) {
+        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry);
+        this.expectedGift = expectedGift;
+    }
+    GiftAmountPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    GiftAmountPuzzle.prototype.constructor = GiftAmountPuzzle;
+    GiftAmountPuzzle.prototype.initializeTracking = function() {
+        return { lastCookiesSent: Game.cookiesSent || 0 };
+    };
+    GiftAmountPuzzle.prototype.onSetup = function() {
+        SimpleHookPuzzle.prototype.onSetup.call(this);
+    };
+    GiftAmountPuzzle.prototype.onCheck = function() {
+        var tracking = this.getTracking();
+        var current = Game.cookiesSent || 0;
+        if (current - tracking.lastCookiesSent === this.expectedGift) this.complete();
+        tracking.lastCookiesSent = current;
+    };
+
     function TrialScalesPatiencePuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'dragonAuraTracking');
-        this.dragonHooked = false;
+        this.originalClickSpecialPic = null;
+        this.clickSpecialWrapper = null;
     }
     TrialScalesPatiencePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     TrialScalesPatiencePuzzle.prototype.constructor = TrialScalesPatiencePuzzle;
-    
+
     TrialScalesPatiencePuzzle.prototype.initializeTracking = function() {
         return {
             requiredAuras: [5, 7],
@@ -3739,155 +3038,100 @@
             hooked: false
         };
     };
-    
+
     TrialScalesPatiencePuzzle.prototype.onSetup = function() {
         var self = this;
         if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {
             this.hookDragonPetting();
         } else {
             this.registerHook('check', function() {
-                if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon') && !self.getTracking().hooked) {
-                    self.hookDragonPetting();
-                }
+                if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon') && !self.getTracking().hooked) {self.hookDragonPetting();}
             }, 'Check for dragon availability');
         }
     };
-    
+
     TrialScalesPatiencePuzzle.prototype.hookDragonPetting = function() {
-        if (!Game._originalClickSpecialPic) {
-            Game._originalClickSpecialPic = Game.ClickSpecialPic;
-        }
-        
         var self = this;
-        Game.ClickSpecialPic = function() {
-            Game._originalClickSpecialPic();
-            
-            if (self.isValid() && Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {
-                self.checkDragonPet();
-            }
+        var original = Game.ClickSpecialPic;
+        this.originalClickSpecialPic = original;
+        this.clickSpecialWrapper = function() {
+            original.call(Game);
+            if (self.isValid() && Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {self.checkDragonPet();}
         };
-        
+        Game.ClickSpecialPic = this.clickSpecialWrapper;
         this.getTracking().hooked = true;
-        this.dragonHooked = true;
     };
-    
+
     TrialScalesPatiencePuzzle.prototype.checkDragonPet = function() {
         var tracking = this.getTracking();
-        
+
         var currentAura1 = Game.dragonAura || 0;
         var currentAura2 = Game.dragonAura2 || 0;
-        
+
         // Check if aura 20 (Radiant Appetite) exists in either slot
         var hasAura20 = (currentAura1 === 20 || currentAura2 === 20);
         // Check if aura 7 (Dragon's Fortune) exists in either slot
         var hasAura7 = (currentAura1 === 7 || currentAura2 === 7);
-        
+
         if (hasAura20 && hasAura7) {
             tracking.petCount++;
-            
-            if (tracking.petCount >= tracking.requiredPets) {
-                this.complete();
-            }
+
+            if (tracking.petCount >= tracking.requiredPets) {this.complete();}
         } else {
             tracking.petCount = 0;
         }
     };
-    
+
     TrialScalesPatiencePuzzle.prototype.onCleanup = function() {
-        if (Game._originalClickSpecialPic) {
-            Game.ClickSpecialPic = Game._originalClickSpecialPic;
-            delete Game._originalClickSpecialPic;
-        }
+        if (Game.ClickSpecialPic === this.clickSpecialWrapper) {Game.ClickSpecialPic = this.originalClickSpecialPic;}
+        this.originalClickSpecialPic = null;
+        this.clickSpecialWrapper = null;
         var tracking = this.getTracking();
         if (tracking) tracking.hooked = false;
-        this.dragonHooked = false;
     };
-    
+
     TrialScalesPatiencePuzzle.prototype.onCheck = function() {
         // Check happens in dragon petting hook
         return;
     };
-    
+
     function CompassSentinelPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'compassTracking');
     }
     CompassSentinelPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     CompassSentinelPuzzle.prototype.constructor = CompassSentinelPuzzle;
-    
+
     CompassSentinelPuzzle.prototype.initializeTracking = function() {
-        return {
-            expectedPattern: {
-                filled: [1, 2, 4, 5, 9],
-                empty: [0, 3, 6, 7, 8, 10, 11]
-            },
-            patternSeenComplete: false,
-            completed: false
-        };
+        return { patternSeenComplete: false };
     };
-    
+    CompassSentinelPuzzle.prototype.expectedPattern = {
+        filled: [1, 2, 4, 5, 9],
+        empty: [0, 3, 6, 7, 8, 10, 11]
+    };
+
     CompassSentinelPuzzle.prototype.onSetup = function() {
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check compass sentinel pattern');
     };
-    
+
     CompassSentinelPuzzle.prototype.onCheck = function() {
-        if (!Game.wrinklers || Game.wrinklers.length < 12) {
-            return;
-        }
-        
         var tracking = this.getTracking();
-        var expectedPattern = tracking.expectedPattern;
-        var patternComplete = true;
-        
-        // Check ALL filled positions (including position 6) - these should be alive (close === 1)
-        for (var i = 0; i < expectedPattern.filled.length; i++) {
-            var pos = expectedPattern.filled[i];
-            if (pos < Game.wrinklers.length && Game.wrinklers[pos].close !== 1) {
-                patternComplete = false;
-                break;
-            }
-        }
-        
-        // Check all empty positions - these should be popped (close !== 1)
-        if (patternComplete) {
-            for (var i = 0; i < expectedPattern.empty.length; i++) {
-                var pos = expectedPattern.empty[i];
-                if (pos < Game.wrinklers.length && Game.wrinklers[pos].close === 1) {
-                    patternComplete = false;
-                    break;
-                }
-            }
-        }
-        
-        // Mark if pattern was ever seen complete
-        if (patternComplete) {
-            tracking.patternSeenComplete = true;
-        }
-        
-        if (tracking.patternSeenComplete && Game.wrinklers[6] && Game.wrinklers[6].close !== 1) {
-            if (!tracking.completed) {
-                tracking.completed = true;
-            this.complete();
-            }
-        }
+        if (matchesWrinklerPattern(this.expectedPattern)) {tracking.patternSeenComplete = true;}
+        if (tracking.patternSeenComplete && Game.wrinklers[6] && Game.wrinklers[6].close !== 1) {this.complete();}
     };
-    
+
     function PatternAltarsPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'templeSequence');
         this.targetBuilding = 'Temple';
     }
     PatternAltarsPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     PatternAltarsPuzzle.prototype.constructor = PatternAltarsPuzzle;
-    
+
     PatternAltarsPuzzle.prototype.initializeTracking = function() {
-        var initialCounts = {};
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            initialCounts[building.name] = building.amount;
-        }
-        
+        var initialCounts = this.getBuildingCounts();
+
         var templeObj = Game.Objects[this.targetBuilding];
         return {
             currentStep: 0,
@@ -3905,82 +3149,66 @@
             buildingName: this.targetBuilding
         };
     };
-    
+
     PatternAltarsPuzzle.prototype.onSetup = function() {
         var tracking = this.getTracking();
         var currentStep = tracking.currentStep;
-        if (currentStep < tracking.stepTargets.length) {
-            var buildingObj = Game.Objects[this.targetBuilding];
-            if (buildingObj) {
-                tracking.stepStartCounts[currentStep] = buildingObj.amount;
-            }
-        }
-        
-        // Hook into Temple buy/sell functions
+        if (currentStep < tracking.stepTargets.length) {this.snapshotStepCount(tracking, currentStep, this.targetBuilding);}
+
         this.hookTempleBuySell();
-        
+
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check pattern altars sequence');
     };
-    
+
     PatternAltarsPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
-        if (tracking.sequenceComplete) {
-            return;
-        }
-        
+        if (tracking.sequenceComplete) {return;}
+
         var currentStep = tracking.currentStep;
         if (currentStep >= tracking.stepTargets.length) {
             tracking.sequenceComplete = true;
             this.complete();
             return;
         }
-        
+
         var buildingObj = Game.Objects[this.targetBuilding];
-        if (!buildingObj) {
-            return;
-        }
-        
+        if (!buildingObj) {return;}
+
         var currentCount = buildingObj.amount;
         var startCount = tracking.stepStartCounts[currentStep] || 0;
         var stepTarget = tracking.stepTargets[currentStep];
         var amountToChange = stepTarget.amount;
-        
+
         var targetCount;
         if (stepTarget.action === 'sell') {
             targetCount = startCount - amountToChange;
-        } else if (stepTarget.action === 'buy') {
-            targetCount = startCount + amountToChange;
-        }
-        
+        } else if (stepTarget.action === 'buy') {targetCount = startCount + amountToChange;}
+
         var wrongAction = false;
         if (stepTarget.action === 'buy' && currentCount < startCount) {
             wrongAction = true;
-        } else if (stepTarget.action === 'sell' && currentCount > startCount) {
-            wrongAction = true;
-        }
-        
+        } else if (stepTarget.action === 'sell' && currentCount > startCount) {wrongAction = true;}
+
         if (wrongAction) {
             this.resetSequence();
             return;
         }
-        
+
         for (var i = 0; i < Game.ObjectsById.length; i++) {
             var building = Game.ObjectsById[i];
             if (building.name !== this.targetBuilding) {
-                if (tracking.initialBuildingCounts[building.name] === undefined) {
-                    tracking.initialBuildingCounts[building.name] = building.amount;
-                }
-                
+                if (tracking.initialBuildingCounts[building.name] === undefined) {tracking.initialBuildingCounts[building.name] = building.amount;}
+
                 if (building.amount !== tracking.initialBuildingCounts[building.name]) {
                     this.resetSequence();
                     return;
                 }
             }
         }
-        
+
         if (stepTarget.action === 'sell' && currentCount < targetCount) {
             this.resetSequence();
             return;
@@ -3988,66 +3216,53 @@
             this.resetSequence();
             return;
         }
-        
+
         if (currentCount === targetCount) {
             tracking.currentStep++;
-            
-            if (tracking.currentStep < tracking.stepTargets.length) {
-                var buildingObj = Game.Objects[this.targetBuilding];
-                if (buildingObj) {
-                    tracking.stepStartCounts[tracking.currentStep] = buildingObj.amount;
-                }
-            }
+
+            if (tracking.currentStep < tracking.stepTargets.length) {this.snapshotStepCount(tracking, tracking.currentStep, this.targetBuilding);}
         }
     };
-    
+
     PatternAltarsPuzzle.prototype.resetSequence = function() {
         var tracking = this.getTracking();
         tracking.currentStep = 0;
         tracking.stepStartCounts = [];
         tracking.sequenceComplete = false;
-        
+
         var buildingObj = Game.Objects[this.targetBuilding];
-        if (buildingObj) {
-            tracking.initialTempleCount = buildingObj.amount;
-            tracking.stepStartCounts[0] = buildingObj.amount;
-        }
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            tracking.initialBuildingCounts[building.name] = building.amount;
-        }
+        if (buildingObj) {tracking.initialTempleCount = buildingObj.amount;}
+        this.snapshotStepCount(tracking, 0, this.targetBuilding);
+        tracking.initialBuildingCounts = this.getBuildingCounts();
     };
-    
+
     PatternAltarsPuzzle.prototype.hookTempleBuySell = function() {
         var templeObj = Game.Objects[this.targetBuilding];
-        if (!templeObj) {
-            return;
-        }
-        
+        if (!templeObj) {return;}
+
         var self = this;
         var hookKey = '_originalBuy' + this.puzzleId;
         var sellHookKey = '_originalSell' + this.puzzleId;
-        
+
         if (!templeObj[hookKey]) {
             templeObj[hookKey] = templeObj.buy;
             templeObj[sellHookKey] = templeObj.sell;
-            
+
             var originalBuy = templeObj[hookKey];
             var originalSell = templeObj[sellHookKey];
-            
+
             templeObj.buy = function(amount) {
                 var result = originalBuy.call(this, amount);
                 setTimeout(function() {
-                    self.onCheck();
+                    self.check();
                 }, 0);
                 return result;
             };
-            
+
             templeObj.sell = function(amount, bypass) {
                 var result = originalSell.call(this, amount, bypass);
                 setTimeout(function() {
-                    self.onCheck();
+                    self.check();
                 }, 0);
                 return result;
             };
@@ -4076,7 +3291,7 @@
     }
     InfiltrationProgressPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     InfiltrationProgressPuzzle.prototype.constructor = InfiltrationProgressPuzzle;
-    
+
     InfiltrationProgressPuzzle.prototype.initializeTracking = function() {
         return {
             toggleSequence: [],
@@ -4086,7 +3301,7 @@
             completed: false
         };
     };
-    
+
     InfiltrationProgressPuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
@@ -4095,50 +3310,42 @@
             tracking.originalGoldenOffBuy = originalGoldenSwitchOff.buy;
             originalGoldenSwitchOff.buy = function() {
                 var result = tracking.originalGoldenOffBuy.call(this);
-                if (result) {
-                    setTimeout(function() { self.checkToggle('ON'); }, 0);
-                }
+                if (result) {setTimeout(function() { self.checkToggle('ON'); }, 0);}
                 return result;
             };
         }
-        
+
         var originalGoldenSwitchOn = Game.Upgrades['Golden switch [on]'];
         if (originalGoldenSwitchOn && originalGoldenSwitchOn.buy) {
             tracking.originalGoldenOnBuy = originalGoldenSwitchOn.buy;
             originalGoldenSwitchOn.buy = function() {
                 var result = tracking.originalGoldenOnBuy.call(this);
-                if (result) {
-                    setTimeout(function() { self.checkToggle('OFF'); }, 0);
-                }
+                if (result) {setTimeout(function() { self.checkToggle('OFF'); }, 0);}
                 return result;
             };
         }
     };
-    
+
     InfiltrationProgressPuzzle.prototype.checkToggle = function(toggledTo) {
         if (!this.isValid()) return;
-        
+
         var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
+
+        if (tracking.completed) {return;}
+
         if (tracking.lastState === toggledTo) return;
-        
+
         var now = Date.now();
         if (tracking.startTime !== null && (now - tracking.startTime) > 60000) {
             this.resetSequence();
             return;
         }
-        
+
         tracking.toggleSequence.push(toggledTo);
         tracking.lastState = toggledTo;
-        
-        if (toggledTo === 'ON' && tracking.startTime === null) {
-            tracking.startTime = now;
-        }
-        
+
+        if (toggledTo === 'ON' && tracking.startTime === null) {tracking.startTime = now;}
+
         if (tracking.toggleSequence.length === tracking.requiredSequence.length) {
             var matches = true;
             for (var i = 0; i < tracking.requiredSequence.length; i++) {
@@ -4147,7 +3354,7 @@
                     break;
                 }
             }
-            
+
             if (matches && tracking.lastState === 'OFF') {
                 tracking.completed = true;
                 this.complete();
@@ -4165,11 +3372,11 @@
             }
         }
     };
-    
+
     InfiltrationProgressPuzzle.prototype.onCheck = function() {
         // Check happens in toggle hooks
     };
-    
+
     InfiltrationProgressPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
         if (tracking && tracking.originalGoldenOffBuy) {
@@ -4181,13 +3388,13 @@
             if (goldenSwitchOn) goldenSwitchOn.buy = tracking.originalGoldenOnBuy;
         }
     };
-    
+
     function RiteNineFlamesPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'nineFlamesTracking');
     }
     RiteNineFlamesPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     RiteNineFlamesPuzzle.prototype.constructor = RiteNineFlamesPuzzle;
-    
+
     RiteNineFlamesPuzzle.prototype.initializeTracking = function() {
         return {
             currentStep: 0,
@@ -4209,16 +3416,16 @@
             _originalDragonAura2: 0
         };
     };
-    
+
     RiteNineFlamesPuzzle.prototype.onSetup = function() {
         this.hookDragonAuras();
     };
-    
+
     RiteNineFlamesPuzzle.prototype.hookDragonAuras = function() {
         var tracking = this.getTracking();
         if (tracking.hooked) return;
         var self = this;
-        
+
         // Restore original functions first if they exist (in case of cleanup/rehook)
         if (Game._originalSelectDragonAura) {
             Game.SelectDragonAura = Game._originalSelectDragonAura;
@@ -4232,45 +3439,41 @@
             Game.UpgradeDragon = Game._originalUpgradeDragon;
             delete Game._originalUpgradeDragon;
         }
-        
+
         // Capture current auras when hooking (not at initialization)
         var originalDragonAura = Game.dragonAura || 0;
         var originalDragonAura2 = Game.dragonAura2 || 0;
         tracking._originalDragonAura = originalDragonAura;
         tracking._originalDragonAura2 = originalDragonAura2;
-        
+
         // Use property overrides to detect ALL changes to dragon auras
         // Store references to current aura values so cleanup can access them
         tracking._currentDragonAura = originalDragonAura;
         tracking._currentDragonAura2 = originalDragonAura2;
-        
+
         Object.defineProperty(Game, 'dragonAura', {
             get: function() { return originalDragonAura; },
             set: function(value) {
                 originalDragonAura = value;
                 tracking._currentDragonAura = value;
-                if (self.isValid()) {
-                    self.checkAuraChange(0, value);
-                }
+                if (self.isValid()) {self.checkAuraChange(0, value);}
             },
             configurable: true
         });
-        
+
         Object.defineProperty(Game, 'dragonAura2', {
             get: function() { return originalDragonAura2; },
             set: function(value) {
                 originalDragonAura2 = value;
                 tracking._currentDragonAura2 = value;
-                if (self.isValid()) {
-                    self.checkAuraChange(1, value);
-                }
+                if (self.isValid()) {self.checkAuraChange(1, value);}
             },
             configurable: true
         });
-        
+
         tracking.hooked = true;
     };
-    
+
     RiteNineFlamesPuzzle.prototype.checkAuraChange = function(changedSlot, changedAura) {
         var tracking = this.getTracking();
         if (!tracking) return;
@@ -4306,30 +3509,31 @@
             if (!tracking.stepCompleted && changedSlot !== undefined && changedAura !== undefined) {
                 var isChangedAuraRequired = currentStep.auras.includes(changedAura);
                 var isChangedAuraEmpty = changedAura === 0;
-                if (!isChangedAuraRequired && !isChangedAuraEmpty) {
+                if (!isChangedAuraRequired && !isChangedAuraEmpty)
+                 {
+                    PlaySound('snd/growl.mp3');
                     this.resetSequence();
-                }
+                 }
             }
         }
     };
-    
+
     RiteNineFlamesPuzzle.prototype.resetSequence = function() {
         var tracking = this.getTracking();
         tracking.currentStep = 0;
         tracking.stepCompleted = false;
         tracking.lastStepAuras = [];
     };
-    
+
     RiteNineFlamesPuzzle.prototype.onCheck = function() {
         // Check happens when aura-setting functions are called
     };
-    
+
     RiteNineFlamesPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
 
-        // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
             // Restore as normal writable property with current value
@@ -4342,13 +3546,13 @@
         }
         if (tracking) tracking.hooked = false;
     };
-    
+
     function StormDevotionPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'stormTracking');
     }
     StormDevotionPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     StormDevotionPuzzle.prototype.constructor = StormDevotionPuzzle;
-    
+
     StormDevotionPuzzle.prototype.initializeTracking = function() {
         return {
             stormActive: false,
@@ -4360,23 +3564,21 @@
             completed: false
         };
     };
-    
+
     StormDevotionPuzzle.prototype.onSetup = function() {
         var self = this;
         this.registerHook('logic', function() { self.check(); }, 'Check storm devotion');
         this.hookStormCookieTracking();
     };
-    
+
     StormDevotionPuzzle.prototype.hookStormCookieTracking = function() {
         // Storm tracking is now handled centrally in JustNaturalExpansion.js
         // via injectGoldenPopFunc(). This function now just ensures the tracking
         // object is exposed for the central handler to use.
         if (!Game.JNE) Game.JNE = {};
-        if (!Game.JNE._stormDevotionTracking) {
-            Game.JNE._stormDevotionTracking = this.getTracking();
-        }
+        if (!Game.JNE._stormDevotionTracking) {Game.JNE._stormDevotionTracking = this.getTracking();}
     };
-    
+
     StormDevotionPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (!tracking) return;
@@ -4409,16 +3611,12 @@
             for (var i in Game.wrinklers) {
                 var me = Game.wrinklers[i];
                 var prevState = tracking.previousWrinklerStates[i];
-                if (prevState && prevState.phase > 0 && me.phase == 0) {
-                    tracking.wrinklersPoppedDuringStorm++;
-                }
-                if (me) {
-                    tracking.previousWrinklerStates[i] = { phase: me.phase, sucked: me.sucked };
-                }
+                if (prevState && prevState.phase > 0 && me.phase == 0) {tracking.wrinklersPoppedDuringStorm++;}
+                if (me) {tracking.previousWrinklerStates[i] = { phase: me.phase, sucked: me.sucked };}
             }
         }
     };
-    
+
     StormDevotionPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
         if (tracking) {
@@ -4430,18 +3628,16 @@
             // shimmer popFunc is now handled centrally in main, no need to restore here
         }
         // Clear the central tracking ref so re-setup can set a fresh one
-        if (Game.JNE) {
-            delete Game.JNE._stormDevotionTracking;
-        }
+        if (Game.JNE) {delete Game.JNE._stormDevotionTracking;}
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function LitanyBrokenVowsPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'litanyTracking');
     }
     LitanyBrokenVowsPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     LitanyBrokenVowsPuzzle.prototype.constructor = LitanyBrokenVowsPuzzle;
-    
+
     LitanyBrokenVowsPuzzle.prototype.initializeTracking = function() {
         return {
             elderCovenantToggles: 0, goldenSwitchOn: false, shimmeringVeilOn: false,
@@ -4460,7 +3656,7 @@
             completed: false
         };
     };
-    
+
     LitanyBrokenVowsPuzzle.prototype.resetSequence = function() {
         var tracking = this.getTracking();
         tracking.elderCovenantToggles = 0;
@@ -4475,88 +3671,73 @@
         tracking.lastGoldenSwitchState = Game.Has('Golden switch [off]');
         tracking.lastShimmeringVeilState = Game.Has('Shimmering veil [off]');
     };
-    
+
     LitanyBrokenVowsPuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
         var originalElderCovenant = Game.Upgrades['Elder Covenant'];
         if (originalElderCovenant && originalElderCovenant.buy && !originalElderCovenant.__cookieAgeLitanyWrapped) {
             originalElderCovenant.__cookieAgeLitanyWrapped = true;
-            if (!originalElderCovenant.__cookieAgeLitanyOriginalBuy) {
-                originalElderCovenant.__cookieAgeLitanyOriginalBuy = originalElderCovenant.buy;
-            }
+            if (!originalElderCovenant.__cookieAgeLitanyOriginalBuy) {originalElderCovenant.__cookieAgeLitanyOriginalBuy = originalElderCovenant.buy;}
             tracking.originalElderCovenantBuy = originalElderCovenant.buy;
             originalElderCovenant.buy = function() {
                 var result = (originalElderCovenant.__cookieAgeLitanyOriginalBuy || tracking.originalElderCovenantBuy).call(this);
-                if (result) setTimeout(function() { self.check(); }, 0);
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalRevokeElderCovenant = Game.Upgrades['Revoke Elder Covenant'];
         if (originalRevokeElderCovenant && originalRevokeElderCovenant.buy && !originalRevokeElderCovenant.__cookieAgeLitanyWrapped) {
             originalRevokeElderCovenant.__cookieAgeLitanyWrapped = true;
-            if (!originalRevokeElderCovenant.__cookieAgeLitanyOriginalBuy) {
-                originalRevokeElderCovenant.__cookieAgeLitanyOriginalBuy = originalRevokeElderCovenant.buy;
-            }
+            if (!originalRevokeElderCovenant.__cookieAgeLitanyOriginalBuy) {originalRevokeElderCovenant.__cookieAgeLitanyOriginalBuy = originalRevokeElderCovenant.buy;}
             tracking.originalRevokeBuy = originalRevokeElderCovenant.buy;
             originalRevokeElderCovenant.buy = function() {
                 var result = (originalRevokeElderCovenant.__cookieAgeLitanyOriginalBuy || tracking.originalRevokeBuy).call(this);
-                if (result) {
-                    if (self.getTracking()) self.getTracking().elderCovenantToggles++;
-                    setTimeout(function() { self.check(); }, 0);
-                }
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalGoldenSwitchOff = Game.Upgrades['Golden switch [off]'];
         if (originalGoldenSwitchOff && originalGoldenSwitchOff.buy && !originalGoldenSwitchOff.__cookieAgeLitanyWrapped) {
             originalGoldenSwitchOff.__cookieAgeLitanyWrapped = true;
-            if (!originalGoldenSwitchOff.__cookieAgeLitanyOriginalBuy) {
-                originalGoldenSwitchOff.__cookieAgeLitanyOriginalBuy = originalGoldenSwitchOff.buy;
-            }
+            if (!originalGoldenSwitchOff.__cookieAgeLitanyOriginalBuy) {originalGoldenSwitchOff.__cookieAgeLitanyOriginalBuy = originalGoldenSwitchOff.buy;}
             tracking.originalGoldenOffBuy = originalGoldenSwitchOff.buy;
             originalGoldenSwitchOff.buy = function() {
                 var result = (originalGoldenSwitchOff.__cookieAgeLitanyOriginalBuy || tracking.originalGoldenOffBuy).call(this);
-                if (result) setTimeout(function() { self.check(); }, 0);
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalGoldenSwitchOn = Game.Upgrades['Golden switch [on]'];
         if (originalGoldenSwitchOn && originalGoldenSwitchOn.buy && !originalGoldenSwitchOn.__cookieAgeLitanyWrapped) {
             originalGoldenSwitchOn.__cookieAgeLitanyWrapped = true;
-            if (!originalGoldenSwitchOn.__cookieAgeLitanyOriginalBuy) {
-                originalGoldenSwitchOn.__cookieAgeLitanyOriginalBuy = originalGoldenSwitchOn.buy;
-            }
+            if (!originalGoldenSwitchOn.__cookieAgeLitanyOriginalBuy) {originalGoldenSwitchOn.__cookieAgeLitanyOriginalBuy = originalGoldenSwitchOn.buy;}
             tracking.originalGoldenOnBuy = originalGoldenSwitchOn.buy;
             originalGoldenSwitchOn.buy = function() {
                 var result = (originalGoldenSwitchOn.__cookieAgeLitanyOriginalBuy || tracking.originalGoldenOnBuy).call(this);
-                if (result) setTimeout(function() { self.check(); }, 0);
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalShimmeringVeilOff = Game.Upgrades['Shimmering veil [off]'];
         if (originalShimmeringVeilOff && originalShimmeringVeilOff.buy && !originalShimmeringVeilOff.__cookieAgeLitanyWrapped) {
             originalShimmeringVeilOff.__cookieAgeLitanyWrapped = true;
-            if (!originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy) {
-                originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOff.buy;
-            }
+            if (!originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy) {originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOff.buy;}
             tracking.originalShimmeringOffBuy = originalShimmeringVeilOff.buy;
             originalShimmeringVeilOff.buy = function() {
                 var result = (originalShimmeringVeilOff.__cookieAgeLitanyOriginalBuy || tracking.originalShimmeringOffBuy).call(this);
-                if (result) setTimeout(function() { self.check(); }, 0);
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
         var originalShimmeringVeilOn = Game.Upgrades['Shimmering veil [on]'];
         if (originalShimmeringVeilOn && originalShimmeringVeilOn.buy && !originalShimmeringVeilOn.__cookieAgeLitanyWrapped) {
             originalShimmeringVeilOn.__cookieAgeLitanyWrapped = true;
-            if (!originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy) {
-                originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOn.buy;
-            }
+            if (!originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy) {originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy = originalShimmeringVeilOn.buy;}
             tracking.originalShimmeringOnBuy = originalShimmeringVeilOn.buy;
             originalShimmeringVeilOn.buy = function() {
                 var result = (originalShimmeringVeilOn.__cookieAgeLitanyOriginalBuy || tracking.originalShimmeringOnBuy).call(this);
-                if (result) setTimeout(function() { self.check(); }, 0);
+                setTimeout(function() { self.check(); }, 0);
                 return result;
             };
         }
@@ -4570,7 +3751,7 @@
             configurable: true
         });
     };
-    
+
     LitanyBrokenVowsPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (!tracking) return;
@@ -4583,13 +3764,17 @@
             tracking.elderCovenantToggles++;
             tracking.lastElderCovenantState = elderCovenantActive;
         }
-        tracking.goldenSwitchOn = Game.Has('Golden switch [off]');
-        tracking.shimmeringVeilOn = Game.Has('Shimmering veil [off]');
+        var goldenNow = Game.Has('Golden switch [off]');
+        var veilNow = Game.Has('Shimmering veil [off]');
+        var goldenEdge = goldenNow && !tracking.lastGoldenSwitchState;
+        var veilEdge = veilNow && !tracking.lastShimmeringVeilState;
+        tracking.lastGoldenSwitchState = goldenNow;
+        tracking.lastShimmeringVeilState = veilNow;
+        if (goldenEdge) {tracking.goldenSwitchOn = true;}
+        if (veilEdge) {tracking.shimmeringVeilOn = true;}
         var currentSeason = Game.season || '';
         if (currentSeason !== tracking.lastSeason && currentSeason !== '') {
-            if (currentSeason !== 'lunarnewyear') {
-                tracking.seasonSequence.push(currentSeason);
-            }
+            if (currentSeason !== 'lunarnewyear') {tracking.seasonSequence.push(currentSeason);}
             tracking.lastSeason = currentSeason;
         }
         var elderCovenantComplete = tracking.elderCovenantToggles >= 3 && currentRevokeElderCovenantState;
@@ -4618,11 +3803,13 @@
             }
         }
         var stepConditions = [elderCovenantComplete, goldenSwitchComplete, shimmeringVeilComplete, seasonSequenceComplete];
-        if (!tracking.stepCompleted[0]) {
-            if (goldenSwitchComplete || shimmeringVeilComplete) {
-                this.resetSequence();
-                return;
-            }
+        if (goldenEdge && !tracking.stepCompleted[0]) {
+            this.resetSequence();
+            return;
+        }
+        if (veilEdge && !tracking.stepCompleted[1]) {
+            this.resetSequence();
+            return;
         }
         if (!tracking.stepCompleted[0] || !tracking.stepCompleted[1] || !tracking.stepCompleted[2]) {
             if (tracking.seasonSequence.length > 0) {
@@ -4652,7 +3839,7 @@
             }
         }
     };
-    
+
     LitanyBrokenVowsPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
         if (!tracking) return;
@@ -4697,105 +3884,178 @@
         });
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
-    function WatchKeeperRoundsPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'watchKeeperRoundsTracking');
+
+    var churchLampSrc = [
+        'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/church_off.webp',
+        'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/church_on.webp'
+    ];
+    var churchLampDot = 300;
+    var churchLampDash = 900;
+    var churchLampPause = 700;
+    var churchLampBreak = 1600;
+    var churchLampSpace = 3000;
+    var churchLampStartDelay = 8000;
+    var churchLampPattern = '- ---/.--. .-. --- - . -.-. -/- .... ./... . -.-. .-. . -/.-- ./... . -. -/.-- --- .-. -../.-- .. - ..../- .... ./. -. ...- --- -.-- ...';
+    var churchLampSequence = [];
+    var churchLampTotal = churchLampStartDelay;
+    var churchLampClock = 0;
+    var churchLampState = 0;
+
+    churchLampSequence.push([0, churchLampStartDelay]);
+    var churchLampWords = churchLampPattern.split('/');
+    for (var churchWordIndex = 0; churchWordIndex < churchLampWords.length; churchWordIndex++) {
+        var churchWord = churchLampWords[churchWordIndex].replace(/^\s+|\s+$/g, '');
+        if (!churchWord) continue;
+        var churchLetters = churchWord.split(/\s+/);
+        for (var churchLetterIndex = 0; churchLetterIndex < churchLetters.length; churchLetterIndex++) {
+            var churchLetter = churchLetters[churchLetterIndex];
+            for (var churchSignalIndex = 0; churchSignalIndex < churchLetter.length; churchSignalIndex++) {
+                var churchDuration = churchLetter[churchSignalIndex] === '.' ? churchLampDot : churchLampDash;
+                churchLampSequence.push([1, churchDuration]);
+                churchLampTotal += churchDuration;
+                if (churchSignalIndex < churchLetter.length - 1) {
+                    churchLampSequence.push([0, churchLampPause]);
+                    churchLampTotal += churchLampPause;
+                }
+            }
+            if (churchLetterIndex < churchLetters.length - 1) {
+                churchLampSequence.push([0, churchLampBreak]);
+                churchLampTotal += churchLampBreak;
+            }
+        }
+        churchLampSequence.push([0, churchLampSpace]);
+        churchLampTotal += churchLampSpace;
     }
-    WatchKeeperRoundsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+
+    function setChurchLampState(state) {
+        if (churchLampState === state) return;
+        var puzzle = cookieAgeData.puzzles.registry.watch_keeper_rounds;
+        if (puzzle) puzzle.clue = puzzle.clue.replace(churchLampSrc[churchLampState], churchLampSrc[state]);
+        churchLampState = state;
+    }
+
+    function driveChurchLamp() {
+        var lampEl = document.getElementById('jneChurchLamp');
+        if (!lampEl || !lampEl.getClientRects().length) {
+            churchLampClock = 0;
+            setChurchLampState(0);
+            return;
+        }
+        var now = Date.now();
+        if (!churchLampClock) churchLampClock = now;
+        var elapsed = (now - churchLampClock) % churchLampTotal;
+        var acc = 0, state = 0;
+        for (var li = 0; li < churchLampSequence.length; li++) {
+            acc += churchLampSequence[li][1];
+            if (elapsed < acc) { state = churchLampSequence[li][0]; break; }
+        }
+        setChurchLampState(state);
+        if (lampEl.src !== churchLampSrc[state]) lampEl.src = churchLampSrc[state];
+    }
+
+    var heraldsTooltipAttached = false;
+    function heraldsTooltip() {
+        var str = '';
+        if (!App && !Game.externalDataLoaded) str += loc("Heralds couldn't be loaded. There may be an issue with our servers, or you are playing the game locally.");
+        else {
+            if (!App && Game.heralds == 0) str += loc("There are no heralds at the moment. Please consider <b style=\"color:#bc3aff;\">donating to our Patreon</b>!");
+            else {
+                str += '<b style="color:#bc3aff;text-shadow:0px 1px 0px #6d0096;">' + loc("%1 herald", Game.heralds) + '</b> ' + loc("selflessly inspiring a boost in production for everyone, resulting in %1.", '<br><b style="color:#cdaa89;text-shadow:0px 1px 0px #7c4532,0px 0px 6px #7c4532;"><div style="width:16px;height:16px;display:inline-block;vertical-align:middle;background:url(img/money.png);"></div>' + loc("+%1% cookies per second", Game.heralds) + '</b>');
+                str += '<div class="line"></div>';
+                if (Game.ascensionMode == 1) str += loc("You are in a <b>Born again</b> run, and are not currently benefiting from heralds.");
+                else if (Game.Has('Heralds')) str += loc("You own the <b>Heralds</b> upgrade, and therefore benefit from the production boost.");
+                else str += loc("To benefit from the herald bonus, you need a special upgrade you do not yet own. You will permanently unlock it later in the game.");
+            }
+        }
+        str += '<div class="line"></div>';
+        var showClue = validatePuzzleActive('watch_keeper_rounds') &&
+            (!cookieAgeData.puzzles.completed || cookieAgeData.puzzles.completed.indexOf('watch_keeper_rounds') === -1);
+        if (showClue) {
+            str += '<span style="font-size:90%;opacity:0.6;"><b style="color: #ffaa00;">The Herald\'s hold an urgent message for you</b><br><q>Twelve lamp posts circle the yard, each bearing its flame.<br>When the first bell tolls, begin at the first and snuff every sixth lamp you encounter.<br>When the second bell sounds, start your rounds again, take every fifth one.<br>At the third bell walk your route and snuff the life from every fourth lamp.<br>When the final bell tolls, extinguish every third lamp you pass.<br>When the bells fall silent, keep the lamps that still burn, those are the beacons the Watchmaster trusts.<br>Walk the dark arcs between them. He will count, nod, and pass you by.</q></span>';
+        } else {
+            str += '<span style="font-size:90%;opacity:0.6;">' + (!App ? loc("<b>Heralds</b> are people who have donated to our highest Patreon tier, and are limited to 100.<br>Each herald gives everyone +1% CpS.<br>Heralds benefit everyone playing the game, regardless of whether you donated.") : loc("Every %1 current players on Steam generates <b>1 herald</b>, up to %2 heralds.<br>Each herald gives everyone +1% CpS.", [100, 100])) + '</span>';
+        }
+        str += '<div class="line"></div>' + tinyIcon([21, 29]);
+        str += '<div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;left:8px;"></div><div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;right:8px;"></div>';
+        return '<div style="padding:8px;width:300px;text-align:center;" class="prompt" id="tooltipHeralds"><h3>' + loc("Heralds") + '</h3><div class="block">' + str + '</div></div>';
+    }
+
+    function WatchKeeperRoundsPuzzle(puzzleId, puzzleData, registry) {
+        SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
+    }
+    WatchKeeperRoundsPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     WatchKeeperRoundsPuzzle.prototype.constructor = WatchKeeperRoundsPuzzle;
-    
-    WatchKeeperRoundsPuzzle.prototype.initializeTracking = function() {
-        return { 
-            // Clock positions: filled=1,2,7,11 → indexes 5,4,11,7
-            // Clock positions: empty=3,4,5,6,8,9,10,12 → indexes 3,2,1,0,10,9,8,6
-            expectedPattern: { filled: [4, 5, 7, 11], empty: [0, 1, 2, 3, 6, 8, 9, 10] },
-            completed: false
-        };
-    };
-    
+    // Clock positions: filled=1,2,7,11 → indexes 5,4,11,7
+    // Clock positions: empty=3,4,5,6,8,9,10,12 → indexes 3,2,1,0,10,9,8,6
+    WatchKeeperRoundsPuzzle.prototype.expectedPattern = { filled: [4, 5, 7, 11], empty: [0, 1, 2, 3, 6, 8, 9, 10] };
+
     WatchKeeperRoundsPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() { self.check(); }, 'Check watch keeper rounds');
-        Game.attachTooltip(l('heralds'),function(){
-            var str='';
-            if (!App && !Game.externalDataLoaded) str+=loc("Heralds couldn't be loaded. There may be an issue with our servers, or you are playing the game locally.");
-            else {
-                if (!App && Game.heralds==0) str+=loc("There are no heralds at the moment. Please consider <b style=\"color:#bc3aff;\">donating to our Patreon</b>!");
-                else {
-                    str+='<b style="color:#bc3aff;text-shadow:0px 1px 0px #6d0096;">'+loc("%1 herald",Game.heralds)+'</b> '+loc("selflessly inspiring a boost in production for everyone, resulting in %1.",'<br><b style="color:#cdaa89;text-shadow:0px 1px 0px #7c4532,0px 0px 6px #7c4532;"><div style="width:16px;height:16px;display:inline-block;vertical-align:middle;background:url(img/money.png);"></div>'+loc("+%1% cookies per second",Game.heralds)+'</b>');
-                    str+='<div class="line"></div>';
-                    if (Game.ascensionMode==1) str+=loc("You are in a <b>Born again</b> run, and are not currently benefiting from heralds.");
-                    else if (Game.Has('Heralds')) str+=loc("You own the <b>Heralds</b> upgrade, and therefore benefit from the production boost.");
-                    else str+=loc("To benefit from the herald bonus, you need a special upgrade you do not yet own. You will permanently unlock it later in the game.");
-                }
-            }
-            str+='<div class="line"></div><span style="font-size:90%;opacity:0.6;"><b style="color: #ffaa00;">The Herald\'s hold an urgent message for you</b><br><q>Twelve lamp posts circle the yard, each bearing its flame.<br>When the first bell tolls, begin at the first and snuff every sixth lamp you encounter.<br>When the second bell sounds, start your rounds again, take every fifth one.<br>At the third bell walk your route and snuff the life from every fourth lamp.<br>When the final bell tolls, extinguish every third lamp you pass.<br>When the bells fall silent, keep the lamps that still burn, those are the beacons the Watchmaster trusts.<br>Walk the dark arcs between them. He will count, nod, and pass you by.</q></span><div class="line"></div>'+tinyIcon([21,29]);
-            str+='<div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;left:8px;"></div><div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;right:8px;"></div>';
-            return '<div style="padding:8px;width:300px;text-align:center;" class="prompt" id="tooltipHeralds"><h3>'+loc("Heralds")+'</h3><div class="block">'+str+'</div></div>';
-        },'this');
+        SimpleHookPuzzle.prototype.onSetup.call(this);
+        this.registerHook('logic', driveChurchLamp, 'Church lamp morse driver');
+        if (!heraldsTooltipAttached) {
+            Game.attachTooltip(l('heralds'), heraldsTooltip, 'this');
+            heraldsTooltipAttached = true;
+        }
     };
-    
+
     WatchKeeperRoundsPuzzle.prototype.onCheck = function() {
-        if (!Game.wrinklers || Game.wrinklers.length < 12) return;
-        var tracking = this.getTracking();
-        var patternMatches = true;
-        for (var i = 0; i < tracking.expectedPattern.filled.length; i++) {
-            if (Game.wrinklers[tracking.expectedPattern.filled[i]].close !== 1) {
-                patternMatches = false;
-                break;
-            }
-        }
-        if (patternMatches) {
-            for (var i = 0; i < tracking.expectedPattern.empty.length; i++) {
-                if (Game.wrinklers[tracking.expectedPattern.empty[i]].close === 1) {
-                    patternMatches = false;
-                    break;
-                }
-            }
-        }
-        if (patternMatches) {
-            var tracking = this.getTracking();
-            if (!tracking.completed) {
-                tracking.completed = true;
-                this.complete();
-            }
-        }
+        if (matchesWrinklerPattern(this.expectedPattern)) this.complete();
     };
-    
+
     WatchKeeperRoundsPuzzle.prototype.onCleanup = function() {
-        Game.attachTooltip(l('heralds'),function(){
-            var str='';
-            if (!App && !Game.externalDataLoaded) str+=loc("Heralds couldn't be loaded. There may be an issue with our servers, or you are playing the game locally.");
-            else {
-                if (!App && Game.heralds==0) str+=loc("There are no heralds at the moment. Please consider <b style=\"color:#bc3aff;\">donating to our Patreon</b>!");
-                else {
-                    str+='<b style="color:#bc3aff;text-shadow:0px 1px 0px #6d0096;">'+loc("%1 herald",Game.heralds)+'</b> '+loc("selflessly inspiring a boost in production for everyone, resulting in %1.",'<br><b style="color:#cdaa89;text-shadow:0px 1px 0px #7c4532,0px 0px 6px #7c4532;"><div style="width:16px;height:16px;display:inline-block;vertical-align:middle;background:url(img/money.png);"></div>'+loc("+%1% cookies per second",Game.heralds)+'</b>');
-                    str+='<div class="line"></div>';
-                    if (Game.ascensionMode==1) str+=loc("You are in a <b>Born again</b> run, and are not currently benefiting from heralds.");
-                    else if (Game.Has('Heralds')) str+=loc("You own the <b>Heralds</b> upgrade, and therefore benefit from the production boost.");
-                    else str+=loc("To benefit from the herald bonus, you need a special upgrade you do not yet own. You will permanently unlock it later in the game.");
-                }
-            }
-            str+='<div class="line"></div><span style="font-size:90%;opacity:0.6;">'+(!App?loc("<b>Heralds</b> are people who have donated to our highest Patreon tier, and are limited to 100.<br>Each herald gives everyone +1% CpS.<br>Heralds benefit everyone playing the game, regardless of whether you donated."):loc("Every %1 current players on Steam generates <b>1 herald</b>, up to %2 heralds.<br>Each herald gives everyone +1% CpS.",[100,100]))+'</span><div class="line"></div>'+tinyIcon([21,29]);
-            str+='<div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;left:8px;"></div><div style="width:31px;height:39px;background:url(img/heraldFlag.png);position:absolute;top:0px;right:8px;"></div>';
-            return '<div style="padding:8px;width:300px;text-align:center;" class="prompt" id="tooltipHeralds"><h3>'+loc("Heralds")+'</h3><div class="block">'+str+'</div></div>';
-        },'this');
+        churchLampClock = 0;
+        setChurchLampState(0);
     };
-    
+
+    var tvFrameSrc = [];
+    for (var tvFrameIndex = 0; tvFrameIndex < 10; tvFrameIndex++) {
+        tvFrameSrc.push('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/tv/tv_' + tvFrameIndex + '.webp');
+    }
+    var tvFrameDurations = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 8000];
+    var tvCycleTotal = 17000;
+    var tvFrameState = 0;
+    var tvClock = 0;
+
+    function setTvFrame(idx) {
+        if (tvFrameState === idx) return;
+        var puzzle = cookieAgeData.puzzles.registry.loyalty_test;
+        if (puzzle) puzzle.clue = puzzle.clue.replace(tvFrameSrc[tvFrameState], tvFrameSrc[idx]);
+        tvFrameState = idx;
+    }
+
+    function driveTvFrame() {
+        var el = document.getElementById('jneLoyaltyTv');
+        if (!el || !el.getClientRects().length) {
+            tvClock = 0;
+            setTvFrame(0);
+            return;
+        }
+        var now = Date.now();
+        if (!tvClock) tvClock = now;
+        var elapsed = (now - tvClock) % tvCycleTotal;
+        var acc = 0, idx = 0;
+        for (var i = 0; i < tvFrameDurations.length; i++) {
+            acc += tvFrameDurations[i];
+            if (elapsed < acc) { idx = i; break; }
+        }
+        setTvFrame(idx);
+        if (el.src !== tvFrameSrc[idx]) el.src = tvFrameSrc[idx];
+    }
+
     function LoyaltyTestPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'loyaltyTestTracking');
     }
     LoyaltyTestPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     LoyaltyTestPuzzle.prototype.constructor = LoyaltyTestPuzzle;
-    
+
     LoyaltyTestPuzzle.prototype.initializeTracking = function() {
-        return { 
-            originalDesc: null, 
+        return {
+            originalDesc: null,
             originalDdesc: null,
             completed: false
         };
     };
-    
+
     LoyaltyTestPuzzle.prototype.onSetup = function() {
         var self = this;
         var fledglingBakery = Game.Achievements['Fledgling bakery'];
@@ -4808,21 +4068,20 @@
             fledglingBakery.ddesc = newDesc;
         }
         this.registerHook('check', function() { self.check(); }, 'Check loyalty test');
+        this.registerHook('logic', driveTvFrame, 'Loyalty TV frame driver');
     };
-    
+
     LoyaltyTestPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
-        if (tracking.completed) {
-            return;
-        }
-        
+        if (tracking.completed) {return;}
+
         var name = Game.bakeryName.toLowerCase();
         if (name.includes('quinzy')) {
             tracking.completed = true;
             this.complete();
         }
     };
-    
+
     LoyaltyTestPuzzle.prototype.onCleanup = function() {
         var fledglingBakery = Game.Achievements['Fledgling bakery'];
         var tracking = this.getTracking();
@@ -4831,13 +4090,13 @@
             fledglingBakery.ddesc = tracking.originalDdesc;
         }
     };
-    
+
     function RiseUpPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'riseUpTracking');
     }
     RiseUpPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     RiseUpPuzzle.prototype.constructor = RiseUpPuzzle;
-    
+
     RiseUpPuzzle.prototype.initializeTracking = function() {
         return {
             originalPlayWrinklerSquishSound: null,
@@ -4847,13 +4106,11 @@
             drawingHookAdded: false
         };
     };
-    
+
     RiseUpPuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
-        if (Game.playWrinklerSquishSound && !tracking.originalPlayWrinklerSquishSound) {
-            tracking.originalPlayWrinklerSquishSound = Game.playWrinklerSquishSound;
-        }
+        if (Game.playWrinklerSquishSound && !tracking.originalPlayWrinklerSquishSound) {tracking.originalPlayWrinklerSquishSound = Game.playWrinklerSquishSound;}
         if (typeof Game.promptGiftRedeem === 'function' && !tracking.giftRedemptionHookAdded) {
             tracking.originalPromptGiftRedeem = Game.promptGiftRedeem;
             Game.promptGiftRedeem = function() {
@@ -4862,9 +4119,7 @@
                 l('giftCode').focus();
                 l('giftCode').select();
                 var checkCode = function(str) {
-                    if (str && str.toLowerCase().trim() === 'secret') {
-                        return { cookies: 0, message: 'Secret code detected!', icon: Game.giftBoxDesigns[0], isSecret: true };
-                    }
+                    if (str && str.toLowerCase().trim() === 'secret') {return { cookies: 0, message: 'Secret code detected!', icon: Game.giftBoxDesigns[0], isSecret: true };}
                     var out = { cookies: 1, message: false, icon: Game.giftBoxDesigns[0] };
                     str = b64_to_utf8(str);
                     if (!str) return false;
@@ -4948,37 +4203,29 @@
             };
             tracking.giftRedemptionHookAdded = true;
         }
-        
-        // Load the notes sprite sheet
+
         loadNotesSpriteSheet();
-        
         initWrinklerAudioSystem();
-        
-        // Replace the wrinkler squish sound function with our musical version
+
         if (Game.playWrinklerSquishSound && tracking.originalPlayWrinklerSquishSound) {
             var self = this;
             Game.playWrinklerSquishSound = function() {
                 var tracking = self.getTracking();
                 if (self.isValid()) {
-                    // all 14 wrinklers present with close value of 1?
                     var activeWrinklers = 0;
                     var allClose = true;
-                    
+
                     for (var i in Game.wrinklers) {
                         if (Game.wrinklers[i].phase > 0) {
                             activeWrinklers++;
-                            if (Game.wrinklers[i].close !== 1) {
-                                allClose = false;
-                            }
+                            if (Game.wrinklers[i].close !== 1) {allClose = false;}
                         }
                     }
-                    
-                    // Only activate musical tones if all conditions are met
+
                     if (activeWrinklers >= 14 && allClose) {
-                        // Find which wrinkler was clicked
                         var clickedWrinkler = null;
                         var clickedWrinklerId = -1;
-                        
+
                         for (var i in Game.wrinklers) {
                             if (Game.wrinklers[i].selected && Game.wrinklers[i].phase > 0) {
                                 clickedWrinkler = Game.wrinklers[i];
@@ -4986,7 +4233,7 @@
                                 break;
                             }
                         }
-                        
+
                         if (!clickedWrinkler) {
                             for (var i in Game.wrinklers) {
                                 if (Game.wrinklers[i].phase > 0 && Game.wrinklers[i].hp > 0.5) {
@@ -4996,23 +4243,23 @@
                                 }
                             }
                         }
-                        
+
                         if (clickedWrinkler && clickedWrinklerId >= 0 && clickedWrinkler.hp > 0.5) {
                             var wrinklerPosition = clickedWrinklerId;
-                            
+
                             if (wrinklerPosition >= 0 && wrinklerPosition < 14) {
                                 var frequency = WRINKLER_TONE_FREQUENCIES[wrinklerPosition];
                                 var noteSprite = WRINKLER_NOTE_SPRITES[wrinklerPosition];
-                                
+
                                 var expectedNote = NOTE_SEQUENCE[currentSequenceIndex];
                                 var shouldPlayWrongTone = (wrinklerPosition !== expectedNote && revealedLetters > 0);
-                                
+
                                 if (shouldPlayWrongTone) {
                                     playWrinklerTone(WRINKLER_TONE_FREQUENCIES[14], WRINKLER_TONE_DURATION);
                                 } else {
                                     playWrinklerTone(frequency, WRINKLER_TONE_DURATION);
                                 }
-                                
+
                                 createMusicalNoteParticle(clickedWrinkler.x, clickedWrinkler.y, noteSprite);
                                 checkNoteSequence(wrinklerPosition);
                             }
@@ -5020,64 +4267,51 @@
                         }
                     }
                 }
-                
-                if (tracking.originalPlayWrinklerSquishSound) {
-                    tracking.originalPlayWrinklerSquishSound();
-                }
+
+                if (tracking.originalPlayWrinklerSquishSound) {tracking.originalPlayWrinklerSquishSound();}
             };
         }
-        
-        // Hook into the game's drawing system to update our custom particles
+
         if (!tracking.drawingHookAdded) {
             var originalDrawWrinklers = Game.DrawWrinklers;
             if (originalDrawWrinklers) {
-                // Store original function for cleanup
                 tracking.originalDrawWrinklers = originalDrawWrinklers;
-                
+
                 Game.DrawWrinklers = function() {
                     originalDrawWrinklers.call(this);
                     updateMessageDecay();
-                    
-                    // Draw our custom musical note particles
                     updateMusicalNoteParticles();
-                    
-                    // Draw hidden message
                     drawHiddenMessage();
                 };
-                
+
                 tracking.drawingHookAdded = true;
             }
         }
     };
-    
+
     RiseUpPuzzle.prototype.onCheck = function() {
         // Check happens in gift redemption hook
     };
-    
+
     RiseUpPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        if (tracking && tracking.originalPlayWrinklerSquishSound) {
-            Game.playWrinklerSquishSound = tracking.originalPlayWrinklerSquishSound;
-        }
-        if (tracking && tracking.originalPromptGiftRedeem) {
-            Game.promptGiftRedeem = tracking.originalPromptGiftRedeem;
-        }
-        if (tracking && tracking.originalDrawWrinklers) {
-            Game.DrawWrinklers = tracking.originalDrawWrinklers;
-        }
-        // Clear any remaining musical note particles
-        if (typeof musicalNoteParticles !== 'undefined') {
-            musicalNoteParticles.length = 0;
-        }
+        if (tracking && tracking.originalPlayWrinklerSquishSound) {Game.playWrinklerSquishSound = tracking.originalPlayWrinklerSquishSound;}
+        if (tracking && tracking.originalPromptGiftRedeem) {Game.promptGiftRedeem = tracking.originalPromptGiftRedeem;}
+        if (tracking && tracking.originalDrawWrinklers) {Game.DrawWrinklers = tracking.originalDrawWrinklers;}
+        musicalNoteParticles.length = 0;
+        revealedLetters = 0;
+        currentSequenceIndex = 0;
+        lastNoteTime = 0;
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function DefeatEvilPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'defeatEvilTracking');
+        GardenHookPuzzle.call(this, puzzleId, puzzleData, registry, 'defeatEvilTracking');
     }
-    DefeatEvilPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    DefeatEvilPuzzle.prototype = Object.create(GardenHookPuzzle.prototype);
     DefeatEvilPuzzle.prototype.constructor = DefeatEvilPuzzle;
-    
+    DefeatEvilPuzzle.prototype.gardenHookFn = 'harvest';
+
     DefeatEvilPuzzle.prototype.initializeTracking = function() {
         return {
             sequence: [[5,3],[9,2],[9,6],[9,2],[0,5],[11,4],[0,9],[11,2],[8,4],[3,11],[5,3],[0,9],[0,5],[11,9],[11,2],[11,2],[5,3],[0,11],[6,8],[6,8],[9,3],[6,2],[0,11],[9,2],[3,7],[0,5],[11,8],[0,6],[9,7],[6,8],[0,5],[9,7],[0,5],[11,8],[11,4],[0,5],[11,4],[0,11],[0,5],[9,7],[9,3],[9,7],[0,5],[6,11],[11,9],[3,7],[11,9],[6,2],[11,4],[0,8],[9,3]],
@@ -5085,11 +4319,10 @@
             lastSwitchTs: Date.now(),
             _originalDrawWrinklers: null,
             _originalBackgroundHook: false,
-            _previousBgType: Game.bgType,
-            _originalBgType: Game.bgType
+            _previousBgType: Game.bgType
         };
     };
-    
+
     DefeatEvilPuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
@@ -5099,26 +4332,8 @@
                 self.customDrawWrinklers.call(self);
             };
         }
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            if (M.harvest && typeof M.harvest === 'function' && !M._defeatEvilHarvestHooked) {
-                M._originalHarvest = M.harvest;
-                M.harvest = function(x, y) {
-                        // Check BEFORE harvest to ensure puzzle is still valid
-                    var shouldComplete = false;
-                    if (self.isValid() && self.checkGardenPattern()) {
-                        shouldComplete = true;
-                    }
-                    var result = M._originalHarvest.call(this, x, y);
-                    if (shouldComplete) {
-                        self.complete();
-                    }
-                    return result;
-                };
-                M._defeatEvilHarvestHooked = true;
-            }
-            this.registerHook('check', function() { if (self.checkGardenPattern()) self.complete(); }, 'Check defeat evil');
-        }
+        GardenHookPuzzle.prototype.onSetup.call(this);
+        this.registerHook('check', function() { if (self.checkGardenPattern()) self.complete(); }, 'Check defeat evil');
         if (!tracking._originalBackgroundHook) {
             tracking._originalBackgroundHook = true;
             var originalBgType = Game.bgType;
@@ -5134,9 +4349,7 @@
                             Game.DrawWrinklers = tracking._originalDrawWrinklers;
                             delete tracking._originalDrawWrinklers;
                         }
-                        if (winklerOverrideActive) {
-                            playAudioSound('puzzleCompletion');
-                        }
+                        if (winklerOverrideActive) {playExpansionSound();}
                         showChessBoardPuzzle();
                     }
                 },
@@ -5144,10 +4357,9 @@
             });
         }
     };
-    
+
     DefeatEvilPuzzle.prototype.customDrawWrinklers = function() {
         var tracking = this.getTracking();
-        if (!tracking) return tracking._originalDrawWrinklers ? tracking._originalDrawWrinklers() : undefined;
         var ctx = Game.LeftBackground;
         var selected = 0;
         var now = Date.now();
@@ -5167,9 +4379,7 @@
         var totalWinklerCount = 0;
         if (Game.wrinklers) {
             for (var j in Game.wrinklers) {
-                if (Game.wrinklers[j] && Game.wrinklers[j].phase > 0) {
-                    totalWinklerCount++;
-                }
+                if (Game.wrinklers[j] && Game.wrinklers[j].phase > 0) {totalWinklerCount++;}
             }
         }
         shouldShowCustomArt = shouldShowCustomArt && hasCorrectWinklers && winklerCount === 12 && totalWinklerCount === 12;
@@ -5210,9 +4420,7 @@
                 tracking.lastSwitchTs = now;
             }
         }
-        if (tracking._repeatPauseActive && (now - tracking._repeatPauseStart) >= 150) {
-            tracking._repeatPauseActive = false;
-        }
+        if (tracking._repeatPauseActive && (now - tracking._repeatPauseStart) >= 150) {tracking._repeatPauseActive = false;}
         currentStep = tracking.sequence[tracking.sequenceIndex] || [];
         isIdleStep = (currentStep.length === 2 && currentStep[0] === -1 && currentStep[1] === -1);
         var forcedSet = isIdleStep ? [] : currentStep;
@@ -5238,13 +4446,9 @@
                 } else if (Game.season == 'christmas') {
                     pic = Game.WINKLERS ? 'winterWinkler.png' : 'winterWrinkler.png';
                 }
-                if (!isIdleStep && !tracking._repeatPauseActive && !inLoopPause && forcedSet.indexOf(Number(i)) !== -1 && shouldShowCustomArt) {
-                    pic = Game.WINKLERS ? 'wrinkler.png' : 'winkler.png';
-                }
+                if (!isIdleStep && !tracking._repeatPauseActive && !inLoopPause && forcedSet.indexOf(Number(i)) !== -1 && shouldShowCustomArt) {pic = Game.WINKLERS ? 'wrinkler.png' : 'winkler.png';}
                 ctx.drawImage(Pic(pic), -sw / 2, -10, sw, sh);
-                if (!Game.WINKLERS && Game.prefs.notScary) {
-                    ctx.drawImage(Pic(Math.sin(Game.T * 0.003 + i * 11 + 137 + Math.sin(Game.T * 0.017 + i * 13)) > 0.9997 ? 'wrinklerBlink.png' : 'wrinklerGooglies.png'), -sw / 2, -10 + 1 * Math.sin(Game.T * 0.2 + i * 3 + 1.2), sw, sh);
-                }
+                if (!Game.WINKLERS && Game.prefs.notScary) {ctx.drawImage(Pic(Math.sin(Game.T * 0.003 + i * 11 + 137 + Math.sin(Game.T * 0.017 + i * 13)) > 0.9997 ? 'wrinklerBlink.png' : 'wrinklerGooglies.png'), -sw / 2, -10 + 1 * Math.sin(Game.T * 0.2 + i * 3 + 1.2), sw, sh);}
                 if (me.type == 1 && Math.random() < 0.3 && Game.prefs.particles) {
                     ctx.globalAlpha = Math.random() * 0.65 + 0.1;
                     var s = Math.random() * 30 + 5;
@@ -5252,9 +4456,7 @@
                     ctx.drawImage(Pic('glint.png'), -s / 2 + Math.random() * 50 - 25, -s / 2 + Math.random() * 200, s, s);
                 }
                 ctx.restore();
-                if (Game.prefs.particles && me.phase == 2 && Math.random() < 0.03) {
-                    Game.particleAdd(me.x, me.y, Math.random() * 4 - 2, Math.random() * -2 - 2, Math.random() * 0.5 + 0.5, 1, 2);
-                }
+                if (Game.prefs.particles && me.phase == 2 && Math.random() < 0.03) {Game.particleAdd(me.x, me.y, Math.random() * 4 - 2, Math.random() * -2 - 2, Math.random() * 0.5 + 0.5, 1, 2);}
                 if (me.selected) selected = me;
             }
         }
@@ -5293,40 +4495,26 @@
             ctx.drawImage(Pic('icons.png'), 27 * 48, 26 * 48, 48, 48, x - width / 2 - 16 - s2 / 2, y - 4 - s2 / 2, s2, s2);
         }
     };
-    
+
+    DefeatEvilPuzzle.prototype.beforeGardenAction = function() {
+        return this.checkGardenPattern();
+    };
+    DefeatEvilPuzzle.prototype.afterGardenAction = function() {
+        this.complete();
+    };
+
+    DefeatEvilPuzzle.prototype.expectedPattern = [
+        ['Ordinary clover','EMPTY','Duketater','EMPTY','EMPTY','Ordinary clover'],
+        ['EMPTY','Thumbcorn','Thumbcorn','Golden clover','Keenmoss','EMPTY'],
+        ['Thumbcorn','Bakeberry','Keenmoss','Thumbcorn','EMPTY','Thumbcorn'],
+        ['Bakeberry','EMPTY','Thumbcorn','Bakeberry','Keenmoss','EMPTY'],
+        ['EMPTY','Thumbcorn','Golden clover','EMPTY','Thumbcorn','Thumbcorn'],
+        ['Ordinary clover','EMPTY','EMPTY','Duketater','EMPTY','Ordinary clover']
+    ];
     DefeatEvilPuzzle.prototype.checkGardenPattern = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) return false;
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) return false;
-        var expectedPattern = [
-            ['Ordinary clover','EMPTY','Duketater','EMPTY','EMPTY','Ordinary clover'],
-            ['EMPTY','Thumbcorn','Thumbcorn','Golden clover','Keenmoss','EMPTY'],
-            ['Thumbcorn','Bakeberry','Keenmoss','Thumbcorn','EMPTY','Thumbcorn'],
-            ['Bakeberry','EMPTY','Thumbcorn','Bakeberry','Keenmoss','EMPTY'],
-            ['EMPTY','Thumbcorn','Golden clover','EMPTY','Thumbcorn','Thumbcorn'],
-            ['Ordinary clover','EMPTY','EMPTY','Duketater','EMPTY','Ordinary clover']
-        ];
-        for (var y = 0; y < M.plot.length && y < expectedPattern.length; y++) {
-            for (var x = 0; x < M.plot[y].length && x < expectedPattern[y].length; x++) {
-                var plotData = M.plot[y][x];
-                var expectedPlant = expectedPattern[y][x];
-                if (expectedPlant === 'EMPTY') {
-                    if (plotData && plotData[0] > 0) return false;
-                } else {
-                    if (!plotData || plotData[0] <= 0) return false;
-                    var plantId = plotData[0] - 1;
-                    var plant = M.plantsById[plantId];
-                    if (!plant || plant.name !== expectedPlant) return false;
-                }
-            }
-        }
-        return true;
+        return matchesGardenPlot(Game.Objects['Farm'] && Game.Objects['Farm'].minigame, this.expectedPattern);
     };
-    
-    DefeatEvilPuzzle.prototype.onCheck = function() {
-        // Check happens in harvest hook and periodic check
-    };
-    
+
     DefeatEvilPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
         if (tracking && tracking._originalDrawWrinklers && typeof Game.DrawWrinklers === 'function') {
@@ -5340,24 +4528,15 @@
             Game.bgType = currentBgType;
             tracking._originalBackgroundHook = false;
         }
-        // Restore Farm minigame harvest hook
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            if (M._defeatEvilHarvestHooked && M._originalHarvest) {
-                M.harvest = M._originalHarvest;
-                delete M._originalHarvest;
-                delete M._defeatEvilHarvestHooked;
-            }
-        }
-        StateTrackingPuzzle.prototype.onCleanup.call(this);
+        GardenHookPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function EmbracePathPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'embracePathTracking');
     }
     EmbracePathPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     EmbracePathPuzzle.prototype.constructor = EmbracePathPuzzle;
-    
+
     EmbracePathPuzzle.prototype.initializeTracking = function() {
         return {
             soundSequence: [],
@@ -5366,7 +4545,7 @@
             buffWasActive: false
         };
     };
-    
+
     EmbracePathPuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
@@ -5378,7 +4557,7 @@
             };
         }
     };
-    
+
     EmbracePathPuzzle.prototype.onCheck = function() {
         if (!Game.jukebox || !Game.jukebox.sounds) return;
         var tracking = this.getTracking();
@@ -5403,46 +4582,42 @@
         }
         if (!sequenceMatches) {
             tracking.soundSequence = [currentSound];
-            if (currentSound !== tracking.targetSequence[0]) {
-                tracking.soundSequence = [];
-            }
+            if (currentSound !== tracking.targetSequence[0]) {tracking.soundSequence = [];}
         } else if (tracking.soundSequence.length === tracking.targetSequence.length) {
             this.complete();
         }
     };
-    
+
     EmbracePathPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        if (tracking && tracking.originalSetSound && Game.jukebox) {
-            Game.jukebox.setSound = tracking.originalSetSound;
-        }
+        if (tracking && tracking.originalSetSound && Game.jukebox) {Game.jukebox.setSound = tracking.originalSetSound;}
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function SchismChoicePuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'schismChoiceTracking');
     }
     SchismChoicePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     SchismChoicePuzzle.prototype.constructor = SchismChoicePuzzle;
-    
+
     SchismChoicePuzzle.prototype.initializeTracking = function() {
         return {
             longMonthsPattern: { filled: [1, 3, 5, 6, 8, 10, 11], empty: [0, 2, 4, 7, 9] },
             shortMonthsPattern: { filled: [0, 2, 4, 7, 9], empty: [1, 3, 5, 6, 8, 10, 11] }
         };
     };
-    
+
     SchismChoicePuzzle.prototype.onSetup = function() {
         var self = this;
-        this.registerHook('check', function() { 
-            self.check(); 
+        this.registerHook('check', function() {
+            self.check();
         }, 'Check schism choice');
     };
     SchismChoicePuzzle.prototype.onCheck = function() {
         if (Game.season !== 'christmas' || !Game.wrinklers || Game.wrinklers.length < 12) return;
         var tracking = this.getTracking();
         if (!tracking) return;
-        
+
         var longMonthsComplete = true;
         for (var i = 0; i < tracking.longMonthsPattern.filled.length; i++) {
             var pos = tracking.longMonthsPattern.filled[i];
@@ -5485,22 +4660,22 @@
             this.complete();
         }
     };
-    
+
     function RosettaStonePuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'rosettaStoneTracking');
     }
     RosettaStonePuzzle.prototype = Object.create(SequencePuzzle.prototype);
     RosettaStonePuzzle.prototype.constructor = RosettaStonePuzzle;
-    
+
     RosettaStonePuzzle.prototype.initializeTracking = function() {
-        return { 
-            sequence: [], 
-            lastSeason: Game.season || '', 
+        return {
+            sequence: [],
+            lastSeason: Game.season || '',
             hooked: false,
             completed: false
         };
     };
-    
+
     RosettaStonePuzzle.prototype.onSetup = function() {
         var self = this;
         var tracking = this.getTracking();
@@ -5512,13 +4687,12 @@
             set: function(newSeason) {
                 var oldSeason = originalSeason;
                 originalSeason = newSeason;
-                if (oldSeason !== newSeason && newSeason !== '') {
-                    setTimeout(function() { self.check(); }, 0);
-                }
+                if (oldSeason !== newSeason && newSeason !== '') {setTimeout(function() { self.check(); }, 0);}
             },
             configurable: true
         });
         tracking.hooked = true;
+        tracking.originalShowLangSelection = Game.showLangSelection;
         Game.showLangSelection = function(firstLaunch) {
             var str='';
             for (var i in Langs) {
@@ -5536,34 +4710,30 @@
             AddEvent(l('langSelect-ancientHieroglyphics'),'mouseover',function(){PlaySound('snd/smallTick.mp3',0.75);l('languageSelectHeader').innerHTML='Ancient hieroglyphics';});
         };
     };
-    
+
     RosettaStonePuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (!tracking) return;
-        
-        if (tracking.completed) {
-            return;
-        }
-        
+
+        if (tracking.completed) {return;}
+
         var currentSeason = Game.season || '';
-        // Only add season if it's different from the last one
         if (currentSeason !== tracking.lastSeason && currentSeason !== '') {
             tracking.sequence.push(currentSeason);
             tracking.lastSeason = currentSeason;
         }
-        
+
         var requiredSequence = ['christmas', 'halloween', 'easter', 'fools', 'valentines'];
         var currentSequence = tracking.sequence;
-        
-        // fools and easter may appear in either order 
+
+        // fools and easter may appear in either order
         var acceptableSequences = [
             ['christmas', 'halloween', 'easter', 'fools', 'valentines'],
             ['christmas', 'halloween', 'fools', 'easter', 'valentines']
         ];
-        
-        // Validate incrementally - check if current sequence matches the prefix of any acceptable sequence
+
+        // Validate incrementally check if current sequence matches the prefix of any acceptable sequence
         if (currentSequence.length > requiredSequence.length) {
-            // Too long, reset
             this.resetSequence();
         } else {
             var matchesAny = false;
@@ -5580,96 +4750,78 @@
                     break;
                 }
             }
-            
+
             if (!matchesAny) {
-                // Sequence doesn't match, reset
                 this.resetSequence();
             } else if (currentSequence.length >= requiredSequence.length) {
-                // Complete sequence matches!
                 tracking.completed = true;
                 this.complete();
             }
         }
     };
-    
+
     RosettaStonePuzzle.prototype.resetSequence = function() {
         var tracking = this.getTracking();
         tracking.sequence = [];
         tracking.lastSeason = Game.season || '';
     };
-    
+
     RosettaStonePuzzle.prototype.onCleanup = function() {
-        // Restore Game.season property to default (remove the custom getter/setter)
+        var tracking = this.getTracking();
+        // Restore Game.season property to default
         var currentSeason = Game.season;
         delete Game.season;
         Game.season = currentSeason;
 
-        // Restore vanilla language selection
-        Game.showLangSelection = function(firstLaunch) {
-            var str='';
-            for (var i in Langs) {
-                var lang=Langs[i];
-                str+='<div class="langSelectButton title'+((!firstLaunch && locId==lang.file)?' selected':'')+'" style="padding:4px;" id="langSelect-'+i+'">'+lang.name+'</div>';
-            }
-            Game.Prompt('<id ChangeLanguage>'+(firstLaunch?'<noClose>':'')+'<h3 id="languageSelectHeader">'+loc("Change language")+'</h3><div class="line"></div>'+(firstLaunch?'':'<div style="font-size:11px;opacity:0.5;margin-bottom:12px;">('+loc("note: this will save and reload your game")+')</div>')+str,(firstLaunch?0:[loc("Cancel")]));
-            for (var i in Langs) {
-                var lang=Langs[i];
-                AddEvent(l('langSelect-'+i),'click',function(lang){return function(){if (true){PlaySound('snd/tick.mp3');localStorageSet('CookieClickerLang',lang);Game.toSave=true;Game.toReload=true;}};}(i));
-                AddEvent(l('langSelect-'+i),'mouseover',function(lang){return function(){PlaySound('snd/smallTick.mp3',0.75);l('languageSelectHeader').innerHTML=Langs[lang].changeLanguage;};}(i));
-            }
-        };
+        if (tracking && tracking.originalShowLangSelection) {Game.showLangSelection = tracking.originalShowLangSelection;}
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function StillWithUsPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'stillWithUsTracking');
+        this.originalClickSpecialPic = null;
+        this.clickSpecialWrapper = null;
     }
     StillWithUsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     StillWithUsPuzzle.prototype.constructor = StillWithUsPuzzle;
-    
+
     StillWithUsPuzzle.prototype.initializeTracking = function() {
-        return { 
-            petCount: 0, 
-            requiredPets: 10, 
+        return {
+            petCount: 0,
+            requiredPets: 10,
             hooked: false,
             completed: false
         };
     };
-    
+
     StillWithUsPuzzle.prototype.onSetup = function() {
         if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {
             this.hookDragonPetting();
         } else {
             var self = this;
             this.registerHook('check', function() {
-                if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon') && !self.getTracking().hooked) {
-                    self.hookDragonPetting();
-                }
+                if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon') && !self.getTracking().hooked) {self.hookDragonPetting();}
             }, 'Check for dragon availability');
         }
     };
-    
+
     StillWithUsPuzzle.prototype.hookDragonPetting = function() {
-        if (!Game._originalClickSpecialPicStillWithUs) {
-            Game._originalClickSpecialPicStillWithUs = Game.ClickSpecialPic;
-        }
         var self = this;
-        Game.ClickSpecialPic = function() {
-            Game._originalClickSpecialPicStillWithUs();
-            if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {
-                self.checkDragonPet();
-            }
+        var original = Game.ClickSpecialPic;
+        this.originalClickSpecialPic = original;
+        this.clickSpecialWrapper = function() {
+            original.call(Game);
+            if (Game.specialTab === 'dragon' && Game.dragonLevel >= 4 && Game.Has('Pet the dragon')) {self.checkDragonPet();}
         };
+        Game.ClickSpecialPic = this.clickSpecialWrapper;
         this.getTracking().hooked = true;
     };
-    
+
     StillWithUsPuzzle.prototype.checkDragonPet = function() {
         if (!this.isValid()) return;
         var tracking = this.getTracking();
-        if (tracking.completed) {
-            return;
-        }
-        
+        if (tracking.completed) {return;}
+
         var bothSlotsEmpty = (Game.dragonAura === 0 && Game.dragonAura2 === 0);
         if (bothSlotsEmpty) {
             tracking.petCount++;
@@ -5681,40 +4833,39 @@
             tracking.petCount = 0;
         }
     };
-    
+
     StillWithUsPuzzle.prototype.onCleanup = function() {
-        if (Game._originalClickSpecialPicStillWithUs) {
-            Game.ClickSpecialPic = Game._originalClickSpecialPicStillWithUs;
-            delete Game._originalClickSpecialPicStillWithUs;
-        }
+        if (Game.ClickSpecialPic === this.clickSpecialWrapper) {Game.ClickSpecialPic = this.originalClickSpecialPic;}
+        this.originalClickSpecialPic = null;
+        this.clickSpecialWrapper = null;
         var tracking = this.getTracking();
         if (tracking) tracking.hooked = false;
     };
-    
+
     StillWithUsPuzzle.prototype.onCheck = function() {
         // Check happens in dragon petting hook
     };
-    
+
     function MaskWearsThinPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'maskTracking');
     }
     MaskWearsThinPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     MaskWearsThinPuzzle.prototype.constructor = MaskWearsThinPuzzle;
-    
+
     MaskWearsThinPuzzle.prototype.initializeTracking = function() {
         return { completed: false, hooksDisabled: false };
     };
-    
+
     MaskWearsThinPuzzle.prototype.onSetup = function() {
         var self = this;
         this.registerHook('check', function() { self.check(); }, 'Check clone appearance');
     };
-    
+
     MaskWearsThinPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (tracking.hooksDisabled || tracking.completed) return;
         if (!Game.YouCustomizer || !Game.YouCustomizer.currentGenes) return;
-        
+
         var genes = Game.YouCustomizer.currentGenes;
         var hairValid = (genes[0] === 10);
         var hairColorValid = (genes[1] === 3);
@@ -5724,19 +4875,19 @@
         var extraA = genes[5];
         var extraB = genes[6];
         var extrasValid = (extraA === 7 && extraB === 32) || (extraA === 32 && extraB === 7);
-        
+
         if (hairValid && hairColorValid && skinColorValid && headShapeValid && faceValid && extrasValid) {
             tracking.completed = true;
             this.complete();
         }
     };
-    
+
     function FalseBeaconsPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'falseBeaconsTracking');
     }
     FalseBeaconsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     FalseBeaconsPuzzle.prototype.constructor = FalseBeaconsPuzzle;
-    
+
     FalseBeaconsPuzzle.prototype.initializeTracking = function() {
         return {
             consecutiveSpiritPlays: 0,
@@ -5745,45 +4896,39 @@
             completed: false
         };
     };
-    
+
     FalseBeaconsPuzzle.prototype.onSetup = function() {
         this.hookJukebox();
     };
-    
+
     FalseBeaconsPuzzle.prototype.hookJukebox = function() {
         var tracking = this.getTracking();
-        if (tracking.hooked || !Game.jukebox || !Game.jukebox.setSound) {
-            return;
-        }
-        
+        if (tracking.hooked || !Game.jukebox || !Game.jukebox.setSound) {return;}
+
         tracking.originalSetSound = Game.jukebox.setSound;
         var self = this;
-        
+
         Game.jukebox.setSound = function(id) {
             tracking.originalSetSound.call(Game.jukebox, id);
             self.checkSound();
         };
-        
+
         tracking.hooked = true;
     };
-    
+
     FalseBeaconsPuzzle.prototype.checkSound = function() {
-        if (!this.isValid() || !Game.jukebox || !Game.jukebox.sounds) {
-            return;
-        }
-        
+        if (!this.isValid() || !Game.jukebox || !Game.jukebox.sounds) {return;}
+
         var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
+
+        if (tracking.completed) {return;}
+
         var currentSoundIndex = Game.jukebox.onSound;
         var currentSound = Game.jukebox.sounds[currentSoundIndex];
-        
+
         if (currentSound === 'spirit') {
             tracking.consecutiveSpiritPlays++;
-            
+
             if (tracking.consecutiveSpiritPlays >= 3) {
                 tracking.completed = true;
                 this.complete();
@@ -5792,36 +4937,30 @@
             tracking.consecutiveSpiritPlays = 0;
         }
     };
-    
+
     FalseBeaconsPuzzle.prototype.onCleanup = function() {
         var tracking = this.getTracking();
-        if (tracking && tracking.originalSetSound && Game.jukebox) {
-            Game.jukebox.setSound = tracking.originalSetSound;
-        }
+        if (tracking && tracking.originalSetSound && Game.jukebox) {Game.jukebox.setSound = tracking.originalSetSound;}
         if (tracking) {
             tracking.hooked = false;
             tracking.originalSetSound = null;
         }
     };
-    
+
     FalseBeaconsPuzzle.prototype.onCheck = function() {
         // Check happens in jukebox hook
         return;
     };
-    
+
     function FalseDawnPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'falseDawnTracking');
     }
     FalseDawnPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     FalseDawnPuzzle.prototype.constructor = FalseDawnPuzzle;
-    
+
     FalseDawnPuzzle.prototype.initializeTracking = function() {
-        var initialCounts = {};
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            initialCounts[building.name] = building.amount;
-        }
-        
+        var initialCounts = this.getBuildingCounts();
+
         var tracking = {
             currentStep: 0,
             stepTargets: [
@@ -5839,48 +4978,37 @@
         };
         return tracking;
     };
-    
+
     FalseDawnPuzzle.prototype.onSetup = function() {
         var tracking = this.getTracking();
-        
+
         if (Game.season === 'fools') {
             tracking.seasonValid = true;
             tracking.initialSeason = 'fools';
-            
-            for (var i = 0; i < tracking.stepTargets.length; i++) {
-                var targetBuilding = tracking.stepTargets[i].building;
-                var buildingObj = Game.Objects[targetBuilding];
-                if (buildingObj) {
-                    tracking.stepStartCounts[i] = buildingObj.amount;
-                }
-            }
-            for (var i = 0; i < Game.ObjectsById.length; i++) {
-                var building = Game.ObjectsById[i];
-                tracking.initialBuildingCounts[building.name] = building.amount;
-            }
-            
+
+            this.snapshotAllStepCounts(tracking);
+            tracking.initialBuildingCounts = this.getBuildingCounts();
+
             tracking.initialCountsSet = true;
         } else {
             tracking.seasonValid = false;
         }
-        
+
         this.hookBuildingBuySell();
-        
+
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check false dawn sequence');
     };
-    
+
     FalseDawnPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
         if (!tracking || tracking.sequenceComplete) {
-            if (tracking && tracking.sequenceComplete) {
-                return;
-            }
+            if (tracking && tracking.sequenceComplete) {return;}
             return;
         }
-        
+
         if (Game.season !== 'fools') {
             if (tracking.seasonValid) {
                 this.resetSequence();
@@ -5888,53 +5016,38 @@
             }
             return;
         }
-        
+
         if (!tracking.seasonValid && Game.season === 'fools') {
             tracking.seasonValid = true;
             tracking.initialSeason = 'fools';
-            
-            for (var i = 0; i < tracking.stepTargets.length; i++) {
-                var targetBuilding = tracking.stepTargets[i].building;
-                var buildingObj = Game.Objects[targetBuilding];
-                if (buildingObj) {
-                    tracking.stepStartCounts[i] = buildingObj.amount;
-                }
-            }
-            for (var i = 0; i < Game.ObjectsById.length; i++) {
-                var building = Game.ObjectsById[i];
-                tracking.initialBuildingCounts[building.name] = building.amount;
-            }
-            
+
+            this.snapshotAllStepCounts(tracking);
+            tracking.initialBuildingCounts = this.getBuildingCounts();
+
             tracking.initialCountsSet = true;
             tracking.currentStep = 0;
             tracking.sequenceComplete = false;
         }
-        
+
         var currentStep = tracking.currentStep;
-        if (currentStep >= tracking.stepTargets.length) {
-            return;
-        }
-        
+        if (currentStep >= tracking.stepTargets.length) {return;}
+
         var stepTarget = tracking.stepTargets[currentStep];
         var buildingObj = Game.Objects[stepTarget.building];
-        if (!buildingObj) {
-            return;
-        }
-        
+        if (!buildingObj) {return;}
+
         var currentCount = buildingObj.amount;
-        if (tracking.stepStartCounts[currentStep] === undefined) {
-            return;
-        }
+        if (tracking.stepStartCounts[currentStep] === undefined) {return;}
         var startCount = tracking.stepStartCounts[currentStep];
         var amountToChange = stepTarget.amount;
         var stepComplete = false;
-        
+
        // player may have sold buildings before this step started
         if (stepTarget.action === 'sell' && currentCount > startCount) {
             tracking.stepStartCounts[currentStep] = currentCount;
             startCount = currentCount;
         }
-        
+
         if (currentStep === 0 && stepTarget.building === 'Farm') {
             stepComplete = (currentCount > startCount);
         } else {
@@ -5950,26 +5063,16 @@
                 }
             }
         }
-        
+
         if (stepComplete) {
-            
+
             tracking.currentStep++;
-            
+
             if (currentStep === 0) {
-                for (var i = 1; i < tracking.stepTargets.length; i++) {
-                    var targetBuilding = tracking.stepTargets[i].building;
-                    var buildingObj2 = Game.Objects[targetBuilding];
-                    if (buildingObj2) {
-                        tracking.stepStartCounts[i] = buildingObj2.amount;
-                    }
-                }
-                
-                for (var i = 0; i < Game.ObjectsById.length; i++) {
-                    var building = Game.ObjectsById[i];
-                    tracking.initialBuildingCounts[building.name] = building.amount;
-                }
+                this.snapshotAllStepCounts(tracking);
+                tracking.initialBuildingCounts = this.getBuildingCounts();
             }
-            
+
             if (tracking.currentStep >= tracking.stepTargets.length) {
                 tracking.sequenceComplete = true;
                 this.complete();
@@ -5979,96 +5082,39 @@
             for (var j = 0; j < tracking.stepTargets.length; j++) {
                 sequenceBuildings.push(tracking.stepTargets[j].building);
             }
-            
-            for (var i = 0; i < Game.ObjectsById.length; i++) {
-                var building = Game.ObjectsById[i];
-                var initialCount = tracking.initialBuildingCounts[building.name] || 0;
-                
-                if (sequenceBuildings.indexOf(building.name) === -1 && building.amount !== initialCount) {
-                    this.resetSequence();
-                    return;
-                }
+
+            if (this.hasWrongBuildingChanged(tracking, sequenceBuildings)) {
+                this.resetSequence();
+                return;
             }
-        }
-    };
-    
-    FalseDawnPuzzle.prototype.resetSequence = function() {
-        var tracking = this.getTracking();
-        if (!tracking) return;
-        
-        tracking.currentStep = 0;
-        tracking.stepStartCounts = [];
-        tracking.sequenceComplete = false;
-        tracking.initialCountsSet = false;
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            tracking.initialBuildingCounts[building.name] = building.amount;
-        }
-        
-        // Recapture ALL step start counts based on CURRENT building amounts
-        for (var i = 0; i < tracking.stepTargets.length; i++) {
-            var targetBuilding = tracking.stepTargets[i].building;
-            var buildingObj = Game.Objects[targetBuilding];
-            if (buildingObj) {
-                tracking.stepStartCounts[i] = buildingObj.amount;
-            }
-        }
-        
-        tracking.initialCountsSet = true;
-    };
-    
-    FalseDawnPuzzle.prototype.hookBuildingBuySell = function() {
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            
-            if (!building._originalBuyFalseDawn) {
-                building._originalBuyFalseDawn = building.buy;
-                building._originalSellFalseDawn = building.sell;
-            }
-            
-            var self = this;
-            var originalBuy = building._originalBuyFalseDawn;
-            var originalSell = building._originalSellFalseDawn;
-            building.buy = function(amount) {
-                var result = originalBuy.call(this, amount);
-                setTimeout(function() {
-                    self.onCheck();
-                }, 0);
-                return result;
-            };
-            
-            building.sell = function(amount, bypass) {
-                var result = originalSell.call(this, amount, bypass);
-                setTimeout(function() {
-                    self.onCheck();
-                }, 0);
-                return result;
-            };
         }
     };
 
+    FalseDawnPuzzle.prototype.resetSequence = function() {
+        var tracking = this.getTracking();
+        if (!tracking) return;
+
+        tracking.currentStep = 0;
+        tracking.sequenceComplete = false;
+        tracking.initialCountsSet = false;
+
+        tracking.initialBuildingCounts = this.getBuildingCounts();
+        this.snapshotAllStepCounts(tracking);
+
+        tracking.initialCountsSet = true;
+    };
+
     FalseDawnPuzzle.prototype.onCleanup = function() {
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            if (building._originalBuyFalseDawn) {
-                building.buy = building._originalBuyFalseDawn;
-                delete building._originalBuyFalseDawn;
-            }
-            if (building._originalSellFalseDawn) {
-                building.sell = building._originalSellFalseDawn;
-                delete building._originalSellFalseDawn;
-            }
-        }
+        this.unhookBuildingBuySell();
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
 
     function LitanyCrumbsPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'litanySpellTracking');
+        GrimoireHookPuzzle.call(this, puzzleId, puzzleData, registry, 'litanySpellTracking');
     }
-    LitanyCrumbsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    LitanyCrumbsPuzzle.prototype = Object.create(GrimoireHookPuzzle.prototype);
     LitanyCrumbsPuzzle.prototype.constructor = LitanyCrumbsPuzzle;
-    
+
     LitanyCrumbsPuzzle.prototype.initializeTracking = function() {
         return {
             expectedSequence: [
@@ -6077,74 +5123,29 @@
                 'Stretch Time',
                 'Resurrect Abomination'
             ],
-            currentSequence: [],
-            maxMagicRequired: 115
+            currentSequence: []
         };
     };
 
-    LitanyCrumbsPuzzle.prototype.onSetup = function() {
-        if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            this.hookGrimoire();
-        } else {
-            var self = this;
-            this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
-                    self.hookGrimoire();
-                }
-            }, 'Check for grimoire availability');
-        }
-    };
-
-    LitanyCrumbsPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (!M || !M.castSpell) return;
-
-        if (M.castSpell._cookieAgeLitanyCrumbs) {
-            M.castSpell._puzzleInstance = this;
-            this.spellHooked = true;
-            return;
-        }
-
-        var originalCastSpell = M.castSpell;
-        var wrapper = function(spell, obj) {
-            var result = originalCastSpell.apply(this, arguments);
-            var instance = wrapper._puzzleInstance;
-            if (instance) {
-                setTimeout(function() {
-                    instance.checkSpellCast(spell);
-                }, 0);
-            }
-            return result;
-        };
-        wrapper._cookieAgeLitanyCrumbs = true;
-        wrapper._puzzleInstance = this;
-        M.castSpell = wrapper;
-        this.spellHooked = true;
-    };
-    
     LitanyCrumbsPuzzle.prototype.checkSpellCast = function(spell) {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        
+
         var M = Game.Objects['Wizard tower'].minigame;
-        if (!M || M.magicM !== 115) {
-            return;
-        }
-        
+        if (!M || M.magicM !== 115) {return;}
+
         var spellName = spell.name || spell.id || 'unknown';
         tracking.currentSequence.push(spellName);
-        
+
         var expectedSequence = tracking.expectedSequence;
         var currentSequence = tracking.currentSequence;
-        
+
         if (currentSequence.length > expectedSequence.length) {
             tracking.currentSequence = [spellName];
             currentSequence = tracking.currentSequence;
         }
-        
+
         var matches = true;
         for (var i = 0; i < currentSequence.length; i++) {
             if (currentSequence[i] !== expectedSequence[i]) {
@@ -6152,33 +5153,20 @@
                 break;
             }
         }
-        
+
         if (!matches) {
             tracking.currentSequence = [spellName];
         } else if (currentSequence.length === expectedSequence.length) {
             this.complete();
         }
     };
-    
-    LitanyCrumbsPuzzle.prototype.onCleanup = function() {
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (M && M.castSpell && M.castSpell._cookieAgeLitanyCrumbs) {
-            M.castSpell._puzzleInstance = null;
-        }
-        this.spellHooked = false;
-    };
-    
-    LitanyCrumbsPuzzle.prototype.onCheck = function() {
-        // Check happens in castSpell hook
-        return;
-    };
-    
+
     function RiteFivefoldCastingPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'fivefoldSpellTracking');
+        GrimoireHookPuzzle.call(this, puzzleId, puzzleData, registry, 'fivefoldSpellTracking');
     }
-    RiteFivefoldCastingPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    RiteFivefoldCastingPuzzle.prototype = Object.create(GrimoireHookPuzzle.prototype);
     RiteFivefoldCastingPuzzle.prototype.constructor = RiteFivefoldCastingPuzzle;
-    
+
     RiteFivefoldCastingPuzzle.prototype.initializeTracking = function() {
         return {
             expectedSequence: [
@@ -6194,179 +5182,68 @@
         };
     };
 
-    RiteFivefoldCastingPuzzle.prototype.onSetup = function() {
-        if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-            this.hookGrimoire();
-        } else {
-            var self = this;
-            this.registerHook('check', function() {
-                if (Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame && !self.spellHooked) {
-                    self.hookGrimoire();
-                }
-            }, 'Check for grimoire availability');
-        }
-    };
-
-    RiteFivefoldCastingPuzzle.prototype.hookGrimoire = function() {
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (!M || !M.castSpell) return;
-
-        if (M.castSpell._cookieAgeRiteFivefold) {
-            M.castSpell._puzzleInstance = this;
-            this.spellHooked = true;
-            return;
-        }
-
-        var originalCastSpell = M.castSpell;
-        var wrapper = function(spell, obj) {
-            var result = originalCastSpell.apply(this, arguments);
-            var instance = wrapper._puzzleInstance;
-            if (instance) {
-                setTimeout(function() {
-                    instance.checkSpellCast(spell, result);
-                }, 0);
-            }
-            return result;
-        };
-        wrapper._cookieAgeRiteFivefold = true;
-        wrapper._puzzleInstance = this;
-        M.castSpell = wrapper;
-        this.spellHooked = true;
-    };
-    
     RiteFivefoldCastingPuzzle.prototype.checkSpellCast = function(spell, result) {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
         var spellName = spell.name || spell.id || 'unknown';
         var spellResult = result === true;
-        
+
         var expectedIndex = tracking.currentSequence.length;
-        if (expectedIndex >= tracking.expectedSequence.length) {
-            return;
-        }
-        
+        if (expectedIndex >= tracking.expectedSequence.length) {return;}
+
         var expectedSpell = tracking.expectedSequence[expectedIndex];
         var expectedResult = tracking.expectedResults[expectedIndex];
-        
+
         if (spellName === expectedSpell && spellResult === expectedResult) {
             tracking.currentSequence.push(spellName);
             tracking.currentResults.push(spellResult);
-            
-            if (tracking.currentSequence.length >= tracking.expectedSequence.length) {
-                this.complete();
-            }
+
+            if (tracking.currentSequence.length >= tracking.expectedSequence.length) {this.complete();}
         } else {
             tracking.currentSequence = [];
             tracking.currentResults = [];
         }
     };
-    
-    RiteFivefoldCastingPuzzle.prototype.onCleanup = function() {
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (M && M.castSpell && M.castSpell._cookieAgeRiteFivefold) {
-            M.castSpell._puzzleInstance = null;
-        }
-        this.spellHooked = false;
-    };
-    
-    RiteFivefoldCastingPuzzle.prototype.onCheck = function() {
-        // Check happens in castSpell hook
-        return;
-    };
-    
+
     function LawkeeperWalkPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'lawkeeperWalkTracking');
+        PantheonHookPuzzle.call(this, puzzleId, puzzleData, registry, 'lawkeeperWalkTracking');
     }
-    LawkeeperWalkPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    LawkeeperWalkPuzzle.prototype = Object.create(PantheonHookPuzzle.prototype);
     LawkeeperWalkPuzzle.prototype.constructor = LawkeeperWalkPuzzle;
-    
+
     LawkeeperWalkPuzzle.prototype.initializeTracking = function() {
         return {
             expectedSequence: [2, 0, 1],
             currentStep: 0,
             spiritName: 'Rigidel, Spirit of Order',
-            hooked: false,
             stepPhase: 'waiting',
             stepStartTime: null,
-            originalSlot: null,
-            slotProxy: null,
             completed: false
         };
     };
-    
-    LawkeeperWalkPuzzle.prototype.onSetup = function() {
-        if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-            this.hookPantheon();
-        } else {
-            var self = this;
-            this.registerHook('check', function() {
-                if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame && !self.getTracking().hooked) {
-                    self.hookPantheon();
-                }
-            }, 'Check for temple minigame availability');
-        }
-    };
-    
-    LawkeeperWalkPuzzle.prototype.hookPantheon = function() {
-        var pantheon = Game.Objects['Temple'].minigame;
+
+    LawkeeperWalkPuzzle.prototype.checkPantheonChange = function() {
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        
-        if (pantheon && pantheon.slot && Array.isArray(pantheon.slot) && !tracking.hooked) {
-            var originalSlot = pantheon.slot;
-            var self = this;
-            
-            var slotProxy = new Proxy(originalSlot, {
-                set: function(target, property, value) {
-                    target[property] = value;
-                    // already in the mutation handler, no setTimeout needed
-                        self.checkSequence();
-                    return true;
-                }
-            });
-            
-            pantheon.slot = slotProxy;
-            tracking.originalSlot = originalSlot;
-            tracking.slotProxy = slotProxy;
-            tracking.hooked = true;
-        }
-    };
-    
-    LawkeeperWalkPuzzle.prototype.checkSequence = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
-        var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
-        if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) {
-            return;
-        }
-        
+        if (tracking.completed) { return; }
+        if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) {return;}
+
         var pantheon = Game.Objects['Temple'].minigame;
-        if (!pantheon.slot || pantheon.slot.length < 3) {
-            return;
-        }
-        
+        if (!pantheon.slot || pantheon.slot.length < 3) {return;}
+
         var currentStep = tracking.currentStep;
         var expectedSlot = tracking.expectedSequence[currentStep];
         var spiritName = tracking.spiritName;
         var currentPhase = tracking.stepPhase;
-        
+
         var godsCurrentlySlotted = [];
         for (var throneIndex = 0; throneIndex < pantheon.slot.length; throneIndex++) {
             var slotValue = pantheon.slot[throneIndex];
             if (slotValue !== -1 && slotValue !== null && slotValue !== undefined) {
                 var godInThrone = null;
-                if (pantheon.godsById && pantheon.godsById[slotValue]) {
-                    godInThrone = pantheon.godsById[slotValue].name;
-                }
+                if (pantheon.godsById && pantheon.godsById[slotValue]) {godInThrone = pantheon.godsById[slotValue].name;}
                 if (godInThrone) {
                     godsCurrentlySlotted.push({
                         name: godInThrone,
@@ -6375,12 +5252,12 @@
                 }
             }
         }
-        
+
         var hasAnySpirits = godsCurrentlySlotted.length > 0;
         var rigidelInCorrectSlot = false;
         var rigidelInWrongSlot = false;
         var hasOtherSpirits = false;
-        
+
         for (var i = 0; i < godsCurrentlySlotted.length; i++) {
             var slottedGod = godsCurrentlySlotted[i];
             if (slottedGod.name === spiritName) {
@@ -6393,8 +5270,8 @@
                 hasOtherSpirits = true;
             }
         }
-        
-        // State machine: waiting -> placed -> completed
+
+        // waiting > placed > completed
         if (currentPhase === 'waiting') {
             if (rigidelInCorrectSlot && !hasOtherSpirits) {
                 tracking.stepPhase = 'placed';
@@ -6408,7 +5285,7 @@
             if (!hasAnySpirits) {
                 tracking.stepPhase = 'completed';
                 tracking.currentStep++;
-                
+
                 if (tracking.currentStep >= tracking.expectedSequence.length) {
                     // set before complete() to prevent double completion
                     tracking.completed = true;
@@ -6451,45 +5328,23 @@
             }
         }
     };
-    
-    LawkeeperWalkPuzzle.prototype.onCleanup = function() {
-        var tracking = this.getTracking();
-        if (tracking && tracking.hooked && tracking.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-            var pantheon = Game.Objects['Temple'].minigame;
-            // Only restore if the current slot is actually our proxy
-            if (pantheon.slot === tracking.slotProxy) {
-                pantheon.slot = tracking.originalSlot;
-            }
-        }
-        if (tracking) {
-            tracking.hooked = false;
-            tracking.originalSlot = null;
-            tracking.slotProxy = null;
-        }
-    };
-    
-    LawkeeperWalkPuzzle.prototype.onCheck = function() {
-        // Check happens in Proxy hook
-        return;
-    };
-    
+
     function GrandmatriarchsFlightPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'grandmatriarchsFlightTracking');
         this.ascendButtonHook = null;
     }
     GrandmatriarchsFlightPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     GrandmatriarchsFlightPuzzle.prototype.constructor = GrandmatriarchsFlightPuzzle;
-    
+
     GrandmatriarchsFlightPuzzle.prototype.initializeTracking = function() {
         return {
             elderFrenzyActiveOnAscend: false
         };
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.onSetup = function() {
         var self = this;
-        
-        // Hook ascend button
+
         setTimeout(function() {
             var ascendButton = document.getElementById('ascendButton');
             if (ascendButton) {
@@ -6505,23 +5360,20 @@
                 };
             }
         }, 1000);
-        
-        // Hook reset (ascend) event - backup check that preserves state if already captured
+
+        // Hook reset event - backup check that preserves state if already captured
         this.registerHook('reset', function() {
             self.checkElderFrenzyOnAscend();
         }, 'Check Elder Frenzy on ascend for Grandmatriarchs Flight');
-        
-        // Hook reincarnate event
+
         this.registerHook('reincarnate', function() {
             self.checkCompletion();
         }, 'Check completion on reincarnate');
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.captureElderFrenzy = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
         if (Game.buffs && Game.buffs['Elder frenzy'] && Game.buffs['Elder frenzy'].multCpS > 0) {
             tracking.elderFrenzyActiveOnAscend = true;
@@ -6529,117 +5381,58 @@
             tracking.elderFrenzyActiveOnAscend = false;
         }
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.checkElderFrenzyOnAscend = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        
-        // Preserve state if already captured (don't overwrite a successful capture)
-        if (tracking.elderFrenzyActiveOnAscend) {
-            return;
-        }
-        
-        // Backup check if state wasn't captured yet
+
+        // Preserve state if already captured
+        if (tracking.elderFrenzyActiveOnAscend) {return;}
+
         if (Game.buffs && Game.buffs['Elder frenzy'] && Game.buffs['Elder frenzy'].multCpS > 0) {
             tracking.elderFrenzyActiveOnAscend = true;
         } else {
             tracking.elderFrenzyActiveOnAscend = false;
         }
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.checkCompletion = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        if (tracking.elderFrenzyActiveOnAscend) {
-            this.complete();
-        }
-        
-        // Reset tracking
+        if (tracking.elderFrenzyActiveOnAscend) {this.complete();}
+
         tracking.elderFrenzyActiveOnAscend = false;
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.onCleanup = function() {
         if (this.ascendButtonHook) {
             var ascendButton = document.getElementById('ascendButton');
-            if (ascendButton) {
-                ascendButton.removeEventListener('click', this.ascendButtonHook);
-            }
+            if (ascendButton) {ascendButton.removeEventListener('click', this.ascendButtonHook);}
         }
     };
-    
+
     GrandmatriarchsFlightPuzzle.prototype.onCheck = function() {
         // Check happens in reincarnate hook
         return;
     };
-    
+
     function RuleLightsPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'ruleOfLightsTracking');
+        WrinklerPatternPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    RuleLightsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    RuleLightsPuzzle.prototype = Object.create(WrinklerPatternPuzzle.prototype);
     RuleLightsPuzzle.prototype.constructor = RuleLightsPuzzle;
-    
-    RuleLightsPuzzle.prototype.initializeTracking = function() {
-        return {
-            expectedPattern: {
-                // Clock positions: filled=12,3,4,5,6,8 → indexes 6,3,2,1,0,10
-                filled: [0, 1, 2, 3, 6, 10],
-                // Clock positions: empty=1,2,7,9,10,11 → indexes 5,4,11,9,8,7
-                empty: [4, 5, 7, 8, 9, 11]
-            }
-        };
-    };
-    
-    RuleLightsPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check rule of lights pattern');
-    };
-    
-    RuleLightsPuzzle.prototype.onCheck = function() {
-        if (!Game.wrinklers || Game.wrinklers.length < 12) {
-            return;
-        }
-        
-        var tracking = this.getTracking();
-        var expectedPattern = tracking.expectedPattern;
-        var patternMatches = true;
-        
-        for (var i = 0; i < expectedPattern.filled.length; i++) {
-            var pos = expectedPattern.filled[i];
-            if (pos < Game.wrinklers.length && Game.wrinklers[pos].close !== 1) {
-                patternMatches = false;
-                break;
-            }
-        }
-        
-        if (patternMatches) {
-            for (var i = 0; i < expectedPattern.empty.length; i++) {
-                var pos = expectedPattern.empty[i];
-                if (pos < Game.wrinklers.length && Game.wrinklers[pos].close === 1) {
-                    patternMatches = false;
-                    break;
-                }
-            }
-        }
-        
-        if (patternMatches) {
-            this.complete();
-        }
-    };
-    
+    // Clock positions: filled=12,3,4,5,6,8 → indexes 6,3,2,1,0,10
+    // Clock positions: empty=1,2,7,9,10,11 → indexes 5,4,11,9,8,7
+    RuleLightsPuzzle.prototype.expectedPattern = { filled: [0, 1, 2, 3, 6, 10], empty: [4, 5, 7, 8, 9, 11] };
+
     function NursesFieldsPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'nursesInFieldsTracking');
     }
     NursesFieldsPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     NursesFieldsPuzzle.prototype.constructor = NursesFieldsPuzzle;
-    
+
     NursesFieldsPuzzle.prototype.initializeTracking = function() {
         return {
             currentStep: 1,
@@ -6648,26 +5441,22 @@
             hooked: false
         };
     };
-    
+
     NursesFieldsPuzzle.prototype.onSetup = function() {
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check nurses in fields puzzle');
     };
-    
+
     NursesFieldsPuzzle.prototype.onCheck = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
+        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {return;}
+
         var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return;
-        }
-        
+        if (!M.plot || !M.plantsById) {return;}
+
         var tracking = this.getTracking();
-        
+
         var step1Pattern = [
             ['Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip'],
             ['Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip'],
@@ -6676,7 +5465,7 @@
             ['Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip'],
             ['Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip']
         ];
-        
+
         var step2Pattern = [
             ['EMPTY', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'EMPTY'],
             ['Nursetulip', 'EMPTY', 'Nursetulip', 'Nursetulip', 'EMPTY', 'Nursetulip'],
@@ -6685,28 +5474,28 @@
             ['Nursetulip', 'EMPTY', 'Nursetulip', 'Nursetulip', 'EMPTY', 'Nursetulip'],
             ['EMPTY', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'Nursetulip', 'EMPTY']
         ];
-        
-        // matches either step or neither (neither resets progress)
-        var matchesStep1 = this.validateGardenPattern(M, step1Pattern, true);
-        var matchesStep2 = this.validateGardenPattern(M, step2Pattern, false);
-        
+
+        // matches either step or neither
+        var matchesStep1 = matchesGardenPlot(M, step1Pattern, true);
+        var matchesStep2 = matchesGardenPlot(M, step2Pattern, false);
+
         var hasOnlyValidPlants = true;
         for (var y = 0; y < M.plot.length; y++) {
             for (var x = 0; x < M.plot[y].length; x++) {
                 var plotData = M.plot[y][x];
                 var step1Expected = step1Pattern[y][x];
                 var step2Expected = step2Pattern[y][x];
-                
+
                 var currentPlant = 'EMPTY';
                 if (plotData && plotData[0] > 0) {
                     var plantId = plotData[0] - 1;
                     var plant = M.plantsById[plantId];
                     currentPlant = plant ? plant.name : 'unknown';
                 }
-                
+
                 var matchesStep1Pos = (currentPlant === step1Expected);
                 var matchesStep2Pos = (currentPlant === step2Expected);
-                
+
                 if (!matchesStep1Pos && !matchesStep2Pos) {
                     hasOnlyValidPlants = false;
                     break;
@@ -6714,70 +5503,26 @@
             }
             if (!hasOnlyValidPlants) break;
         }
-        
+
         if (!hasOnlyValidPlants) {
             tracking.currentStep = 1;
             tracking.step1Completed = false;
             tracking.step2Completed = false;
             return;
         }
-        
+
         if (matchesStep2 && tracking.step1Completed) {
             tracking.step2Completed = true;
             this.complete();
             return;
         }
-        
+
         if (tracking.currentStep === 1 && !tracking.step1Completed && matchesStep1) {
             tracking.step1Completed = true;
             tracking.currentStep = 2;
         }
     };
-    
-    NursesFieldsPuzzle.prototype.validateGardenPattern = function(M, pattern, requireMature) {
-        var allPlantsMature = true;
-        var patternMatches = true;
-        
-        for (var y = 0; y < M.plot.length && y < pattern.length; y++) {
-            for (var x = 0; x < M.plot[y].length && x < pattern[y].length; x++) {
-                var plotData = M.plot[y][x];
-                var expectedPlant = pattern[y][x];
-                
-                if (expectedPlant === 'EMPTY') {
-                    if (plotData && plotData[0] > 0) {
-                        patternMatches = false;
-                        break;
-                    }
-                } else {
-                    if (!plotData || plotData[0] <= 0) {
-                        patternMatches = false;
-                        break;
-                    }
-                    
-                    var plantId = plotData[0] - 1;
-                    var plant = M.plantsById[plantId];
-                    
-                    if (!plant || plant.name !== expectedPlant) {
-                        patternMatches = false;
-                        break;
-                    }
-                    
-                    if (requireMature) {
-                        var age = plotData[1] || 0;
-                        var matureAge = plant.mature;
-                        if (age < matureAge) {
-                            allPlantsMature = false;
-                        }
-                    }
-                }
-            }
-            if (!patternMatches) break;
-        }
-        
-        return patternMatches && (!requireMature || allPlantsMature);
-    };
-    
-    // Simple puzzle: Check bakery name
+
     function MakingFriendshipPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
@@ -6785,95 +5530,48 @@
     MakingFriendshipPuzzle.prototype.constructor = MakingFriendshipPuzzle;
     MakingFriendshipPuzzle.prototype.onCheck = function() {
         var name = Game.bakeryName.toLowerCase();
-        if (name.includes('friend')) {
-            this.complete();
-        }
+        if (name.includes('friend')) {this.complete();}
     };
-    
-    // State tracking puzzle: Track cookies sent
+
     function SmallTokenPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'lastCookiesSent');
+        GiftAmountPuzzle.call(this, puzzleId, puzzleData, registry, 1);
     }
-    SmallTokenPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    SmallTokenPuzzle.prototype = Object.create(GiftAmountPuzzle.prototype);
     SmallTokenPuzzle.prototype.constructor = SmallTokenPuzzle;
-    SmallTokenPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check gift send puzzle');
-    };
-    SmallTokenPuzzle.prototype.initializeTracking = function() {
-        return { lastCookiesSent: Game.cookiesSent || 0 };
-    };
-    SmallTokenPuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        var current = Game.cookiesSent || 0;
-        var delta = current - tracking.lastCookiesSent;
-        if (delta === 1) {
-            this.complete();
-        }
-        tracking.lastCookiesSent = current;
-    };
-    
+
     function SilentChoirPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
     SilentChoirPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     SilentChoirPuzzle.prototype.constructor = SilentChoirPuzzle;
     SilentChoirPuzzle.prototype.onCheck = function() {
-        var allMutedCorrectly = true;
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            
-            if (building.name !== 'Cursor') {
-                if (building.muted !== 1) {
-                    allMutedCorrectly = false;
-                    break;
-                }
-            } else {
-                // Cursors should NOT be muted (muted === 0)
-                if (building.muted !== 0) {
-                    allMutedCorrectly = false;
-                    break;
-                }
-            }
-        }
-        
-        if (allMutedCorrectly) {
-            this.complete();
-        }
+        var cursorIndex = Game.ObjectsById.indexOf(Game.Objects['Cursor']);
+        if (matchesMutePattern([cursorIndex])) this.complete();
     };
-    
+
     function SendWordPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
     SendWordPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     SendWordPuzzle.prototype.constructor = SendWordPuzzle;
     SendWordPuzzle.prototype.onCheck = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
+        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {return;}
+
         var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return;
-        }
-        
-        if (M.soil !== 4) {
-            return;
-        }
-        
+        if (!M.plot || !M.plantsById) {return;}
+
+        if (M.soil !== 4) {return;}
+
         var hasTidygrass = false;
-        
+
         for (var y = 0; y < M.plot.length; y++) {
             for (var x = 0; x < M.plot[y].length; x++) {
                 var plotData = M.plot[y][x];
-                
+
                 if (plotData && plotData[0] > 0) {
                     var plantId = plotData[0] - 1;
                     var plant = M.plantsById[plantId];
-                    
+
                     if (plant && plant.name === 'Tidygrass') {
                         hasTidygrass = true;
                         break;
@@ -6882,225 +5580,57 @@
             }
             if (hasTidygrass) break;
         }
-        
-        if (hasTidygrass) {
-            this.complete();
-        }
+
+        if (hasTidygrass) {this.complete();}
     };
-    
+
     function CloseCallPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'lastCookiesSentCloseCall');
+        GiftAmountPuzzle.call(this, puzzleId, puzzleData, registry, 55);
     }
-    CloseCallPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    CloseCallPuzzle.prototype = Object.create(GiftAmountPuzzle.prototype);
     CloseCallPuzzle.prototype.constructor = CloseCallPuzzle;
-    CloseCallPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check close_call puzzle');
-    };
-    CloseCallPuzzle.prototype.initializeTracking = function() {
-        return { lastCookiesSentCloseCall: Game.cookiesSent || 0 };
-    };
-    CloseCallPuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        var current = Game.cookiesSent || 0;
-        var delta = current - tracking.lastCookiesSentCloseCall;
-        
-        if (delta === 55) {
-            this.complete();
-        }
-        
-        tracking.lastCookiesSentCloseCall = current;
-    };
-    
+
     function BlessingCreatorPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'lastCookiesSent');
+        GiftAmountPuzzle.call(this, puzzleId, puzzleData, registry, 777);
     }
-    BlessingCreatorPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    BlessingCreatorPuzzle.prototype = Object.create(GiftAmountPuzzle.prototype);
     BlessingCreatorPuzzle.prototype.constructor = BlessingCreatorPuzzle;
-    BlessingCreatorPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check blessing puzzle');
-    };
-    BlessingCreatorPuzzle.prototype.initializeTracking = function() {
-        return { lastCookiesSent: Game.cookiesSent || 0 };
-    };
-    BlessingCreatorPuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        var current = Game.cookiesSent || 0;
-        var delta = current - tracking.lastCookiesSent;
-        
-        if (delta === 777) {
-            this.complete();
-        }
-        
-        tracking.lastCookiesSent = current;
-    };
     BlessingCreatorPuzzle.prototype.onCleanup = function() {
-        // Remove the blessing puzzle info note
         removeBlessingPuzzleInfo();
+        StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     function BuiltTrustPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
     BuiltTrustPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     BuiltTrustPuzzle.prototype.constructor = BuiltTrustPuzzle;
+    var goldenCloverRow = ['Golden clover', 'Golden clover', 'Golden clover', 'Golden clover', 'Golden clover', 'Golden clover'];
+    BuiltTrustPuzzle.prototype.expectedPattern = [goldenCloverRow, goldenCloverRow, goldenCloverRow, goldenCloverRow, goldenCloverRow, goldenCloverRow];
     BuiltTrustPuzzle.prototype.onCheck = function() {
-        // Explicitly check if puzzle is still valid
-        if (!this.isValid()) {
-            return false;
-        }
-        
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return false;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return false;
-        }
-        
-        var isComplete = true;
-        
-        for (var y = 0; y < M.plot.length; y++) {
-            for (var x = 0; x < M.plot[y].length; x++) {
-                var plotData = M.plot[y][x];
-                
-                if (!plotData || plotData[0] <= 0) {
-                    isComplete = false;
-                    break;
-                }
-                
-                var plantId = plotData[0] - 1;
-                var plant = M.plantsById[plantId];
-                var plantAge = plotData[1];
-                
-                if (!plant || plant.name !== 'Golden clover') {
-                    isComplete = false;
-                    break;
-                }
-                
-                if (plantAge < plant.mature) {
-                    isComplete = false;
-                    break;
-                }
-            }
-            if (!isComplete) break;
-        }
-        
-        if (isComplete) {
-            return this.complete();
-        }
-        
+        if (!this.isValid()) {return false;}
+
+        if (matchesGardenPlot(Game.Objects['Farm'] && Game.Objects['Farm'].minigame, this.expectedPattern, true)) {return this.complete();}
         return false;
     };
-    
+
     function SpiralFortunePuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'stockMarketTracking');
+        StockMarketPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    SpiralFortunePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    SpiralFortunePuzzle.prototype = Object.create(StockMarketPuzzle.prototype);
     SpiralFortunePuzzle.prototype.constructor = SpiralFortunePuzzle;
-    SpiralFortunePuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check spiral puzzle');
+    SpiralFortunePuzzle.prototype.expectedStocks = {
+        0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 8,
+        7: 13, 8: 21, 9: 34, 10: 55, 11: 89, 12: 144, 13: 233
     };
-    SpiralFortunePuzzle.prototype.initializeTracking = function() {
-        return { 
-            fibonacciSequence: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233],
-            completed: false
-        };
-    };
-    SpiralFortunePuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
-        if (!Game.Objects['Bank'] || !Game.Objects['Bank'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Bank'].minigame;
-        if (!M.goodsById || M.goodsById.length < 14) {
-            return;
-        }
-        
-        var allMatch = true;
-        for (var i = 0; i < 14; i++) {
-            var good = M.goodsById[i];
-            var expectedStock = tracking.fibonacciSequence[i];
-            var actualStock = good ? good.stock : 0;
-            
-            if (actualStock !== expectedStock) {
-                allMatch = false;
-                break;
-            }
-        }
-        
-        if (allMatch) {
-            tracking.completed = true;
-            this.complete();
-        }
-    };
-    
+
     function WrinklerClockPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'wrinklerTracking');
+        WrinklerPatternPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    WrinklerClockPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    WrinklerClockPuzzle.prototype = Object.create(WrinklerPatternPuzzle.prototype);
     WrinklerClockPuzzle.prototype.constructor = WrinklerClockPuzzle;
-    WrinklerClockPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check wrinkler clock puzzle');
-    };
-    WrinklerClockPuzzle.prototype.initializeTracking = function() {
-        return {
-            expectedPattern: {
-                filled: [2, 3, 5, 8, 9, 11],
-                empty: [0, 1, 4, 6, 7, 10]
-            }
-        };
-    };
-    WrinklerClockPuzzle.prototype.onCheck = function() {
-        if (!Game.wrinklers || Game.wrinklers.length < 12) {
-            return;
-        }
-        
-        var tracking = this.getTracking();
-        var expectedPattern = tracking.expectedPattern;
-        var patternMatches = true;
-        
-        for (var i = 0; i < expectedPattern.filled.length; i++) {
-            var pos = expectedPattern.filled[i];
-            if (pos < Game.wrinklers.length && Game.wrinklers[pos].close !== 1) {
-                patternMatches = false;
-                break;
-            }
-        }
-        
-        if (patternMatches) {
-            for (var i = 0; i < expectedPattern.empty.length; i++) {
-                var pos = expectedPattern.empty[i];
-                if (pos < Game.wrinklers.length && Game.wrinklers[pos].close === 1) {
-                    patternMatches = false;
-                    break;
-                }
-            }
-        }
-        
-        if (patternMatches) {
-            this.complete();
-        }
-    };
-    
+    WrinklerClockPuzzle.prototype.expectedPattern = { filled: [2, 3, 5, 8, 9, 11], empty: [0, 1, 4, 6, 7, 10] };
+
     function FeastFourPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'feastOfFourTracking');
     }
@@ -7121,132 +5651,47 @@
     };
     FeastFourPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
-        
+
         var easterComplete = Game.GetHowManyEggs && Game.GetHowManyEggs() === 19;
-        
+
         var halloweenOwned = 0;
         for (var i = 0; i < tracking.halloweenCookies.length; i++) {
-            if (Game.Has(tracking.halloweenCookies[i])) {
-                halloweenOwned++;
-            }
+            if (Game.Has(tracking.halloweenCookies[i])) {halloweenOwned++;}
         }
         var halloweenComplete = halloweenOwned === 6;
-        
+
         var christmasOwned = 0;
         for (var i = 0; i < tracking.christmasCookies.length; i++) {
-            if (Game.Has(tracking.christmasCookies[i])) {
-                christmasOwned++;
-            }
+            if (Game.Has(tracking.christmasCookies[i])) {christmasOwned++;}
         }
         var christmasComplete = christmasOwned === 6;
-        
+
         var valentinesOwned = 0;
         for (var i = 0; i < tracking.heartDrops.length; i++) {
-            if (Game.Has(tracking.heartDrops[i])) {
-                valentinesOwned++;
-            }
+            if (Game.Has(tracking.heartDrops[i])) {valentinesOwned++;}
         }
         var valentinesComplete = valentinesOwned === 6;
-        
-        if (easterComplete && halloweenComplete && christmasComplete && valentinesComplete) {
-            this.complete();
-        }
+
+        if (easterComplete && halloweenComplete && christmasComplete && valentinesComplete) {this.complete();}
     };
-    
+
     function VeiledLedgerPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'veiledLedgerTracking');
+        StockMarketPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    VeiledLedgerPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    VeiledLedgerPuzzle.prototype = Object.create(StockMarketPuzzle.prototype);
     VeiledLedgerPuzzle.prototype.constructor = VeiledLedgerPuzzle;
-    VeiledLedgerPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check veiled ledger puzzle');
-    };
-    VeiledLedgerPuzzle.prototype.initializeTracking = function() {
-        return {
-            expectedStocks: {
-                3: 36,
-                11: 67,
-                12: 170
-            }
-        };
-    };
-    VeiledLedgerPuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        
-        if (!Game.Objects['Bank'] || !Game.Objects['Bank'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Bank'].minigame;
-        if (!M.goodsById || M.goodsById.length < 14) {
-            return;
-        }
-        
-        var allMatch = true;
-        
-        // Only check the specific expected stocks (indices 3, 11, 12)
-        for (var i in tracking.expectedStocks) {
-            var good = M.goodsById[i];
-            var actualStock = good ? good.stock : 0;
-            var expectedStock = tracking.expectedStocks[i];
-            
-            if (actualStock !== expectedStock) {
-                allMatch = false;
-                break;
-            }
-        }
-        
-        if (allMatch) {
-            this.complete();
-        }
-    };
-    
+    VeiledLedgerPuzzle.prototype.expectedStocks = { 3: 36, 11: 67, 12: 170 };
+
     function RingingHallsPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'cursorsCantBeMutedTracking');
+        SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    RingingHallsPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    RingingHallsPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     RingingHallsPuzzle.prototype.constructor = RingingHallsPuzzle;
-    RingingHallsPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check cursors cant be muted puzzle');
-    };
-    RingingHallsPuzzle.prototype.initializeTracking = function() {
-        return {
-            unmutedBuildings: [0, 1, 6, 8, 11, 13, 17, 19],
-            completed: false
-        };
-    };
+    RingingHallsPuzzle.prototype.unmutedBuildings = [0, 1, 6, 8, 11, 13, 17, 19];
     RingingHallsPuzzle.prototype.onCheck = function() {
-        var tracking = this.getTracking();
-        var allMutedCorrectly = true;
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            var shouldBeUnmuted = tracking.unmutedBuildings.indexOf(i) !== -1;
-            
-            if (shouldBeUnmuted) {
-                if (building.muted !== 0) {
-                    allMutedCorrectly = false;
-                    break;
-                }
-            } else {
-                if (building.muted !== 1) {
-                    allMutedCorrectly = false;
-                    break;
-                }
-            }
-        }
-        
-        if (allMutedCorrectly) {
-            this.complete();
-        }
+        if (matchesMutePattern(this.unmutedBuildings)) this.complete();
     };
-    
+
     function LedgerBondsPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
@@ -7262,30 +5707,28 @@
             'Time machine': 210,
             'Fractal engine': 105
         };
-        
+
         var allTargetsMet = true;
-        
+
         for (var buildingName in targetCounts) {
             var buildingObj = Game.Objects[buildingName];
             if (!buildingObj) {
                 allTargetsMet = false;
                 break;
             }
-            
+
             var currentCount = buildingObj.amount;
             var targetCount = targetCounts[buildingName];
-            
+
             if (currentCount !== targetCount) {
                 allTargetsMet = false;
                 break;
             }
         }
-        
-        if (allTargetsMet) {
-            this.complete();
-        }
+
+        if (allTargetsMet) {this.complete();}
     };
-    
+
     function SigilsPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
@@ -7293,11 +5736,9 @@
     SigilsPuzzle.prototype.constructor = SigilsPuzzle;
     SigilsPuzzle.prototype.onCheck = function() {
         var name = Game.bakeryName.toLowerCase();
-        if (name === 'sigils') {
-            this.complete();
-        }
+        if (name === 'sigils') {this.complete();}
     };
-    
+
     function VaultedRelicsPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'vaultedRelicsTracking');
     }
@@ -7316,385 +5757,111 @@
     };
     VaultedRelicsPuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
+
+        if (tracking.completed) {return;}
+
         var vaultedCount = 0;
-        
+
         for (var upgradeId in Game.Upgrades) {
             var upgrade = Game.Upgrades[upgradeId];
-            if (upgrade && 
-                upgrade.unlocked === 1 && 
-                upgrade.bought === 0 && 
-                upgrade.isVaulted && 
+            if (upgrade &&
+                upgrade.unlocked === 1 &&
+                upgrade.bought === 0 &&
+                upgrade.isVaulted &&
                 upgrade.isVaulted()) {
                 vaultedCount++;
             }
         }
-        
+
         if (vaultedCount >= 6) {
             tracking.completed = true;
             this.complete();
         }
     };
-    
+
     function GardenPatternPuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
     GardenPatternPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     GardenPatternPuzzle.prototype.constructor = GardenPatternPuzzle;
+    GardenPatternPuzzle.prototype.expectedPattern = [
+        ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
+        ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
+        ['Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy'],
+        ['Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy'],
+        ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
+        ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort']
+    ];
     GardenPatternPuzzle.prototype.onCheck = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return;
-        }
-        
-        var expectedPattern = [
-            ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
-            ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
-            ['Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy'],
-            ['Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy', 'Everdaisy'],
-            ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort'],
-            ['Elderwort', 'Elderwort', 'Everdaisy', 'Everdaisy', 'Elderwort', 'Elderwort']
-        ];
-        
-        var allPlantsMature = true;
-        
-        for (var y = 0; y < M.plot.length && y < expectedPattern.length; y++) {
-            for (var x = 0; x < M.plot[y].length && x < expectedPattern[y].length; x++) {
-                var plotData = M.plot[y][x];
-                var expectedPlant = expectedPattern[y][x];
-                
-                if (!plotData || plotData[0] <= 0) {
-                    return;
-                }
-                
-                var plantId = plotData[0] - 1;
-                var plant = M.plantsById[plantId];
-                
-                if (!plant || plant.name !== expectedPlant) {
-                    return;
-                }
-                
-                var age = plotData[1] || 0;
-                var matureAge = plant.mature;
-                if (age < matureAge) {
-                    allPlantsMature = false;
-                }
-            }
-        }
-        
-        if (allPlantsMature) {
-            this.complete();
-        }
+        if (matchesGardenPlot(Game.Objects['Farm'] && Game.Objects['Farm'].minigame, this.expectedPattern, true)) {this.complete();}
     };
-    
+
     function SixJarsLedgerPuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'sixJarsLedgerTracking');
+        StockMarketPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    SixJarsLedgerPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    SixJarsLedgerPuzzle.prototype = Object.create(StockMarketPuzzle.prototype);
     SixJarsLedgerPuzzle.prototype.constructor = SixJarsLedgerPuzzle;
-    SixJarsLedgerPuzzle.prototype.onSetup = function() {
-        var self = this;
-        this.registerHook('check', function() {
-            self.check();
-        }, 'Check six jars ledger puzzle');
+    SixJarsLedgerPuzzle.prototype.expectedStocks = {
+        0: 60, 1: 102, 2: 51, 3: 0, 4: 0, 5: 30, 6: 90, 7: 90,
+        8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0
     };
-    SixJarsLedgerPuzzle.prototype.initializeTracking = function() {
-        return { 
-            hooked: false,
-            completed: false
-        };
-    };
-    SixJarsLedgerPuzzle.prototype.onCheck = function() {
-        if (!Game.Objects['Bank'] || !Game.Objects['Bank'].minigame) {
-            return;
-        }
-        var M = Game.Objects['Bank'].minigame;
-        if (!M.goodsById || M.goodsById.length < 18) {
-            return;
-        }
-        
-        var expectedStocks = { 0: 60, 1: 102, 2: 51, 3: 0, 4: 0, 5: 30, 6: 90, 7: 90, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0 };
-        
-        var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
-        for (var i = 0; i < 18; i++) {
-            var actualStock = M.goodsById[i] ? M.goodsById[i].stock : 0;
-            if (actualStock !== expectedStocks[i]) {
-                return;
-            }
-        }
-        
-        tracking.completed = true;
-        this.complete();
-    };
-    
+
     function GardenMazePuzzle(puzzleId, puzzleData, registry) {
         SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
     GardenMazePuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
     GardenMazePuzzle.prototype.constructor = GardenMazePuzzle;
+    GardenMazePuzzle.prototype.expectedPattern = [
+        ['Everdaisy', 'EMPTY', 'Everdaisy', 'Baker\'s wheat', 'Golden clover', 'Baker\'s wheat'],
+        ['White chocoroot', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'Ordinary clover'],
+        ['Baker\'s wheat', 'Chocoroot', 'Shriekbulb', 'Shriekbulb', 'EMPTY', 'Ordinary clover'],
+        ['Baker\'s wheat', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'Whiskerbloom'],
+        ['Baker\'s wheat', 'EMPTY', 'Shriekbulb', 'Shriekbulb', 'Tidygrass', 'Baker\'s wheat'],
+        ['Elderwort', 'EMPTY', 'Elderwort', 'Baker\'s wheat', 'Baker\'s wheat', 'Baker\'s wheat']
+    ];
     GardenMazePuzzle.prototype.onCheck = function() {
-        // Explicitly check if puzzle is still valid (BasePuzzle.check already does this, but being explicit)
-        if (!this.isValid()) {
-            return false;
-        }
-        
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return false;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return false;
-        }
-        
-        if (M.soil !== 2) {
-            return false;
-        }
-        
-        var expectedPattern = [
-            ['Everdaisy', 'EMPTY', 'Everdaisy', 'Baker\'s wheat', 'Golden clover', 'Baker\'s wheat'],
-            ['White chocoroot', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'Ordinary clover'],
-            ['Baker\'s wheat', 'Chocoroot', 'Shriekbulb', 'Shriekbulb', 'EMPTY', 'Ordinary clover'],
-            ['Baker\'s wheat', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'Whiskerbloom'],
-            ['Baker\'s wheat', 'EMPTY', 'Shriekbulb', 'Shriekbulb', 'Tidygrass', 'Baker\'s wheat'],
-            ['Elderwort', 'EMPTY', 'Elderwort', 'Baker\'s wheat', 'Baker\'s wheat', 'Baker\'s wheat']
-        ];
-        
-        for (var y = 0; y < M.plot.length && y < expectedPattern.length; y++) {
-            for (var x = 0; x < M.plot[y].length && x < expectedPattern[y].length; x++) {
-                var plotData = M.plot[y][x];
-                var expectedPlant = expectedPattern[y][x];
-                
-                if (expectedPlant === 'EMPTY') {
-                    if (plotData && plotData[0] > 0) {
-                        return false;
-                    }
-                } else {
-                    if (!plotData || plotData[0] <= 0) {
-                        return false;
-                    }
-                    
-                    var plantId = plotData[0] - 1;
-                    var plant = M.plantsById[plantId];
-                    
-                    if (!plant || plant.name !== expectedPlant) {
-                        return false;
-                    }
-                }
-            }
-        }
-        
-        // Pattern matches - complete the puzzle
-        return this.complete();
-    };
-    
-    function GardenSigilPuzzle(puzzleId, puzzleData, registry) {
-        SimpleHookPuzzle.call(this, puzzleId, puzzleData, registry);
-        this.harvestHooked = false;
-    }
-    GardenSigilPuzzle.prototype = Object.create(SimpleHookPuzzle.prototype);
-    GardenSigilPuzzle.prototype.constructor = GardenSigilPuzzle;
-    GardenSigilPuzzle.prototype.onSetup = function() {
-        SimpleHookPuzzle.prototype.onSetup.call(this);
-        
-        this.setupHarvestHook();
-        // Also register a check hook to setup harvest hook if minigame loads later
-        var self = this;
-        this.registerHook('check', function() {
-            if (!self.harvestHooked && Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-                self.setupHarvestHook();
-            }
-        }, 'Garden setup check');
-    };
-    GardenSigilPuzzle.prototype.setupHarvestHook = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        var hookKey = '_originalHarvest_gardenSigil';
-        var hookFlag = '_gardenSigilHarvestHooked';
-        
-        if (M.harvest && typeof M.harvest === 'function' && !M[hookFlag]) {
-            var self = this;
-            // Store the current function (which might be vanilla or another puzzle's wrapper)
-            M[hookKey] = M.harvest;
-            M.harvest = function(x, y) {
-                
-                // Check BEFORE harvest to see what we're harvesting and if puzzle is still active
-                var plantNameBefore = null;
-                var shouldComplete = false;
-                
-                // Only validate if this puzzle is still the current active puzzle
-                if (self.isValid()) {
-                    var plotDataBefore = M.plot[y] ? M.plot[y][x] : null;
-                    
-                    if (plotDataBefore && plotDataBefore[0] > 0) {
-                        var plantIdBefore = plotDataBefore[0] - 1;
-                        var plantBefore = M.plantsById[plantIdBefore];
-                        if (plantBefore) {
-                            plantNameBefore = plantBefore.name;
-                        }
-                    }
-                    
-                    
-                    // First, validate the full garden pattern
-                    var expectedPattern = [
-                        ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover'],
-                        ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
-                        ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
-                        ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
-                        ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
-                        ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover']
-                    ];
-                    
-                    var patternValid = true;
-                    for (var py = 0; py < M.plot.length && py < expectedPattern.length; py++) {
-                        for (var px = 0; px < M.plot[py].length && px < expectedPattern[py].length; px++) {
-                            var pData = M.plot[py][px];
-                            var expectedPlant = expectedPattern[py][px];
-                            
-                            if (!pData || pData[0] <= 0) {
-                                patternValid = false;
-                                break;
-                            }
-                            
-                            var pPlantId = pData[0] - 1;
-                            var pPlant = M.plantsById[pPlantId];
-                            var pPlantAge = pData[1];
-                            
-                            if (!pPlant || pPlant.name !== expectedPlant || pPlantAge < pPlant.mature) {
-                                patternValid = false;
-                                break;
-                            }
-                        }
-                        if (!patternValid) break;
-                    }
-                    
-                    if (!patternValid) {
-                    } else {
-                        if (plantNameBefore && plantNameBefore.toLowerCase() === 'golden clover' && (y === 2 || y === 3)) {
-                            shouldComplete = true;
-                        } else {
-                        }
-                    }
-                } else {
-                }
-                
-                // might be vanilla or another puzzle's wrapper
-                var result = M[hookKey].apply(this, arguments);
-                
-                // Complete puzzle AFTER harvest if conditions were met BEFORE harvest
-                if (shouldComplete) {
-                    self.complete();
-                }
-                
-                return result;
-            };
-            M[hookFlag] = true;
-            this.harvestHooked = true;
-        } else {
-        }
-    };
-    GardenSigilPuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            var hookKey = '_originalHarvest_gardenSigil';
-            var hookFlag = '_gardenSigilHarvestHooked';
+        if (!this.isValid()) {return false;}
 
-            // Only restore if we actually hooked it and the current function is our wrapper
-            if (M[hookFlag] && M[hookKey]) {
-                // Check if the current harvest function is our wrapper by checking if it exists and references our hookKey
-                if (M.harvest && typeof M.harvest === 'function') {
-                    M.harvest = M[hookKey];
-                }
-                delete M[hookKey];
-                delete M[hookFlag];
-            }
-        }
-        this.harvestHooked = false;
+        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+        if (!M || M.soil !== 2) {return false;}
+
+        if (matchesGardenPlot(M, this.expectedPattern)) {return this.complete();}
+        return false;
     };
-    GardenSigilPuzzle.prototype.onCheck = function() {
-        
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return;
-        }
-        
-        var expectedPattern = [
-            ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover'],
-            ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
-            ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
-            ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
-            ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
-            ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover']
-        ];
-        
-        var mismatchCount = 0;
-        var mismatchDetails = [];
-        
-        for (var y = 0; y < M.plot.length && y < expectedPattern.length; y++) {
-            for (var x = 0; x < M.plot[y].length && x < expectedPattern[y].length; x++) {
-                var plotData = M.plot[y][x];
-                var expectedPlant = expectedPattern[y][x];
-                
-                if (!plotData || plotData[0] <= 0) {
-                    mismatchCount++;
-                    mismatchDetails.push(`[${x},${y}] empty or no plant`);
-                    continue;
-                }
-                
-                var plantId = plotData[0] - 1;
-                var plant = M.plantsById[plantId];
-                var plantAge = plotData[1];
-                
-                if (!plant) {
-                    mismatchCount++;
-                    mismatchDetails.push(`[${x},${y}] plant not found for id ${plantId}`);
-                    continue;
-                }
-                
-                if (plant.name !== expectedPlant) {
-                    mismatchCount++;
-                    mismatchDetails.push(`[${x},${y}] expected "${expectedPlant}" but found "${plant.name}"`);
-                    continue;
-                }
-                
-                if (plantAge < plant.mature) {
-                    mismatchCount++;
-                    mismatchDetails.push(`[${x},${y}] plant not mature (age ${plantAge} < mature ${plant.mature})`);
-                    continue;
-                }
-            }
-        }
-        
-        if (mismatchCount === 0) {
-        }
+
+    function GardenSigilPuzzle(puzzleId, puzzleData, registry) {
+        GardenHookPuzzle.call(this, puzzleId, puzzleData, registry);
+    }
+    GardenSigilPuzzle.prototype = Object.create(GardenHookPuzzle.prototype);
+    GardenSigilPuzzle.prototype.constructor = GardenSigilPuzzle;
+    GardenSigilPuzzle.prototype.gardenHookFn = 'harvest';
+    GardenSigilPuzzle.prototype.expectedPattern = [
+        ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover'],
+        ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
+        ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
+        ['Ordinary clover', 'Ordinary clover', 'Golden clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover'],
+        ['Ordinary clover', 'Golden clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover', 'Ordinary clover'],
+        ['Golden clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Ordinary clover', 'Golden clover']
+    ];
+    GardenSigilPuzzle.prototype.beforeGardenAction = function(M, args) {
+        var x = args[0], y = args[1];
+        var plotData = M.plot[y] ? M.plot[y][x] : null;
+        if (!plotData || plotData[0] <= 0) return false;
+
+        var plant = M.plantsById[plotData[0] - 1];
+        if (!plant || plant.name.toLowerCase() !== 'golden clover' || (y !== 2 && y !== 3)) {return false;}
+
+        return matchesGardenPlot(M, this.expectedPattern, true);
     };
-    
+    GardenSigilPuzzle.prototype.afterGardenAction = function() {
+        this.complete();
+    };
+
     // Grimoire spell hook: Initiation Riddle - Track consecutive spell casts
     function InitiationRiddlePuzzle(puzzleId, puzzleData, registry) {
-        StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'spellTracking');
-        this.spellHooked = false;
+        GrimoireHookPuzzle.call(this, puzzleId, puzzleData, registry, 'spellTracking');
     }
-    InitiationRiddlePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
+    InitiationRiddlePuzzle.prototype = Object.create(GrimoireHookPuzzle.prototype);
     InitiationRiddlePuzzle.prototype.constructor = InitiationRiddlePuzzle;
     InitiationRiddlePuzzle.prototype.initializeTracking = function() {
         return {
@@ -7704,64 +5871,21 @@
             completed: false
         };
     };
-    InitiationRiddlePuzzle.prototype.onSetup = function() {
-        this.setupSpellHook();
-        // Also register a check hook to setup spell hook if minigame loads later
-        var self = this;
-        this.registerHook('check', function() {
-            if (!self.spellHooked && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame) {
-                self.setupSpellHook();
-            }
-        }, 'Check for grimoire minigame availability');
-    };
-    InitiationRiddlePuzzle.prototype.setupSpellHook = function() {
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (!M || !M.castSpell) return;
-
-        // If already hooked by us, just update the puzzle reference and skip re-wrapping
-        if (M.castSpell._cookieAgeInitiationRiddle) {
-            M.castSpell._puzzleInstance = this;
-            this.spellHooked = true;
-            return;
-        }
-
-        var originalCastSpell = M.castSpell;
-        var wrapper = function(spell, obj) {
-            var result = originalCastSpell.apply(this, arguments);
-            var instance = wrapper._puzzleInstance;
-            if (instance) {
-                setTimeout(function() {
-                    instance.checkSpellCast(spell);
-                }, 0);
-            }
-            return result;
-        };
-        wrapper._cookieAgeInitiationRiddle = true;
-        wrapper._puzzleInstance = this;
-        M.castSpell = wrapper;
-        this.spellHooked = true;
-    };
     InitiationRiddlePuzzle.prototype.checkSpellCast = function(spell) {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        
-        if (tracking.completed) {
-            return;
-        }
-        
+
+        if (tracking.completed) {return;}
+
         var currentTime = Date.now();
         var spellId = spell.id || spell.name || 'unknown';
-        
+
         if (spellId === tracking.lastSpellId) {
-            if (tracking.consecutiveCastCount === 0) {
-                tracking.firstCastTime = currentTime;
-            }
+            if (tracking.consecutiveCastCount === 0) {tracking.firstCastTime = currentTime;}
             tracking.consecutiveCastCount++;
-            
-            //all spells cast within 60 seconds (updated from 30 seconds in earlier versions)
+
+            //all spells cast within 60 seconds
             if (tracking.consecutiveCastCount === 3 && (currentTime - tracking.firstCastTime) <= 60000) {
                 tracking.completed = true;
                 this.complete();
@@ -7775,25 +5899,12 @@
             tracking.firstCastTime = currentTime;
         }
     };
-    InitiationRiddlePuzzle.prototype.onCleanup = function() {
 
-        var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-        if (M && M.castSpell && M.castSpell._cookieAgeInitiationRiddle) {
-            M.castSpell._puzzleInstance = null;
-        }
-        this.spellHooked = false;
-    };
-    InitiationRiddlePuzzle.prototype.onCheck = function() {
-        // Check happens in spell cast hook
-        return;
-    };
-    
-    // Pantheon sequence hook: Spirits Thrones - Place/remove gods in specific sequence
+    // Pantheon sequence hook
     function SpiritsThronesPuzzle(puzzleId, puzzleData, registry) {
-        SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'throneSequence');
-        this.pantheonHooked = false;
+        PantheonHookPuzzle.call(this, puzzleId, puzzleData, registry, 'throneSequence');
     }
-    SpiritsThronesPuzzle.prototype = Object.create(SequencePuzzle.prototype);
+    SpiritsThronesPuzzle.prototype = Object.create(PantheonHookPuzzle.prototype);
     SpiritsThronesPuzzle.prototype.constructor = SpiritsThronesPuzzle;
     SpiritsThronesPuzzle.prototype.initializeTracking = function() {
         return {
@@ -7805,93 +5916,39 @@
             ],
             stepStartTime: null,
             stepPhase: 'waiting',
-            previousSlotState: null,
-            hooked: false,
-            originalSlot: null,
-            slotProxy: null,
             completed: false
         };
     };
-    SpiritsThronesPuzzle.prototype.onSetup = function() {
-        this.setupPantheonHook();
-        var self = this;
-        this.registerHook('check', function() {
-            if (!self.pantheonHooked && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-                self.setupPantheonHook();
-            }
-        }, 'Check for temple minigame availability');
-    };
-    SpiritsThronesPuzzle.prototype.setupPantheonHook = function() {
-        if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) {
-            return;
-        }
-        
-        var pantheon = Game.Objects['Temple'].minigame;
-        var tracking = this.getTracking();
-        
-        if (pantheon && pantheon.slot && Array.isArray(pantheon.slot) && !tracking.hooked) {
-            var self = this;
-            var originalSlot = pantheon.slot;
-            
-            var slotProxy = new Proxy(originalSlot, {
-                set: function(target, property, value) {
-                    target[property] = value;
-                    // already in the mutation handler, no setTimeout needed
-                        self.checkSequenceStep();
-                    return true;
-                }
-            });
-            
-            pantheon.slot = slotProxy;
-            tracking.originalSlot = originalSlot;
-            tracking.slotProxy = slotProxy;
-            tracking.previousSlotState = originalSlot.slice();
-            tracking.hooked = true;
-            this.pantheonHooked = true;
-        }
-    };
-    SpiritsThronesPuzzle.prototype.checkSequenceStep = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
+    SpiritsThronesPuzzle.prototype.checkPantheonChange = function() {
+        if (!this.isValid()) {return;}
+
         var sequence = this.getTracking();
-        
-        if (sequence.completed) {
-            return;
-        }
-        
-        if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) {
-            return;
-        }
-        
+
+        if (sequence.completed) {return;}
+
+        if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) {return;}
+
         var pantheon = Game.Objects['Temple'].minigame;
-        if (!pantheon || !pantheon.slot || !Array.isArray(pantheon.slot)) {
-            return;
-        }
-        
+        if (!pantheon || !pantheon.slot || !Array.isArray(pantheon.slot)) {return;}
+
         var currentStep = sequence.currentStep;
-        if (currentStep >= sequence.expectedSequence.length) {
-            return;
-        }
-        
+        if (currentStep >= sequence.expectedSequence.length) {return;}
+
         var expectedStep = sequence.expectedSequence[currentStep];
         var expectedGod = expectedStep.god;
         var expectedThrone = expectedStep.throne;
         var currentPhase = sequence.stepPhase;
-        
+
         var currentSlot = pantheon.slot;
         var godsCurrentlySlotted = [];
-        
+
         for (var throneIndex = 0; throneIndex < currentSlot.length; throneIndex++) {
             var slotValue = currentSlot[throneIndex];
-            
+
             if (slotValue !== -1 && slotValue !== null && slotValue !== undefined) {
                 var godInThrone = null;
-                if (pantheon.godsById && pantheon.godsById[slotValue]) {
-                    godInThrone = pantheon.godsById[slotValue].name;
-                }
-                
+                if (pantheon.godsById && pantheon.godsById[slotValue]) {godInThrone = pantheon.godsById[slotValue].name;}
+
                 if (godInThrone) {
                     godsCurrentlySlotted.push({
                         name: godInThrone,
@@ -7900,12 +5957,12 @@
                 }
             }
         }
-        
+
         var hasAnyGods = godsCurrentlySlotted.length > 0;
         var expectedGodInCorrectThrone = false;
         var expectedGodInWrongThrone = false;
         var hasOtherGods = false;
-        
+
         for (var i = 0; i < godsCurrentlySlotted.length; i++) {
             var slottedGod = godsCurrentlySlotted[i];
             if (slottedGod.name === expectedGod) {
@@ -7918,7 +5975,7 @@
                 hasOtherGods = true;
             }
         }
-        
+
         if (currentPhase === 'waiting') {
             if (expectedGodInCorrectThrone && !hasOtherGods) {
                 sequence.stepPhase = 'placed';
@@ -7930,7 +5987,7 @@
             if (!hasAnyGods) {
                 sequence.stepPhase = 'completed';
                 sequence.currentStep++;
-                
+
                 if (sequence.currentStep >= sequence.expectedSequence.length) {
                     sequence.completed = true;
                     this.complete();
@@ -7952,7 +6009,7 @@
                             break;
                         }
                     }
-                    
+
                     if (expectedGodInNextThrone) {
                         sequence.currentStep = nextStep;
                         sequence.stepPhase = 'placed';
@@ -7974,27 +6031,7 @@
         sequence.stepPhase = 'waiting';
         sequence.stepStartTime = null;
     };
-    SpiritsThronesPuzzle.prototype.onCleanup = function() {
-        var sequence = this.getTracking();
-        if (sequence && sequence.hooked && sequence.slotProxy && Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-            var pantheon = Game.Objects['Temple'].minigame;
-            // Only restore if the current slot is actually our proxy
-            if (pantheon.slot === sequence.slotProxy) {
-                pantheon.slot = sequence.originalSlot;
-            }
-        }
-        if (sequence) {
-            sequence.hooked = false;
-            sequence.originalSlot = null;
-            sequence.slotProxy = null;
-        }
-        this.pantheonHooked = false;
-    };
-    SpiritsThronesPuzzle.prototype.onCheck = function() {
-        // Check happens in Proxy hook
-        return;
-    };
-    
+
     function BrothersMasqueradePuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'cloneTracking');
     }
@@ -8014,38 +6051,32 @@
     };
     BrothersMasqueradePuzzle.prototype.onCheck = function() {
         var tracking = this.getTracking();
-        if (tracking.hooksDisabled || tracking.completed) {
-            return;
-        }
-        
-        if (!Game.YouCustomizer || !Game.YouCustomizer.currentGenes) {
-            return;
-        }
-        
+        if (tracking.hooksDisabled || tracking.completed) {return;}
+
+        if (!Game.YouCustomizer || !Game.YouCustomizer.currentGenes) {return;}
+
         var genes = Game.YouCustomizer.currentGenes;
         var bakeryName = Game.bakeryName;
-        
+
         var bakeryNameValid = bakeryName.toLowerCase().includes('sebastian');
-        if (!bakeryNameValid) {
-            return;
-        }
-        
+        if (!bakeryNameValid) {return;}
+
         var hairValid = (genes[0] === 13 || genes[0] === 0);
         var hairColorValid = (genes[1] === 0);
         var skinColorValid = (genes[2] === 14 || genes[2] === 3 || genes[2] === 6);
-        
+
         var extraA = genes[5];
         var extraB = genes[6];
-        
+
         var extraAIsSevenOrNine = (extraA === 6 || extraA === 8);
         var extraBIsSevenOrNine = (extraB === 6 || extraB === 8);
         var extraAIsTwoToFive = (extraA === 1 || extraA === 2 || extraA === 3 || extraA === 4);
         var extraBIsTwoToFive = (extraB === 1 || extraB === 2 || extraB === 3 || extraB === 4);
-        
+
         var extrasValid = (extraAIsSevenOrNine && extraBIsTwoToFive) || (extraBIsSevenOrNine && extraAIsTwoToFive);
-        
+
         var allConditionsMet = hairValid && hairColorValid && skinColorValid && extrasValid && bakeryNameValid;
-        
+
         if (allConditionsMet) {
             // set before complete() to block other check() calls
             tracking.completed = true;
@@ -8054,7 +6085,7 @@
             this.complete();
         }
     };
-    
+
     // Dragon aura sequence hook: They Are Watching - Track aura changes in sequence
     function TheyAreWatchingPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'theyAreWatchingTracking');
@@ -8076,47 +6107,41 @@
     };
     TheyAreWatchingPuzzle.prototype.setupAuraHook = function() {
         var tracking = this.getTracking();
-        if (tracking.hooked) {
-            return;
-        }
-        
+        if (tracking.hooked) {return;}
+
         var self = this;
-        
+
         // Capture current auras when hooking (not at initialization)
         var originalDragonAura = Game.dragonAura || 0;
         var originalDragonAura2 = Game.dragonAura2 || 0;
         tracking._originalDragonAura = originalDragonAura;
         tracking._originalDragonAura2 = originalDragonAura2;
-        
+
         // Use property overrides to detect ALL changes to dragon auras
         // Store references to current aura values so cleanup can access them
         tracking._currentDragonAura = originalDragonAura;
         tracking._currentDragonAura2 = originalDragonAura2;
-        
+
         Object.defineProperty(Game, 'dragonAura', {
             get: function() { return originalDragonAura; },
             set: function(value) {
                 originalDragonAura = value;
                 tracking._currentDragonAura = value;
-                if (self.isValid()) {
-                    self.checkAuraSequence();
-                }
+                if (self.isValid()) {self.checkAuraSequence();}
             },
             configurable: true
         });
-        
+
         Object.defineProperty(Game, 'dragonAura2', {
             get: function() { return originalDragonAura2; },
             set: function(value) {
                 originalDragonAura2 = value;
                 tracking._currentDragonAura2 = value;
-                if (self.isValid()) {
-                    self.checkAuraSequence();
-                }
+                if (self.isValid()) {self.checkAuraSequence();}
             },
             configurable: true
         });
-        
+
         tracking.hooked = true;
         this.auraHooked = true;
     };
@@ -8125,12 +6150,12 @@
         var currentAura1 = Game.dragonAura || 0;
         var currentAura2 = Game.dragonAura2 || 0;
         var currentAuras = [currentAura1, currentAura2];
-        
+
         if (tracking.currentStep === 0) {
             var hasRadiantAppetite = currentAuras.includes(14);
             var hasRealityBending = currentAuras.includes(18);
             var hasOnlyTheseTwoAuras = currentAuras.filter(function(aura) { return aura !== 0; }).length === 2;
-            
+
             if (hasRadiantAppetite && hasRealityBending && hasOnlyTheseTwoAuras) {
                 tracking.currentStep = 1;
                 tracking.stepCompleted = false;
@@ -8139,7 +6164,7 @@
         else if (tracking.currentStep === 1) {
             var hasOnlyRealityBending = currentAuras.includes(14);
             var hasOnlyOneAura = currentAuras.filter(function(aura) { return aura !== 0; }).length === 1;
-            
+
             if (hasOnlyRealityBending && hasOnlyOneAura && !tracking.stepCompleted) {
                 tracking.stepCompleted = true;
                 this.complete();
@@ -8151,7 +6176,6 @@
         var currentAura1 = tracking && tracking._currentDragonAura !== undefined ? tracking._currentDragonAura : (tracking && tracking._originalDragonAura !== undefined ? tracking._originalDragonAura : 0);
         var currentAura2 = tracking && tracking._currentDragonAura2 !== undefined ? tracking._currentDragonAura2 : (tracking && tracking._originalDragonAura2 !== undefined ? tracking._originalDragonAura2 : 0);
 
-        // Remove our property overrides
         if (Game.dragonAura !== undefined && Object.getOwnPropertyDescriptor(Game, 'dragonAura')) {
             delete Game.dragonAura;
             // Restore as normal writable property with current value
@@ -8169,10 +6193,12 @@
         // Check happens when aura properties are set
         return;
     };
-    
+
     function ProvingPatiencePuzzle(puzzleId, puzzleData, registry) {
         BasePuzzle.call(this, puzzleId, puzzleData, registry);
         this.lilyHooked = false;
+        this.originalLilyOnDie = null;
+        this.lilyOnDieWrapper = null;
     }
     ProvingPatiencePuzzle.prototype = Object.create(BasePuzzle.prototype);
     ProvingPatiencePuzzle.prototype.constructor = ProvingPatiencePuzzle;
@@ -8180,72 +6206,52 @@
         this.setupLilyHook();
         var self = this;
         this.registerHook('check', function() {
-            if (!self.lilyHooked && Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-                self.setupLilyHook();
-            }
+            if (!self.lilyHooked && Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {self.setupLilyHook();}
         }, 'Check for farm minigame availability');
     };
     ProvingPatiencePuzzle.prototype.setupLilyHook = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (M.plants && M.plants['shimmerlily'] && !M.plants['shimmerlily']._lilyPuzzleHooked) {
-            var self = this;
-            var originalOnDie = M.plants['shimmerlily'].onDie;
-            
-            M.plants['shimmerlily'].onDie = function(x, y) {
-                if (originalOnDie) {
-                    originalOnDie.call(this, x, y);
-                }
-                self.checkLilyDeath(x, y);
-            };
-            
-            M.plants['shimmerlily']._lilyPuzzleHooked = true;
-            M._lilyPuzzleHooked = true;
-            this.lilyHooked = true;
-        }
+        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+        if (!M || !M.plants || !M.plants.shimmerlily || this.lilyHooked) return;
+
+        var self = this;
+        var shimmerlily = M.plants.shimmerlily;
+        var originalOnDie = shimmerlily.onDie;
+        this.originalLilyOnDie = originalOnDie;
+        this.lilyOnDieWrapper = function(x, y) {
+            if (originalOnDie) originalOnDie.call(this, x, y);
+            if (self.lilyHooked) self.checkLilyDeath(x, y);
+        };
+        shimmerlily.onDie = this.lilyOnDieWrapper;
+        this.lilyHooked = true;
     };
     ProvingPatiencePuzzle.prototype.checkLilyDeath = function(x, y) {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var M = Game.Objects['Farm'].minigame;
-        if (!M || !M.plot) {
-            return;
-        }
-        
+        if (!M || !M.plot) {return;}
+
         var otherPlantsCount = 0;
         for (var plotY = 0; plotY < M.plot.length; plotY++) {
             for (var plotX = 0; plotX < M.plot[plotY].length; plotX++) {
                 var tile = M.plot[plotY][plotX];
-                if (tile[0] > 0) {
-                    otherPlantsCount++;
-                }
+                if (tile[0] > 0) {otherPlantsCount++;}
             }
         }
-        
-        if (otherPlantsCount === 0) {
-            this.complete();
-        }
+
+        if (otherPlantsCount === 0) {this.complete();}
     };
     ProvingPatiencePuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            if (M.plants && M.plants['shimmerlily'] && M.plants['shimmerlily']._lilyPuzzleHooked) {
-                M.plants['shimmerlily']._lilyPuzzleHooked = false;
-                M._lilyPuzzleHooked = false;
-            }
-        }
+        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+        if (M && M.plants && M.plants.shimmerlily && M.plants.shimmerlily.onDie === this.lilyOnDieWrapper) {M.plants.shimmerlily.onDie = this.originalLilyOnDie;}
+        this.originalLilyOnDie = null;
+        this.lilyOnDieWrapper = null;
         this.lilyHooked = false;
     };
     ProvingPatiencePuzzle.prototype.onCheck = function() {
         // Check happens in onDie hook
         return;
     };
-    
+
     // Season sequence hook: Spiral Seasons - Track season changes
     function SpiralSeasonsPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'seasonSequence');
@@ -8266,14 +6272,12 @@
     };
     SpiralSeasonsPuzzle.prototype.setupSeasonHook = function() {
         var tracking = this.getTracking();
-        if (this.seasonHooked) {
-            return;
-        }
-        
+        if (this.seasonHooked) {return;}
+
         var self = this;
         var originalSeason = Game.season;
         tracking.originalSeason = originalSeason;
-        
+
         Object.defineProperty(Game, 'season', {
             get: function() {
                 return originalSeason;
@@ -8281,7 +6285,7 @@
             set: function(newSeason) {
                 var oldSeason = originalSeason;
                 originalSeason = newSeason;
-                
+
                 if (oldSeason !== newSeason && newSeason !== '') {
                     setTimeout(function() {
                         self.checkSeasonSequence(newSeason);
@@ -8290,29 +6294,27 @@
             },
             configurable: true
         });
-        
+
         this.seasonHooked = true;
     };
     SpiralSeasonsPuzzle.prototype.checkSeasonSequence = function(currentSeason) {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
         tracking.seasonSequence.push(currentSeason);
         tracking.lastSeason = currentSeason;
-        
+
         var requiredSequence = ['valentines', 'christmas', 'fools', 'easter', 'halloween', 'christmas', 'halloween'];
         var currentSequence = tracking.seasonSequence;
         var matches = true;
-        
+
         for (var i = 0; i < currentSequence.length && i < requiredSequence.length; i++) {
             if (currentSequence[i] !== requiredSequence[i]) {
                 matches = false;
                 break;
             }
         }
-        
+
         if (!matches) {
             tracking.seasonSequence = [];
             tracking.lastSeason = currentSeason;
@@ -8339,7 +6341,7 @@
         // Check happens in season setter hook
         return;
     };
-    
+
     // Building buy/sell sequence: Rite Shifting Measures - Track building actions
     function RiteShiftingMeasuresPuzzle(puzzleId, puzzleData, registry) {
         SequencePuzzle.call(this, puzzleId, puzzleData, registry, 'buildingSequence');
@@ -8347,12 +6349,8 @@
     RiteShiftingMeasuresPuzzle.prototype = Object.create(SequencePuzzle.prototype);
     RiteShiftingMeasuresPuzzle.prototype.constructor = RiteShiftingMeasuresPuzzle;
     RiteShiftingMeasuresPuzzle.prototype.initializeTracking = function() {
-        var initialCounts = {};
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            initialCounts[building.name] = building.amount;
-        }
-        
+        var initialCounts = this.getBuildingCounts();
+
         return {
             currentStep: 0,
             stepTargets: [
@@ -8370,164 +6368,82 @@
     RiteShiftingMeasuresPuzzle.prototype.onSetup = function() {
         var tracking = this.getTracking();
         var currentStep = tracking.currentStep;
-        if (currentStep < tracking.stepTargets.length) {
-            var targetBuilding = tracking.stepTargets[currentStep].building;
-            var buildingObj = Game.Objects[targetBuilding];
-            if (buildingObj) {
-                tracking.stepStartCounts[currentStep] = buildingObj.amount;
-            }
-        }
-        
-        // Hook into all building buy/sell functions
+        if (currentStep < tracking.stepTargets.length) {this.snapshotStepCount(tracking, currentStep, tracking.stepTargets[currentStep].building);}
+
         this.hookBuildingBuySell();
-        
+
         var self = this;
         this.registerHook('check', function() {
             self.check();
         }, 'Check building sequence');
     };
-    
-    RiteShiftingMeasuresPuzzle.prototype.hookBuildingBuySell = function() {
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            
-            if (!building._originalBuyRiteMeasures) {
-                building._originalBuyRiteMeasures = building.buy;
-                building._originalSellRiteMeasures = building.sell;
-            }
-            
-            var self = this;
-            var originalBuy = building._originalBuyRiteMeasures;
-            var originalSell = building._originalSellRiteMeasures;
-            
-            building.buy = function(amount) {
-                var result = originalBuy.call(this, amount);
-                setTimeout(function() {
-                    self.onCheck();
-                }, 0);
-                return result;
-            };
-            
-            building.sell = function(amount, bypass) {
-                var result = originalSell.call(this, amount, bypass);
-                setTimeout(function() {
-                    self.onCheck();
-                }, 0);
-                return result;
-            };
-        }
-    };
+
     RiteShiftingMeasuresPuzzle.prototype.onCheck = function() {
-        if (!this.isValid()) {
-            return;
-        }
-        
+        if (!this.isValid()) {return;}
+
         var tracking = this.getTracking();
-        if (tracking.sequenceComplete) {
-            return;
-        }
-        
+        if (tracking.sequenceComplete) {return;}
+
         var currentStep = tracking.currentStep;
-        
-        // Safety check: if we've completed all steps, just return
+
+        // if we've completed all steps, just return
         // The actual completion is handled after step completion to avoid double-triggering
-        if (currentStep >= tracking.stepTargets.length) {
-            return;
-        }
-        
+        if (currentStep >= tracking.stepTargets.length) {return;}
+
         var stepTarget = tracking.stepTargets[currentStep];
         var buildingObj = Game.Objects[stepTarget.building];
-        if (!buildingObj) {
-            return;
-        }
-        
+        if (!buildingObj) {return;}
+
         var currentCount = buildingObj.amount;
         var stepStartCount = tracking.stepStartCounts[currentStep];
-        if (stepStartCount === undefined) {
-            return;
-        }
+        if (stepStartCount === undefined) {return;}
          // player may have sold buildings before this step started
         if (stepTarget.action === 'sell' && currentCount > stepStartCount) {
             tracking.stepStartCounts[currentStep] = currentCount;
             stepStartCount = currentCount;
         }
-        
-        // Check if they're working on the wrong building type
-        var wrongBuildingChanged = false;
+
         var sequenceBuildings = [];
         for (var j = 0; j < tracking.stepTargets.length; j++) {
             sequenceBuildings.push(tracking.stepTargets[j].building);
         }
-        
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            var initialCount = tracking.initialBuildingCounts[building.name] || 0;
-            
-            if (sequenceBuildings.indexOf(building.name) === -1 && building.amount !== initialCount) {
-                wrongBuildingChanged = true;
-                break;
-            }
-        }
-        
-        if (wrongBuildingChanged) {
-            // Reset the sequence
+
+        if (this.hasWrongBuildingChanged(tracking, sequenceBuildings)) {
             tracking.currentStep = 0;
             tracking.stepStartCounts = [];
             tracking.sequenceComplete = false;
-            
-            for (var k = 0; k < Game.ObjectsById.length; k++) {
-                var b = Game.ObjectsById[k];
-                tracking.initialBuildingCounts[b.name] = b.amount;
-            }
-            
-            // Reinitialize the first step
-            var firstStepTarget = tracking.stepTargets[0];
-            var firstBuildingObj = Game.Objects[firstStepTarget.building];
-            if (firstBuildingObj) {
-                tracking.stepStartCounts[0] = firstBuildingObj.amount;
-            }
+
+            tracking.initialBuildingCounts = this.getBuildingCounts();
+            this.snapshotStepCount(tracking, 0, tracking.stepTargets[0].building);
             return;
         }
-        
+
         var targetCount;
         if (stepTarget.action === 'sell') {
             targetCount = stepStartCount - stepTarget.amount;
         } else if (stepTarget.action === 'buy') {
             targetCount = stepStartCount + stepTarget.amount;
         }
-        
+
         var stepComplete = (currentCount === targetCount);
-        
+
         if (stepComplete) {
             tracking.currentStep++;
-            
+
             if (tracking.currentStep >= tracking.stepTargets.length) {
                 // set before complete() to prevent double completion
                 tracking.sequenceComplete = true;
                 this.complete();
             } else {
-                // Initialize the next step
-                var nextStepTarget = tracking.stepTargets[tracking.currentStep];
-                var nextBuildingObj = Game.Objects[nextStepTarget.building];
-                if (nextBuildingObj) {
-                    tracking.stepStartCounts[tracking.currentStep] = nextBuildingObj.amount;
-                }
+                this.snapshotStepCount(tracking, tracking.currentStep, tracking.stepTargets[tracking.currentStep].building);
             }
         }
     };
-    
+
     RiteShiftingMeasuresPuzzle.prototype.onCleanup = function() {
-        for (var i = 0; i < Game.ObjectsById.length; i++) {
-            var building = Game.ObjectsById[i];
-            if (building._originalBuyRiteMeasures) {
-                building.buy = building._originalBuyRiteMeasures;
-                building.sell = building._originalSellRiteMeasures;
-                delete building._originalBuyRiteMeasures;
-                delete building._originalSellRiteMeasures;
-            }
-        }
+        this.unhookBuildingBuySell();
     };
-    
+
     // Spy Purge
     function SpyPurgePuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'spyPurgeTracking');
@@ -8537,25 +6453,25 @@
     }
     SpyPurgePuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     SpyPurgePuzzle.prototype.constructor = SpyPurgePuzzle;
-    
+
     SpyPurgePuzzle.prototype.initializeTracking = function() {
         var grandma = Game.Objects['Grandma'];
         return { peakGrandmaCount: grandma ? grandma.amount : 0, lastCount: grandma ? grandma.amount : 0, completed: false };
     };
-    
+
     SpyPurgePuzzle.prototype.onSetup = function() {
         this.getTracking();
         this.hookGrandmaActions();
         var self = this;
         this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);
     };
-    
+
     SpyPurgePuzzle.prototype.hookGrandmaActions = function() {
         if (this.sellHooked && this.buyHooked) return;
         var self = this;
         var grandma = Game.Objects['Grandma'];
         if (!grandma) return;
-        
+
         if (!this.sellHooked) {
             grandma._originalSpyPurgeSell = grandma.sell;
             grandma.sell = function(amount, bypass) {
@@ -8568,7 +6484,7 @@
             };
             this.sellHooked = true;
         }
-        
+
         if (!this.buyHooked) {
             grandma._originalSpyPurgeBuy = grandma.buy;
             grandma.buy = function(amount) {
@@ -8582,50 +6498,45 @@
             this.buyHooked = true;
         }
     };
-    
+
     SpyPurgePuzzle.prototype.onGrandmaAction = function(currentCount, isBuy) {
         if (!this.isValid()) return;
         var tracking = this.getTracking();
         if (tracking.completed) return;
-        
-        if (isBuy) {
-            // Buy: reset peak immediately
-            tracking.peakGrandmaCount = currentCount;
-        }
+
+        if (isBuy) {tracking.peakGrandmaCount = currentCount;}
         tracking.lastCount = currentCount;
-        
+
         this.checkAchievement();
-        
+
         clearTimeout(this.deferredCheck);
         var self = this;
         // Only reset timer on sells (isBuy === false), not on buys
-        if (!isBuy) {
-            this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);
-        }
+        if (!isBuy) {this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);}
     };
-    
+
     SpyPurgePuzzle.prototype.checkAchievement = function() {
         if (!this.isValid()) return;
         var tracking = this.getTracking();
         if (tracking.completed) return;
         var grandma = Game.Objects['Grandma'];
         if (!grandma) return;
-        
+
         var soldFromPeak = tracking.peakGrandmaCount - grandma.amount;
-        
+
         if (soldFromPeak === 27) {
             tracking.completed = true;
             this.complete();
         }
     };
-    
+
     SpyPurgePuzzle.prototype.resetPeakIfNoAction = function() {
         if (!this.isValid() || this.getTracking().completed) return;
         var tracking = this.getTracking();
         var grandma = Game.Objects['Grandma'];
         if (grandma) tracking.peakGrandmaCount = tracking.lastCount = grandma.amount;
     };
-    
+
     SpyPurgePuzzle.prototype.onCleanup = function() {
         if (this.deferredCheck) clearTimeout(this.deferredCheck);
         var grandma = Game.Objects['Grandma'];
@@ -8637,9 +6548,9 @@
         this.buyHooked = false;
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     SpyPurgePuzzle.prototype.onCheck = function() { return; };
-    
+
     // Brother Onto You: Sell exactly 18 mines from peak, check every 60 seconds
     function BrotherOntoYouPuzzle(puzzleId, puzzleData, registry) {
         StateTrackingPuzzle.call(this, puzzleId, puzzleData, registry, 'brotherOntoYouTracking');
@@ -8649,25 +6560,25 @@
     }
     BrotherOntoYouPuzzle.prototype = Object.create(StateTrackingPuzzle.prototype);
     BrotherOntoYouPuzzle.prototype.constructor = BrotherOntoYouPuzzle;
-    
+
     BrotherOntoYouPuzzle.prototype.initializeTracking = function() {
         var mine = Game.Objects['Mine'];
         return { peakMineCount: mine ? mine.amount : 0, lastCount: mine ? mine.amount : 0, completed: false };
     };
-    
+
     BrotherOntoYouPuzzle.prototype.onSetup = function() {
         this.getTracking();
         this.hookMineActions();
         var self = this;
         this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);
     };
-    
+
     BrotherOntoYouPuzzle.prototype.hookMineActions = function() {
         if (this.sellHooked && this.buyHooked) return;
         var self = this;
         var mine = Game.Objects['Mine'];
         if (!mine) return;
-        
+
         if (!this.sellHooked) {
             mine._originalBrotherOntoSell = mine.sell;
             mine.sell = function(amount, bypass) {
@@ -8680,7 +6591,7 @@
             };
             this.sellHooked = true;
         }
-        
+
         if (!this.buyHooked) {
             mine._originalBrotherOntoBuy = mine.buy;
             mine.buy = function(amount) {
@@ -8694,48 +6605,43 @@
             this.buyHooked = true;
         }
     };
-    
+
     BrotherOntoYouPuzzle.prototype.onMineAction = function(currentCount, isBuy) {
         if (!this.isValid()) return;
         var tracking = this.getTracking();
         if (tracking.completed) return;
-        
-        if (isBuy) {
-            // Buy: reset peak immediately
-            tracking.peakMineCount = currentCount;
-        }
+
+        if (isBuy) {tracking.peakMineCount = currentCount;}
         tracking.lastCount = currentCount;
-        
+
         this.checkAchievement();
-        
+
         clearTimeout(this.deferredCheck);
         var self = this;
         // Only reset timer on sells (isBuy === false), not on buys
-        if (!isBuy) {
-            this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);
-        }
+        if (!isBuy) {this.deferredCheck = setTimeout(function() { self.resetPeakIfNoAction(); }, 60000);}
     };
-    
+
     BrotherOntoYouPuzzle.prototype.checkAchievement = function() {
         if (!this.isValid()) return;
         var tracking = this.getTracking();
         if (tracking.completed) return;
         var mine = Game.Objects['Mine'];
         if (!mine) return;
-        
+
         if (tracking.peakMineCount - mine.amount === 18) {
             tracking.completed = true;
             this.complete();
         }
     };
-    
+
     BrotherOntoYouPuzzle.prototype.resetPeakIfNoAction = function() {
         if (!this.isValid() || this.getTracking().completed) return;
         var tracking = this.getTracking();
         var mine = Game.Objects['Mine'];
         if (mine) tracking.peakMineCount = tracking.lastCount = mine.amount;
     };
-    
+
     BrotherOntoYouPuzzle.prototype.onCleanup = function() {
         if (this.deferredCheck) clearTimeout(this.deferredCheck);
         var mine = Game.Objects['Mine'];
@@ -8747,206 +6653,41 @@
         this.buyHooked = false;
         StateTrackingPuzzle.prototype.onCleanup.call(this);
     };
-    
+
     BrotherOntoYouPuzzle.prototype.onCheck = function() { return; };
-    
+
     // Garden harvestAll hook: Garden Hearts - Check pattern before harvest all
     function GardenHeartsPuzzle(puzzleId, puzzleData, registry) {
-        BasePuzzle.call(this, puzzleId, puzzleData, registry);
-        this.harvestHooked = false;
+        GardenHookPuzzle.call(this, puzzleId, puzzleData, registry);
     }
-    GardenHeartsPuzzle.prototype = Object.create(BasePuzzle.prototype);
+    GardenHeartsPuzzle.prototype = Object.create(GardenHookPuzzle.prototype);
     GardenHeartsPuzzle.prototype.constructor = GardenHeartsPuzzle;
-    GardenHeartsPuzzle.prototype.onSetup = function() {
-        this.setupHarvestAllHook();
-    };
-    GardenHeartsPuzzle.prototype.setupHarvestAllHook = function() {
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return;
+    GardenHeartsPuzzle.prototype.gardenHookFn = 'harvestAll';
+    GardenHeartsPuzzle.prototype.bakeberryPositions = [[2,2],[2,3],[3,2],[3,3]];
+    GardenHeartsPuzzle.prototype.elderwortPositions = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,5],[4,0],[4,5],[5,0],[5,1],[5,2],[5,3],[5,4],[5,5]];
+    GardenHeartsPuzzle.prototype.beforeGardenAction = function(M, args) {
+        if (args && args[0]) return false;
+        for (var i = 0; i < this.bakeberryPositions.length; i++) {
+            var pos = this.bakeberryPositions[i];
+            var plot = M.plot[pos[0]] && M.plot[pos[0]][pos[1]];
+            if (!plot || plot[0] <= 0) return false;
+            var plant = M.plantsById[plot[0] - 1];
+            if (!plant || (plant.name !== 'Bakeberry' && plant.name !== 'Duketater')) return false;
+            if (plot[1] < plant.mature) return false;
         }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M._originalHarvestAll) {
-            M._originalHarvestAll = M.harvestAll;
+        for (var j = 0; j < this.elderwortPositions.length; j++) {
+            var ePos = this.elderwortPositions[j];
+            var ePlot = M.plot[ePos[0]] && M.plot[ePos[0]][ePos[1]];
+            if (!ePlot || ePlot[0] <= 0) return false;
+            var ePlant = M.plantsById[ePlot[0] - 1];
+            if (!ePlant || ePlant.name !== 'Elderwort') return false;
         }
-        
-        var self = this;
-        M.harvestAll = function(type, mature, mortal) {
-            // Capture state before harvest
-            var before = [];
-            for (var by = 0; by < M.plot.length; by++) {
-                before[by] = [];
-                for (var bx = 0; bx < M.plot[by].length; bx++) {
-                    var plot = M.plot[by][bx];
-                    if (plot && plot[0] > 0) {
-                        var plantId = plot[0] - 1;
-                        var plant = M.plantsById[plantId];
-                        before[by][bx] = plant ? plant.name : null;
-                    }
-                }
-            }
-            
-            M._originalHarvestAll(type, mature, mortal);
-            
-            // Check only bakeberries were harvested
-            var bakeberryPos = [[2,2],[2,3],[3,2],[3,3]];
-            var elderwortPos = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,5],[4,0],[4,5],[5,0],[5,1],[5,2],[5,3],[5,4],[5,5]];
-            
-            for (var i = 0; i < bakeberryPos.length; i++) {
-                var bPos = bakeberryPos[i];
-                var beforeRow = before[bPos[0]];
-                var beforeName = beforeRow ? beforeRow[bPos[1]] : null;
-                if (beforeName !== 'Bakeberry' && beforeName !== 'Duketater') {
-                    return;
-                }
-                var afterPlot = M.plot[bPos[0]][bPos[1]];
-                if (afterPlot && afterPlot[0] > 0) {
-                    return;
-                }
-            }
-            
-            for (var j = 0; j < elderwortPos.length; j++) {
-                var ePos = elderwortPos[j];
-                var elderBeforeRow = before[ePos[0]];
-                var elderBeforeName = elderBeforeRow ? elderBeforeRow[ePos[1]] : null;
-                if (elderBeforeName !== 'Elderwort') {
-                    return;
-                }
-                var after = M.plot[ePos[0]][ePos[1]];
-                if (!after || after[0] <= 0) {
-                    return;
-                }
-                var plantId = after[0] - 1;
-                var plant = M.plantsById[plantId];
-                if (!plant || plant.name !== 'Elderwort') {
-                    return;
-                }
-            }
-            
-            self.complete();
-        };
-        
-        this.harvestHooked = true;
-    };
-    GardenHeartsPuzzle.prototype.captureGardenState = function() {
-        if (!this.isValid()) {
-            return null;
-        }
-        
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return null;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return null;
-        }
-        
-        var state = [];
-        for (var y = 0; y < M.plot.length; y++) {
-            state[y] = [];
-            for (var x = 0; x < M.plot[y].length; x++) {
-                var plotData = M.plot[y][x];
-                if (plotData && plotData[0] > 0) {
-                    var plantId = plotData[0] - 1;
-                    var plant = M.plantsById[plantId];
-                    state[y][x] = plant ? plant.name : null;
-                } else {
-                    state[y][x] = null;
-                }
-            }
-        }
-        
-        return state;
-    };
-    GardenHeartsPuzzle.prototype.validateHarvestResult = function(beforeHarvest) {
-        if (!this.isValid()) {
-            return false;
-        }
-        
-        if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigame) {
-            return false;
-        }
-        
-        var M = Game.Objects['Farm'].minigame;
-        if (!M.plot || !M.plantsById) {
-            return false;
-        }
-        
-        // Bakeberry positions that should be harvested
-        var bakeberryPositions = [
-            [2, 2], [2, 3], [3, 2], [3, 3]
-        ];
-        
-        // Elderwort positions that should NOT be harvested
-        var elderwortPositions = [
-            // Row 0 (top)
-            [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
-            // Row 1 (sides)
-            [1, 0], [1, 5],
-            // Row 4 (sides)
-            [4, 0], [4, 5],
-            // Row 5 (bottom)
-            [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5]
-        ];
-        
-        // Check that bakeberries were harvested
-        for (var i = 0; i < bakeberryPositions.length; i++) {
-            var pos = bakeberryPositions[i];
-            var y = pos[0];
-            var x = pos[1];
-            
-            // Before harvest should have Bakeberry
-            if (beforeHarvest[y] && beforeHarvest[y][x] !== 'Bakeberry') {
-                return false;
-            }
-            
-            // After harvest should be empty
-            var plotData = M.plot[y][x];
-                    if (plotData && plotData[0] > 0) {
-                        return false;
-                    }
-        }
-        
-        // Check that elderwort remain
-        for (var j = 0; j < elderwortPositions.length; j++) {
-            var elderPos = elderwortPositions[j];
-            var elderY = elderPos[0];
-            var elderX = elderPos[1];
-            
-            // Before harvest should have Elderwort
-            if (!beforeHarvest[elderY] || beforeHarvest[elderY][elderX] !== 'Elderwort') {
-                        return false;
-                    }
-            
-            // After harvest should still have Elderwort
-            var elderPlotData = M.plot[elderY][elderX];
-            if (!elderPlotData || elderPlotData[0] <= 0) {
-                        return false;
-                    }
-            
-            var elderPlantId = elderPlotData[0] - 1;
-            var elderPlant = M.plantsById[elderPlantId];
-            if (!elderPlant || elderPlant.name !== 'Elderwort') {
-                return false;
-            }
-        }
-        
         return true;
     };
-    GardenHeartsPuzzle.prototype.onCleanup = function() {
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
-            if (M._originalHarvestAll) {
-                M.harvestAll = M._originalHarvestAll;
-            }
-        }
+    GardenHeartsPuzzle.prototype.afterGardenAction = function() {
+        this.complete();
     };
-    GardenHeartsPuzzle.prototype.onCheck = function() {
-        // Check happens in harvestAll hook
-        return;
-    };
-    
+
     function getMissingPuzzleCompletionRequirements() {
         var missingRequirements = [];
 
@@ -8959,138 +6700,23 @@
         for (var i = 0; i < buildingRequirements.length; i++) {
             var requirement = buildingRequirements[i];
             var building = Game.Objects[requirement.key];
-            if (!building || typeof building.level !== 'number' || building.level < requirement.level) {
-                missingRequirements.push({ type: 'building', label: requirement.label });
-            }
+            if (!building || typeof building.level !== 'number' || building.level < requirement.level) {missingRequirements.push({ type: 'building', label: requirement.label });}
         }
 
         var totalCookiesBaked = Game.cookiesEarned + Game.cookiesReset;
         if (Game.ascensionMode != 103) {
-            if (!Number.isFinite(totalCookiesBaked) || totalCookiesBaked < Game.JNE.puzzleMinCookies) {
-                missingRequirements.push({ type: 'progress', label: '80 septendecillion cookies baked all time' });
-            }
+            if (!Number.isFinite(totalCookiesBaked) || totalCookiesBaked < Game.JNE.puzzleMinCookies) {missingRequirements.push({ type: 'progress', label: '80 septendecillion cookies baked all time' });}
         }
 
         var requiredHeavenlyUpgrades = Game.JNE.puzzleRequiredUpgrades;
         for (var j = 0; j < requiredHeavenlyUpgrades.length; j++) {
             var upgradeName = requiredHeavenlyUpgrades[j];
-            if (!Game.Has(upgradeName)) {
-                missingRequirements.push({ type: 'upgrade', label: upgradeName });
-            }
+            if (!Game.Has(upgradeName)) {missingRequirements.push({ type: 'upgrade', label: upgradeName });}
         }
 
         return missingRequirements;
     }
 
-    function setPuzzleProgress(puzzleNumber) {
-        ensurePuzzleSystemInitialized();
-
-        var maxIndex = -1;
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.registry) {
-            var registryKeys = Object.keys(cookieAgeData.puzzles.registry);
-            maxIndex = registryKeys.length - 1;
-        }
-
-        if (typeof puzzleNumber !== 'number' || puzzleNumber < 0 || puzzleNumber > maxIndex) {
-            return;
-        }
-        
-        if (!Game.JNE) {
-            Game.JNE = {};
-        }
-        
-        Game.JNE.cookieAgeProgress = puzzleNumber;
-
-        // For testing: unlock all puzzles up to the target puzzle (bypass dependencies)
-        var targetPuzzleId = getPuzzleIdByIndex(puzzleNumber);
-        if (targetPuzzleId) {
-            
-            if (!cookieAgeData.puzzles.completed) {
-                cookieAgeData.puzzles.completed = [];
-            }
-            
-            // Mark all puzzles from 0 to target as completed
-            for (var i = 0; i <= puzzleNumber; i++) {
-                var puzzleId = getPuzzleIdByIndex(i);
-                if (puzzleId && puzzleId !== targetPuzzleId) {
-                    markPuzzleCompleted(puzzleId);
-                }
-            }
-        }
-        
-        return puzzleNumber;
-    }
-    
-    function getPuzzleInfo() {
-        // Use track-based system instead of old progress-based system
-        ensureTracksInitialized();
-        
-        var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
-        var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
-        var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
-        
-        var activePuzzleId = investigateActive || infiltrateActive || chooseActive;
-        var puzzleData = null;
-        
-        if (activePuzzleId) {
-            puzzleData = cookieAgeData.puzzles.registry[activePuzzleId];
-        }
-        
-        return {
-            puzzleId: activePuzzleId,
-            puzzleData: puzzleData,
-            investigate: cookieAgeData.puzzles.tracks.investigate,
-            infiltrate: cookieAgeData.puzzles.tracks.infiltrate,
-            choose: cookieAgeData.puzzles.tracks.choose
-        };
-    }
-    
-    // bypasses completing/notificationsShown state so completion always succeeds
-    function markPuzzleCompleted(puzzleId) {
-        ensurePuzzleSystemInitialized();
-        ensureTracksInitialized();
-
-        if (!cookieAgeData.puzzles.completed) {
-            cookieAgeData.puzzles.completed = [];
-        }
-        if (!cookieAgeData.puzzles.completing) {
-            cookieAgeData.puzzles.completing = {};
-        }
-        if (!cookieAgeData.puzzles.notificationsShown) {
-            cookieAgeData.puzzles.notificationsShown = {};
-        }
-
-        // Clear blocking state so tryCompletePuzzle won't bail out
-        delete cookieAgeData.puzzles.completing[puzzleId];
-        delete cookieAgeData.puzzles.notificationsShown[puzzleId];
-
-        // If already in completed array, remove it so tryCompletePuzzle can run full logic
-        var idx = cookieAgeData.puzzles.completed.indexOf(puzzleId);
-        if (idx !== -1) {
-            cookieAgeData.puzzles.completed.splice(idx, 1);
-        }
-
-        var result = tryCompletePuzzle(puzzleId);
-        if (!result) {
-            console.warn('[Cookie Age] markPuzzleCompleted: tryCompletePuzzle returned false for', puzzleId);
-        }
-        return result;
-    }
-    
-    function unlockPuzzleForTesting(puzzleId) {
-        var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-        if (!puzzle) {
-            return false;
-        }
-        
-        // Mark all dependencies as completed
-        for (var i = 0; i < puzzle.dependencies.length; i++) {
-            markPuzzleCompleted(puzzle.dependencies[i]);
-        }
-        
-        return true;
-    }
-    
     function resetAndSetPuzzle(puzzleId) {
         ensurePuzzleSystemInitialized();
         ensureTracksInitialized();
@@ -9103,19 +6729,14 @@
         var trackType = puzzle.type;
         var track = cookieAgeData.puzzles.tracks[trackType];
 
-        // Deactivate current puzzle in this track
-        if (track.active) {
-            deactivateCurrentPuzzle(track.active);
-        }
+        if (track.active) {deactivateCurrentPuzzle(track.active);}
         track.active = null;
 
         // Reset this track: clear blocking state and completed entries for its puzzles
         if (!cookieAgeData.puzzles.completing) cookieAgeData.puzzles.completing = {};
         if (!cookieAgeData.puzzles.notificationsShown) cookieAgeData.puzzles.notificationsShown = {};
         if (!cookieAgeData.puzzles.completed) cookieAgeData.puzzles.completed = [];
-        var orderArr = trackType === 'investigate' ? INVESTIGATE_PUZZLE_ORDER
-            : trackType === 'infiltrate' ? INFILTRATE_PUZZLE_ORDER
-            : CHOOSE_PUZZLE_ORDER;
+        var orderArr = PUZZLE_ORDER[trackType];
         for (var i = 0; i < orderArr.length; i++) {
             var pid = orderArr[i];
             delete cookieAgeData.puzzles.completing[pid];
@@ -9130,7 +6751,34 @@
         }
         track.progress = puzzle.trackOrder;
 
-        // Force-activate the target puzzle
+        // isPuzzleUnlocked/isPuzzleProgressValid check depTrackOrder < tracks[depTrack].progress
+        var orderArrays = PUZZLE_ORDER;
+        for (var d = 0; d < puzzle.dependencies.length; d++) {
+            var depId = puzzle.dependencies[d];
+            var depPuzzle = cookieAgeData.puzzles.registry[depId];
+            if (!depPuzzle || depPuzzle.type === trackType) continue;
+            var depTrack = cookieAgeData.puzzles.tracks[depPuzzle.type];
+            var depArr = orderArrays[depPuzzle.type];
+            if (!depArr || depTrack.progress > depPuzzle.trackOrder) continue;
+            for (var k = 0; k <= depPuzzle.trackOrder && k < depArr.length; k++) {
+                if (cookieAgeData.puzzles.completed.indexOf(depArr[k]) === -1) {cookieAgeData.puzzles.completed.push(depArr[k]);}
+            }
+            depTrack.progress = depPuzzle.trackOrder + 1;
+            if (depTrack.active) {
+                var depActive = cookieAgeData.puzzles.registry[depTrack.active];
+                if (!depActive || depActive.trackOrder !== depTrack.progress) {
+                    deactivateCurrentPuzzle(depTrack.active);
+                    depTrack.active = null;
+                }
+            }
+        }
+
+        // Tear down any prior setup so hooks can't double-register, then clear stale attempt state so the target tests as unsolved
+        if (puzzle.instance && puzzle.instance._setupComplete) {cleanupPuzzle(puzzleId);}
+        resetPuzzleDebugState(puzzleId);
+
+        if (Game && Game.JNE && typeof Game.JNE.setCookieAgeProgress === 'function' && (!Game.JNE.cookieAgeProgress || Game.JNE.cookieAgeProgress < 1)) {Game.JNE.setCookieAgeProgress(1);}
+
         track.active = puzzleId;
         puzzle.isActive = true;
         setupPuzzle(puzzleId);
@@ -9138,38 +6786,7 @@
         if (debugMode) console.log('[Cookie Age] resetAndSetPuzzle:', puzzleId, 'in', trackType);
         return true;
     }
-    
-    function completeActivePuzzles() {
-        ensurePuzzleSystemInitialized();
-        ensureTracksInitialized();
-        var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
-        var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
-        var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
 
-        if (debugMode) console.log('[Cookie Age] completeActivePuzzles:', { investigate: investigateActive, infiltrate: infiltrateActive, choose: chooseActive });
-
-        var completed = [];
-        var failed = [];
-
-        var activeIds = [investigateActive, infiltrateActive, chooseActive];
-        for (var i = 0; i < activeIds.length; i++) {
-            var activeId = activeIds[i];
-            if (!activeId) continue;
-            var puzzle = cookieAgeData.puzzles.registry[activeId];
-            if (!puzzle) continue;
-            var label = activeId + ' (' + puzzle.name + ')';
-            if (tryCompletePuzzle(activeId)) {
-                completed.push(label);
-            } else {
-                failed.push(label);
-            }
-        }
-
-        if (completed.length) console.log('[Cookie Age] Completed:', completed.join(', '));
-        if (failed.length) console.warn('[Cookie Age] Blocked by completing/notificationsShown:', failed.join(', '));
-        return completed;
-    }
-    
     // gate console mutation helpers behind debugMode
     function __requireDebugForConsole() {
         if (!debugMode) {
@@ -9179,32 +6796,13 @@
         return true;
     }
 
-    Game.setPuzzleProgress = function(puzzleNumber) {
-        if (!__requireDebugForConsole()) return;
-        setPuzzleProgress(puzzleNumber);
-    };
-    Game.getPuzzleInfo = getPuzzleInfo;
-    Game.markPuzzleCompleted = function(puzzleId) {
-        if (!__requireDebugForConsole()) return;
-        markPuzzleCompleted(puzzleId);
-    };
-    Game.unlockPuzzleForTesting = function(puzzleId) {
-        if (!__requireDebugForConsole()) return;
-        unlockPuzzleForTesting(puzzleId);
-    };
     Game.resetAndSetPuzzle = function(puzzleId) {
         if (!__requireDebugForConsole()) return;
-        resetAndSetPuzzle(puzzleId);
+        return resetAndSetPuzzle(puzzleId);
     };
-    Game.completeActivePuzzles = function() {
-        if (!__requireDebugForConsole()) return [];
-        return completeActivePuzzles();
-    };
-    
+
     function ensurePuzzleSystemInitialized() {
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {
-            setupPuzzleSystem();
-        } else {
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {setupPuzzleSystem();} else {
             if (!cookieAgeData.puzzles.hints) {
                 cookieAgeData.puzzles.hints = {
                     hintsUsed: 0,
@@ -9217,31 +6815,23 @@
                     purchasedHints: {}
                 };
             }
-            if (!cookieAgeData.puzzles.completed) {
-                cookieAgeData.puzzles.completed = [];
-            }
+            if (!cookieAgeData.puzzles.completed) {cookieAgeData.puzzles.completed = [];}
         }
     }
-    
+
     function getActivePuzzleEntries(trackFilter) {
         ensureTracksInitialized();
-        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) {
-            return [];
-        }
+        if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) {return [];}
 
         var trackOrder = ['investigate', 'infiltrate', 'choose'];
         var results = [];
 
         for (var i = 0; i < trackOrder.length; i++) {
             var trackType = trackOrder[i];
-            if (trackFilter && trackType !== trackFilter) {
-                continue;
-            }
+            if (trackFilter && trackType !== trackFilter) {continue;}
 
             var trackState = cookieAgeData.puzzles.tracks[trackType];
-            if (!trackState || !trackState.active) {
-                continue;
-            }
+            if (!trackState || !trackState.active) {continue;}
 
             var puzzleId = trackState.active;
             var puzzle = cookieAgeData.puzzles.registry[puzzleId];
@@ -9258,9 +6848,7 @@
     }
 
     function formatActivePuzzle(entry) {
-        if (!entry) {
-            return null;
-        }
+        if (!entry) {return null;}
 
         var puzzle = entry.puzzle || (cookieAgeData.puzzles.registry ? cookieAgeData.puzzles.registry[entry.id] : null);
         if (!puzzle) {
@@ -9284,83 +6872,36 @@
         };
     }
 
-    function reinitializeActivePuzzles() {
-        ensurePuzzleSystemInitialized();
-        ensureTracksInitialized();
-
-        if (cookieAgeData.puzzles && cookieAgeData.puzzles.registry) {
-            for (var puzzleId in cookieAgeData.puzzles.registry) {
-                if (!cookieAgeData.puzzles.registry.hasOwnProperty(puzzleId)) {
-                    continue;
-                }
-                cleanupPuzzleHooks(puzzleId);
-            }
-        }
-
-        var trackOrder = ['investigate', 'infiltrate', 'choose'];
-        for (var i = 0; i < trackOrder.length; i++) {
-            var trackType = trackOrder[i];
-            var trackState = cookieAgeData.puzzles.tracks[trackType];
-            if (!trackState) {
-                continue;
-            }
-
-            if (trackState.active) {
-                cleanupPuzzle(trackState.active);
-                trackState.active = null;
-            }
-
-            activateNextPuzzleForTrack(trackType);
-        }
-
-        checkCrossTrackUnlocks('investigate');
-        checkCrossTrackUnlocks('infiltrate');
-        checkCrossTrackUnlocks('choose');
-
-        return getActivePuzzleEntries();
-    }
-    
-    // ===== CONDITIONAL TEXT PROCESSING =====
     function processConditionalText(text) {
-        if (!text || typeof text !== 'string') {
-            return text;
-        }
-        
+        if (!text || typeof text !== 'string') {return text;}
+
         var pathChoice = cookieAgeData.puzzles ? cookieAgeData.puzzles.exposePathPicked : null;
-        
+
         // If no path choice made yet, return text as-is (for schism_choice before completion)
-        if (pathChoice === null) {
-            return text;
-        }
-        
+        if (pathChoice === null) {return text;}
+
         // Process conditional segments: {{expose:text for expose path||order:text for order path}}
         var processedText = text.replace(/\{\{expose:([^|]+)\|\|order:([^}]+)\}\}/g, function(match, exposeText, orderText) {
             return pathChoice ? exposeText : orderText;
         });
-        
+
         return processedText;
     }
-    
-    // ===== NEWS TICKER SYSTEM =====
+
     var newsTickerFunction = null;
-   
+
     function setupNewsTicker() {
-        // Don't set up if already active
-        if (newsTickerFunction) {
-            return;
-        }
-        
-		// Hook into the game's ticker system using the proper mod hook
+        if (newsTickerFunction) {return;}
+
 		if (Game.modHooks && Game.modHooks['ticker']) {
 			newsTickerFunction = function() {
                 var newsItems = [];
-                
-                // Add base news items (always show if Cookie Age is enabled)
+
                 if (Game.JNE && Game.JNE.cookieAgeProgress >= 0) {
                     newsItems.push('News : Rumors that the ancient Secret Society of the Cookie are resurfacing, spreading like wildfire around the world.');
                     newsItems.push('News : Whispers in the shadows suggest there are now... more shadows.');
                 }
-                
+
                 ensureTracksInitialized();
                 var infiltrateProgress = cookieAgeData.puzzles.tracks.infiltrate.progress || 0;
 
@@ -9387,31 +6928,18 @@
                     newsItems.push('News : Ancient cookie cults resurface with unprecedented activity. Seemingly no longer concerned with staying hidden.');
                 }
 
-
 				var completedPuzzles = (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed) ? cookieAgeData.puzzles.completed : [];
-				if (completedPuzzles.indexOf('brother_onto_you') !== -1 && completedPuzzles.indexOf('send_word') === -1) {
-					newsItems.push('Breaking News : Sudden mine collapses spread across region, dozens missing or trapped. Rescue operations are underway.');
-				}
+				if (completedPuzzles.indexOf('brother_onto_you') !== -1 && completedPuzzles.indexOf('send_word') === -1) {newsItems.push('Breaking News : Sudden mine collapses spread across region, dozens missing or trapped. Rescue operations are underway.');}
 
-				if (validatePuzzleActive('they_are_watching') && completedPuzzles.indexOf('they_are_watching') === -1) {
-					newsItems.push('News : Strange classified ads appearing in newspapers have been noticed by many; the classifieds editor has been reported missing by friends and family.');
-				}
+				if (validatePuzzleActive('they_are_watching') && completedPuzzles.indexOf('they_are_watching') === -1) {newsItems.push('News : Strange classified ads appearing in newspapers have been noticed by many; the classifieds editor has been reported missing by friends and family.');}
 
-				if (completedPuzzles.indexOf('spy_purge') !== -1 && completedPuzzles.indexOf('close_call') === -1) {
-					newsItems.push('News : Mass layoffs of Grandmas reported, social safety nets under strain.');
-				}
+				if (completedPuzzles.indexOf('spy_purge') !== -1 && completedPuzzles.indexOf('close_call') === -1) {newsItems.push('News : Mass layoffs of Grandmas reported, social safety nets under strain.');}
 
-				if (validatePuzzleActive('close_call') && completedPuzzles.indexOf('close_call') === -1) {
-					newsItems.push('News : Citizens report secret underground courts, police show no interest in investigating the matter.');
-				}
+				if (validatePuzzleActive('close_call') && completedPuzzles.indexOf('close_call') === -1) {newsItems.push('News : Citizens report secret underground courts, police show no interest in investigating the matter.');}
 
-				if (validatePuzzleActive('rosetta_stone') && completedPuzzles.indexOf('rosetta_stone') === -1) {
-					newsItems.push('News : Museum displays ancient tablet from before recorded history; no known translation exists, but scholars continue to study the bizarre hieroglyphics.');
-				}
+				if (validatePuzzleActive('rosetta_stone') && completedPuzzles.indexOf('rosetta_stone') === -1) {newsItems.push('News : Museum displays ancient tablet from before recorded history; no known translation exists, but scholars continue to study the bizarre hieroglyphics.');}
 
-				if (validatePuzzleActive('watch_keeper_rounds') && completedPuzzles.indexOf('watch_keeper_rounds') === -1) {
-					newsItems.push('News : City enters strict curfew after numerous unexplained events; watch keeper patrols increase.');
-				}
+				if (validatePuzzleActive('watch_keeper_rounds') && completedPuzzles.indexOf('watch_keeper_rounds') === -1) {newsItems.push('News : City enters strict curfew after numerous unexplained events; watch keeper patrols increase.');}
 
 				if (validatePuzzleActive('loyalty_test') && completedPuzzles.indexOf('loyalty_test') === -1) {
 					newsItems.push('News : Reports of UFOs across multiple cities; many citizens think we have been visited by aliens for our delicious cookies.');
@@ -9459,48 +6987,33 @@
 					}
 				}
 
-				if (validatePuzzleActive('schism_choice') && completedPuzzles.indexOf('schism_choice') === -1) {
-					newsItems.push('News : Parks departments rope off newly formed labyrinth paths in community gardens, citing "soil restoration trials."');
-				}
+				if (validatePuzzleActive('schism_choice') && completedPuzzles.indexOf('schism_choice') === -1) {newsItems.push('News : Parks departments rope off newly formed labyrinth paths in community gardens, citing "soil restoration trials."');}
 
-				if (validatePuzzleActive('mask_wears_thin') && completedPuzzles.indexOf('mask_wears_thin') === -1) {
-					newsItems.push('News : Museums and private collections quietly move baking-era artifacts to off-site vaults; labels updated to "unavailable for viewing."');
-				}
+				if (validatePuzzleActive('mask_wears_thin') && completedPuzzles.indexOf('mask_wears_thin') === -1) {newsItems.push('News : Museums and private collections quietly move baking-era artifacts to off-site vaults; labels updated to "unavailable for viewing."');}
 
-				if (validatePuzzleActive('vaulted_relics') && completedPuzzles.indexOf('vaulted_relics') === -1) {
-					newsItems.push('News : Harbor authority issues advisory on vessel light protocols after spot checks reveal unusual starboard-only displays; "refresher training" scheduled.');
-				}
+				if (validatePuzzleActive('vaulted_relics') && completedPuzzles.indexOf('vaulted_relics') === -1) {newsItems.push('News : Harbor authority issues advisory on vessel light protocols after spot checks reveal unusual starboard-only displays; "refresher training" scheduled.');}
 
-				if (completedPuzzles.indexOf('initiation_riddle') !== -1 && validatePuzzleActive('spirits_thrones') && completedPuzzles.indexOf('spirits_thrones') === -1) {
-					newsItems.push('News : Museums report theft of small gilded figurines labeled "Order relics." Curators refuse to release security footage.');
-				}
+				if (completedPuzzles.indexOf('initiation_riddle') !== -1 && validatePuzzleActive('spirits_thrones') && completedPuzzles.indexOf('spirits_thrones') === -1) {newsItems.push('News : Museums report theft of small gilded figurines labeled "Order relics." Curators refuse to release security footage.');}
 
-				if (completedPuzzles.indexOf('rite_shifting_measures') !== -1 && validatePuzzleActive('garden_sigil') && completedPuzzles.indexOf('garden_sigil') === -1) {
-					newsItems.push('News : Farmers wake to gold-leaf markings burned into cropland forming five-pointed trade symbols. No chemical residue found.');
-				}
+				if (completedPuzzles.indexOf('rite_shifting_measures') !== -1 && validatePuzzleActive('garden_sigil') && completedPuzzles.indexOf('garden_sigil') === -1) {newsItems.push('News : Farmers wake to gold-leaf markings burned into cropland forming five-pointed trade symbols. No chemical residue found.');}
 
-				if (completedPuzzles.indexOf('spiral_seasons') !== -1 && validatePuzzleActive('rite_shifting_measures') && completedPuzzles.indexOf('rite_shifting_measures') === -1) {
-					newsItems.push('News : Weather agencies record conflicting seasons across regions; one satellite photo shows snow and harvest fields side by side.');
-				}
+				if (completedPuzzles.indexOf('spiral_seasons') !== -1 && validatePuzzleActive('rite_shifting_measures') && completedPuzzles.indexOf('rite_shifting_measures') === -1) {newsItems.push('News : Weather agencies record conflicting seasons across regions; one satellite photo shows snow and harvest fields side by side.');}
 
 				return newsItems;
             };
-            
-            Game.modHooks['ticker'].push(newsTickerFunction);
+
+            if (!safeRegisterHook('ticker', newsTickerFunction, 'Cookie Age news ticker', 'newsTicker')) {newsTickerFunction = null;}
         }
     }
-    
+
     function removeNewsTicker() {
         if (Game.modHooks && Game.modHooks['ticker'] && newsTickerFunction) {
             var index = Game.modHooks['ticker'].indexOf(newsTickerFunction);
-            if (index > -1) {
-                Game.modHooks['ticker'].splice(index, 1);
-            }
+            if (index > -1) {Game.modHooks['ticker'].splice(index, 1);}
             newsTickerFunction = null;
         }
     }
-    
-    // ===== PUBLIC API FOR TESTING =====
+
     window.CookieAge = {
         VERSION: expansionVersion,
         getMissingPuzzleCompletionRequirements: getMissingPuzzleCompletionRequirements,
@@ -9513,7 +7026,7 @@
                 function getLastCompletedId(trackType) {
                     if (!cookieAgeData.puzzles.tracks) return null;
                     var progress = (cookieAgeData.puzzles.tracks[trackType] && cookieAgeData.puzzles.tracks[trackType].progress) || 0;
-                    var orderArr = trackType === 'investigate' ? INVESTIGATE_PUZZLE_ORDER : (trackType === 'infiltrate' ? INFILTRATE_PUZZLE_ORDER : CHOOSE_PUZZLE_ORDER);
+                    var orderArr = PUZZLE_ORDER[trackType];
                     if (progress > 0 && progress - 1 < orderArr.length) return orderArr[progress - 1] || null;
                     // Fallback: derive from completed list if progress looks unset
                     if (cookieAgeData.puzzles.completed && cookieAgeData.puzzles.completed.length) {
@@ -9542,7 +7055,6 @@
                     },
                     // Tri-state: true | false | null
                     exposePathPicked: (cookieAgeData.puzzles && 'exposePathPicked' in cookieAgeData.puzzles) ? cookieAgeData.puzzles.exposePathPicked : null,
-                    // Hint system data
                     hints: (cookieAgeData.puzzles && cookieAgeData.puzzles.hints) ? {
                         hintsUsed: cookieAgeData.puzzles.hints.hintsUsed || 0,
                         lastHintTime: (cookieAgeData.puzzles.hints.lastHintTime !== null && cookieAgeData.puzzles.hints.lastHintTime !== undefined) ? cookieAgeData.puzzles.hints.lastHintTime : null,
@@ -9562,12 +7074,10 @@
         applySaveData: function(save) {
             try {
                 if (!save) return;
-                // Initialize lightweight structures
                 if (!cookieAgeData.puzzles) setupPuzzleSystem();
                 if (!cookieAgeData.puzzles.completed) cookieAgeData.puzzles.completed = [];
                 if (!cookieAgeData.puzzles.tracks) cookieAgeData.puzzles.tracks = { investigate: { active: null, progress: 0 }, infiltrate: { active: null, progress: 0 }, choose: { active: null, progress: 0 }, _initialized: false };
-                
-                // Initialize hint system data structure if not exists
+
                 if (!cookieAgeData.puzzles.hints) {
                     cookieAgeData.puzzles.hints = {
                         hintsUsed: 0,
@@ -9584,33 +7094,22 @@
                 // clean up active puzzles before clearing state so old hooks don't fire
                 var currentActivePuzzles = [];
                 if (cookieAgeData.puzzles.tracks) {
-                    if (cookieAgeData.puzzles.tracks.investigate && cookieAgeData.puzzles.tracks.investigate.active) {
-                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.investigate.active);
-                    }
-                    if (cookieAgeData.puzzles.tracks.infiltrate && cookieAgeData.puzzles.tracks.infiltrate.active) {
-                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.infiltrate.active);
-                    }
-                    if (cookieAgeData.puzzles.tracks.choose && cookieAgeData.puzzles.tracks.choose.active) {
-                        currentActivePuzzles.push(cookieAgeData.puzzles.tracks.choose.active);
-                    }
+                    if (cookieAgeData.puzzles.tracks.investigate && cookieAgeData.puzzles.tracks.investigate.active) {currentActivePuzzles.push(cookieAgeData.puzzles.tracks.investigate.active);}
+                    if (cookieAgeData.puzzles.tracks.infiltrate && cookieAgeData.puzzles.tracks.infiltrate.active) {currentActivePuzzles.push(cookieAgeData.puzzles.tracks.infiltrate.active);}
+                    if (cookieAgeData.puzzles.tracks.choose && cookieAgeData.puzzles.tracks.choose.active) {currentActivePuzzles.push(cookieAgeData.puzzles.tracks.choose.active);}
                 }
-                
-                // Clean up each active puzzle
+
                 for (var i = 0; i < currentActivePuzzles.length; i++) {
                     var puzzleId = currentActivePuzzles[i];
                     try {
                         cleanupPuzzle(puzzleId);
-                        // Also mark puzzle as inactive
                         var puzzle = cookieAgeData.puzzles.registry[puzzleId];
-                        if (puzzle) {
-                            puzzle.isActive = false;
-                        }
+                        if (puzzle) {puzzle.isActive = false;}
                     } catch (e) {
                         errorLog('Error cleaning up puzzle during save load:', puzzleId, e);
                     }
                 }
 
-                // Clear current derived state
                 cookieAgeData.puzzles.completed = [];
                 cookieAgeData.puzzles.tracks.investigate.active = null;
                 cookieAgeData.puzzles.tracks.investigate.progress = 0;
@@ -9620,7 +7119,7 @@
                 cookieAgeData.puzzles.tracks.choose.progress = 0;
 
                 function clampAndApplyTrack(trackType, lastId) {
-                    var orderArr = trackType === 'investigate' ? INVESTIGATE_PUZZLE_ORDER : (trackType === 'infiltrate' ? INFILTRATE_PUZZLE_ORDER : CHOOSE_PUZZLE_ORDER);
+                    var orderArr = PUZZLE_ORDER[trackType];
                     var idx = (typeof lastId === 'string') ? orderArr.indexOf(lastId) : -1;
                     if (idx < 0) {
                         // Unknown or null → nothing completed for this track
@@ -9628,7 +7127,6 @@
                         cookieAgeData.puzzles.tracks[trackType].active = null;
                         return;
                     }
-                    // Mark all up to and including idx as completed
                     for (var i = 0; i <= idx && i < orderArr.length; i++) {
                         var pid = orderArr[i];
                         if (cookieAgeData.puzzles.completed.indexOf(pid) === -1) cookieAgeData.puzzles.completed.push(pid);
@@ -9654,16 +7152,10 @@
 
                 if (tracksPayload.progress) {
                     var progressMap = tracksPayload.progress;
-                    var trackOrders = {
-                        investigate: INVESTIGATE_PUZZLE_ORDER,
-                        infiltrate: INFILTRATE_PUZZLE_ORDER,
-                        choose: CHOOSE_PUZZLE_ORDER
-                    };
+                    var trackOrders = PUZZLE_ORDER;
                     ['investigate', 'infiltrate', 'choose'].forEach(function(trackType) {
                         var desired = progressMap[trackType];
-                        if (typeof desired !== 'number') {
-                            return;
-                        }
+                        if (typeof desired !== 'number') {return;}
                         var maxLen = trackOrders[trackType].length;
                         var clampedProgress = Math.max(0, Math.min(desired, maxLen));
                         var currentProgress = cookieAgeData.puzzles.tracks[trackType].progress || 0;
@@ -9671,27 +7163,17 @@
                             cookieAgeData.puzzles.tracks[trackType].progress = clampedProgress;
                             for (var idx = 0; idx < clampedProgress && idx < maxLen; idx++) {
                                 var pid = trackOrders[trackType][idx];
-                                if (cookieAgeData.puzzles.completed.indexOf(pid) === -1) {
-                                    cookieAgeData.puzzles.completed.push(pid);
-                                }
+                                if (cookieAgeData.puzzles.completed.indexOf(pid) === -1) {cookieAgeData.puzzles.completed.push(pid);}
                             }
                         }
                     });
                 }
 
-                // Apply expose path tri-state
-                if (save.hasOwnProperty('exposePathPicked')) {
-                    cookieAgeData.puzzles.exposePathPicked = (save.exposePathPicked === true || save.exposePathPicked === false) ? save.exposePathPicked : null;
-                }
-                
-                // Restore hint system data
+                if (save.hasOwnProperty('exposePathPicked')) {cookieAgeData.puzzles.exposePathPicked = (save.exposePathPicked === true || save.exposePathPicked === false) ? save.exposePathPicked : null;}
+
                 if (save.hints) {
-                    if (typeof save.hints.hintsUsed === 'number') {
-                        cookieAgeData.puzzles.hints.hintsUsed = save.hints.hintsUsed;
-                    }
-                    if (typeof save.hints.lastHintTime === 'number' || save.hints.lastHintTime === null) {
-                        cookieAgeData.puzzles.hints.lastHintTime = save.hints.lastHintTime;
-                    }
+                    if (typeof save.hints.hintsUsed === 'number') {cookieAgeData.puzzles.hints.hintsUsed = save.hints.hintsUsed;}
+                    if (typeof save.hints.lastHintTime === 'number' || save.hints.lastHintTime === null) {cookieAgeData.puzzles.hints.lastHintTime = save.hints.lastHintTime;}
                     // Handle puzzleActivationTimes - restore if object exists, clear if explicitly null
                     if (save.hints.puzzleActivationTimes !== null && save.hints.puzzleActivationTimes !== undefined) {
                         if (typeof save.hints.puzzleActivationTimes === 'object') {
@@ -9700,17 +7182,13 @@
                             cookieAgeData.puzzles.hints.puzzleActivationTimes.choose = (typeof save.hints.puzzleActivationTimes.choose === 'number') ? save.hints.puzzleActivationTimes.choose : null;
                         }
                     } else if (save.hints.puzzleActivationTimes === null) {
-                        // Explicitly clear puzzle activation times if save has null
                         cookieAgeData.puzzles.hints.puzzleActivationTimes.investigate = null;
                         cookieAgeData.puzzles.hints.puzzleActivationTimes.infiltrate = null;
                         cookieAgeData.puzzles.hints.puzzleActivationTimes.choose = null;
                     }
-                    if (save.hints.purchasedHints && typeof save.hints.purchasedHints === 'object') {
-                        cookieAgeData.puzzles.hints.purchasedHints = save.hints.purchasedHints;
-                    }
+                    if (save.hints.purchasedHints && typeof save.hints.purchasedHints === 'object') {cookieAgeData.puzzles.hints.purchasedHints = save.hints.purchasedHints;}
                 }
 
-                // Activate next puzzles per track according to current dependencies
                 try { activateNextPuzzleForTrack('investigate'); } catch (_) {}
                 try { activateNextPuzzleForTrack('infiltrate'); } catch (_) {}
                 try { activateNextPuzzleForTrack('choose'); } catch (_) {}
@@ -9719,18 +7197,17 @@
                 // Following cookie.js pattern: set won flag and _restoredFromSave, update AchievementsById
                 try {
                     var restoredCompleted = cookieAgeData.puzzles.completed || [];
-                    for (var achIdx = 0; achIdx < mysteryMilestonePuzzles.length; achIdx++) {
-                        var milestonePuzzle = mysteryMilestonePuzzles[achIdx];
-                        var achievementName = mysteryAchievementNames[achIdx];
-                        
-                        // If milestone puzzle is completed, silently mark achievement as won
+                    for (var achIdx = 0; achIdx < mysteryMilestones.length; achIdx++) {
+                        var milestonePuzzle = mysteryMilestones[achIdx].puzzle;
+                        var achievementName = mysteryMilestones[achIdx].achievement;
+
                         if (restoredCompleted.indexOf(milestonePuzzle) !== -1 && Game.Achievements && Game.Achievements[achievementName]) {
                             var ach = Game.Achievements[achievementName];
                             if (!ach.won) {
                                 // Silent award: match cookie.js markAchievementWonFromSave pattern
                                 ach.won = 1;
                                 ach._restoredFromSave = true;
-                                
+
                                 // Also update the by-id version if it exists (per cookie.js pattern)
                                 if (ach.id !== undefined && Game.AchievementsById && Game.AchievementsById[ach.id]) {
                                     Game.AchievementsById[ach.id].won = 1;
@@ -9741,13 +7218,6 @@
                     }
                 } catch (_) {}
 
-                // Optional debug overrides – only when debugMode and any debug flag is set
-                if (typeof debugMode !== 'undefined' && debugMode) {
-                    var hasAnyDebug = debugStartInvestigate || debugStartInfiltrate || debugStartChoose || debugExposePathPicked;
-                    if (hasAnyDebug) {
-                        applyDebugStartPuzzles();
-                    }
-                }
             } catch (e) {
                 console.error('[Cookie Age] applySaveData failed:', e);
             }
@@ -9756,34 +7226,13 @@
             debugMode = !debugMode;
             console.log('[Cookie Age] Debug mode:', debugMode ? 'ON' : 'OFF');
         },
-        status: function() {
-            console.log('[Cookie Age] Status:', {
-                initialized: expansionState.initialized,
-                achievementsCreated: expansionState.achievementsCreated,
-                trackingActive: expansionState.trackingActive,
-                baseModDetected: !!Game.mods['JustNaturalExpansionMod'],
-                newsTickerActive: newsTickerFunction !== null
-            });
-        },
-        reinitialize: function() {
-            expansionState.initialized = false;
-            expansionState.achievementsCreated = false;
-            
-            if (Game.JNE && Game.JNE.enableCookieAge) {
-                initializeExpansion();
-            }
-        },
         enable: function() {
             if (!expansionState.initialized) {
                 initializeExpansion();
             } else {
                 // Already initialized, but ensure achievements are created
-                if (!expansionState.achievementsCreated) {
-                    createMysteryAchievements();
-                }
-                if (!newsTickerFunction) {
-                    setupNewsTicker();
-                }
+                if (!expansionState.achievementsCreated) {createMysteryAchievements();}
+                if (!newsTickerFunction) {setupNewsTicker();}
             }
         },
         disable: function() {
@@ -9791,10 +7240,7 @@
             console.log('[Cookie Age] Disabled');
         },
         playWelcomeAudio: function() {
-            // Simple function to play welcome audio - called only from button toggle
-            if (cookieAgeData.audio.sounds.welcome) {
-                playAudioSound('welcome');
-            }
+            playExpansionSound();
         },
         setupNewsTicker: function() {
             setupNewsTicker();
@@ -9804,20 +7250,26 @@
         },
         cleanup: function() {
             removeNewsTicker();
-            
-            // Clean up all Game object modifications
+
             cleanupGameObjectModifications();
-            
-            // Remove mystery achievements
-            if (expansionState.achievementsCreated) {
-                removeMysteryAchievements();
-            }
-            
-            // Clean up all puzzle hooks
+
+            if (expansionState.achievementsCreated) {removeMysteryAchievements();}
+
             if (cookieAgeData.puzzles && cookieAgeData.puzzles.registry) {
                 for (var puzzleId in cookieAgeData.puzzles.registry) {
-                    if (!cookieAgeData.puzzles.registry.hasOwnProperty(puzzleId)) {
-                        continue;
+                    if (!cookieAgeData.puzzles.registry.hasOwnProperty(puzzleId)) {continue;}
+                    var registryPuzzle = cookieAgeData.puzzles.registry[puzzleId];
+                    if (registryPuzzle) {
+                        if (registryPuzzle.instance) {
+                            try {
+                                if (registryPuzzle.instance._setupComplete) {registryPuzzle.instance.cleanup();}
+                            } catch (e) {}
+                            try {
+                                registryPuzzle.instance.removeHooks();
+                            } catch (e) {}
+                            registryPuzzle.instance._setupComplete = false;
+                        }
+                        registryPuzzle.isActive = false;
                     }
                     cleanupPuzzleHooks(puzzleId);
                 }
@@ -9825,39 +7277,19 @@
 
             if (cookieAgeData.puzzles && cookieAgeData.puzzles.hooks) {
                 for (var hookKey in cookieAgeData.puzzles.hooks) {
-                    if (!cookieAgeData.puzzles.hooks.hasOwnProperty(hookKey)) {
-                        continue;
-                    }
+                    if (!cookieAgeData.puzzles.hooks.hasOwnProperty(hookKey)) {continue;}
                     var match = hookKey.match(/^puzzle(\d+)$/);
-                    if (match) {
-                        cleanupPuzzleHooks(parseInt(match[1], 10));
-                    }
+                    if (match) {cleanupPuzzleHooks(parseInt(match[1], 10));}
                 }
             }
-            
+
             // Reset init flags so setupPuzzleSystem re-runs on re-enable
-            if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {
-                cookieAgeData.puzzles.tracks._initialized = false;
-            }
-            
+            if (cookieAgeData.puzzles && cookieAgeData.puzzles.tracks) {cookieAgeData.puzzles.tracks._initialized = false;}
+
             expansionState.initialized = false;
             expansionState.achievementsCreated = false;
             expansionState.trackingActive = false;
             console.log('[Cookie Age] Cleanup completed');
-        },
-        forceEnable: function() {
-            expansionState.initialized = false;
-            initializeExpansion();
-        },
-        // Audio controls
-        loadSound: function(name, url) {
-            return loadAudioSound(name, url);
-        },
-        loadPuzzleCompletionAudio: function() {
-            return loadPuzzleCompletionAudio();
-        },
-        playSound: function(name, options) {
-            return playAudioSound(name, options);
         },
         toggleAudio: function() {
             return toggleAudio();
@@ -9866,9 +7298,7 @@
             return isPuzzleUnlocked(puzzleId);
         },
         getPuzzleRegistry: function() {
-            if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.registry) {
-                return null;
-            }
+            if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.registry) {return null;}
             ensurePuzzleSystemInitialized();
             return cookieAgeData.puzzles.registry;
         },
@@ -9884,19 +7314,11 @@
             var trackType = options.track;
             var entries = getActivePuzzleEntries(trackType);
 
-            if (!entries.length) {
-                return options.all ? [] : null;
-            }
+            if (!entries.length) {return options.all ? [] : null;}
 
-            if (options.all) {
-                return entries.map(formatActivePuzzle);
-            }
+            if (options.all) {return entries.map(formatActivePuzzle);}
 
             return formatActivePuzzle(entries[0]);
-        },
-        reinitializePuzzles: function() {
-            var entries = reinitializeActivePuzzles();
-            return entries.map(formatActivePuzzle);
         },
         completeCurrentPuzzle: function(trackType) {
             if (!debugMode) {
@@ -9921,64 +7343,18 @@
                 }
             }
 
-            if (!completedAny) {
-                console.warn('[Cookie Age] Active puzzle completion failed.');
-            }
+            if (!completedAny) {console.warn('[Cookie Age] Active puzzle completion failed.');}
 
             return completedAny;
         },
-        startFirstPuzzle: function() {
-            ensurePuzzleSystemInitialized();
-            ensureTracksInitialized();
-
-            if (Game && Game.JNE && typeof Game.JNE.setCookieAgeProgress === 'function' && (!Game.JNE.cookieAgeProgress || Game.JNE.cookieAgeProgress < 1)) {
-                Game.JNE.setCookieAgeProgress(1);
-            }
-
-            var entries = getActivePuzzleEntries();
-            if (!entries.length) {
-                entries = reinitializeActivePuzzles();
-            }
-
-            if (!entries || !entries.length) {
-                console.warn('[Cookie Age] Unable to activate first puzzle.');
-                return false;
-            }
-
-            return true;
-        },
-        checkCurrentPuzzle: function(trackType) {
-            var entries = getActivePuzzleEntries(trackType);
-            if (!entries.length) {
-                console.warn('[Cookie Age] No active puzzles to check.');
-                return false;
-            }
-
-            var checkedAny = false;
-            for (var i = 0; i < entries.length; i++) {
-                var entry = entries[i];
-                var result = checkPuzzle(entry.id);
-                if (result) {
-                    checkedAny = true;
-                }
-            }
-
-            if (!checkedAny) {
-                console.warn('[Cookie Age] Active puzzle check did not return true.');
-            }
-
-            return checkedAny;
-        },
         getPuzzleStatus: function() {
-            if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) {
-                return null;
-            }
+            if (!cookieAgeData || !cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) {return null;}
             ensureTracksInitialized();
-            
+
             var investigateActive = cookieAgeData.puzzles.tracks.investigate.active;
             var infiltrateActive = cookieAgeData.puzzles.tracks.infiltrate.active;
             var chooseActive = cookieAgeData.puzzles.tracks.choose.active;
-            
+
             return {
                 investigate: {
                     progress: cookieAgeData.puzzles.tracks.investigate.progress,
@@ -9994,7 +7370,6 @@
                 }
             };
         },
-        // Hint system functions
         purchaseHint: function(trackType) {
             return purchaseHint(trackType);
         },
@@ -10015,7 +7390,7 @@
         },
         getTrackStatus: function() {
             if (!cookieAgeData.puzzles.tracks) return null;
-            
+
             return {
                 investigate: {
                     progress: cookieAgeData.puzzles.tracks.investigate.progress,
@@ -10031,66 +7406,40 @@
                 }
             };
         },
-        completePuzzle: function(puzzleId) {
-            if (!debugMode) {
-                console.warn('[Cookie Age] Console command disabled unless debugMode is true.');
-                return false;
-            }
-            return completePuzzle(puzzleId);
-        },
         processConditionalText: function(text) {
             return processConditionalText(text);
         },
         isPuzzleAchievement: function(name) {
-            return mysteryAchievementNames.indexOf(name) !== -1;
+            return mysteryMilestones.some(function(m) { return m.achievement === name; });
         },
         resetData: function() {
-            if (cookieAgeData.puzzles) {
+            if (cookieAgeData.puzzles && cookieAgeData.puzzles.registry) {
                 for (var id in cookieAgeData.puzzles.registry) {
                     var p = cookieAgeData.puzzles.registry[id];
-                    if (p.instance && p.instance.removeHooks) try { p.instance.removeHooks(); } catch (e) {}
-                }
-                if (cookieAgeData.puzzles.hooks) {
-                    for (var k in cookieAgeData.puzzles.hooks) {
-                        if (cookieAgeData.puzzles.hooks[k] && Game.removeHook) {
-                            try { Game.removeHook('check', cookieAgeData.puzzles.hooks[k]); } catch (e) {}
+                    if (p) {
+                        if (p.instance) {
+                            try {
+                                if (p.instance._setupComplete) p.instance.cleanup();
+                            } catch (e) {}
+                            try { p.instance.removeHooks(); } catch (e) {}
+                            p.instance._setupComplete = false;
+                        } else if (typeof p.cleanup === 'function') {
+                            try { p.cleanup(); } catch (e) {}
                         }
+                        p.isActive = false;
                     }
+                    cleanupPuzzleHooks(id);
                 }
             }
             cookieAgeData.puzzles = null;
         }
     };
-    
-    function attachBaseModPuzzleHelpers() {
-        if (!Game || !Game.JNE) {
-            return;
-        }
 
-        Game.JNE.completeCurrentPuzzle = function(trackType) {
-            return window.CookieAge.completeCurrentPuzzle(trackType);
-        };
-
-        Game.JNE.startFirstPuzzle = function() {
-            return window.CookieAge.startFirstPuzzle();
-        };
-
-        Game.JNE.checkCurrentPuzzle = function(trackType) {
-            return window.CookieAge.checkCurrentPuzzle(trackType);
-        };
-    }
-
-    attachBaseModPuzzleHelpers();
-    
-    // ===== MAIN INITIALIZATION =====
     function main() {
-        
-        if (!checkBaseModCompatibility()) {
-            return;
-        }
-        
-        // Initialize immediately - base mod is guaranteed to be loaded
-        conditionalInitialize();
+
+        if (!checkBaseModCompatibility()) {return;}
+
+        initializeExpansion();  // Initialize immediately jne is guaranteed to be loaded
     }
 
     main();
