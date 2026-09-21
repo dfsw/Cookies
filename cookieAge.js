@@ -6801,6 +6801,16 @@
         return resetAndSetPuzzle(puzzleId);
     };
 
+    Game.completePuzzle = function(puzzleId) {
+        if (!__requireDebugForConsole()) return;
+        ensurePuzzleSystemInitialized();
+        if (puzzleId) {tryCompletePuzzle(puzzleId); return;}
+        ['investigate', 'infiltrate', 'choose'].forEach(function(t) {
+            var active = cookieAgeData.puzzles.tracks[t].active;
+            if (active) tryCompletePuzzle(active);
+        });
+    };
+
     function ensurePuzzleSystemInitialized() {
         if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks || !cookieAgeData.puzzles.tracks._initialized) {setupPuzzleSystem();} else {
             if (!cookieAgeData.puzzles.hints) {
