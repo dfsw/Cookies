@@ -4344,6 +4344,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     function markAchievementWonFromSave(achievementName) {
+        if ((Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)) && accomplishmintSuppressed[achievementName]) return;
         if (Game.Achievements[achievementName]) {
             // Always set to won when loading from save, regardless of current state
             Game.Achievements[achievementName].won = 1;
@@ -7948,7 +7949,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     var ACCOMPLISHMINT_ID = 104;
     var accomplishmintActive = false, accomplishmintEnded = false, accomplishmintEndTime = 0, accomplishmintSnapshot = null, accomplishmintLastLumpT = 0, accomplishmintLastSweepT = 0, accomplishmintWon = {}, accomplishmintBest = 0, accompClearUntil = 0, accomplishmintLoadedCleaned = false;
     // achievements suppressed during challenge 
-    var accomplishmintSuppressed = { 'Keeper of the conservatory': 1, 'The whole pantry': 1, 'Beyond the Leaderboard': 1, 'Third-party': 1 };
+    var accomplishmintSuppressed = { 'Keeper of the conservatory': 1, 'The whole pantry': 1, 'The complete works of questionable medicine': 1, 'Stir crazy': 1, 'Hoardiculturalist': 1, 'Advanced Placement Alchemy': 1, 'Fever without dawn': 1, 'Beyond the Leaderboard': 1, 'Third-party': 1 };
     var accomplishmintOrig = {}; 
     // upgrades un-earned for the challenge
     var accomplishmintDisabledUpgrades = ['Starter kit', 'Starter kitchen', 'Sugar predictor', 'Sugar insight', 'Positive feedback loop'];
@@ -8075,7 +8076,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 // post load cleanup
                 accomplishmintLoadedCleaned = true;
                 var leaked = 0;
-                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; ra._restoredFromSave = false; leaked++; } }
+                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an]) { ra.won = 0; ra._restoredFromSave = false; leaked++; } }
                 if (leaked > 0) {
                     recountOwned();
                     for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.kitten && !u.bought) u.unlocked = 0; }
@@ -8142,7 +8143,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (Date.now() - accomplishmintLastSweepT >= 1000) {
                 accomplishmintLastSweepT = Date.now();
                  var swept = false;
-                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an] && !accomplishmintSuppressed[an]) { ra.won = 0; ra._restoredFromSave = false; swept = true; } }
+                for (var an in Game.Achievements) { var ra = Game.Achievements[an]; if (ra && ra.won && !accomplishmintWon[an]) { ra.won = 0; ra._restoredFromSave = false; swept = true; } }
                 if (swept) recountOwned();
                 for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.tier !== 'fortune' && accompDisabledSet[u.name] && (u.bought || u.unlocked)) { u.bought = 0; u.unlocked = 0; } }
                 //stupid kitten BS
@@ -9432,7 +9433,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (upgradeData.building) {
                 for (var i = 0; i < upgradeData.building.length; i++) {
                     var upgradeInfo = upgradeData.building[i];
-                    if (upgradeInfo && upgradeInfo.building === what &&
+                    if (upgradeInfo && upgradeInfo.type !== 'discount' && upgradeInfo.building === what &&
                         Game.Upgrades[upgradeInfo.name] && Game.Upgrades[upgradeInfo.name].bought) {
                         mult *= 1.25;
                     }
@@ -9543,6 +9544,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     Game.JNE.shadowAchievementMode = shadowAchievementMode;
     Game.JNE.createAchievement = createAchievement;
     Game.JNE.markAchievementWon = markAchievementWon;
+    Game.JNE.accomplishmintSuppressed = accomplishmintSuppressed;
+    Game.JNE.isAccomplishmintSuppressed = function(name) {
+        return !!(accomplishmintSuppressed[name] && (accomplishmintActive || Game.ascensionMode === ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)));
+    };
     Game.JNE.puzzleBuildingRequirements = puzzleBuildingRequirements;
     Game.JNE.puzzleRequiredUpgrades = puzzleRequiredUpgrades;
     Game.JNE.puzzleMinCookies = puzzleMinCookies;

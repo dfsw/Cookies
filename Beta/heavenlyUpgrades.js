@@ -829,6 +829,23 @@
                             if (r < 1) val *= [1, 2, 1.5, 1.25][godLevel];
                         }
                     }
+                } else if (what === 'cps') {
+                    var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+                    if (M && M.gods) {
+                        if (M.gods['procrastination']) {
+                            var godLevel = Game.hasGod('procrastination');
+                            if (godLevel && M._procrastinationSlotTime) {
+                                var h = (Date.now() - M._procrastinationSlotTime) / 3600000, d = Math.min(Math.floor(h / 24), 365), b = [0, 0.03, 0.02, 0.01][godLevel];
+                                var t = b * (1 - Math.pow(0.99, d)) / 0.01;
+                                if (d < 365) t += b * Math.pow(0.99, d) * (h % 24) / 24;
+                                val *= (1 + t);
+                            }
+                        }
+                        if (M.gods['selfishness']) {
+                            var godLevel = Game.hasGod('selfishness');
+                            if (godLevel) val *= (1 - Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][godLevel], 1));
+                        }
+                    }
                 }
                 return val;
             } catch (e) {
@@ -866,20 +883,6 @@
                 }
                 if (Game.Has('Stacks on stacks on stacks') && Game.goldenClicksLocal) {
                     mult *= 1 + (Game.goldenClicksLocal * 0.0005);
-                }
-                var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
-                if (M && M.gods['procrastination']) {
-                    var godLevel = Game.hasGod('procrastination');
-                    if (godLevel && M._procrastinationSlotTime) {
-                        var h = (Date.now() - M._procrastinationSlotTime) / 3600000, d = Math.min(Math.floor(h / 24), 365), b = [0, 0.03, 0.02, 0.01][godLevel];
-                        var t = b * (1 - Math.pow(0.99, d)) / 0.01;
-                        if (d < 365) t += b * Math.pow(0.99, d) * (h % 24) / 24;
-                        mult *= (1 + t);
-                    }
-                }
-                if (M && M.gods['selfishness']) {
-                    var godLevel = Game.hasGod('selfishness');
-                    if (godLevel) mult *= (1 - Math.min((M._selfishnessClickCount || 0) * [0, 0.03, 0.02, 0.01][godLevel], 1));
                 }
                 return cps * mult;
             }, 'Centralized CPS modifiers');

@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.1.9';
+const POTIONS_VERSION = '1.1.10';
 
 // =====================================================================
 // Potions 
@@ -4802,7 +4802,7 @@ PotionsM._loadImpl = function(str) {
             var ach = Game.Achievements && Game.Achievements[achName];
             if (!ach) {
                 anyPending = true;
-            } else {
+            } else if (!(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(achName))) {
                 ach.won = 1;
                 ach._restoredFromSave = true;
             }
@@ -5373,7 +5373,7 @@ function createPotionsAchievements() {
             if (wonIdx < 0 || wonIdx >= potionsAchievementNames.length) continue;
             var achN = potionsAchievementNames[wonIdx];
             var achObj = Game.Achievements && Game.Achievements[achN];
-            if (achObj) { achObj.won = 1; achObj._restoredFromSave = true; }
+            if (achObj && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(achN))) { achObj.won = 1; achObj._restoredFromSave = true; }
         }
     }
     if (!PotionsM._checkHookRegistered) {
