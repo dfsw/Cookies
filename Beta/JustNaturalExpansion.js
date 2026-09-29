@@ -4344,7 +4344,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
     
     function markAchievementWonFromSave(achievementName) {
-        if ((Game.ascensionMode == ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)) && accomplishmintSuppressed[achievementName]) return;
         if (Game.Achievements[achievementName]) {
             // Always set to won when loading from save, regardless of current state
             Game.Achievements[achievementName].won = 1;
@@ -8026,6 +8025,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // disable Cookie Age for this run
         if (modSettings.enableCookieAge && typeof window.applyCookieAgeChange === 'function') window.applyCookieAgeChange(false, false);
         for (var i in Game.Upgrades) { var u = Game.Upgrades[i]; if (u.pool !== 'prestige' && u.pool !== 'toggle') { u.unlocked = 0; u.bought = 0; } }
+        if (Game.killBuff) Game.killBuff('feedback loop');
         accompClearUntil = Date.now() + 1000;
         Game.lumps = 3; Game.lumpT = Date.now(); Game.lumpCurrentType = 0; Game.lumpsTotal = 0;
         Game.computeLumpTimes();
@@ -9545,9 +9545,32 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     Game.JNE.createAchievement = createAchievement;
     Game.JNE.markAchievementWon = markAchievementWon;
     Game.JNE.accomplishmintSuppressed = accomplishmintSuppressed;
-    Game.JNE.isAccomplishmintSuppressed = function(name) {
-        return !!(accomplishmintSuppressed[name] && (accomplishmintActive || Game.ascensionMode === ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID)));
+    Game.JNE.isAccomplishmintInEffect = function() {
+        return !!(accomplishmintActive || Game.ascensionMode === ACCOMPLISHMINT_ID || (modSaveData && modSaveData.challengeMode === ACCOMPLISHMINT_ID));
     };
+    Game.JNE.isAccomplishmintSuppressed = function(name) {
+        return !!(accomplishmintSuppressed[name] && Game.JNE.isAccomplishmintInEffect());
+    };
+    // suppression guard
+    if (Game.LoadSave && !Game.LoadSave._jneLoadGuarded) {
+        var _jnePrevLoadSave = Game.LoadSave;
+        Game.LoadSave = function() {
+            Game.JNE._saveLoadingNow = true;
+            try { return _jnePrevLoadSave.apply(this, arguments); }
+            finally { Game.JNE._saveLoadingNow = false; }
+        };
+        Game.LoadSave._jneLoadGuarded = true;
+    }
+    if (typeof Game.Win === 'function' && !Game.Win._jneSuppressionGuard) {
+        var _jneSuppressionPrevWin = Game.Win;
+        Game.Win = function(what) {
+            var _awardName = typeof what === 'string' ? what : (what && what.name);
+            if (_awardName && accomplishmintSuppressed[_awardName] &&
+                (Game.JNE.isAccomplishmintInEffect() || Game.JNE.isLoadingFromSave || Game.JNE._saveLoadingNow)) return;
+            return _jneSuppressionPrevWin.apply(this, arguments);
+        };
+        Game.Win._jneSuppressionGuard = true;
+    }
     Game.JNE.puzzleBuildingRequirements = puzzleBuildingRequirements;
     Game.JNE.puzzleRequiredUpgrades = puzzleRequiredUpgrades;
     Game.JNE.puzzleMinCookies = puzzleMinCookies;

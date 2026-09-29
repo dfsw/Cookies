@@ -5291,7 +5291,7 @@ function createPotionsAchievements() {
             if (Game.Achievements[hiddenName]) {
                 var ach = Game.Achievements[hiddenName];
                 ach.pool = 'normal';
-                if (ach._savedWonStatus) {
+                if (ach._savedWonStatus && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(originalName))) {
                     ach.won = 1;
                 }
                 Game.Achievements[originalName] = ach;
@@ -5473,6 +5473,7 @@ function checkAndAwardPotionsAchievements() {
             var achName = potionsAchievementNames[i];
             var ach = Game.Achievements[achName];
             if (ach && conditions[i] && !ach.won) {
+                if (Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(achName)) continue;
                 if (Game.JNE && Game.JNE.markAchievementWon) Game.JNE.markAchievementWon(achName);
                 if (!Game.Achievements[achName].won) Game.Win(achName);
             }

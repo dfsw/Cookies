@@ -590,6 +590,7 @@
             var positiveFeedbackLoopIcon = JNE.icon(22, 17, 'custom');
             setupCustomBuffTypes();
             Game._achievementWinCallbacks.push(function(achievement) {
+                if (Game.JNE && (Game.JNE.isLoadingFromSave || (Game.JNE.isAccomplishmintInEffect && Game.JNE.isAccomplishmintInEffect()))) return;
                 if (Game.Has('Positive feedback loop') && Game.gainBuff) {
                     Game.gainBuff('feedback loop', 3600, 1);
                     Game.Notify('Positive feedback loop!', 'Golden cookies appear 10% more often for the next hour.', positiveFeedbackLoopIcon);
