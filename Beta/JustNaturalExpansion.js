@@ -4,7 +4,7 @@
 {
     'use strict';
     
-    var BETA_MODE = true; 
+    var BETA_MODE = false; 
 
     // Load the custom sprite sheet  (github then jsdelivr)
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
@@ -60,7 +60,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.7.0';
+    var modVersion = '0.7.2';
     var debugMode = false;
     
     function debugLog() {
@@ -419,8 +419,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         cookieFishCaught: 0,
         lastGardenSacrificeTime: 0,
         godUsageTime: {}, // Track cumulative time each god is slotted across all ascensions
-        lanternsClicked: 0, // Lifetime lanterns clicked across all ascensions
-        zodiacVisited: '000000000000' // 12-bit string, one char per zodiac animal
+        lanternsClicked: 0, 
+        zodiacVisited: '000000000000' // one char per zodiac animal
     };
     
     // Per-ascension tracking variables (reset on ascension)
@@ -435,32 +435,32 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         previousTempleSwaps: 0,
         previousSoilType: null,
         spellCastTimes: [], // Track spell cast timestamps for Spell Slinger achievement
-        bankSextupledByWrinkler: false, // Track if bank was sextupled by a wrinkler pop
+        bankSextupledByWrinkler: false, 
         godUsageTime: {}, // Track cumulative time each god is slotted (milliseconds)
         currentSlottedGods: {}, // Track currently slotted gods with their slot start timestamps
         lanternsClicked: 0, // Lanterns clicked this ascension
-        currentZodiacStartTime: 0 // Date.now() when current LNY season started (for zodiac hour timer)
+        currentZodiacStartTime: 0 // Date when current season started
     };
     
     // Mod settings for menu system
     var modSettings = {
-        shadowAchievements: true, // Should match shadowAchievementMode default
+        shadowAchievements: true, 
         enableCookieUpgrades: false,
         enableBuildingUpgrades: false,
         enableKittenUpgrades: false,
-        enableMinigames: false, // Combined toggle for both JS Console and Downline minigames
+        enableMinigames: false, 
         enableCookieAge: false,
-        cookieAgeProgress: 0, // Track puzzle quest progress (0-50)
+        cookieAgeProgress: 0, // puzzle progress
         enableHeavenlyUpgrades: false,
         enableExtraSeasons: false,
         hasUsedModOutsideShadowMode: false,
-        hasMadeInitialChoice: false, // Track if user has made their initial leaderboard/non-leaderboard choice
+        hasMadeInitialChoice: false, // Track if user has made their initial leaderboard choice
         permanentSlotBackup: {},
         cpsDisplayUnit: 'seconds', // 'seconds', 'minutes', 'hours', or 'days'
-        enableExtraStatItems: false // Show extra stat tracking items even when related achievements are earned
+        enableExtraStatItems: false // Show extra stat tracking items 
     };
     
-    // Expose modSettings globally for access from other mod files
+    // Expose globally 
     window.modSettings = modSettings;
     
     // Current run tracking variables (reset on ascension)
@@ -7022,6 +7022,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             return JSON.stringify(modData);
         }
         
+        // NEVER persist zeroed values.
+        var snapAch = (accomplishmintActive && accomplishmintSnapshot) ? accomplishmintSnapshot.achievements : null;
+
         // Save the won state of each of our custom achievements
         modAchievementNames.forEach(name => {
             var ach = Game.Achievements[name];
@@ -7030,8 +7033,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 ach = Game.Achievements[name + ' [DISABLED]'];
             }
             if (ach) {
-                // _savedWonStatus captures the pre-disable won state for hidden entries
-                var wonState = ach._savedWonStatus ? 1 : (ach.won || 0);
+                var wonState;
+                if (snapAch && snapAch[name] !== undefined) {
+                    // Challenge active: use the pre-challenge snapshot as source of truth
+                    wonState = snapAch[name] ? 1 : 0;
+                } else {
+                    // _savedWonStatus captures the pre-disable won state for hidden entries
+                    wonState = ach._savedWonStatus ? 1 : (ach.won || 0);
+                }
                 modData.achievements[name] = {
                     won: wonState
                 };
@@ -7316,6 +7325,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 registerAccomplishmintMode();
                 Game.ascensionMode = ACCOMPLISHMINT_ID;
                 setupAccomplishmint();
+                // Overwrite the snapshot's achievements
+                if (modSaveData.accomplishmintPreSnap && accomplishmintSnapshot) {
+                    accomplishmintSnapshot.achievements = modSaveData.accomplishmintPreSnap;
+                }
                 accomplishmintEndTime = modSaveData.accomplishmintEndTime;
                 accomplishmintLastLumpT = modSaveData.accomplishmintLastLumpT || Date.now();
                 // overlay the persisted run state so a reload resumes the run instead of restarting it
@@ -7654,7 +7667,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 acw: saveObj.accomplishmintWon,
                 acb: saveObj.accomplishmintBest,
                 cr: saveObj.challengeRun,
-                alt: saveObj.accomplishmintLastLumpT
+                alt: saveObj.accomplishmintLastLumpT,
+                aps: saveObj.accomplishmintPreSnap
             };
             
             return JSON.stringify(compressed);
@@ -7747,7 +7761,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 accomplishmintWon: data.acw,
                 accomplishmintBest: data.acb,
                 challengeRun: data.cr,
-                accomplishmintLastLumpT: data.alt
+                accomplishmintLastLumpT: data.alt,
+                accomplishmintPreSnap: data.aps
             };
         } catch (e) {
             errorLog('decompressSaveData: Error decompressing save data:', e);
@@ -8430,7 +8445,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     accomplishmintBest: accomplishmintBest,
                     // live run state so a reload resumes the run instead of restarting it
                     challengeRun: (Game.JNE && Game.JNE._challengeRunSave) || null,
-                    accomplishmintLastLumpT: accomplishmintActive ? accomplishmintLastLumpT : 0
+                    accomplishmintLastLumpT: accomplishmintActive ? accomplishmintLastLumpT : 0,
+                    // Pre-challenge snapshot so a reload never loses the player's real achievements
+                    accomplishmintPreSnap: (accomplishmintActive && accomplishmintSnapshot) ? accomplishmintSnapshot.achievements : null
                 };
                                 
                 // Use compression to reduce save file size by ~50%

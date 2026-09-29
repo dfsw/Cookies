@@ -3,7 +3,7 @@
         'use strict';
         
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.29';
+        const MOD_HU_VERSION = '1.0.30';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const GARDEN_SPRITE_SHEET_URL = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
@@ -4981,8 +4981,9 @@
                 require: ['Cyclius swatch']
             });
             [morrowenUpgrade, solgrethUpgrade].forEach(function(upgrade) {
-                if (upgrade) {
-                    if (!upgrade._jneOriginalBuyFunction) upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
+                if (upgrade && !upgrade._jnePantheonBuyHooked) {
+                    upgrade._jnePantheonBuyHooked = true;
+                    upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
                     upgrade.buyFunction = function() { if (this._jneOriginalBuyFunction) this._jneOriginalBuyFunction.call(this); addNewPantheonSpirits(); };
                 }
             });
@@ -5054,8 +5055,9 @@
             });
 
             [sparklingUpgrade, kudzuUpgrade, mushroomUpgrade].forEach(function(upgrade) {
-                if (upgrade) {
-                    if (!upgrade._jneOriginalBuyFunction) upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
+                if (upgrade && !upgrade._jneGardenBuyHooked) {
+                    upgrade._jneGardenBuyHooked = true;
+                    upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
                     upgrade.buyFunction = function() {
                         if (this._jneOriginalBuyFunction) this._jneOriginalBuyFunction.call(this);
                         
