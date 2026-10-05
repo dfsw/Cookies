@@ -10,7 +10,7 @@
 (function() {
     'use strict';
 
-    var expansionVersion = '1.0.13';
+    var expansionVersion = '1.0.14';
     var debugMode = false;
 
     var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
@@ -162,7 +162,7 @@
         { puzzle: 'ledger_bonds',     achievement: 'Order of the shining spoon', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>The Brotherhoods moved in silence, blending into daily life. The most powerful politicians, merchants, and luminaries were rumored to belong. Proof is scarce; many dismiss it as conspiracy theory. Yet old rites and oaths bound the Brothers into pacts that endured beyond memory, small signs and gestures marked friend from foe.</q>' },
         { puzzle: 'rosetta_stone',    achievement: 'Order of the cookie eclipse', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>In quiet austerity they kept their old laws, never ceasing, never wavering. The world bent to their desires without knowing, drawn by a sweet addiction. Cookies flowed like water, and humanity experienced a golden age of sugar and chocolate. But behind the curtains the ripples spread; the Order’s grasp began to slip.</q>' },
         { puzzle: 'garden_maze',      achievement: 'Order of the enchanted whisk', desc: 'Awarded for progressing through the <b>Mysteries of the Cookie Age</b> puzzles.<q>For the first time in recorded history, the power of the Great Orders falters. You—once a lowly baker—now hold a chance to leave a mark on history. By virtue of your skill, and by a rare alignment of stars, a door long sealed stands ajar.</q>' },
-        { puzzle: 'defeat_evil',      achievement: 'Order of the eternal cookie', desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>' }
+        { puzzle: 'defeat_evil',      achievement: 'Order of the eternal cookie', desc: 'Awarded for completing all of the <b>Mysteries of the Cookie Age</b> puzzles. Owning this achievement causes random drops to appear <b>10%</b> more often.<q>The future of the Great Orders is bound to your story; their names cannot be spoken without yours echoing in the same halls. The world of cookies will not be the same because of your tireless acts.</q>' }
     ];
 
     var expansionState = {
@@ -523,6 +523,12 @@
             if (!cookieAgeData.puzzles.registry || Object.keys(cookieAgeData.puzzles.registry).length === 0) {initializePuzzleRegistry();}
 
             if (!cookieAgeData.puzzles.tracks._initialized) {initializePuzzleTracks();}
+
+            initFrameStacks();
+            precacheFrameImages(churchLampSrc);
+            precacheFrameImages(tvFrameSrc);
+            safeRegisterHook('logic', driveChurchLamp, 'Church lamp morse driver');
+            safeRegisterHook('logic', driveTvFrame, 'Loyalty TV frame driver');
         } catch (e) {
             errorLog('Error in setupPuzzleSystem:', e);
             console.error('Full error:', e);
@@ -704,7 +710,7 @@
                 'watch_keeper_rounds': {
                 name: 'Watchkeeper rounds',
                 description: 'You crossed under patrol using the cadence they trust. The watch counted, nodded, and let you pass.<q>In that yard, cadence beats courage.</q>',
-                clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;"><img id="jneChurchLamp" src="https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/church_off.webp" style="width:300px;height:300px;border:2px solid #666;border-radius:4px;" alt=""></div>',
+                clue: 'Unable to sleep, you lie awake in the dead silence of midnight, listening to the watchman\'s footsteps echo through the streets. In the stillness, the old church catches your eye.<div style="text-align:center;margin:8px 0;width:100%;">' + frameStackHtml('jneChurchLamp', churchLampSrc, 'width:300px;height:300px;border:2px solid #666;border-radius:4px;box-sizing:border-box;') + '</div>',
                 hint: '• Dots and dashes are a good way to send a message over distance without making any noise.<br>• An envoy brings a message, what is another type of person that shares a message? Where can you find them in Cookie Clicker?<br>• Just because a lamp is out doesn\'t mean it no longer exists.',
                 puzzleClass: WatchKeeperRoundsPuzzle,
                 mainIcon: Game.JNE.icon(9, 16, 'custom'),
@@ -1186,7 +1192,7 @@
                 name: 'Test of loyalty',
                 puzzleClass: LoyaltyTestPuzzle,
                 description: '{{expose:The Order would kill for this, technology enough to bend perceptions and the will of humanity. You kept it out of their hands and loosened a hidden seam in their plans.<q>Hide it deep. When the moment breaks, this is the weight that tips the scale.</q>||order:Whoever holds this holds the keys to power. You placed the artifact in the Brotherhood\'s vault, and with it, your trust.<q>With this secured, you are theirs in truth; when the call comes, you move with them.</q>}}',
-                clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;"><img id="jneLoyaltyTv" src="https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/tv/tv_0.webp" style="max-width:340px;width:100%;height:auto;" alt=""></div>',
+                clue: '{{expose:Stand firm in your convictions to expose the truth. Let no one sway you from the path of revelation.||order:Stand firm in your convictions to serve The Order. Let no one sway you from the path of loyalty.}}<br><br>The TV catches your eye, is there something there?<q>Sometimes it\'s more about what isn\'t there then what is there.</q><div style="text-align:center;margin:8px 0;width:100%;">' + frameStackHtml('jneLoyaltyTv', tvFrameSrc, 'max-width:340px;width:100%;') + '</div>',
                 hint: '• Channel 3 is important, a screenshot might help you figure out what to do here.<br>• Etaoin is an important word here, but it\'s not a real word.',
                 mainIcon: Game.JNE.icon(14, 17, 'custom'),
                 completionMessage: '{{expose:The artifact is sealed away from their hands; their reach shortens.||order:The artifact rests in their vaults; the inner circle of The Order marks your name.}}',
@@ -3898,8 +3904,6 @@
     var churchLampPattern = '- ---/.--. .-. --- - . -.-. -/- .... ./... . -.-. .-. . -/.-- ./... . -. -/.-- --- .-. -../.-- .. - ..../- .... ./. -. ...- --- -.-- ...';
     var churchLampSequence = [];
     var churchLampTotal = churchLampStartDelay;
-    var churchLampClock = 0;
-    var churchLampState = 0;
 
     churchLampSequence.push([0, churchLampStartDelay]);
     var churchLampWords = churchLampPattern.split('/');
@@ -3927,30 +3931,84 @@
         churchLampTotal += churchLampSpace;
     }
 
-    function setChurchLampState(state) {
-        if (churchLampState === state) return;
-        var puzzle = cookieAgeData.puzzles.registry.watch_keeper_rounds;
-        if (puzzle) puzzle.clue = puzzle.clue.replace(churchLampSrc[churchLampState], churchLampSrc[state]);
-        churchLampState = state;
+
+    var frameAnimState = {};
+
+    function frameStackHtml(id, srcs, cssSize) {
+        var h = '<span class="jneFrameStack" id="' + id + '" data-cur="0" style="position:relative;display:inline-block;' + cssSize + '">';
+        for (var i = 0; i < srcs.length; i++) {
+            var pos = i ? 'position:absolute;top:0;left:0;' : 'position:relative;';
+            h += '<img class="jneFrameStackFrame" data-fi="' + i + '" src="' + srcs[i] + '" style="display:block;' + pos + 'width:100%;height:100%;" alt="">';
+        }
+        return h + '</span>';
+    }
+
+    function initFrameStacks() {
+        if (document.getElementById('jneFrameStackCss')) return;
+        var rules = '.jneFrameStackFrame{visibility:hidden;}';
+        for (var i = 0; i < 10; i++) {rules += '.jneFrameStack[data-cur="' + i + '"] .jneFrameStackFrame[data-fi="' + i + '"]{visibility:visible;}';}
+        var s = document.createElement('style');
+        s.id = 'jneFrameStackCss';
+        s.textContent = rules;
+        document.head.appendChild(s);
+    }
+
+    function precacheFrameImages(srcs) {
+        var box = document.getElementById('jneFramePrecache');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'jneFramePrecache';
+            box.setAttribute('aria-hidden', 'true');
+            box.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;';
+            document.body.appendChild(box);
+        }
+        for (var i = 0; i < srcs.length; i++) {
+            if (box.querySelector('img[src="' + srcs[i] + '"]')) continue;
+            var im = document.createElement('img');
+            im.src = srcs[i];
+            box.appendChild(im);
+            if (im.decode) {im.decode().catch(function() {});}
+        }
+    }
+
+    var frameStackObserver = null;
+    function syncFrameStacks() {
+        for (var id in frameAnimState) {
+            var st = frameAnimState[id], el = document.getElementById(id), cur = String(st.state);
+            if (el && el.getAttribute('data-cur') !== cur) {el.setAttribute('data-cur', cur);}
+        }
+    }
+    function watchFrameStacks() {
+        var tt = (Game.tooltip && Game.tooltip.tt) || document.body;
+        if (frameStackObserver && frameStackObserver._jneRoot === tt) {return;}
+        if (frameStackObserver) {frameStackObserver.disconnect();}
+        frameStackObserver = new MutationObserver(syncFrameStacks);
+        frameStackObserver._jneRoot = tt;
+        frameStackObserver.observe(tt, {childList: true, subtree: true});
+    }
+
+    function driveFrameStack(el, id, total, stateAt) {
+        if (!el || !el.getClientRects().length) {delete frameAnimState[id]; return;}
+        var st = frameAnimState[id] || (frameAnimState[id] = {clock: Date.now(), state: 0});
+        watchFrameStacks();
+        var crate = Game.onCrate;
+        if (crate && crate.id && !document.contains(crate)) {
+            var live = document.getElementById(crate.id);
+            if (live) {Game.onCrate = live; if (Game.tooltip) Game.tooltip.from = live;}
+        }
+        st.state = stateAt((Date.now() - st.clock) % total);
+        var cur = String(st.state);
+        if (el.getAttribute('data-cur') !== cur) {el.setAttribute('data-cur', cur);}
     }
 
     function driveChurchLamp() {
-        var lampEl = document.getElementById('jneChurchLamp');
-        if (!lampEl || !lampEl.getClientRects().length) {
-            churchLampClock = 0;
-            setChurchLampState(0);
-            return;
-        }
-        var now = Date.now();
-        if (!churchLampClock) churchLampClock = now;
-        var elapsed = (now - churchLampClock) % churchLampTotal;
-        var acc = 0, state = 0;
-        for (var li = 0; li < churchLampSequence.length; li++) {
-            acc += churchLampSequence[li][1];
-            if (elapsed < acc) { state = churchLampSequence[li][0]; break; }
-        }
-        setChurchLampState(state);
-        if (lampEl.src !== churchLampSrc[state]) lampEl.src = churchLampSrc[state];
+        driveFrameStack(document.getElementById('jneChurchLamp'), 'jneChurchLamp', churchLampTotal, function(elapsed) {
+            for (var acc = 0, i = 0; i < churchLampSequence.length; i++) {
+                acc += churchLampSequence[i][1];
+                if (elapsed < acc) return churchLampSequence[i][0];
+            }
+            return 0;
+        });
     }
 
     var heraldsTooltipAttached = false;
@@ -3991,7 +4049,6 @@
 
     WatchKeeperRoundsPuzzle.prototype.onSetup = function() {
         SimpleHookPuzzle.prototype.onSetup.call(this);
-        this.registerHook('logic', driveChurchLamp, 'Church lamp morse driver');
         if (!heraldsTooltipAttached) {
             Game.attachTooltip(l('heralds'), heraldsTooltip, 'this');
             heraldsTooltipAttached = true;
@@ -4003,43 +4060,24 @@
     };
 
     WatchKeeperRoundsPuzzle.prototype.onCleanup = function() {
-        churchLampClock = 0;
-        setChurchLampState(0);
+        delete frameAnimState['jneChurchLamp'];
     };
 
     var tvFrameSrc = [];
     for (var tvFrameIndex = 0; tvFrameIndex < 10; tvFrameIndex++) {
-        tvFrameSrc.push('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/tv/tv_' + tvFrameIndex + '.webp');
+        tvFrameSrc.push('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/tv/tv' + ((tvFrameIndex + 1) % 10) + '.png');
     }
     var tvFrameDurations = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 8000];
     var tvCycleTotal = 17000;
-    var tvFrameState = 0;
-    var tvClock = 0;
-
-    function setTvFrame(idx) {
-        if (tvFrameState === idx) return;
-        var puzzle = cookieAgeData.puzzles.registry.loyalty_test;
-        if (puzzle) puzzle.clue = puzzle.clue.replace(tvFrameSrc[tvFrameState], tvFrameSrc[idx]);
-        tvFrameState = idx;
-    }
 
     function driveTvFrame() {
-        var el = document.getElementById('jneLoyaltyTv');
-        if (!el || !el.getClientRects().length) {
-            tvClock = 0;
-            setTvFrame(0);
-            return;
-        }
-        var now = Date.now();
-        if (!tvClock) tvClock = now;
-        var elapsed = (now - tvClock) % tvCycleTotal;
-        var acc = 0, idx = 0;
-        for (var i = 0; i < tvFrameDurations.length; i++) {
-            acc += tvFrameDurations[i];
-            if (elapsed < acc) { idx = i; break; }
-        }
-        setTvFrame(idx);
-        if (el.src !== tvFrameSrc[idx]) el.src = tvFrameSrc[idx];
+        driveFrameStack(document.getElementById('jneLoyaltyTv'), 'jneLoyaltyTv', tvCycleTotal, function(elapsed) {
+            for (var acc = 0, i = 0; i < tvFrameDurations.length; i++) {
+                acc += tvFrameDurations[i];
+                if (elapsed < acc) return i;
+            }
+            return 0;
+        });
     }
 
     function LoyaltyTestPuzzle(puzzleId, puzzleData, registry) {
@@ -4068,7 +4106,6 @@
             fledglingBakery.ddesc = newDesc;
         }
         this.registerHook('check', function() { self.check(); }, 'Check loyalty test');
-        this.registerHook('logic', driveTvFrame, 'Loyalty TV frame driver');
     };
 
     LoyaltyTestPuzzle.prototype.onCheck = function() {
@@ -4089,6 +4126,7 @@
             fledglingBakery.desc = tracking.originalDesc;
             fledglingBakery.ddesc = tracking.originalDdesc;
         }
+        delete frameAnimState['jneLoyaltyTv'];
     };
 
     function RiseUpPuzzle(puzzleId, puzzleData, registry) {
