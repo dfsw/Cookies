@@ -3,7 +3,7 @@
  "name": "tutorial",
  "difficulty": "Easy",
  "seedCode": "TUTOR",
- "generatedAt": "2026-10-15T08:23:40.991Z",
+ "generatedAt": "2026-10-16T06:49:35.562Z",
  "grid": [
   1,
   1,
@@ -35,7 +35,7 @@
  },
  "start": {
   "cell": "B2",
-  "text": "Welcome to Clone Recovery & Sorting®, today we will be providing you with several minutes of valuable on the job training. The provided intel is ALWAYS truthful. Your job is to successfully mark all 20 suspects with their true identity. B2 is an Authentic. Select B2's and choose Authentic.",
+  "text": "Welcome to Clone Recovery & Sorting®. Today we will be providing you with several minutes of valuable on the job training. The provided intel is ALWAYS truthful. Your job is to successfully mark all 20 suspects with their true identities. B2 is an Authentic. Select B2 and choose Authentic.",
   "cells": [
    "B2"
   ]
@@ -66,91 +66,91 @@
   {
    "cell": "B2",
    "code": "[D]B1c",
-   "text": "The person directly above B2 is a Clone. \"Directly\" means the very next card in that direction, one step away. Directions can be above, below, left, or right. Mark the clone now.",
+   "text": "The person directly above B2 is a Clone. \"Directly\" means the very next card in that direction, one step away. Directions can be above, below, left, or right. Mark the Clone now.",
    "step": 0,
    "scope": 2
   },
   {
    "cell": "B1",
    "code": "A1@[R1][C]2",
-   "text": "Suspects group naturally into units that can be referenced. Such as columns A through D, rows 1 through 5, and others we will learn later. A1 is one of exactly 2 Clones in row 1. Row 1 is A1 through D1. What can this clue tell us about C1 and D1? Logical deductions are what this job is all about.",
+   "text": "Suspects group naturally into units that can be referenced, such as columns A through D, rows 1 through 5, and others we will learn later. A1 is one of exactly 2 Clones in row 1. Row 1 is A1 through D1. What can this clue tell us about C1 and D1? Logical deductions are what this job is all about.",
    "step": 1,
    "scope": 15
   },
   {
    "cell": "A1",
    "code": "A1[N]1",
-   "text": "Each person also has neighbors. Every person touching another person is a neighbor, which includes directly or diagonaly. People in the center like C3 have 8 neighbors, while those on the edges have 5 neighbors and in corners they have only 3 neighbors. A1 has only 3 neighbors: A2, B1 and B2. Exactly 1 of A1's neighbors is a Clone. Determine what the remaining neighbor is and mark them.",
+   "text": "Each person also has neighbors. Every person touching another person is a neighbor, which includes directly or diagonally. People in the center like C3 have 8 neighbors, while those on the edges have 5 and those in corners have only 3. Exactly 1 of A1's 3 neighbors is a Clone. Determine the remaining neighbor's identity and mark them.",
    "step": 2,
    "scope": 50
   },
   {
    "cell": "C1",
    "code": "A2[N]3",
-   "text": "A2 has 5 neighbors: A1, B1, B2, A3 and B3. Exactly 3 of A2's neighbors are Clones. When intel narrows suspects without revealing them, click a card's corner to leave a colored tag as a note to yourself. ",
+   "text": "A2 has 5 neighbors: A1, B1, B2, A3 and B3. Exactly 3 of A2's neighbors are Clones. When intel narrows suspects without revealing them, click a card's corner to leave a colored tag as a note to yourself.",
    "step": 3,
    "scope": 803
   },
   {
    "cell": "D1",
    "code": "B1<>B5[C]0",
-   "text": "\"There are no Clones between B1 and B5.\" \"Between\" means strictly inside the bounds, not including the endpoints. Click any intel row to dim it once its work is done to keep things easy to read.",
+   "text": "\"There are no Clones between B1 and B5.\" \"Between\" means strictly inside the range, not including the named suspects. Click any intel item to dim it for readability.",
    "step": 4,
    "scope": 8736
   },
   {
    "cell": "A3",
    "code": "B1<>B[C]1",
-   "text": "Direction words cam also refer to a straight line in that direction, but never the source card itself. \"There is exactly 1 Clone below B1.\"",
+   "text": "Direction words can also refer to a straight line in that direction, but never the source itself. \"There is exactly 1 Clone below B1.\"",
    "step": 5,
    "scope": 139808
   },
   {
    "cell": "B5",
    "code": "C2<>B[I]CONN",
-   "text": "Suspects are \"connected\" when each member is in an unbroken straight line with all other members. A connected group always needs at least two people. \"All Authentics below C2 are connected.\"",
+   "text": "Suspects are \"connected\" when each member is in an unbroken straight line with all other members. A connected group always needs at least two people. \"All Authentics below C2 are connected.\" If you ever need a hint, the Supervisor! button can show which clues can be used to resolve a suspect, who will be highlighted in gold. However, your final score is penalized each time you use it.",
    "step": 6,
    "scope": 279552
   },
   {
    "cell": "C4",
    "code": "B1[N]^[C3][C]O",
-   "text": "\"An odd number of Clones in column C neighbor B1.\" Counts can also be odd or even instead of exact, and units can overlap inside each other: only the cards that neighbor B1 and are inside column C apply ",
+   "text": "\"An odd number of Clones in column C neighbor B1.\" Counts can also be odd or even instead of exact, and units can overlap each other: only the people who neighbor B1 and are inside column C apply.",
    "step": 7,
    "scope": 68
   },
   {
    "cell": "C2",
    "code": "[C3]MAX[I]",
-   "text": "\"Column C has the most Authentics.\" Weigh column C against the columns you have already resolved. What can be determined with this information?",
+   "text": "\"Column C has the most Authentics.\" Weigh column C against what you know about the rest of the board. What can be determined?",
    "step": 8,
    "scope": 1048575
   },
   {
    "cell": "C3",
    "code": "[E]8",
-   "text": "\"The edge ring holds exactly 8 Clones.\" Not every clue is useful right away. Too much of the board is still unknown for this one to reveal anything, so hold it for later. Once more is revealed it may become useful. Banked intel is where corner tags earn their keep.",
+   "text": "\"The edge ring holds exactly 8 Clones.\" Not every clue is useful right away. Too much of the board is still unknown for this one to reveal anything, so hold it for later. Once more is revealed, it may become useful. Constraints are where corner tags earn their keep.",
    "step": 9,
    "scope": 1022367
   },
   {
    "cell": "C5",
    "code": "[R5]MAX",
-   "text": "Units can be compared against each other. \"Row 5 has the least Authentics.\" This means that row 5 has uniquely less Authentics than any other row.",
+   "text": "Units can be compared against each other. \"Row 5 has the fewest Authentics.\" This means that row 5 has uniquely fewer Authentics than any other row.",
    "step": 10,
    "scope": 1048575
   },
   {
    "cell": "D5",
    "code": "B1[N][C]>[A5]",
-   "text": "\"B1 has more Clone neighbors than A5.\" Neighbor counts can be compared between two suspects. If you ever need a hint, the Supervisor! button can provide what clues can be used to resolve a person, who will be highlighted in gold. However, your final score is penalized each time you use it.",
+   "text": "\"B1 has more Clone neighbors than A5.\" Neighbor counts can be compared between two suspects.",
    "step": 11,
    "scope": 143477
   },
   {
    "cell": "A4",
    "code": "[T:bluehair][B][C]2",
-   "text": "\"Exactly 2 suspects with blue hair have a Clone directly below them.\" Traits group suspects the same way units do. Mousing over this clue will highlight all the people who match the trait.",
+   "text": "\"Exactly 2 suspects with blue hair have a Clone directly below them.\" Traits group suspects the same way units do. Hovering over this intel will highlight all the people who match the trait.",
    "step": 12,
    "scope": 10304
   },
