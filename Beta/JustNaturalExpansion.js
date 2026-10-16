@@ -60,7 +60,7 @@
     
     function initializeMod() {
     var modName = 'Just Natural Expansion';
-    var modVersion = '0.7.2';
+    var modVersion = '0.8.0';
     var debugMode = false;
     
     function debugLog() {
@@ -161,6 +161,9 @@
     var potionsMinigameScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigamePotions.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigamePotions.js';
+    var clonesMinigameScriptUrl = BETA_MODE 
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/minigameClones.js'
+        : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/minigameClones.js';
     var cookieAgeScriptUrl = BETA_MODE 
         ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/Beta/cookieAge.js'
         : 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/cookieAge.js';
@@ -235,6 +238,7 @@
 var pendingTerminalMinigameSave = '';
 var pendingDownlineMinigameSave = '';
 var pendingPotionsMinigameSave = '';
+var pendingClonesMinigameSave = '';
 
 var cookieAgeScriptLoaded = false;
 var heavenlyUpgradesScriptLoaded = false;
@@ -1030,6 +1034,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.JNE.enableJSMiniGame = enabled;
             Game.JNE.enableDownlineMinigame = enabled;
             Game.JNE.enablePotionsMinigame = enabled;
+            Game.JNE.enableClonesMinigame = enabled;
             
             minigameConfigs.forEach(function(cfg) {
                 if (enabled) {
@@ -1759,6 +1764,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Toggle CpS display unit function (cycles through seconds, minutes, hours, days)
     if (!window.JNE) window.JNE = {};
+    window.JNE.openLink = function(url) {
+        if (typeof App !== 'undefined' && App && App.openLink) { App.openLink(url); return false; }
+        window.open(url, '_blank', 'noopener');
+        return false;
+    };
     window.JNE.toggleCpsDisplayUnit = function() {
         var units = ['seconds', 'minutes', 'hours', 'days'];
         var unitLabels = { 'seconds': 'Seconds', 'minutes': 'Minutes', 'hours': 'Hours', 'days': 'Days' };
@@ -1853,7 +1863,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         <div class="subsection" style="padding:0px;">
                             <div class="title">${Game.JNE.modName} v${Game.JNE.modVersion}</div>
                               <div style="margin:10px 0px;color:#ccc;font-size:11px;line-height:1.3;">
-							    <br><br><a href=" https://discord.gg/vTyR5vWhQR" target="_blank" rel="noopener noreferrer" style="color:#03adfc;font-weight:bold;">Join the Just Natural Expansion Discord</a> to connect with fellow players, swap strategies, get puzzle hints, catch sneak peeks of upcoming releases, and beta test new features before anyone else.<br> 
+							    <br><br><a href="https://discord.gg/vTyR5vWhQR" target="_blank" rel="noopener noreferrer" ${Game.clickStr}="return window.JNE.openLink(this.href);" style="color:#03adfc;font-weight:bold;">Join the Just Natural Expansion Discord</a> to connect with fellow players, swap strategies, get puzzle hints, catch sneak peeks of upcoming releases, and beta test new features before anyone else.<br>
 							</div>
                             <div class="listing">
                                 <a class="option" id="toggle-shadow-achievements" style="text-decoration:none;color:${modSettings.shadowAchievements ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
@@ -1889,7 +1899,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 <a class="option" id="toggle-minigames" style="text-decoration:none;color:${modSettings.enableMinigames ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
                                     Minigames<br><b style="font-size:12px;">${modSettings.enableMinigames ? 'ON' : 'OFF'}</b>
                                 </a>
-                                <label>${modSettings.enableMinigames ? '(Enables minigames for JS Consoles (v' + (window.TerminalMinigame ? window.TerminalMinigame.VERSION : '?') + '), Fractal Engines (v' + (window.DownlineMinigame ? window.DownlineMinigame.VERSION : '?') + '), and Alchemy Labs (v' + (window.PotionsMinigame ? window.PotionsMinigame.VERSION : '?') + ').)' : '(Enables minigames for JS Consoles, Fractal Engines, and Alchemy Labs.)'}</label>
+                                <label>${modSettings.enableMinigames ? '(Enables minigames for JS Consoles (v' + (window.TerminalMinigame ? window.TerminalMinigame.VERSION : '?') + '), Fractal Engines (v' + (window.DownlineMinigame ? window.DownlineMinigame.VERSION : '?') + '), Alchemy Labs (v' + (window.PotionsMinigame ? window.PotionsMinigame.VERSION : '?') + '), and Yous (v' + (window.ClonesMinigame ? window.ClonesMinigame.VERSION : '?') + ').)' : '(Enables minigames for JS Consoles, Fractal Engines, Alchemy Labs, and Yous.)'}</label>
                             </div>
                             <div class="listing">
                                 <a class="option" id="toggle-extra-seasons" style="text-decoration:none;color:${modSettings.enableExtraSeasons ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
@@ -2652,6 +2662,16 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             getPendingSave: function() { return pendingPotionsMinigameSave; },
             setPendingSave: function(v) { pendingPotionsMinigameSave = v; },
             scriptLoaded: false, isOpen: false, syncPending: false
+        },
+        {
+            buildingName: 'You', minigameName: 'Clone Escape',
+            scriptUrl: clonesMinigameScriptUrl, scriptPattern: 'minigameClones.js',
+            globalMiniKey: 'ClonesM', globalInitKey: 'initializeClonesMinigame',
+            removeAchievementsKey: 'removeClonesAchievements',
+            jneDataKey: 'clonesSavedData', windowApiKey: 'ClonesMinigame',
+            getPendingSave: function() { return pendingClonesMinigameSave; },
+            setPendingSave: function(v) { pendingClonesMinigameSave = v; },
+            scriptLoaded: false, isOpen: false, syncPending: false
         }
     ];
 
@@ -2829,6 +2849,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function syncTerminalMinigameButtonWithSetting() { _syncMinigame(_getMinigameCfg('Javascript console')); }
     function syncDownlineMinigameButtonWithSetting() { _syncMinigame(_getMinigameCfg('Fractal engine')); }
     function syncPotionsMinigameButtonWithSetting()  { _syncMinigame(_getMinigameCfg('Alchemy lab')); }
+    function syncClonesMinigameButtonWithSetting()   { _syncMinigame(_getMinigameCfg('You')); }
 
     // Generate public save/load APIs for each minigame from the config
     minigameConfigs.forEach(function(cfg) {
@@ -2895,9 +2916,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function getTerminalMinigameSaveString()     { return _getMinigameSaveString(_getMinigameCfg('Javascript console')); }
     function getDownlineMinigameSaveString()     { return _getMinigameSaveString(_getMinigameCfg('Fractal engine')); }
     function getPotionsMinigameSaveString()      { return _getMinigameSaveString(_getMinigameCfg('Alchemy lab')); }
+    function getClonesMinigameSaveString()       { return _getMinigameSaveString(_getMinigameCfg('You')); }
     function setTerminalMinigameSave(s)          { _setMinigameSave(_getMinigameCfg('Javascript console'), s); }
     function setDownlineMinigameSave(s)          { _setMinigameSave(_getMinigameCfg('Fractal engine'), s); }
     function setPotionsMinigameSave(s)           { _setMinigameSave(_getMinigameCfg('Alchemy lab'), s); }
+    function setClonesMinigameSave(s)            { _setMinigameSave(_getMinigameCfg('You'), s); }
 
     function getHeavenlyUpgradesSaveString() {
         try {
@@ -3339,6 +3362,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     if (cfg.buildingName === 'Javascript console') syncTerminalMinigameButtonWithSetting();
                     else if (cfg.buildingName === 'Fractal engine') syncDownlineMinigameButtonWithSetting();
                     else if (cfg.buildingName === 'Alchemy lab') syncPotionsMinigameButtonWithSetting();
+                    else if (cfg.buildingName === 'You') syncClonesMinigameButtonWithSetting();
                 }
             }
         }, 'Monitor all minigame states');
@@ -7275,10 +7299,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.JNE.enableJSMiniGame = !!modSettings.enableMinigames;
         Game.JNE.enableDownlineMinigame = !!modSettings.enableMinigames;
         Game.JNE.enablePotionsMinigame = !!modSettings.enableMinigames;
+        Game.JNE.enableClonesMinigame = !!modSettings.enableMinigames;
         Game.JNE.enableExtraSeasons = !!modSettings.enableExtraSeasons;
         syncTerminalMinigameButtonWithSetting();
         syncDownlineMinigameButtonWithSetting();
         syncPotionsMinigameButtonWithSetting();
+        syncClonesMinigameButtonWithSetting();
 
         // match saved setting, skip manual side effects
         if (typeof window.applyCookieAgeChange === 'function') {
@@ -7659,6 +7685,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 dl: saveObj.downlineMinigame,
                 pm: saveObj.potionsMinigame,
                 pmo: Game.JNE && Game.JNE.potionsSavedDataIsOpen,
+                ce: saveObj.clonesMinigame,
                 ss: saveObj.seasonState,
                 mt: saveObj.modTracking,
                 ca: saveObj.cookieAge,
@@ -7752,6 +7779,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 terminal: terminalData,
                 downlineMinigame: data.dl,
                 potionsMinigame: potionsData,
+                clonesMinigame: data.ce,
                 modTracking: data.mt,
                 cookieAge: data.ca,
                 heavenlyUpgrades: huData,
@@ -8093,7 +8121,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var score = Object.keys(accomplishmintWon).length;
         var el = l('accompTimer');
         if (el) el.innerHTML = 'Accomplishmint time remaining 0:00<br>' + score + ' achievements won';
-        Game.Prompt('<id AccomplishmintEnd><noClose><h3>Time\'s up!</h3><div class="block">You earned <b>' + score + ' achievement' + (score !== 1 ? 's' : '') + '</b> in 60 minutes.<br><br>The game is paused — take a moment to admire your accomplishments, then ascend when ready.</div>', [['Ascend', 'Game.ClosePrompt();Game.Ascend(1);'], ['Admire your work', 'Game.ClosePrompt();']]);
+        Game.Prompt('<id AccomplishmintEnd><noClose><h3>Time\'s up!</h3><div class="block">You earned <b>' + score + ' achievement' + (score !== 1 ? 's' : '') + '</b> in 60 minutes.<br><br>The game is paused, take a moment to admire your accomplishments, then ascend when ready.</div>', [['Ascend', 'Game.ClosePrompt();Game.Ascend(1);'], ['Admire your work', 'Game.ClosePrompt();']]);
     }
 
     function teardownAccomplishmint(skipRestore) {
@@ -8180,6 +8208,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         init: function() {
             modSaveData = { upgrades: {} };
             setTerminalMinigameSave('');
+            setClonesMinigameSave('');
             
             this.initializeMod();
             Game.Win('Third-party');
@@ -8208,6 +8237,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             Game.JNE.enableJSMiniGame = !!modSettings.enableMinigames;
             Game.JNE.enableDownlineMinigame = !!modSettings.enableMinigames;
             Game.JNE.enablePotionsMinigame = !!modSettings.enableMinigames;
+            Game.JNE.enableClonesMinigame = !!modSettings.enableMinigames;
             Game.JNE.getLifetimeReindeer = getLifetimeReindeer;
             Game.JNE.getLifetimeLanterns = getLifetimeLanterns;
             Game.JNE.getZodiacVisitCount = getZodiacVisitCount;
@@ -8262,11 +8292,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             registerAccomplishmintMode();
             registerAccomplishmintHooks();
 
-            // Initialize terminal, downline, and potions minigames if enabled
+            // Initialize terminal, downline, potions, and clones minigames if enabled
             if (modSettings.enableMinigames) {
                 syncTerminalMinigameButtonWithSetting();
                 syncDownlineMinigameButtonWithSetting();
                 syncPotionsMinigameButtonWithSetting();
+                syncClonesMinigameButtonWithSetting();
             }
                         
             // Initial check for all upgrades after achievements are loaded
@@ -8379,6 +8410,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     errorLog('mod.saveSystem.save: Error getting Potions minigame save string:', e);
                 }
                 
+                //get Clone Escape minigame save string
+                var clonesMinigameSaveString = '';
+                try {
+                    clonesMinigameSaveString = getClonesMinigameSaveString();
+                } catch (e) {
+                    errorLog('mod.saveSystem.save: Error getting Clone Escape minigame save string:', e);
+                }
+                
                 //get Cookie Age save data
                 var cookieAgeData = null;
                 try {
@@ -8424,6 +8463,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     terminal: terminalSaveString,
                     downlineMinigame: downlineMinigameSaveString,
                     potionsMinigame: potionsMinigameSaveString,
+                    clonesMinigame: clonesMinigameSaveString,
                     modTracking: (!modInitialized && modSaveData && modSaveData.modTracking) ? modSaveData.modTracking : {
                         shinyWrinklersPopped: modTracking.shinyWrinklersPopped || 0,
                         templeSwapsTotal: modTracking.templeSwapsTotal || 0,
@@ -8515,6 +8555,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     modSaveData = { upgrades: {} };
                     setTerminalMinigameSave('');
                     setPotionsMinigameSave('');
+                    setClonesMinigameSave('');
                     setHeavenlyUpgradesSave('');
                     checkAndShowInitialChoice();
                     return;
@@ -8529,6 +8570,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     modSaveData = { upgrades: {} };
                     setTerminalMinigameSave('');
                     setPotionsMinigameSave('');
+                    setClonesMinigameSave('');
                     setHeavenlyUpgradesSave('');
                     checkAndShowInitialChoice();
                     return;
@@ -8548,13 +8590,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     (modData.settings && Object.keys(modData.settings).length > 0) ||
                     (typeof modData.terminal === 'string' && modData.terminal.length > 0) ||
                     (typeof modData.downlineMinigame === 'string' && modData.downlineMinigame.length > 0) ||
-                    (typeof modData.potionsMinigame === 'string' && modData.potionsMinigame.length > 0)
+                    (typeof modData.potionsMinigame === 'string' && modData.potionsMinigame.length > 0) ||
+                    (typeof modData.clonesMinigame === 'string' && modData.clonesMinigame.length > 0)
                 );
                 
                 if (!hasData) {
                     debugLog('mod.saveSystem.load: no meaningful data');
                     // Keep existing Downline minigame cache as-is; there is nothing new to restore.
                     setTerminalMinigameSave('');
+                    setClonesMinigameSave('');
                     setHeavenlyUpgradesSave('');
                     // Delay clearing isLoadingFromSave to match the main path
                     setTimeout(function() {
@@ -8635,6 +8679,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     } else {
                         setPotionsMinigameSave('');
                     }
+                    if (typeof modData.clonesMinigame === 'string') {
+                        setClonesMinigameSave(modData.clonesMinigame);
+                    } else {
+                        setClonesMinigameSave('');
+                    }
                     if (typeof modData.heavenlyUpgrades !== 'undefined') {
                         setHeavenlyUpgradesSave(modData.heavenlyUpgrades);
                     } else {
@@ -8657,6 +8706,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             Game.JNE.enableJSMiniGame = modSettings.enableMinigames;
                             Game.JNE.enableDownlineMinigame = modSettings.enableMinigames;
                             Game.JNE.enablePotionsMinigame = modSettings.enableMinigames;
+                            Game.JNE.enableClonesMinigame = modSettings.enableMinigames;
                         }
                         if (modSettings.enableCookieAge !== undefined) {
                             Game.JNE.enableCookieAge = modSettings.enableCookieAge;
@@ -8784,6 +8834,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     // Fall back to defaults on error
                     modSaveData = { upgrades: {} };
                     setTerminalMinigameSave('');
+                    setClonesMinigameSave('');
                     pendingInitTimerId = setTimeout(function() {
                         pendingInitTimerId = null;
                         continueModInitialization();
