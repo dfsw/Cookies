@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.0';
+const CLONES_VERSION = '1.0.1b';
 var PUZZLE_BASE = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
 function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : 4 * 3600 * 1000; }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
@@ -436,6 +436,8 @@ function applyPuzzle(data, saved) {
         G.failed = saved.failed || 0;
         G.reward = saved.reward || null;
         G.redeemed = saved.redeemed || 0; G.redeemedRw = saved.redeemedRw || null;
+        // a held, unredeemed prize gets its slot reveal back on reload
+        G.spinPending = (G.reward && !G.redeemed) ? 1 : 0;
         (saved.solved || []).forEach(function(i) { G.solved[i] = grid[i]; });
         (saved.earned || []).forEach(function(c) { G.earned.push(c); G.readMask |= 1 << c; });
     } else {
@@ -500,11 +502,14 @@ function syncStartUI() {
     var start = l('clonesStart'), top = l('clonesTop');
     if (start) start.style.display = active ? 'none' : 'flex';
     if (top) top.style.display = active ? '' : 'none';
+    var pid = l('clonesPuzzleId');
+    if (pid) pid.textContent = active ? (G.puzzleFile || '') : '';
     syncTutQuit();
 }
 function renderBoard() {
     var grid = l('clonesGrid'), list = l('clonesClues');
     if (!grid || !list) return;
+    syncCompleted();
     var head = l('clonesHead');
     if (head) head.style.display = (G.populating || G.claimed) ? 'none' : '';
     var hintBtn = l('clonesHint');
@@ -540,8 +545,6 @@ function renderBoard() {
         if (G.starterSentence) { G.tellRow = G.clueRowEls.length; addClue(G.starterSentence); }
         G.earned.forEach(function(cid) { addClue(G.puzzle.clues[cid].text, cid); });
     }
-    var pid = l('clonesPuzzleId');
-    if (pid) pid.textContent = G.puzzleFile || '';
     showClaim();
     checkLayout();
     setStatus('');
@@ -922,6 +925,9 @@ function rollRng(key) {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 }
+function redeemRng(rw) {
+    return rollRng(String((window.Game && Game.seed) || 'seed') + '/' + G.won + '/' + rw.id);
+}
 function rollReward(salt) {
     var rng = rollRng(String((window.Game && Game.seed) || 'seed') + '/' + G.won + '/' + (salt || 0));
     // first tutorial clear graduates with a free tier 2 
@@ -1054,15 +1060,18 @@ var SIMPLE_REWARDS = {
         fm.freeze = wf;
     }, msg: 'Your garden leaps forward in time!' },
     lump_faster:    { run: function() { Game.lumpT -= 7200000; }, msg: 'Your sugar lump ages!' },
-    reindeer_lanterns: { run: function() {
+    reindeer_lanterns: { run: function(rw) {
         var hasLantern = !!(Game.shimmerTypes && Game.shimmerTypes['lantern']);
-        for (var ri = 0; ri < 10; ri++) setTimeout(function() {
-            if (hasLantern && Math.random() < 0.5) {
-                var ss = Game.season; Game.season = 'lunarnewyear';
-                var lan = new Game.shimmer('lantern'); Game.season = ss;
-                if (lan) lan.delay = 0;
-            } else new Game.shimmer('reindeer');
-        }, ri * 300);
+        var bits = Math.floor(redeemRng(rw)() * 1024);
+        for (var ri = 0; ri < 10; ri++) (function(n) {
+            setTimeout(function() {
+                if (hasLantern && ((bits >> n) & 1)) {
+                    var ss = Game.season; Game.season = 'lunarnewyear';
+                    var lan = new Game.shimmer('lantern'); Game.season = ss;
+                    if (lan) lan.delay = 0;
+                } else new Game.shimmer('reindeer');
+            }, n * 300);
+        })(ri);
     }, msg: 'A festive crowd descends!' },
     wrath_cookie:   { shimmer: 'golden', force: { wrath: true },             msg: 'A wrath cookie appears!' },
     cps_hour:       { earn: 3600,  cap: 0.08 },
@@ -1104,7 +1113,7 @@ function applyCloneReward(rw) {
         if (spec.lumps) Game.gainLumps(spec.lumps);
         if (spec.earn) { var amt = Math.min(Game.cookies * spec.cap, Game.cookiesPs * spec.earn); Game.Earn(amt); msg = 'Gained ' + Beautify(amt) + ' cookies!'; }
         // run() returning a string fizzles the reward with reason
-        var fail = spec.run && spec.run();
+        var fail = spec.run && spec.run(rw);
         if (fail) { fizzle(fail); return; }
         note(msg);
         return;
@@ -1115,7 +1124,7 @@ function applyCloneReward(rw) {
             for (var i in Game.Objects) { if (Game.Objects[i].amount >= 10) list.push(Game.Objects[i].id); }
             var M = cloneEffectDurMod();
             if (!list.length) { Game.gainBuff('frenzy', Math.ceil(77 * M), 7); note('No building qualifies — gained a Frenzy instead!'); break; }
-            var objId = choose(list), pow = Game.ObjectsById[objId].amount / 10 + 1;
+            var objId = list[Math.floor(redeemRng(rw)() * list.length)], pow = Game.ObjectsById[objId].amount / 10 + 1;
             Game.gainBuff('building buff', Math.ceil(30 * M), pow, objId);
             note('Your ' + Game.ObjectsById[objId].plural + ' are boosting your CpS!');
             break;
@@ -1132,7 +1141,7 @@ function applyCloneReward(rw) {
         }
         case 'potion_effect': {
             // gainBuff throws on an unregistered type, so potions minigame must be loaded
-            var names = Object.keys(POTION_BUFFS), pn = names[Math.floor(Math.random() * names.length)];
+            var names = Object.keys(POTION_BUFFS), pn = names[Math.floor(redeemRng(rw)() * names.length)];
             if (!Game.buffTypesByName || !Game.buffTypesByName[pn]) { fizzle('the potion brewery'); break; }
             var pa = POTION_BUFFS[pn];
             Game.gainBuff(pn, pa[0], pa[1]);
@@ -1152,7 +1161,7 @@ function applyCloneReward(rw) {
             break;
         }
         case 'rare_lump': {
-            var roll = Math.random(); // bifurcated 45%, meaty 35%, caramelized 15%, golden 5%
+            var roll = redeemRng(rw)(); // bifurcated 45%, meaty 35%, caramelized 15%, golden 5%
             Game.lumpCurrentType = roll < 0.45 ? 1 : roll < 0.80 ? 3 : roll < 0.95 ? 4 : 2;
             note('Your sugar lump has morphed into a ' + ['', 'bifurcated', 'golden', 'meaty', 'caramelized'][Game.lumpCurrentType] + '!');
             break;
@@ -1574,7 +1583,12 @@ ClonesM.launch = function() {
 
     ClonesM.load = function(str) {
         var data = null;
-        if (str) { try { data = JSON.parse(decodeURIComponent(str)); } catch (e) { data = null; } }
+        // cache holds raw JSON (writeCache stores it unencoded); decode only if parse fails
+        if (str) {
+            try { data = JSON.parse(str); } catch (e) {
+                try { data = JSON.parse(decodeURIComponent(str)); } catch (e2) { data = null; }
+            }
+        }
         if (!data || typeof data !== 'object') { ClonesM.reset(true); return; }
         G.puzzleFile = data.file || null;
         G.won = data.won || 0;
