@@ -539,7 +539,7 @@ M.launch = function () {
         list.push(
             { value: 'refreshMana', label: 'Refresh grimoire mana<br>(Warning: cost 1 sugar lump)', icon: [17, 0] },
             { value: 'refreshPantheon', label: 'Refresh pantheon swaps cooldown<br>(Warning: cost 1 sugar lump)', icon: [16, 0] },
-            { value: 'cashInCloneReward', label: 'Redeem your Clone Escape reward', icon: [0, 35] },
+            { value: 'cashInCloneReward', label: 'Redeem your Clone Escape reward', icon: [35, 0] },
             { value: 'harvestLump', label: 'Harvest sugar lump', icon: [29, 27] },
             { value: 'clickGolden', label: 'Click all on screen golden cookies', icon: [23, 6] }
         );
