@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const TERMINAL_VERSION = '1.0.8';
+const TERMINAL_VERSION = '1.0.9';
 
 var M = {};
 M.parent = Game.Objects && Game.Objects['Javascript console'] ? Game.Objects['Javascript console'] : {
@@ -539,6 +539,7 @@ M.launch = function () {
         list.push(
             { value: 'refreshMana', label: 'Refresh grimoire mana<br>(Warning: cost 1 sugar lump)', icon: [17, 0] },
             { value: 'refreshPantheon', label: 'Refresh pantheon swaps cooldown<br>(Warning: cost 1 sugar lump)', icon: [16, 0] },
+            { value: 'cashInCloneReward', label: 'Redeem your Clone Escape reward', icon: [0, 35] },
             { value: 'harvestLump', label: 'Harvest sugar lump', icon: [29, 27] },
             { value: 'clickGolden', label: 'Click all on screen golden cookies', icon: [23, 6] }
         );
@@ -1701,6 +1702,14 @@ M.launch = function () {
         return ok('Pantheon swaps refreshed.');
     }
 
+    function cashInCloneEscapeReward() {
+        var clones = getMinigame('You');
+        if (!clones || typeof clones.cashInReward !== 'function') return err('Clone Escape unavailable.');
+        var res = clones.cashInReward();
+        if (!res) return err('Clone Escape reward unavailable.');
+        return res.success ? ok(res.message) : err(res.message);
+    }
+
     function harvestSugarLump() {
         if (!Game.canLumps()) return err('Sugar lumps are not available yet.');
         var age = Date.now() - Game.lumpT;
@@ -1743,6 +1752,7 @@ M.launch = function () {
         if (action === 'sugarTrade') return activateSugarTrade();
         if (action === 'refreshMana') return refreshGrimoireMana();
         if (action === 'refreshPantheon') return refreshPantheonSwaps();
+        if (action === 'cashInCloneReward') return cashInCloneEscapeReward();
         if (action === 'harvestLump') return harvestSugarLump();
         if (action === 'clickGolden') return clickAllGoldenCookies();
         return err('Unknown runtime action.');

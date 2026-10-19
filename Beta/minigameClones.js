@@ -2,9 +2,9 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.1b';
+const CLONES_VERSION = '1.0.2b';
 var PUZZLE_BASE = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
-function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : 4 * 3600 * 1000; }
+function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000; }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
 var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]]; 
@@ -545,6 +545,7 @@ function renderBoard() {
         if (G.starterSentence) { G.tellRow = G.clueRowEls.length; addClue(G.starterSentence); }
         G.earned.forEach(function(cid) { addClue(G.puzzle.clues[cid].text, cid); });
     }
+    if (Object.keys(G.solved).length === 20) addEndIcons();
     showClaim();
     checkLayout();
     setStatus('');
@@ -817,6 +818,7 @@ function showRedeemedLabel() {
 // filler comes only from tiers that had a nonzero chance 
 function spinPrize() {
     var r = G.reward;
+    if (!r) { G.spinPending = 0; return; }
     showPrizeSlots({
         winner: r.reward,
         eligibleRewards: REWARDS.filter(function(x) { return r.weights[x.tier - 1] > 0; }),
@@ -866,6 +868,10 @@ ClonesM.refillTooltip = function() {
         tip += '<small class="red">(Usable again in ' + Game.sayTime(Game.getLumpRefillRemaining() + Game.fps, -1) + '.)</small>';
     return tip + '</div>';
 };
+ClonesM.dragonBoostTooltip = function() {
+    if (!supremeIntellectBonus()) return '<div style="width:280px;padding:8px;text-align:center;" id="tooltipDragonBoost"><b>Supreme Intellect</b><div class="line"></div>No aura bonus active for Clone Escape.</div>';
+    return '<div style="width:280px;padding:8px;text-align:center;" id="tooltipDragonBoost"><b>Supreme Intellect</b><div class="line"></div>Adds 1 to your final report score when rolling for compensation.</div>';
+};
 // rewards
 var DIFF_SCORES = { E: 2, M: 4, T: 6, H: 8, V: 10 };
 var TIER_WEIGHTS = { // index 0-4 = reward tiers 1-5
@@ -899,13 +905,18 @@ var REWARDS = [
     { id: 'cps_hour', name: 'Gain 1 hour worth of CpS (8% cap)', tier: 1, icon: [1, 0] },
     { id: 'frenzy', name: 'Gain a frenzy buff', tier: 1, icon: [10, 0] },
     { id: 'cheap', name: 'Buildings & upgrades are 10% cheaper for 3 min', tier: 1, icon: [3, 0] },
-    { id: 'downline_double', name: 'New Downline actions last twice as long for 15min', tier: 1, icon: [17, 6] }
+    { id: 'downline_double', name: 'New Downline actions last twice as long for 15min', tier: 1, icon: [17, 6] },
+    { id: 'free_play', name: 'Free play', tier: 1, icon: [16, 1], sheet: 'custom' }
 ];
 
 function mistakeCount() {
     var seen = {}, n = 0;
     G.mistakeCells.concat(G.earlyCells, G.hintedCells).forEach(function(i) { if (!seen[i]) { seen[i] = 1; n++; } });
     return n;
+}
+
+function supremeIntellectBonus() {
+    return (typeof Game.hasAura === 'function' && Game.hasAura('Supreme Intellect')) ? 1 : 0;
 }
 
 function scorePenalty() {
@@ -940,7 +951,7 @@ function rollReward(salt) {
     if (mistakeCount() >= 8) return null;
 
     var t = (G.puzzleFile || G.tier || 'E')[0].toUpperCase();
-    var score = (DIFF_SCORES[t] || 2) - scorePenalty();
+    var score = Math.min(10, (DIFF_SCORES[t] || 2) - scorePenalty() + supremeIntellectBonus());
     var w = score >= 10 ? TIER_WEIGHTS[10] : score <= 1 ? TIER_WEIGHTS.low : TIER_WEIGHTS[score];
     // salt varies the seed so debug rerolls aren't pinned to the saved result
     var roll = rng() * 100, cum = 0, tier = 5;
@@ -1077,7 +1088,8 @@ var SIMPLE_REWARDS = {
     cps_hour:       { earn: 3600,  cap: 0.08 },
     frenzy:         { buff: 'frenzy',                secs: 77,   mult: 7,    msg: 'Cookie production x7!', durMod: 1 },
     cheap:          { buff: 'clearance protocol',    secs: 180,  mult: 0.9,  msg: 'Buildings and upgrades are cheaper!', effs: 1 },
-    downline_double:{ buff: 'cloneconomics',         secs: 900,  mult: 2,    msg: 'New Downline actions last longer!' }
+    downline_double:{ buff: 'cloneconomics',         secs: 900,  mult: 2,    msg: 'New Downline actions last longer!' },
+    free_play:      { run: function() { G.nextPuzzleAt = 0; updateCooldown(); }, msg: 'Your next assignment is ready!' }
 };
 
 //possible potion results
@@ -1161,8 +1173,8 @@ function applyCloneReward(rw) {
             break;
         }
         case 'rare_lump': {
-            var roll = redeemRng(rw)(); // bifurcated 45%, meaty 35%, caramelized 15%, golden 5%
-            Game.lumpCurrentType = roll < 0.45 ? 1 : roll < 0.80 ? 3 : roll < 0.95 ? 4 : 2;
+            var roll = redeemRng(rw)(); // bifurcated 50%, meaty 40%, caramelized 9%, golden 1%
+            Game.lumpCurrentType = roll < 0.50 ? 1 : roll < 0.90 ? 3 : roll < 0.99 ? 4 : 2;
             note('Your sugar lump has morphed into a ' + ['', 'bifurcated', 'golden', 'meaty', 'caramelized'][Game.lumpCurrentType] + '!');
             break;
         }
@@ -1186,7 +1198,7 @@ ClonesM.claimReward = function() {
 ClonesM.redeemReward = function() {
     var r = G.reward;
     if (!r) return;
-    G.reward = null; G.redeemed = 1; G.redeemedRw = r;
+    G.reward = null; G.redeemed = 1; G.redeemedRw = r; G.spinPending = 0;
     closePrizeSlots();
     showRedeemedLabel();
     var rd = l('clonesRedeem'); if (rd) rd.style.display = 'none';
@@ -1206,6 +1218,17 @@ ClonesM.rerollReward = function() {
     G.spinPending = 1;
     closePrizeSlots();
     spinPrize();
+};
+
+// Terminal hook
+ClonesM.cashInReward = function() {
+    if (G.redeemed) return { success: false, message: 'Clone Escape reward was already cashed in.' };
+    if (!G.puzzle || Object.keys(G.solved).length < 20) return { success: false, message: 'Clone Escape is not solved yet.' };
+    if (!G.claimed) ClonesM.claimReward();
+    if (!G.reward) return { success: false, message: 'No Clone Escape reward is waiting.' };
+    var name = G.reward.reward.name;
+    ClonesM.redeemReward();
+    return { success: true, message: 'Cashed in ' + name + '!' };
 };
 
 ClonesM.tutorial = function(force) {
@@ -1255,6 +1278,12 @@ function completePuzzle() {
             ['The Devil Is in the Duplicates', G.tier === 'V' && !mist]
         ].forEach(function(a) { awardClonesAchievement(a[0], a[1]); });
     }
+    addEndIcons();
+    playSnd('snd/cymbalRev.mp3');
+    showClaim();
+}
+
+function addEndIcons() {
     for (var i = 0; i < 20; i++) {
         var mis = G.mistakeCells.indexOf(i) !== -1 || G.earlyCells.indexOf(i) !== -1;
         var hin = G.hintedCells.indexOf(i) !== -1;
@@ -1264,8 +1293,6 @@ function completePuzzle() {
         if (hin) el.appendChild(endIcon(22, 27, -15)); // hint under the wrong icon
         if (mis) el.appendChild(endIcon(23, 27, 5));
     }
-    playSnd('snd/cymbalRev.mp3');
-    showClaim();
 }
 ClonesM.hintTooltip = function() {
     return '<div style="padding:8px;width:280px;"><div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-image:url(' + window.getSpriteSheet('custom') + ');background-position:' + (-22 * 48) + 'px ' + (-27 * 48) + 'px;"></div><div class="name">Supervisor!</div><div class="line"></div>' +
