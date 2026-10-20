@@ -524,7 +524,7 @@ function applyPuzzle(data, saved) {
                 if (st && typeof st === 'object') for (var c in st) {
                     if (safeKey(c) && TAG_LETTERS[st[c]]) dt[c] = TAG_LETTERS[st[c]];
                 }
-                G.cornerTags[tk] = dt;
+                if (Object.keys(dt).length) G.cornerTags[tk] = dt;
             }
         }
         // dimmed saves as a plain clue-index array
@@ -643,7 +643,7 @@ function renderBoard() {
         })(i);
     }
     if (!G.populating) {
-        if (G.starterSentence) { G.tellRow = G.clueRowEls.length; addClue(G.starterSentence); }
+        if (G.starterSentence) { G.tellRow = G.clueRowEls.length; addClue(G.starterSentence, -1); } // -1 keeps its dim persistent too
         G.earned.forEach(function(cid) { addClue(G.puzzle.clues[cid].text, cid); });
     }
     if (Object.keys(G.solved).length === 20) addEndIcons();
