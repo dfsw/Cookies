@@ -246,6 +246,7 @@ var heavenlyUpgradesScriptLoaded = false;
 var modInitialized = false; // Track if mod has finished initializing
 var achievementsCreated = false; // Track if achievements have been created to prevent recreation
 var modSaveData = null; // Store save data for initialization
+var loadFailedSave = null; // the mod save string a load choked on save() hands it back untouched until a clean load
 var modLoadInvoked = false; // Track whether load() has run this session
 var pendingAchievementAwards = []; // Queue for achievements to award once initialization completes
 var modUnlockStateCache = Object.create(null);
@@ -594,6 +595,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (!Game.OnAscend || Game.OnAscend === 0) {
             // full reset - clear mod save data to prevent cross-contamination
             modSaveData = null;
+            loadFailedSave = null; // a deliberate wipe has to reach the save, even after a failed load
             if (Game.JNE) Game.JNE.cookieAgeSavedData = null;
             if (window.CookieAge && window.CookieAge.resetData) window.CookieAge.resetData();
             debugLog('handleReset: cleared modSaveData to prevent cross-contamination');
@@ -2863,8 +2865,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     if (!Game.JNE) Game.JNE = {};
                     Game.JNE[cfg.jneDataKey] = s;
                     cfg.setPendingSave(s);
-                    if (s === '') return;
                     var b = Game.Objects && Game.Objects[cfg.buildingName];
+                    if (s === '') {
+                        // no saved run for this minigame a live session must reset rather than keep stale state,
+                        if (b && b.minigameLoaded && b.minigame && typeof b.minigame.reset === 'function') {
+                            b.minigame.reset(true);
+                            if (typeof b.minigame.load === 'function') b.minigame.load('');
+                        }
+                        return;
+                    }
                     if (b && b.minigameLoaded && b.minigame && typeof b.minigame.load === 'function') b.minigame.load(s);
                 } catch (e) { errorLog(cfg.windowApiKey + '.applySaveData failed:', e && e.message ? e.message : e); }
             },
@@ -2922,6 +2931,14 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function setDownlineMinigameSave(s)          { _setMinigameSave(_getMinigameCfg('Fractal engine'), s); }
     function setPotionsMinigameSave(s)           { _setMinigameSave(_getMinigameCfg('Alchemy lab'), s); }
     function setClonesMinigameSave(s)            { _setMinigameSave(_getMinigameCfg('You'), s); }
+    // hand every minigame its saved string; '' (no data) resets it
+    function applyMinigameSaves(data) {
+        var str = function(v) { return typeof v === 'string' ? v : ''; };
+        setTerminalMinigameSave(str(data.terminal));
+        setDownlineMinigameSave(str(data.downlineMinigame));
+        setPotionsMinigameSave(str(data.potionsMinigame));
+        setClonesMinigameSave(str(data.clonesMinigame));
+    }
 
     function getHeavenlyUpgradesSaveString() {
         try {
@@ -7276,6 +7293,50 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     }
     }
 
+    // mark every achievement the save recorded as won, plus renamed ones; tolerates malformed entries
+    function restoreSavedAchievements(saved) {
+        var won = function(n) { return !!(saved[n] && saved[n].won > 0); };
+        var restored = 0, aliased = 0;
+        (modAchievementNames || []).forEach(function(n) { if (won(n)) { markAchievementWonFromSave(n); restored++; } });
+        // Check for aliased achievements (renamed achievements)
+        Object.keys(saved).forEach(function(n) {
+            var alias = achievementAliases[n];
+            if (alias && won(n) && Game.Achievements[alias]) { markAchievementWonFromSave(alias); aliased++; }
+        });
+        debugLog('restoreSavedAchievements: restored', restored, 'achievements and', aliased, 'aliased achievements');
+    }
+
+    // load() threw part-way through. Falling back to empty defaults would let the next save write them over the
+    // player's data, so keep the parsed save as the source of truth, put back what it holds, and freeze the mod
+    // save until a clean load or a hard reset. continueModInitialization restores lifetime + tracking from it.
+    function recoverFromFailedLoad(str, data, minigamesApplied) {
+        loadFailedSave = String(str);
+        modSaveData = data || { upgrades: {} };
+        [
+            function() { if (data && !minigamesApplied) applyMinigameSaves(data); },
+            function() { // load zeroes upgrade purchases before restoring them
+                var ups = (data && data.upgrades) || {};
+                for (var name in ups) if (Game.Upgrades[name]) Game.Upgrades[name].bought = (ups[name] && ups[name].bought) || 0;
+                recalculateUpgradesOwned();
+            },
+            function() { // load zeroes achievements first, and initAchievements skips ones that already exist
+                restoreSavedAchievements((data && data.achievements) || {});
+            },
+            function() {
+                var rd = data && data.lifetime && data.lifetime.seasonalReindeerData;
+                if (typeof rd === 'string') seasonalReindeerData = rd;
+            },
+            function() {
+                new Game.Note(modName + ' load error',
+                    'Your JNE data is safe and won\'t be overwritten, but JNE progress made this session won\'t be saved. Reload the game to try again, and please report this if it keeps happening (details are in the browser console).',
+                    modIcon, 64800); 
+            }
+        ].forEach(function(step) {
+            try { step(); } catch (e) { errorLog('recoverFromFailedLoad: step failed:', e); }
+        });
+        Game.recalculateGains = 1; // the load may have thrown while CpS recalculation was paused
+    }
+
     // for save loading only
     function continueModInitialization() {
         // only called during save loading; mod init is handled by initializeModWithSaveData() in init()
@@ -8343,6 +8404,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
   
         // game calls this on save
         save: function() {
+            // after a failed load the live state can't be trusted: write back exactly what was loaded
+            if (loadFailedSave !== null) return loadFailedSave;
             try {
                 var currentTime = Date.now();
                 
@@ -8532,6 +8595,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         // game calls this on load
         load: function(str) {
             modLoadInvoked = true;
+            loadFailedSave = null; // every load attempt starts unfrozen, the catch below re-freezes on failure
 
             //  Savescum safety: cancel any in-flight continueModInitialization 
             if (pendingInitTimerId !== null) {
@@ -8550,6 +8614,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 Game.emit('load', { modName: modName, modVersion: modVersion });
             }
             
+            var minigameSavesApplied = false, loadedModData = null;
             // Skip loading saved data in reset mode to maintain clean state
             try {
                 if (!str || str.trim() === '' || str === '{}') {
@@ -8564,6 +8629,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 
                 // decompress (handles old + new formats)
                 const modData = decompressSaveData(str);
+                loadedModData = modData;
                 
                 // Validate save data BEFORE resetting anything
                 if (!modData) {
@@ -8665,26 +8731,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     // Store save data for initialization
                     modSaveData = modData;
 
-                    if (typeof modData.terminal !== 'undefined') {
-                        setTerminalMinigameSave(modData.terminal);
-                    } else {
-                        setTerminalMinigameSave('');
-                    }
-                    if (typeof modData.downlineMinigame === 'string') {
-                        setDownlineMinigameSave(modData.downlineMinigame);
-                    } else {
-                        setDownlineMinigameSave('');
-                    }
-                    if (typeof modData.potionsMinigame === 'string') {
-                        setPotionsMinigameSave(modData.potionsMinigame);
-                    } else {
-                        setPotionsMinigameSave('');
-                    }
-                    if (typeof modData.clonesMinigame === 'string') {
-                        setClonesMinigameSave(modData.clonesMinigame);
-                    } else {
-                        setClonesMinigameSave('');
-                    }
+                    applyMinigameSaves(modData);
+                    minigameSavesApplied = true;
                     if (typeof modData.heavenlyUpgrades !== 'undefined') {
                         setHeavenlyUpgradesSave(modData.heavenlyUpgrades);
                     } else {
@@ -8746,36 +8794,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     }, 100);
                     
                     debugLog('mod.saveSystem.load: modSaveData.achievements exists:', !!modSaveData.achievements);
-                    if (modSaveData.achievements) {
-                        debugLog('mod.saveSystem.load: modSaveData.achievements count:', Object.keys(modSaveData.achievements).length);
-                        
-                        // RESTORE: Save data is the sole source of truth (reset already done above)
-                        if (modAchievementNames) {
-                            var restoredCount = 0;
-                            modAchievementNames.forEach(achievementName => {
-                                if (modSaveData.achievements[achievementName] && modSaveData.achievements[achievementName].won > 0) {
-                                    markAchievementWonFromSave(achievementName);
-                                    restoredCount++;
-                                }
-                            });
-                            debugLog('mod.saveSystem.load: restored', restoredCount, 'achievements from save data');
-                        }
-                        
-                        // Check for aliased achievements (renamed achievements)
-                        var aliasedCount = 0;
-                        Object.keys(modSaveData.achievements).forEach(savedName => {
-                            if (modSaveData.achievements[savedName].won > 0) {
-                                if (achievementAliases[savedName]) {
-                                    var newName = achievementAliases[savedName];
-                                    if (Game.Achievements[newName]) {
-                                        markAchievementWonFromSave(newName);
-                                        aliasedCount++;
-                                    }
-                                }
-                            }
-                        });
-                        debugLog('mod.saveSystem.load: restored', aliasedCount, 'aliased achievements');
-                    }
+                    // RESTORE: Save data is the sole source of truth (reset already done above)
+                    if (modSaveData.achievements) restoreSavedAchievements(modSaveData.achievements);
 
                     // Clear _restoredFromSave flag for all achievements so they can be earned normally during gameplay
                     if (modAchievementNames) {
@@ -8832,10 +8852,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 } catch (error) {
                     console.error('[JNE Error] Error loading mod save data:', error);
                     debugLog('mod.saveSystem.load: error loading save data:', error);
-                    // Fall back to defaults on error
-                    modSaveData = { upgrades: {} };
-                    setTerminalMinigameSave('');
-                    setClonesMinigameSave('');
+                    // never fall back to empty defaults: restore from the parsed save and freeze the mod save
+                    recoverFromFailedLoad(str, loadedModData, minigameSavesApplied);
+                    if (pendingInitTimerId !== null) clearTimeout(pendingInitTimerId); // the normal path may have queued one already
                     pendingInitTimerId = setTimeout(function() {
                         pendingInitTimerId = null;
                         continueModInitialization();

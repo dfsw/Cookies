@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.3b';
+const CLONES_VERSION = '1.0.0';
 var PUZZLE_BASE_BETA = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
 var PUZZLE_BASE_RELEASE = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/ClonePuzzles/';
 function puzzleBase() { return (Game.JNE && Game.JNE.beta === false) ? PUZZLE_BASE_RELEASE : PUZZLE_BASE_BETA; }
@@ -295,6 +295,8 @@ function clearRun() {
     G.spinPending = 0; G.yousSeed = null; G.tutBonus = 0;
     closePrizeSlots();
 }
+var RUN_FIELDS = ['ys', 'solved', 'earned', 'hintedCells', 'mistakeCells', 'cornerTags', 'dimmed', 'claimed',
+    'earlyCells', 'tFirst', 'tDone', 'failed', 'reward', 'redeemed', 'redeemedRw', 'tutBonus'];
 
 function checkLayout() {
     var main = l('clonesMain');
@@ -406,9 +408,14 @@ function dealPuzzleIndex(tier, pool) {
     var last = (G.rot.last || {})[tier.toLowerCase()];
     return selectPuzzleIndex(pool, rotBits(tier, pool.length), typeof last === 'number' ? last : -1);
 }
+// numeric fields from save data garbage becomes 0 rather than NaN-poisoning state
+function saveNum(v) { v = +v; return (isFinite(v) && v >= 0) ? v : 0; }
 function markPuzzleDone(file) {
     var tier = String(file || '')[0];
-    var pool = G.index && G.index[tier];
+    if (TIER_KEYS.indexOf(tier) < 0) return; // tutorial and other non-catalog files
+
+    if (!G.index) { var rot = G.rot; loadIndex(function() { if (G.rot === rot) markPuzzleDone(file); }); return; }
+    var pool = G.index[tier];
     var i = pool ? pool.indexOf(file) : -1;
     if (i < 0) return;
     markPlayed(rotBits(tier, pool.length), i);
@@ -435,7 +442,10 @@ function rotLoad(saved) {
 function startPuzzle(file, saved, retried) {
     var wanted = file; // an explicit request retries itself
     if (!file) {
-        if (!G.index) return loadIndex(function() { startPuzzle(null, saved, retried); });
+        if (!G.index) {
+            var gen = G.reqId; // a reset or load while the catalog loads cancels this deal
+            return loadIndex(function() { if (gen === G.reqId) startPuzzle(null, saved, retried); });
+        }
         var pool = G.index[G.tier] || [];
         var idx = dealPuzzleIndex(G.tier, pool);
         if (idx < 0) { setStatus('Failed to load the puzzle data, check internet connection.'); return; }
@@ -453,16 +463,19 @@ function startPuzzle(file, saved, retried) {
     }).catch(function() {
         if (req !== G.reqId) return;
         G.loading = false;
-        if (!retried) { G.restore = null; startPuzzle(wanted, null, true); }
+        // a saved run is never swapped for a fresh board; G.restore keeps it in saves until it loads
+        if (!retried) startPuzzle(wanted, saved, true);
         else setStatus('Couldn\'t load ' + file + '.');
     });
 }
 function applyPuzzle(data, saved) {
     G.popGen++; // invalidate pending populate timers from a previous puzzle
     var grid = data.grid;
+    if (!Array.isArray(grid) || grid.length !== 20) throw new Error('bad puzzle grid');
     G.puzzle = {
-        grid: grid, cards: data.cards, clues: data.clues,
-        deduce: data.deduce, proofs: data.proofs,
+        grid: grid, cards: Array.isArray(data.cards) ? data.cards : [],
+        clues: Array.isArray(data.clues) ? data.clues : [],
+        deduce: data.deduce || {}, proofs: data.proofs || {},
         traits: data.traits || {}, cellTraits: {}, tutorial: !!data.tutorial
     };
     for (var t in G.puzzle.traits) (G.puzzle.traits[t] || []).forEach(function(id) {
@@ -479,32 +492,55 @@ function applyPuzzle(data, saved) {
     // puzzle files get regenerated under the same name; if the save contradicts
     // the fresh grid or references clues that no longer exist, drop the run
     // rather than replaying mismatched state
+    var svArr = function(v) { return Array.isArray(v) ? v : (v == null ? [] : null); };
+    var svSolved = saved ? svArr(saved.solved) : [];
+    var svEarned = saved ? svArr(saved.earned) : [];
+    var badClue = function(c) { return !Number.isInteger(c) || !G.puzzle.clues[c]; };
+    // a finished board is past using its clues
+    if (svSolved && svEarned && svSolved.length === 20) svEarned = svEarned.filter(function(c) { return !badClue(c); });
     if (saved && (
-        (saved.solved || []).some(function(i) { return grid[i] === undefined; }) ||
-        (saved.earned || []).some(function(c) { return !G.puzzle.clues[c]; })
+        svSolved == null || svEarned == null ||
+        svSolved.some(function(i) { return !Number.isInteger(i) || i < 0 || i >= grid.length; }) ||
+        svEarned.some(badClue)
     )) saved = null;
     if (saved) {
-        G.hintedCells = saved.hintedCells || [];
-        G.mistakeCells = saved.mistakeCells || [];
+        var list = function(v) { return Array.isArray(v) ? v : []; };
+        var safeKey = function(k) { return k !== '__proto__' && k !== 'constructor' && k !== 'prototype'; };
+        // a malformed held prize is dropped rather than crashing the spin/redeem paths
+        var svRw = function(rw) {
+            if (!rw || typeof rw !== 'object') return null;
+            var r = rw.reward;
+            if (!r || typeof r !== 'object' || typeof r.id !== 'string' || typeof r.name !== 'string' || !Array.isArray(r.icon)) return null;
+            if (typeof rw.tier !== 'number' || !Array.isArray(rw.weights)) return null;
+            return rw;
+        };
+        G.hintedCells = list(saved.hintedCells);
+        G.mistakeCells = list(saved.mistakeCells);
         G.cornerTags = {};
-        for (var tk in saved.cornerTags) { // expand single letter codes
-            var st = saved.cornerTags[tk], dt = {};
-            for (var c in st) dt[c] = TAG_LETTERS[st[c]];
-            G.cornerTags[tk] = dt;
+        if (saved.cornerTags && typeof saved.cornerTags === 'object') {
+            for (var tk in saved.cornerTags) { // expand single letter codes
+                if (!safeKey(tk)) continue;
+                var st = saved.cornerTags[tk], dt = {};
+                if (st && typeof st === 'object') for (var c in st) {
+                    if (safeKey(c) && TAG_LETTERS[st[c]]) dt[c] = TAG_LETTERS[st[c]];
+                }
+                G.cornerTags[tk] = dt;
+            }
         }
         // dimmed saves as a plain clue-index array
-        (saved.dimmed || []).forEach(function(k) { G.dimmed[k] = 1; });
+        list(saved.dimmed).forEach(function(k) { if (safeKey(k)) G.dimmed[k] = 1; });
         G.yousSeed = saved.ys == null ? null : saved.ys;
-        G.won = saved.won || 0; G.claimed = saved.claimed || 0;
-        G.earlyCells = saved.earlyCells || [];
-        G.tFirst = saved.tFirst || 0; G.tDone = saved.tDone || 0;
-        G.failed = saved.failed || 0;
-        G.reward = saved.reward || null;
-        G.redeemed = saved.redeemed || 0; G.redeemedRw = saved.redeemedRw || null;
+        G.won = saveNum(saved.won); G.claimed = saved.claimed ? 1 : 0;
+        G.earlyCells = list(saved.earlyCells);
+        G.tFirst = saveNum(saved.tFirst); G.tDone = saveNum(saved.tDone);
+        G.failed = saved.failed ? 1 : 0;
+        G.reward = svRw(saved.reward);
+        G.redeemed = saved.redeemed ? 1 : 0; G.redeemedRw = svRw(saved.redeemedRw);
+        G.tutBonus = saved.tutBonus ? 1 : 0; // graduation prize still owed if Finish wasn't pressed
         // a held, unredeemed prize gets its slot reveal back on reload
         G.spinPending = (G.reward && !G.redeemed) ? 1 : 0;
-        (saved.solved || []).forEach(function(i) { G.solved[i] = grid[i]; });
-        (saved.earned || []).forEach(function(c) { G.earned.push(c); G.readMask |= 1 << c; });
+        svSolved.forEach(function(i) { G.solved[i] = grid[i]; });
+        svEarned.forEach(function(c) { G.earned.push(c); G.readMask |= 1 << c; });
     } else {
         // fresh board
         G.populating = true;
@@ -1299,7 +1335,7 @@ ClonesM.cashInReward = function() {
 
 ClonesM.tutorial = function(force) {
     if (!G.ready) { setStatus('Sprites still loading…'); return; }
-    if (!force && G.reward) return forfeitPrompt('the tutorial', 'ClonesM.tutorial(true)');
+    if (!force && heldPrize()) return forfeitPrompt('the tutorial', 'ClonesM.tutorial(true)');
     startPuzzle('tutorial');
 };
 ClonesM.debugSolve = function() {
@@ -1439,17 +1475,25 @@ function syncCompleted() {
     var el = l('clonesCompleted');
     if (el) el.textContent = 'Scenarios Completed ' + (typeof Beautify === 'function' ? Beautify(G.won) : G.won);
 }
+function clearBoardUI() {
+    var grid = l('clonesGrid'), list = l('clonesClues');
+    if (grid) { grid.innerHTML = ''; grid.classList.remove('clones-wipe-all'); }
+    if (list) list.innerHTML = '';
+    var head = l('clonesHead'); if (head) head.style.display = 'none'; // Intel Report + Supervisor!
+    var hintBtn = l('clonesHint'); if (hintBtn) hintBtn.style.display = 'none';
+}
+function syncAllUI() {
+    try {
+        syncStartUI(); syncTutButton(); syncTierIcons(); showClaim(); syncCompleted(); updateCooldown();
+    } catch (e) { console.error('Clone Escape UI refresh failed:', e); }
+}
 // got a know it all here
 ClonesM.quitTutorial = function() {
     if (!G.puzzle || !G.puzzle.tutorial || G.claimed) return;
     G.popGen++; // abort pending populate/wipe timers
     G.puzzle = null; G.puzzleFile = null;
     clearRun();
-    var grid = l('clonesGrid'), list = l('clonesClues');
-    if (grid) { grid.innerHTML = ''; grid.classList.remove('clones-wipe-all'); }
-    if (list) list.innerHTML = '';
-    var head = l('clonesHead'); if (head) head.style.display = 'none'; // Intel Report + Supervisor!
-    var hintBtn = l('clonesHint'); if (hintBtn) hintBtn.style.display = 'none';
+    clearBoardUI();
     syncStartUI(); syncTutQuit(); showClaim(); setStatus('');
 };
 
@@ -1470,10 +1514,12 @@ function forfeitPrompt(what, go) {
         ['Cancel', 'Game.ClosePrompt()']
     ]);
 }
+// a restore still loading (or parked offline) holds its prize too
+function heldPrize() { return G.reward || (G.restore && !G.restore.redeemed && G.restore.reward) || null; }
 ClonesM.newPuzzle = function(force) {
     if (!G.ready) { setStatus('Sprites still loading…'); return; }
     if (G.nextPuzzleAt > Date.now()) return;
-    if (!force && G.reward) return forfeitPrompt('a new scenario', 'ClonesM.newPuzzle(true)');
+    if (!force && heldPrize()) return forfeitPrompt('a new scenario', 'ClonesM.newPuzzle(true)');
     startPuzzle(null); // clearRun wipes any held prize
 };
 
@@ -1647,7 +1693,7 @@ ClonesM.launch = function() {
         }
         var tp = { u: G.tierProg.u || 'E' };
         if (G.tierProg.p) tp.p = G.tierProg.p;
-        return {
+        var out = {
             v: CLONES_VERSION,
             // yous regenerate deterministically
             file: G.puzzleFile, ys: G.yousSeed == null ? undefined : G.yousSeed,
@@ -1667,6 +1713,9 @@ ClonesM.launch = function() {
             }),
             isVisible: (ClonesM.parent && ClonesM.parent.onMinigame) ? 1 : 0
         };
+        // a restore that hasn't landed yet still owns its run
+        if (G.restore) RUN_FIELDS.forEach(function(k) { out[k] = G.restore[k]; });
+        return out;
     };
 
     ClonesM.save = function() {
@@ -1686,19 +1735,27 @@ ClonesM.launch = function() {
                 try { data = JSON.parse(decodeURIComponent(str)); } catch (e2) { data = null; }
             }
         }
-        if (!data || typeof data !== 'object') { ClonesM.reset(true); return; }
-        G.puzzleFile = data.file || null;
-        G.won = data.won || 0;
-        G.nextPuzzleAt = data.nextPuzzleAt || 0;
+        ClonesM.reset(true); // wipe the live session; missing or malformed data leaves it fresh
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+        var file = (typeof data.file === 'string' && data.file) ? data.file : null;
+        G.puzzleFile = file;
+        G.won = saveNum(data.won);
+        G.nextPuzzleAt = Math.min(saveNum(data.nextPuzzleAt), Date.now() + puzzleCooldown());
         var tp = data.tierProg;
-        if (tp && tp.u) G.tierProg = { u: tp.u, p: tp.p || null };
+        // an unrecognized unlocked tier would lock every tier out
+        if (tp && typeof tp === 'object' && TIER_KEYS.indexOf(tp.u) >= 0) {
+            G.tierProg = { u: tp.u, p: null };
+            if (tp.p && typeof tp.p === 'object') {
+                G.tierProg.p = { c: tp.p.c ? 1 : 0, g: Math.min(3, saveNum(tp.p.g)), o: Math.min(5, saveNum(tp.p.o)) };
+            }
+        }
 
-        var ft = data.file && String(data.file)[0]; // tutorial isnt a tier
+        var ft = file && file[0]; // tutorial isnt a tier
         G.tier = TIER_KEYS.indexOf(ft) >= 0 ? ft : G.tierProg.u;
-        G.cleanWins = data.cleanWins || 0;
-        G.tutorialDone = data.tutorialDone || 0;
-        G.tutBonus = data.tutBonus || 0;
+        G.cleanWins = saveNum(data.cleanWins);
+        G.tutorialDone = data.tutorialDone ? 1 : 0;
         rotLoad(data.rot);
+        G.restore = file ? data : null; // RUN_FIELDS apply once the puzzle file arrives
         // wins restore immediately if the achievements already exist; otherwise
         // createClonesAchievements picks this stash up when it runs
         if (Array.isArray(data.aw)) {
@@ -1710,33 +1767,37 @@ ClonesM.launch = function() {
                 }
             });
         }
-        G.restore = data.file ? data : null;
-        syncTutButton();
-        syncCompleted();
+        syncAllUI();
         if (ClonesM.parent && data.isVisible) reopenMinigame(ClonesM.parent, 50);
         if (G.ready && G.restore) startPuzzle(G.restore.file, G.restore); // save applied while live
     };
 
     ClonesM.reset = function(hard) {
-        G.puzzle = null; G.puzzleFile = null; G.yous = null;
-        G.won = 0; G.restore = null;
+        if (!hard) return ClonesM.onAscend();
+        G.popGen++; G.reqId++; // abort pending populate/wipe/spin work and in-flight fetches
+        G.loading = false;
+        G.puzzle = null; G.puzzleFile = null; G.yous = null; G.starterSentence = null;
+        G.won = 0; G.restore = null; G.nextPuzzleAt = 0;
+        G.cleanWins = 0; G.tutorialDone = 0;
+        G.tierProg = { u: 'E', p: null }; G.tier = 'E';
+        G.rot = { last: {} };
+        ClonesM._pendingAchWon = null;
         clearRun();
-        if (hard && l('clonesGrid')) { l('clonesGrid').innerHTML = ''; l('clonesClues').innerHTML = ''; }
-        syncStartUI();
-        syncCompleted();
+        clearBoardUI();
+        syncAllUI(); setStatus('');
     };
 
     // ascension
     ClonesM.onAscend = function() {
-        G.popGen++; // invalidate pending populate timers
+        G.popGen++; G.reqId++; // invalidate pending populate timers and in-flight fetches
+        G.loading = false;
         G.puzzle = null; G.puzzleFile = null; G.yous = null;
         G.restore = null; G.starterSentence = null;
         clearRun();
         G.nextPuzzleAt = 0; // fresh run reset cooldown
         G.tier = G.tierProg.u || 'E'; // snap to highest tier
-        if (l('clonesGrid')) { l('clonesGrid').innerHTML = ''; l('clonesClues').innerHTML = ''; }
-        syncTierIcons();
-        if (G.ready) syncStartUI();
+        clearBoardUI();
+        syncAllUI();
     };
 
     var cdTick = 0;
