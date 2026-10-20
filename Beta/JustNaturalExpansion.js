@@ -173,6 +173,7 @@
 
     // Sprite sheet is already loaded (see top of file) by the time initializeMod() runs.
     if (!Game.JNE) Game.JNE = {};
+    Game.JNE.beta = BETA_MODE; 
     Game.JNE.icon = function(x, y, sheetName) {
         // Handle both calling conventions
         if (typeof x === 'object' && x !== null) {

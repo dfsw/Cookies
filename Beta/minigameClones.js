@@ -2,8 +2,10 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.2b';
-var PUZZLE_BASE = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
+const CLONES_VERSION = '1.0.3b';
+var PUZZLE_BASE_BETA = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
+var PUZZLE_BASE_RELEASE = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/ClonePuzzles/';
+function puzzleBase() { return (Game.JNE && Game.JNE.beta === false) ? PUZZLE_BASE_RELEASE : PUZZLE_BASE_BETA; }
 function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000; }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
@@ -282,7 +284,7 @@ var G = {
     tierProg: { u: 'E', p: null }, // unlock 
     cleanWins: 0, // lifetime no mistake clears 
     tutorialDone: 0, 
-    rot: {} // per-tier deal 
+    rot: { last: {} } // per-tier completion bitsets + last-finished index
 };
 function clearRun() {
     G.solved = {}; G.readMask = 0; G.earned = []; G.clueRowForClue = {}; G.clueRowEls = [];
@@ -344,7 +346,7 @@ function loadIndex(cb) {
         if (Object.keys(idx).length) { G.index = idx; cb(idx); } else setStatus('Puzzle list is empty.');
     };
     var fail = function() { setStatus('Couldn\'t load puzzle list.'); };
-    fetch(PUZZLE_BASE + 'index.json?t=' + Date.now()).then(function(r) {
+    fetch(puzzleBase() + 'index.json?t=' + Date.now()).then(function(r) {
         if (!r.ok) throw 0;
         return r.json();
     }).then(got).catch(fail);
@@ -354,32 +356,95 @@ function ensurePuzzle() {
     if (G.restore) startPuzzle(G.restore.file, G.restore);
     else setStatus('Pick a difficulty and press New Scenario.');
 }
-// G.rot[tier] = {n: cursor, base: pool size at cycle start, off: start offset}
-// deals the pool as a rotation so nothing repeats till every file is served;
-// files appended later deal in order at the tail. saved, survives ascension.
-function pickPuzzleFile(pool) {
-    var len = pool.length;
-    var s = G.rot[G.tier] || (G.rot[G.tier] = { n: 0, base: len, off: Math.floor(Math.random() * len) });
-    if (s.base > len) { s.base = len; s.n = 0; s.off = 0; }   // catalog shrank restart cleanly
-    if (s.n >= len) {                                        // full cycle dealt absorb tail + rephase
-        s.base = len; s.n = 0; s.off = Math.floor(Math.random() * len);
+// per-tier completion bitset: bit (i&7) of byte (i>>3) flags catalog index i as
+// finished this cycle. `last` holds each tier's most recently finished index so a
+// fresh cycle can't re-deal it instantly. Bits are only set when a board reaches
+// 20 cells, so abandoned puzzles stay eligible. 
+var ROT_KEYS = 'emthv';
+function isPlayed(bits, i) { return !!(bits[i >> 3] & (1 << (i & 7))); }
+function markPlayed(bits, i) { bits[i >> 3] |= 1 << (i & 7); }
+function resizeBits(oldBits, count) {
+    var bits = new Uint8Array(Math.ceil(count / 8));
+    bits.set(oldBits.subarray(0, bits.length));
+    return bits;
+}
+function encodeBits(bits) {
+    var binary = '';
+    for (var i = 0; i < bits.length; i++) binary += String.fromCharCode(bits[i]);
+    return btoa(binary);
+}
+function decodeBits(encoded, count) {
+    var binary = '';
+    try { binary = encoded ? atob(encoded) : ''; } catch (e) {}
+    var bits = new Uint8Array(Math.max(Math.ceil(count / 8), binary.length));
+    for (var i = 0; i < binary.length; i++) bits[i] = binary.charCodeAt(i);
+    return bits;
+}
+// bitsets grow lazily so a save can be decoded before the catalog arrives
+function rotBits(tier, count) {
+    var k = tier.toLowerCase(), b = G.rot[k];
+    if (!b) b = new Uint8Array(0);
+    if (b.length < Math.ceil(count / 8)) b = resizeBits(b, count);
+    return (G.rot[k] = b);
+}
+// uniform pick among unfinished indices; on exhaustion the cycle resets here so
+// appended puzzles join first, then the last-finished index is excluded once
+function selectPuzzleIndex(puzzles, bits, lastPlayed) {
+    var available = [];
+    for (var i = 0; i < puzzles.length; i++) {
+        if (puzzles[i] != null && !isPlayed(bits, i)) available.push(i);
     }
-    var idx = s.n < s.base ? (s.off + s.n) % s.base : s.n;
-    s.n++;
-    return pool[idx];
+    if (!available.length) {
+        for (i = 0; i < puzzles.length; i++) if (puzzles[i] != null) available.push(i);
+        if (!available.length) return -1;
+        bits.fill(0);
+        if (available.length > 1) available = available.filter(function(j) { return j !== lastPlayed; });
+    }
+    return available[Math.floor(Math.random() * available.length)];
+}
+function dealPuzzleIndex(tier, pool) {
+    var last = (G.rot.last || {})[tier.toLowerCase()];
+    return selectPuzzleIndex(pool, rotBits(tier, pool.length), typeof last === 'number' ? last : -1);
+}
+function markPuzzleDone(file) {
+    var tier = String(file || '')[0];
+    var pool = G.index && G.index[tier];
+    var i = pool ? pool.indexOf(file) : -1;
+    if (i < 0) return;
+    markPlayed(rotBits(tier, pool.length), i);
+    (G.rot.last || (G.rot.last = {}))[tier.toLowerCase()] = i;
+}
+function rotSave() {
+    var out = { last: G.rot.last || {} };
+    for (var i = 0; i < ROT_KEYS.length; i++) {
+        var k = ROT_KEYS[i], b = G.rot[k];
+        if (b && b.length) out[k] = encodeBits(b);
+    }
+    return out;
+}
+function rotLoad(saved) {
+    G.rot = { last: {} };
+    if (!saved || typeof saved !== 'object') return; // legacy deal cursors can't map to bits
+    for (var i = 0; i < ROT_KEYS.length; i++) {
+        var k = ROT_KEYS[i];
+        if (typeof saved[k] === 'string') G.rot[k] = decodeBits(saved[k], 0);
+        var last = saved.last && saved.last[k];
+        if (typeof last === 'number' && last >= 0) G.rot.last[k] = last;
+    }
 }
 function startPuzzle(file, saved, retried) {
     var wanted = file; // an explicit request retries itself
     if (!file) {
         if (!G.index) return loadIndex(function() { startPuzzle(null, saved, retried); });
         var pool = G.index[G.tier] || [];
-        if (!pool.length) for (var k in G.index) pool = pool.concat(G.index[k]);
-        file = pickPuzzleFile(pool);
+        var idx = dealPuzzleIndex(G.tier, pool);
+        if (idx < 0) { setStatus('Failed to load the puzzle data, check internet connection.'); return; }
+        file = pool[idx];
     }
     if (!saved) G.yous = null;
     G.loading = true;
     var req = ++G.reqId;
-    fetch(PUZZLE_BASE + file + '.json?t=' + Date.now()).then(function(r) { return r.json(); }).then(function(data) {
+    fetch(puzzleBase() + file + '.json?t=' + Date.now()).then(function(r) { return r.json(); }).then(function(data) {
         if (req !== G.reqId) return;
         G.loading = false;
         G.puzzleFile = data.name || file;
@@ -906,7 +971,8 @@ var REWARDS = [
     { id: 'frenzy', name: 'Gain a frenzy buff', tier: 1, icon: [10, 0] },
     { id: 'cheap', name: 'Buildings & upgrades are 10% cheaper for 3 min', tier: 1, icon: [3, 0] },
     { id: 'downline_double', name: 'New Downline actions last twice as long for 15min', tier: 1, icon: [17, 6] },
-    { id: 'free_play', name: 'Free play', tier: 1, icon: [16, 1], sheet: 'custom' }
+    { id: 'free_play', name: 'Free play', tier: 1, icon: [16, 1], sheet: 'custom' },
+    { id: 'free_play', name: 'Free play', tier: 1, icon: [16, 1], sheet: 'custom' } // doubled entry for higher chance
 ];
 
 function mistakeCount() {
@@ -1259,6 +1325,7 @@ function completePuzzle() {
         G.tutorialDone = 1;
         syncTutButton();
     } else {
+        markPuzzleDone(G.puzzleFile); // every finished board 
         G.failed = mistakeCount() >= 8 ? 1 : 0; // finished, but too poor to compensate
         // the cooldown runs from a rewarded completion, a failed run is free
         if (!G.failed) {
@@ -1379,7 +1446,10 @@ ClonesM.quitTutorial = function() {
     G.puzzle = null; G.puzzleFile = null;
     clearRun();
     var grid = l('clonesGrid'), list = l('clonesClues');
-    if (grid) grid.innerHTML = ''; if (list) list.innerHTML = '';
+    if (grid) { grid.innerHTML = ''; grid.classList.remove('clones-wipe-all'); }
+    if (list) list.innerHTML = '';
+    var head = l('clonesHead'); if (head) head.style.display = 'none'; // Intel Report + Supervisor!
+    var hintBtn = l('clonesHint'); if (hintBtn) hintBtn.style.display = 'none';
     syncStartUI(); syncTutQuit(); showClaim(); setStatus('');
 };
 
@@ -1590,7 +1660,7 @@ ClonesM.launch = function() {
             failed: G.failed, reward: G.reward, redeemed: G.redeemed, redeemedRw: G.redeemedRw,
             tierProg: tp, cleanWins: G.cleanWins,
             tutorialDone: G.tutorialDone, tutBonus: G.tutBonus,
-            rot: G.rot, // deal cursors survives ascension 
+            rot: rotSave(), // completion bitsets survive ascension 
             aw: clonesAchievementNames.filter(function(n) {
                 var a = Game.Achievements && Game.Achievements[n];
                 return a && a.won;
@@ -1628,7 +1698,7 @@ ClonesM.launch = function() {
         G.cleanWins = data.cleanWins || 0;
         G.tutorialDone = data.tutorialDone || 0;
         G.tutBonus = data.tutBonus || 0;
-        G.rot = data.rot || {};
+        rotLoad(data.rot);
         // wins restore immediately if the achievements already exist; otherwise
         // createClonesAchievements picks this stash up when it runs
         if (Array.isArray(data.aw)) {
