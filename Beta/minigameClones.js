@@ -1191,12 +1191,10 @@ registerCloneBuffTypes();
 // WriteSave only serializes vanilla-flagged buff types, so ours are re-granted on load
 function cloneBuffSave() {
     var out = [];
-    for (var i = 0; i < CLONE_BUFFS.length; i++) {
-        var bf = Game.buffs && Game.buffs[CLONE_BUFFS[i][1]];
-        if (!bf || bf.time <= 0) continue;
-        var pw = bf.multClick !== undefined ? bf.multClick : bf.multCpS !== undefined ? bf.multCpS : bf.power;
-        out.push({ n: CLONE_BUFFS[i][0], t: Math.round(bf.time / (Game.fps || 30)), m: Math.round(bf.maxTime / (Game.fps || 30)), pw: pw });
-    }
+    CLONE_BUFFS.forEach(function(bt) {
+        var bf = Game.buffs && Game.buffs[bt[1]];
+        if (bf && bf.time > 0) out.push({ n: bt[0], t: Math.round(bf.time / (Game.fps || 30)), m: Math.round(bf.maxTime / (Game.fps || 30)), pw: bf.multClick || bf.multCpS || bf.power });
+    });
     return out;
 }
 function restoreCloneBuffs(saved) {
@@ -1209,8 +1207,7 @@ function restoreCloneBuffs(saved) {
         if (!bt || !secs || !Game.buffTypesByName[bd.n]) return;
         try {
             var restored = Game.gainBuff(bd.n, secs, pow);
-            var maxSecs = saveNum(bd.m);
-            if (restored) { if (maxSecs) restored.maxTime = maxSecs * (Game.fps || 30); restored[bt[4]] = pow; }
+            if (restored) { restored.maxTime = (saveNum(bd.m) || secs) * (Game.fps || 30); restored[bt[4]] = pow; }
         } catch (e) {}
     });
     ClonesM._updateEffs();
@@ -1387,6 +1384,13 @@ ClonesM.claimReward = function() {
     G.spinPending = G.reward ? 1 : 0; 
     renderBoard();
 };
+function grantReward(rw) {
+    try { applyCloneReward(rw); playSnd('snd/chime.mp3'); }
+    catch (e) {
+        console.error('Clone Escape reward "' + rw.id + '" failed:', e);
+        if (typeof Game.Notify === 'function') Game.Notify('Redeemed: ' + rw.name, 'Something went wrong while applying the reward.');
+    }
+}
 ClonesM.redeemReward = function() {
     var r = G.reward;
     if (!r) return;
@@ -1395,13 +1399,7 @@ ClonesM.redeemReward = function() {
     showRedeemedLabel();
     var rd = l('clonesRedeem'); if (rd) rd.style.display = 'none';
     if (l('clonesRewardLine')) l('clonesRewardLine').innerHTML = rewardLineHtml();
-    try {
-        applyCloneReward(r.reward);
-        playSnd('snd/chime.mp3');
-    } catch (e) {
-        console.error('Clone Escape reward "' + r.reward.id + '" failed:', e);
-        if (typeof Game.Notify === 'function') Game.Notify('Redeemed: ' + r.reward.name, 'Something went wrong while applying the reward.');
-    }
+    grantReward(r.reward);
 };
 ClonesM.rerollReward = function() {
     if (!ClonesM.debug || !G.reward) return;
@@ -1421,13 +1419,7 @@ ClonesM.cashInReward = function() {
             G.restore.reward = null; // malformed — populate's svRw would drop it anyway
         } else {
             G.restore.reward = null; G.restore.redeemed = 1; G.restore.redeemedRw = pr; // lands pre-redeemed, no spin replay
-            try {
-                applyCloneReward(prw);
-                playSnd('snd/chime.mp3');
-            } catch (e) {
-                console.error('Clone Escape reward "' + prw.id + '" failed:', e);
-                if (typeof Game.Notify === 'function') Game.Notify('Redeemed: ' + prw.name, 'Something went wrong while applying the reward.');
-            }
+            grantReward(prw);
             return { success: true, message: 'Cashed in ' + prw.name + '!' };
         }
     }
@@ -1604,7 +1596,7 @@ function syncBottomBtns() {
     var q = l('clonesQuitTut');
     if (q) q.style.display = (G.puzzle && G.puzzle.tutorial && !G.claimed) ? '' : 'none';
     var g = l('clonesGlossary');
-    if (g) g.style.display = (G.puzzle && !G.puzzle.tutorial) ? '' : 'none';
+    if (g) g.style.display = (G.puzzle && !G.puzzle.tutorial && !G.claimed) ? '' : 'none';
 }
 function syncCompleted() {
     var el = l('clonesCompleted');
@@ -1654,12 +1646,9 @@ var GLOSSARY = [
 ];
 
 ClonesM.glossary = function() {
-    var h = '<h3>Glossary</h3><div class="block" style="font-size:11px;text-align:left;max-height:50vh;overflow-y:auto;">';
-    GLOSSARY.forEach(function(e) {
-        h += '<div style="margin-bottom:6px;"><b>' + e[0] + '</b>: ' + e[1] + '</div>';
-    });
-    h += '</div>';
-    Game.Prompt(h, ['Close']);
+    Game.Prompt('<h3>Glossary</h3><div class="block" style="font-size:11px;text-align:left;max-height:50vh;overflow-y:auto;">' +
+        GLOSSARY.map(function(e) { return '<div style="margin-bottom:6px;"><b>' + e[0] + '</b>: ' + e[1] + '</div>'; }).join('') +
+        '</div>', ['Close']);
 };
 
 function syncTierIcons() {
