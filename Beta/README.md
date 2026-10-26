@@ -57,12 +57,35 @@ The mobile version of Cookie Clicker does not support mods at this time.
 
 ## Changelog  
 
+### Version 0.8.1
+* Clone Escape has a new hint/supervisor system that should be much more reliable in showing the minimal set of clues needed for the shown hint. 
+* Puzzles have been regenerated using an updated engine, they include more clue types, more diversity of clues, better phsyical trait clue systems, and will hopefully between align to difficulty tiers. They also should be even more fun to play. Any puzzle mid-solve will be lost on game reload with the updated set. 
+* Physical trait clues (has a beard, wears glasses) will now highlight those cells when you mouse over the keywords in the clue. Clues may now reference multiple traits at once. 
+* Clone Escape can no longer give rewards that are for minigames that the user has not yet unlocked. 
+* Moved a couple of tier rewards around based on feedback.
+* The two custom buffs from Clone Escape now properly restore on save reload. 
+* Flawless solves in Clone Escape will result in a 50% reduced cooldown on your next scenario. 
+* Player hypnosis in Downline has new effects. 
+* Soil Inspector fixes for Wood Chips and Supreme Intellect
+* Downline now adds an action slot each Fractal Engine level until 10 slots are unlocked. 
+* Downline trend indicators no longer blink when a bar is maxed
+* Minor bug fixes, improvements, and code cleanup. 
+
+
 ### Version 0.8.0 - Major Version - Clones!
 * Introducing Clone Escape, an entirely new minigame for the Yous building. You have been hired as a temporary worker for the highly respected Clone Recovery & Sorting® company. Your task is sorting out who is a clone and who is an authenic. Use logic, reason, and deduction to accomplish your task and earn powerful combo building rewards. 
 * Discord link works on Steam again, come join us!
 * Downline now provides full prestige CpS even when frozen but current round CpS is still reduced. 
 * Hardened the save/restore system further for a potential edge case that might cause mod achievements being lost on a failed load. 
+* Terminal Minigame achievements are more…achievable
 * Minor bug fixes, improvements, and code cleanup. 
+
+### Version 0.7.3
+* Fever nightmares now properly reset failed potion counts which is used for various things. 
+* If you are running CYOL the Just Natural Expansion Sugar Predictor user interface will be hidden to prevent conflicts.
+* Annualized returns upgrade now also shows Cookies Per Click in the stats menu when owned. 
+* Finishing the Mysteries of the Cookie Age puzzle pack will now award you a 10% increase to random drop chances. 
+* Fixed some rendering issues with a couple of puzzles for Firefox users. 
 
 ### Version 0.7.2
 * Fixed a crash that could happen on steam when entering Accomplishmint mode. 

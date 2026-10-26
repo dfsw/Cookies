@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const DOWNLINE_VERSION = '1.0.8';
+const DOWNLINE_VERSION = '1.0.9';
 
 var downlineAchievementNames = [
     'Popularity factor',
@@ -770,7 +770,7 @@ DownlineM.init = function(div) {
             <div class="downline-active-slot"></div>
             <div class="downline-active-slot"></div>
           </div>
-          <p class="downline-active-slots-info" id="downline-active-slots-info" data-desc-html="Available action slots. One slot (min of 3 slots) per fractal engine level, up to 10 slots."><span id="downline-active-count" class="green">0</span>/<span id="downline-active-max">7</span> slots used</p>
+          <p class="downline-active-slots-info" id="downline-active-slots-info" data-desc-html="Available action slots. One slot per additional Fractal Engine level, up to 10 slots."><span id="downline-active-count" class="green">0</span>/<span id="downline-active-max">7</span> slots used</p>
         </div>
       </div>
         <div class="downline-boredom-under-slots">
@@ -815,7 +815,7 @@ DownlineM.init = function(div) {
       </div>
     </div>
     <div class="downline-ticker-row">
-      <div id="downline-freeze-btn" class="gardenSeed" role="button" tabindex="0" data-name="Freeze" title="Freeze" data-desc-html="Freeze the Downline, everything runs slower! Action effects, decay, and CpS bonus are all reduced by 1/6th (Fractal Prestige bonus unaffected), plenty of time to take your eyes off the prize and get some Zzz's or maybe a pizza."><div class="gardenSeedIcon shadowFilter" style="background-position: -48px -1680px;"></div></div>
+      <div id="downline-freeze-btn" class="gardenSeed" role="button" tabindex="0" data-name="Freeze" title="Freeze" data-desc-html="Freeze the Downline, everything runs slower! Action effects, decay, and CpS bonus are all reduced to 1/6th value (Fractal Prestige bonus unaffected), plenty of time to take your eyes off the prize and get some Zzz's or maybe a pizza."><div class="gardenSeedIcon shadowFilter" style="background-position: -48px -1680px;"></div></div>
       <div class="downline-ticker-wrap">
         <div class="downline-ticker-banner">BREAKING</div>
         <div class="downline-ticker-bar">
@@ -971,8 +971,7 @@ DownlineM.init = function(div) {
     var BONUS_COMMIT_EXP = 0.8;
 
     function getMaxSlots(level) {
-      if (level > 10) return 10;
-      return Math.max(3, level);
+      return Math.min(level + 2, 10);
     }
     function getEffectiveMaxSlots() {
       var fe = Game.Objects['Fractal engine'];
@@ -1217,16 +1216,21 @@ DownlineM.init = function(div) {
       var hypeMult = hasBoredomEffect('hype_commit_drain_3x') ? 3 : 1;
       var hypeCap = hasBoredomEffect('hype_cap_half') ? BAR_MAX / 2 : BAR_MAX;
       var commitCap = hasBoredomEffect('commitment_cap_half') ? BAR_MAX / 2 : BAR_MAX;
-      G.hype       = clamp(G.hype       + hypeChange * hypeMult,   0, hypeCap);
-      G.commitment = clamp(G.commitment + commitChange * hypeMult, 0, commitCap);
+      var hypeDelta = hypeChange * hypeMult, commitDelta = commitChange * hypeMult;
+      _barDeltaHype += hypeDelta; _barDeltaCommit += commitDelta; _barDeltaRef += refChange;
+      G.hype       = clamp(G.hype       + hypeDelta,   0, hypeCap);
+      G.commitment = clamp(G.commitment + commitDelta, 0, commitCap);
       G.referrals  = clamp(G.referrals  + refChange,    0, BAR_MAX);
+      var repDelta;
       if (hasBoredomEffect('rep_drains')) {
         var repDrainMult = 1 + (1 - G.reputation / BAR_MAX) * (REP_REGEN_MULT_LOW - 1);
-        G.reputation = clamp(G.reputation - REPUTATION_REGEN * repDrainMult * 3 * dt, 0, BAR_MAX);
+        repDelta = -REPUTATION_REGEN * repDrainMult * 3 * dt;
       } else {
         var repRegenMult = 1 + (1 - G.reputation / BAR_MAX) * (REP_REGEN_MULT_LOW - 1);
-        G.reputation = clamp(G.reputation + REPUTATION_REGEN * repRegenMult * dt, 0, BAR_MAX);
+        repDelta = REPUTATION_REGEN * repRegenMult * dt;
       }
+      _barDeltaRep += repDelta;
+      G.reputation = clamp(G.reputation + repDelta, 0, BAR_MAX);
     }
 
     function applyPlayerEffect(perMin, dt) {
@@ -1249,10 +1253,10 @@ DownlineM.init = function(div) {
       var m = dt / 60;
       var hypeCap = hasBoredomEffect('hype_cap_half') ? BAR_MAX / 2 : BAR_MAX;
       var commitCap = hasBoredomEffect('commitment_cap_half') ? BAR_MAX / 2 : BAR_MAX;
-      if (e.hype)   G.hype   = clamp(G.hype   + scale(e.hype)   * m, 0, hypeCap);
-      if (e.commitment) G.commitment = clamp(G.commitment + scale(e.commitment) * m, 0, commitCap);
-      if (e.referrals)  G.referrals  = clamp(G.referrals  + scale(e.referrals)  * m, 0, BAR_MAX);
-      if (e.reputation) G.reputation = clamp(G.reputation + scale(e.reputation) * m, 0, BAR_MAX);
+      if (e.hype)       { var dh = scale(e.hype)       * m; _barDeltaHype   += dh; G.hype       = clamp(G.hype       + dh, 0, hypeCap); }
+      if (e.commitment) { var dc = scale(e.commitment) * m; _barDeltaCommit += dc; G.commitment = clamp(G.commitment + dc, 0, commitCap); }
+      if (e.referrals)  { var dr = scale(e.referrals)  * m; _barDeltaRef    += dr; G.referrals  = clamp(G.referrals  + dr, 0, BAR_MAX); }
+      if (e.reputation) { var dp = scale(e.reputation) * m; _barDeltaRep    += dp; G.reputation = clamp(G.reputation + dp, 0, BAR_MAX); }
     }
 
     function flushNewPlayers() {
@@ -1647,8 +1651,8 @@ DownlineM.init = function(div) {
         { name: 'Player hypnosis', icon: [19,24], sheet: 'custom', durationSec: 3 * 60 * 60, costCps: 120 * 60,
         desc: 'Hypnosis really only works if you think it does, I wonder what percent of people believe in it.',
         flavor: "You are feeling sleepy so sleepy, no wait you are feeling clickly so clicky.",
-        unlock: { conditions: [{ stat: 'players', min: 200 }, { stat: 'commitment', min: 100 }] },
-        effects: { players: -2, commitment: 3, referrals: 3, reputation: -2 },
+        unlock: { conditions: [{ stat: 'commitment', min: 100 }], tempConditions: [{ stat: 'players', min: 1000 }]  },
+        effects: { players: -8, commitment: 2, referrals: 3},
         headline: 'Hypnosis campaign sparks ethical concerns but we are too sleepy to be alarmed' },
 
        { name: 'Loot boxes', icon: [18,24], sheet: 'custom', durationSec: 4 * 60 * 60, costCps: 120 * 60,
@@ -2791,7 +2795,7 @@ DownlineM.init = function(div) {
       }
       G._auraBonusWasActive = auraBonusNow;
 
-      var _snapHype = G.hype, _snapCommit = G.commitment, _snapRef = G.referrals, _snapRep = G.reputation;
+      _barDeltaHype = 0; _barDeltaCommit = 0; _barDeltaRef = 0; _barDeltaRep = 0;
 
       var expiredNames = [];
       var hadExpiration = false;
@@ -2827,10 +2831,6 @@ DownlineM.init = function(div) {
       applyDecay(dt);
       clampAll();
       if (realDt > 0) {
-        _barDeltaHype   = G.hype       - _snapHype;
-        _barDeltaCommit = G.commitment - _snapCommit;
-        _barDeltaRef    = G.referrals  - _snapRef;
-        _barDeltaRep    = G.reputation - _snapRep;
         _barDeltaRealDt = realDt;
         _barSpeedMult = effectiveSpeed * prestigeSpeedMult * (G.frozen ? FROZEN_SPEED_FRAC : 1);
       }

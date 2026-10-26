@@ -26,11 +26,29 @@ var terminalAchievementNames = [
     'Agile hacker samurai jedi-craftsman engineer'
 ];
 
-var terminalAchievementThresholds = [100,500]; //programs run for our two achievements
+var terminalAchievementThresholds = [50,250]; //programs run for our two achievements
 
 var terminalAchievementState = {
     achievementsCreated: false
 };
+
+// wins recorded in the save string; restores won silently and keeps a stash for
+// achievements that don't exist yet
+function applySavedAchievementWins(names) {
+    M._pendingAchWon = names.slice();
+    flushPendingAchievementWins();
+}
+function flushPendingAchievementWins() {
+    if (!Array.isArray(M._pendingAchWon)) return;
+    M._pendingAchWon.forEach(function(n) {
+        var a = Game.Achievements && Game.Achievements[n];
+        if (a && !a.won && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(n))) {
+            a.won = 1;
+            a._restoredFromSave = true;
+        }
+    });
+    M._pendingAchWon = null;
+}
 
 M.launch = function () {
     var M = this;
@@ -3087,6 +3105,11 @@ M.launch = function () {
         if (M.parent && typeof M.parent.onMinigame !== 'undefined') {
             isVisible = M.parent.onMinigame ? 1 : 0;
         }
+        var aw = '';
+        terminalAchievementNames.forEach(function(n, i) {
+            var a = Game.Achievements && (Game.Achievements[n] || Game.Achievements[n + ' [DISABLED]']);
+            if (a && (a.won || a._savedWonStatus)) aw += (aw ? ',' : '') + i;
+        });
         var saveParts = [
             Math.max(0, slotsToSave),
             slotPart,
@@ -3094,7 +3117,8 @@ M.launch = function () {
             runCount,
             runTotal,
             cooldownStamp,
-            isVisible
+            isVisible,
+            aw === '' ? '-' : aw
         ];
         return saveParts.join(' ');
     };
@@ -3124,6 +3148,7 @@ M.launch = function () {
             M.slotSettings.length = 0;
             M.programsRun = 0;
             M.programsRunTotal = 0;
+            M._pendingAchWon = null;
             M.executionCooldownStart = 0;
             M.isExecutingSequence = false;
             M.setExecutingSlot(-1);
@@ -3223,7 +3248,15 @@ M.launch = function () {
                 }, 50);
             }
 
-            checkAndAwardTerminalAchievements();
+            var awPart = (legacyFormat ? legacyParts[7] : parts[7]) || '-';
+            var wonNames = [];
+            if (awPart !== '-') {
+                awPart.split(',').forEach(function(p) {
+                    var wn = terminalAchievementNames[parseInt(p, 10)];
+                    if (wn) wonNames.push(wn);
+                });
+            }
+            applySavedAchievementWins(wonNames);
 
             if (window.TerminalMinigame && typeof window.TerminalMinigame.writeCache === 'function') {
                 var cacheString = legacyFormat ? M.buildSaveString() : str;
@@ -3234,6 +3267,7 @@ M.launch = function () {
             M.slotSettings.length = 0;
             M.programsRun = 0;
             M.programsRunTotal = 0;
+            M._pendingAchWon = null;
             M.executionCooldownStart = 0;
             M.setExecutingSlot(-1);
             M.ensureUnlockedSlots();
@@ -3248,6 +3282,7 @@ M.launch = function () {
         M.dragging = null;
         M.slotHovered = -1;
         M.programsRun = 0;
+        M._pendingAchWon = null;
         M.executionCooldownStart = 0;
         M.setExecutingSlot(-1);
         M.ensureUnlockedSlots();
@@ -3310,6 +3345,7 @@ function createTerminalAchievements() {
                 }
             }
         }
+        flushPendingAchievementWins();
         terminalAchievementState.achievementsCreated = true;
         return;
     }
@@ -3318,13 +3354,13 @@ function createTerminalAchievements() {
     var terminalAchievements = [
         {
             name: '10x Full-Stack rockstar ninja wizard engineer',
-            desc: 'Execute <b>100 Programs</b> in the Terminal minigame.<q>Human Resources is adding another adjective to your job title as we speak. Technically, they\'re nouns masquerading as adjectives, just like recruiters masquerading as engineers.</q>',
+            desc: 'Execute <b>50 Programs</b> in the Terminal minigame.<q>Human Resources is adding another adjective to your job title as we speak. Technically, they\'re nouns masquerading as adjectives, just like recruiters masquerading as engineers.</q>',
             icon: Game.JNE.icon(19, 2, 'custom'),
             order: baseOrder + 0.1
         },
         {
             name: 'Agile hacker samurai jedi-craftsman engineer',
-            desc: 'Execute <b>500 Programs</b> in the Terminal minigame.<q>Your LinkedIn job title history now reads like the opening chapter of a J.R.R. Tolkien novel, complete with wizards, jedi, ninjas, and at least one guru.</q>',
+            desc: 'Execute <b>250 Programs</b> in the Terminal minigame.<q>Your LinkedIn job title history now reads like the opening chapter of a J.R.R. Tolkien novel, complete with wizards, jedi, ninjas, and at least one guru.</q>',
             icon: Game.JNE.icon(19, 4, 'custom'),
             order: baseOrder + 0.2
         }
@@ -3357,6 +3393,7 @@ function createTerminalAchievements() {
         }
     }
 
+    flushPendingAchievementWins();
     terminalAchievementState.achievementsCreated = true;
 }
 

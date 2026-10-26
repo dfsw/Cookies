@@ -1262,8 +1262,15 @@
         ensureTracksInitialized();
         var track = cookieAgeData.puzzles.tracks[trackType];
         var nextOrder = track.progress;
+        var completed = cookieAgeData.puzzles.completed || [];
 
+        // Skip ahead if the progress pointer landed on an already-completed puzzle (stale save/restore drift)
         var nextPuzzleId = getPuzzleByTrackOrder(trackType, nextOrder);
+        while (nextPuzzleId && completed.indexOf(nextPuzzleId) !== -1) {
+            nextOrder++;
+            nextPuzzleId = getPuzzleByTrackOrder(trackType, nextOrder);
+        }
+        if (nextOrder !== track.progress) {track.progress = nextOrder;}
 
         if (nextPuzzleId && isPuzzleUnlocked(nextPuzzleId)) {return nextPuzzleId;}
 
@@ -6914,17 +6921,18 @@
 
                 ensureTracksInitialized();
                 var infiltrateProgress = cookieAgeData.puzzles.tracks.infiltrate.progress || 0;
+                var completedPuzzles = (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed) ? cookieAgeData.puzzles.completed : [];
 
 				// Classified ads keyed to active puzzles
-				if (validatePuzzleActive('proving_patience')) {
+				if (validatePuzzleActive('proving_patience') && completedPuzzles.indexOf('proving_patience') === -1) {
 					//push double news item so its easier to spot
 					newsItems.push('<span style="color: #faeacd; font-style: italic;">Classified Ad : </span> <span style="color: #faeacd;">Those who wait patiently with a single lily prove they are listening.<br><div style="text-align: right; font-size: 0.8em; font-style: italic; margin-right: 2px;">~ a friend</div></span>');
 					newsItems.push('<span style="color: #faeacd; font-style: italic;">Classified Ad : </span> <span style="color: #faeacd;">Those who wait patiently with a single lily prove they are listening.<br><div style="text-align: right; font-size: 0.8em; font-style: italic; margin-right: 2px;">~ a friend</div></span>');
 				}
-				else if (validatePuzzleActive('making_friendship')) {
+				else if (validatePuzzleActive('making_friendship') && completedPuzzles.indexOf('making_friendship') === -1) {
 					newsItems.push('<span style="color: #faeacd; font-style: italic;">Classified Ad : </span> <span style="color: #faeacd;">Change the name upon your door my <span style="color: #EDCB93; font-style: italic;">Friend</span>, so that we can find you.<br><div style="text-align: right; font-size: 0.8em; font-style: italic; margin-right: 2px;">~ a friend</div></span>');
 				}
-				else if (validatePuzzleActive('small_token')) {
+				else if (validatePuzzleActive('small_token') && completedPuzzles.indexOf('small_token') === -1) {
 					newsItems.push('<span style="color: #faeacd; font-style: italic;">Classified Ad : </span> <span style="color: #faeacd;">Prove your hand is steady, send a parcel bound in ribbon, with but a single morsel within.<br><div style="text-align: right; font-size: 0.8em; font-style: italic; margin-right: 2px;">~ a friend</div></span>');
 				}
 
@@ -6938,7 +6946,6 @@
                     newsItems.push('News : Ancient cookie cults resurface with unprecedented activity. Seemingly no longer concerned with staying hidden.');
                 }
 
-				var completedPuzzles = (cookieAgeData && cookieAgeData.puzzles && cookieAgeData.puzzles.completed) ? cookieAgeData.puzzles.completed : [];
 				if (completedPuzzles.indexOf('brother_onto_you') !== -1 && completedPuzzles.indexOf('send_word') === -1) {newsItems.push('Breaking News : Sudden mine collapses spread across region, dozens missing or trapped. Rescue operations are underway.');}
 
 				if (validatePuzzleActive('they_are_watching') && completedPuzzles.indexOf('they_are_watching') === -1) {newsItems.push('News : Strange classified ads appearing in newspapers have been noticed by many; the classifieds editor has been reported missing by friends and family.');}
