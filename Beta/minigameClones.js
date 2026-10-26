@@ -1108,7 +1108,6 @@ function rollReward(salt) {
         if (!G.tutBonus) return null;
         G.tutBonus = 0;
         var t2 = REWARDS.filter(function(r) { return r.tier === 2 && rewardUnlocked(r); });
-        if (!t2.length) t2 = REWARDS.filter(rewardUnlocked);
         return { score: 0, tier: 2, weights: [0, 100, 0, 0, 0], reward: t2[Math.floor(rng() * t2.length)] };
     }
     if (mistakeCount() >= 8) return null;
@@ -1120,7 +1119,6 @@ function rollReward(salt) {
     var roll = rng() * 100, cum = 0, tier = 5;
     for (var i = 0; i < 5; i++) { cum += w[i]; if (roll < cum) { tier = i + 1; break; } }
     var cands = REWARDS.filter(function(r) { return r.tier === tier && rewardUnlocked(r); });
-    if (!cands.length) cands = REWARDS.filter(rewardUnlocked); // rolled tier had only locked picks
     if (!cands.length) throw new Error('No rewards configured for tier ' + tier);
     return { score: score, tier: tier, weights: w, reward: cands[Math.floor(rng() * cands.length)] };
 }

@@ -40,14 +40,20 @@ function applySavedAchievementWins(names) {
 }
 function flushPendingAchievementWins() {
     if (!Array.isArray(M._pendingAchWon)) return;
+    var still = [];
     M._pendingAchWon.forEach(function(n) {
-        var a = Game.Achievements && Game.Achievements[n];
-        if (a && !a.won && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(n))) {
+        var a = Game.Achievements && (Game.Achievements[n] || Game.Achievements[n + ' [DISABLED]']);
+        // missing (not yet created) or suppressed wins stay parked for the next flush
+        if (!a || (Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(n))) { still.push(n); return; }
+        if (!a.won) {
             a.won = 1;
             a._restoredFromSave = true;
+            if (!Game.AchievementsOwned) Game.AchievementsOwned = 0;
+            Game.AchievementsOwned++;
+            if (Game.stats && Game.stats['Achievements unlocked']) Game.stats['Achievements unlocked']++;
         }
     });
-    M._pendingAchWon = null;
+    M._pendingAchWon = still.length ? still : null;
 }
 
 M.launch = function () {
