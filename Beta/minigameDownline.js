@@ -1239,8 +1239,10 @@ DownlineM.init = function(div) {
         G.pendingNewPlayers += perSec * dt;
       } else {
         var loss = probRound(-perSec * dt, totalPlayers());
-        for (var i = 0; i < loss; i++) {
-          for (var t = 0; t < 5; t++) { if (G.players[TYPES[t]] > 0) { G.players[TYPES[t]]--; break; } }
+        for (var t = 0; t < 5 && loss > 0; t++) {
+          var take = Math.min(G.players[TYPES[t]], loss);
+          G.players[TYPES[t]] -= take;
+          loss -= take;
         }
       }
     }
@@ -1260,15 +1262,21 @@ DownlineM.init = function(div) {
     }
 
     function flushNewPlayers() {
-      while (G.pendingNewPlayers >= 1) {
-        G.players[Math.random() < CASUAL_CHANCE ? 'casual' : 'dabbler']++;
-        G.pendingNewPlayers--;
+      var added = Math.floor(G.pendingNewPlayers);
+      if (added > 0) {
+        G.pendingNewPlayers -= added;
+        var casuals = probRound(added * CASUAL_CHANCE, added);
+        G.players.casual += casuals;
+        G.players.dabbler += added - casuals;
       }
-      while (G.pendingNewPlayers <= -1 && totalPlayers() > 0) {
-        for (var t = 0; t < 5; t++) {
-          if (G.players[TYPES[t]] > 0) { G.players[TYPES[t]]--; break; }
+      var remove = Math.min(Math.floor(-G.pendingNewPlayers), totalPlayers());
+      if (remove > 0) {
+        G.pendingNewPlayers += remove;
+        for (var t = 0; t < 5 && remove > 0; t++) {
+          var take = Math.min(G.players[TYPES[t]], remove);
+          G.players[TYPES[t]] -= take;
+          remove -= take;
         }
-        G.pendingNewPlayers++;
       }
       if (G.pendingNewPlayers < 0) G.pendingNewPlayers = 0;
     }
@@ -2289,15 +2297,12 @@ DownlineM.init = function(div) {
       activeList.querySelectorAll('.downline-active-slot').forEach(function (s, i) {
         var isAvailable = i < max;
         var isBlocked = !isAvailable && i < baseMax && isHalved;
-        var hasChip = s.querySelector('.downline-active-chip') !== null;
+        var hasChip = i < G.activeActions.length;
         // Only mark as available if slot is empty and within max
         s.classList.toggle('available', isAvailable && !hasChip);
         s.classList.toggle('blocked', isBlocked);
-        if (isBlocked) {
-          s.title = 'Blocked by boredom debuff';
-        } else {
-          s.title = '';
-        }
+        var title = isBlocked ? 'Blocked by boredom debuff' : '';
+        if (s.title !== title) s.title = title;
       });
       activeMaxEl.textContent = max;
     }
@@ -2364,18 +2369,25 @@ DownlineM.init = function(div) {
         }
       }
       var hasEffects = activeNames.length > 0 || b >= 20;
-      var html = 'Your player base is becoming bored by your lack of diversity. Boredom can be lowered by using new and different actions, repeating the same actions (even when not sequential) will continue to raise the boredom level. The higher the players\' boredom, the more negative effects you will experience.';
+      var secsToReshuffle = 0;
       if (hasEffects) {
-        html += '<br><br><b>Active effects:</b><br>' +
-          (activeNames.length ? activeNames.map(function (n) { return '<div class="red">&bull; ' + n + '</div>'; }).join('') : '<span class="red">(none this hour)</span>');
         var now = Date.now();
         var nextHourMs = (Math.floor(now / 3600000) + 1) * 3600000;
-        var secsToReshuffle = Math.max(1, Math.min(3600, (nextHourMs - now) / 1000));
-        var reshuffleLine = 'Debuffs reshuffle at the top of each hour (next in ' + formatDuration(secsToReshuffle) + ').';
-        html += '<br>' + reshuffleLine;
+        secsToReshuffle = Math.max(1, Math.min(3600, (nextHourMs - now) / 1000));
       }
-      boredomWrapEl.setAttribute('data-desc-html', html);
-      boredomWrapEl.removeAttribute('data-desc');
+      var bKey = filled + '|' + activeNames.join('|') + '|' + (hasEffects ? formatDuration(secsToReshuffle) : '');
+      if (boredomWrapEl._htmlKey !== bKey) {
+        boredomWrapEl._htmlKey = bKey;
+        var html = 'Your player base is becoming bored by your lack of diversity. Boredom can be lowered by using new and different actions, repeating the same actions (even when not sequential) will continue to raise the boredom level. The higher the players\' boredom, the more negative effects you will experience.';
+        if (hasEffects) {
+          html += '<br><br><b>Active effects:</b><br>' +
+            (activeNames.length ? activeNames.map(function (n) { return '<div class="red">&bull; ' + n + '</div>'; }).join('') : '<span class="red">(none this hour)</span>');
+          var reshuffleLine = 'Debuffs reshuffle at the top of each hour (next in ' + formatDuration(secsToReshuffle) + ').';
+          html += '<br>' + reshuffleLine;
+        }
+        boredomWrapEl.setAttribute('data-desc-html', html);
+        boredomWrapEl.removeAttribute('data-desc');
+      }
     }
 
     function formatCostTime(sec) {
@@ -2432,32 +2444,37 @@ DownlineM.init = function(div) {
 
     function renderActiveSlots() {
       var allSlots = activeList.querySelectorAll('.downline-active-slot');
+      var max = getEffectiveMaxSlots();
       for (var i = 0; i < allSlots.length; i++) {
-        allSlots[i].innerHTML = '';
-        if (i >= G.activeActions.length) {
-          allSlots[i].classList.add('available');
-        } else {
-          allSlots[i].classList.remove('available');
-        }
-      }
-      for (var j = 0; j < G.activeActions.length && j < allSlots.length; j++) {
-        var state = G.activeActions[j];
-        var existingChip = allSlots[j].querySelector('.downline-active-chip[data-state-index="' + j + '"]');
-        if (!existingChip) {
-          var def = ACTIONS[state.name];
-          if (def) {
-            var chip = document.createElement('span');
-            chip.className = 'downline-active-chip';
-            chip.setAttribute('data-name', state.name);
-            chip.setAttribute('data-state-index', j);
-            chip.title = state.name;
-            chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
-            var overlay = document.createElement('span');
-            overlay.className = 'downline-active-overlay';
-            chip.appendChild(overlay);
-            allSlots[j].appendChild(chip);
-            addTooltipListeners(chip);
+        var slot = allSlots[i];
+        var state = i < G.activeActions.length ? G.activeActions[i] : null;
+        var wantName = state ? state.name : null;
+        if (slot._renderedName !== wantName) {
+          slot.innerHTML = '';
+          slot._chip = null;
+          slot._renderedName = wantName;
+          if (state) {
+            var def = ACTIONS[state.name];
+            if (def) {
+              var chip = document.createElement('span');
+              chip.className = 'downline-active-chip';
+              chip.setAttribute('data-name', state.name);
+              chip.title = state.name;
+              chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
+              var overlay = document.createElement('span');
+              overlay.className = 'downline-active-overlay';
+              chip.appendChild(overlay);
+              chip._overlayEl = overlay;
+              slot.appendChild(chip);
+              addTooltipListeners(chip);
+              slot._chip = chip;
+            }
           }
+        }
+        slot.classList.toggle('available', i < max && !state);
+        if (state) {
+          state._chipEl = slot._chip;
+          if (slot._chip && slot._chip.getAttribute('data-state-index') !== String(i)) slot._chip.setAttribute('data-state-index', i);
         }
       }
     }
@@ -2528,14 +2545,19 @@ DownlineM.init = function(div) {
 
     function checkUnlocks() {
       var noUnique = hasBoredomEffect('no_unique');
-      actionsListEl.querySelectorAll('.downline-action-item[data-name]').forEach(function (el) {
+      var items = actionsListEl._itemEls;
+      if (!items) items = actionsListEl._itemEls = actionsListEl.querySelectorAll('.downline-action-item[data-name]');
+      items.forEach(function (el) {
         var def = ACTIONS[el.getAttribute('data-name')];
         if (!def) return;
         if (def.unlock.conditions && def.unlock.conditions.length > 0 && conditionsMet(def.unlock.conditions)) G.unlocked[def.name] = true;
         var usableOk = def.isUsable && def.isUsable();
         var blockedByNoUnique = def.unique && noUnique;
         var isLocked = !usableOk || blockedByNoUnique;
-        el.classList.toggle('locked', isLocked);
+        if (el._locked !== isLocked) {
+          el._locked = isLocked;
+          el.classList.toggle('locked', isLocked);
+        }
       });
     }
 
@@ -2629,14 +2651,16 @@ DownlineM.init = function(div) {
 
     function updateBarChevrons() {
       var rates = computeBarRates();
-      var ch = $('downline-chevrons-hype');
-      var cc = $('downline-chevrons-commitment');
-      var cr = $('downline-chevrons-referrals');
-      var crp = $('downline-chevrons-reputation');
-      if (ch)  ch.innerHTML  = makeChevronHTML(rates.hype);
-      if (cc)  cc.innerHTML  = makeChevronHTML(rates.commitment);
-      if (cr)  cr.innerHTML  = makeChevronHTML(rates.referrals);
-      if (crp) crp.innerHTML = makeChevronHTML(rates.reputation);
+      function setChev(id, rate) {
+        var el = $(id);
+        if (!el) return;
+        var html = makeChevronHTML(rate);
+        if (el._html !== html) { el._html = html; el.innerHTML = html; }
+      }
+      setChev('downline-chevrons-hype', rates.hype);
+      setChev('downline-chevrons-commitment', rates.commitment);
+      setChev('downline-chevrons-referrals', rates.referrals);
+      setChev('downline-chevrons-reputation', rates.reputation);
     }
 
     function updateUI() {
@@ -2687,40 +2711,47 @@ DownlineM.init = function(div) {
       if (G.referrals >= 300) G.releaseMetReferrals = true;
       var releaseMetCurrentPlayers = totalPlayers() >= 1500;
       var canReleaseFractal = G.releaseMetPlayers && G.releaseMetHype && G.releaseMetCommitment && G.reputation > 750 && G.releaseMetReferrals && releaseMetCurrentPlayers;
+      var boostNow = getCurrentBoost();
       var releaseWrap = $('downline-release-wrap');
       if (releaseWrap) {
         releaseWrap.classList.toggle('locked', !canReleaseFractal);
         releaseWrap.classList.toggle('downline-release-ready', canReleaseFractal);
         var releaseBtn = $('downline-release-btn');
         if (releaseBtn) releaseBtn.classList.toggle('warning', !canReleaseFractal);
-        var currentBoost = getCurrentBoost();
-        var tenPct = currentBoost * 0.1;
-        function colorClass(met) { return met ? 'green' : 'red'; }
+        var tenPct = boostNow * 0.1;
         var prestigeSpeedMult = getPrestigeSpeedMult(G.prestige);
-        var tooltipHtml = '<b>Release Fractal Engine Minigame</b><div class="line"></div>' +
-          'Reset your Downline progress to earn <b>Fractal Prestige</b> and permanently increase your Downline speed until next ascension.<br><br>' +
-          'Speed increases each release following the golden ratio.<br><br>' +
-          '<span class="green">Next release would add: +' + tenPct.toFixed(2) + '%</span>' +
-          (G.prestige >= 1 ? ('<br><span class="green">Current speed boost: ' + prestigeSpeedMult + '×</span>') : '') +
-          '<br><br>' +
-          'Unlocks At Peak Stats:<br>' +
-          '<div class="' + colorClass(G.releaseMetPlayers) + '">&bull; At least 5000 Players</div>' +
-          '<div class="' + colorClass(G.releaseMetHype) + '">&bull; At least 800 Hype</div>' +
-          '<div class="' + colorClass(G.releaseMetCommitment) + '">&bull; At least 800 Commitment</div>' +
-          '<div class="' + colorClass(G.releaseMetReferrals) + '">&bull; At least 300 Word of Mouth</div><br>' +
-          'Requires:<br>' +
-          '<div class="' + colorClass(releaseMetCurrentPlayers) + '">&bull; 1500+ current Players</div>' +
-          '<div class="' + colorClass(G.reputation > 750) + '">&bull; A current Reputation of at least 750</div>';
-        releaseWrap.setAttribute('data-desc-html', tooltipHtml);
-        releaseWrap.removeAttribute('data-desc');
+        var releaseKey = [canReleaseFractal, G.releaseMetPlayers, G.releaseMetHype, G.releaseMetCommitment, G.releaseMetReferrals, G.reputation > 750, releaseMetCurrentPlayers, tenPct.toFixed(2), prestigeSpeedMult].join('|');
+        if (releaseWrap._ttKey !== releaseKey) {
+          releaseWrap._ttKey = releaseKey;
+          function colorClass(met) { return met ? 'green' : 'red'; }
+          var tooltipHtml = '<b>Release Fractal Engine Minigame</b><div class="line"></div>' +
+            'Reset your Downline progress to earn <b>Fractal Prestige</b> and permanently increase your Downline speed until next ascension.<br><br>' +
+            'Speed increases each release following the golden ratio.<br><br>' +
+            '<span class="green">Next release would add: +' + tenPct.toFixed(2) + '%</span>' +
+            (G.prestige >= 1 ? ('<br><span class="green">Current speed boost: ' + prestigeSpeedMult + '×</span>') : '') +
+            '<br><br>' +
+            'Unlocks At Peak Stats:<br>' +
+            '<div class="' + colorClass(G.releaseMetPlayers) + '">&bull; At least 5000 Players</div>' +
+            '<div class="' + colorClass(G.releaseMetHype) + '">&bull; At least 800 Hype</div>' +
+            '<div class="' + colorClass(G.releaseMetCommitment) + '">&bull; At least 800 Commitment</div>' +
+            '<div class="' + colorClass(G.releaseMetReferrals) + '">&bull; At least 300 Word of Mouth</div><br>' +
+            'Requires:<br>' +
+            '<div class="' + colorClass(releaseMetCurrentPlayers) + '">&bull; 1500+ current Players</div>' +
+            '<div class="' + colorClass(G.reputation > 750) + '">&bull; A current Reputation of at least 750</div>';
+          releaseWrap.setAttribute('data-desc-html', tooltipHtml);
+          releaseWrap.removeAttribute('data-desc');
+        }
       }
 
-      var currentBoostVal = G.frozen ? getCurrentBoost() * FROZEN_SPEED_FRAC : getCurrentBoost();
+      var currentBoostVal = G.frozen ? boostNow * FROZEN_SPEED_FRAC : boostNow;
       var boostText = currentBoostVal.toFixed(2) + '%';
       var prestigeVal = G.prestigeBoost > 0 ? G.prestigeBoost : 0;
       if (prestigeVal > 0) boostText += '<br>(+' + prestigeVal.toFixed(2) + '%  Fractal Prestige)';
       var boostEl = $('downline-status-boost');
-      boostEl.innerHTML = boostText;
+      if (boostEl._lastHtml !== boostText) {
+        boostEl._lastHtml = boostText;
+        boostEl.innerHTML = boostText;
+      }
       boostEl.classList.toggle('green', currentBoostVal >= 0);
       boostEl.classList.toggle('red', currentBoostVal < 0);
       var titleEl = document.querySelector('.downline-status-title');
@@ -2733,22 +2764,22 @@ DownlineM.init = function(div) {
 
       activeCountEl.textContent = G.activeActions.length;
 
-      G.activeActions.forEach(function (a, index) {
+      G.activeActions.forEach(function (a) {
         var pct = a.totalSec <= 0 ? 1 : clamp(1 - a.remainSec / a.totalSec, 0, 1);
         var T = (pct * 144) % 144;
         var frame = Math.floor(T);
         var cell = 36;
-        var chip = document.querySelector('.downline-active-chip[data-state-index="' + index + '"]');
-        if (chip) {
-          var overlay = chip.querySelector('.downline-active-overlay');
-          if (overlay) {
-            overlay.style.backgroundPosition = (-(frame % 18) * cell) + 'px ' + (-Math.floor(frame / 18) * cell) + 'px';
-          }
+        var overlay = a._chipEl && a._chipEl._overlayEl;
+        if (overlay) {
+          overlay.style.backgroundPosition = (-(frame % 18) * cell) + 'px ' + (-Math.floor(frame / 18) * cell) + 'px';
         }
       });
-      syncDebugLabels();
-      updateSlotAvailability();
-
+      if (Game.downlineDebug) syncDebugLabels();
+      var slowNow = Date.now();
+      if (!DownlineM._slowUiMs || slowNow - DownlineM._slowUiMs >= 250) {
+        DownlineM._slowUiMs = slowNow;
+        updateSlotAvailability();
+      }
       updateBarChevrons();
       checkUnlocks();
     }
@@ -2836,10 +2867,12 @@ DownlineM.init = function(div) {
       }
       updateUI();
 
-      var baseSpeedLabel = G.speed === 0 ? 'PAUSED' : (lumpBoostActive ? '10× (lump)' : G.speed + 'x');
-      var speedLabel = (G.prestige >= 1 && baseSpeedLabel !== 'PAUSED') ? baseSpeedLabel + ' (' + prestigeSpeedMult + '× from releases)' : baseSpeedLabel;
-      if (G.frozen) speedLabel = '(frozen)';
-      $('debug-stats').textContent = 'tick ' + G.tickCount + ' | ' + Math.floor(G.elapsedSec) + 's game | ' + formatNum(totalPlayers()) + ' players | ' + speedLabel;
+      if (Game.downlineDebug) {
+        var baseSpeedLabel = G.speed === 0 ? 'PAUSED' : (lumpBoostActive ? '10× (lump)' : G.speed + 'x');
+        var speedLabel = (G.prestige >= 1 && baseSpeedLabel !== 'PAUSED') ? baseSpeedLabel + ' (' + prestigeSpeedMult + '× from releases)' : baseSpeedLabel;
+        if (G.frozen) speedLabel = '(frozen)';
+        $('debug-stats').textContent = 'tick ' + G.tickCount + ' | ' + Math.floor(G.elapsedSec) + 's game | ' + formatNum(totalPlayers()) + ' players | ' + speedLabel;
+      }
 
       var totBoost = getCurrentBoost() * (G.frozen ? FROZEN_SPEED_FRAC : 1) + (G.prestigeBoost || 0);
       var newEffs = 1 + totBoost / 100;
@@ -2847,8 +2880,8 @@ DownlineM.init = function(div) {
       
       if (cpsChanged) {
         DownlineM.effs = { cps: newEffs };
-        if (!DownlineM._lastRecalcTime || G.elapsedSec - DownlineM._lastRecalcTime >= 0.5) {
-          DownlineM._lastRecalcTime = G.elapsedSec;
+        if (!DownlineM._lastRecalcMs || now - DownlineM._lastRecalcMs >= 500) {
+          DownlineM._lastRecalcMs = now;
           Game.recalculateGains = 1;
         }
       }
