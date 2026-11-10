@@ -21,7 +21,8 @@ function puzzleFetch(path, bust) {
         return get(PUZZLE_BASE_FALLBACK);
     });
 }
-function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : (2 * 3600 - (Game.Has('Your Other Half Off') ? 1800 : 0)) * 1000; }
+// the coupon only shortens cooldowns that start after it is owned; base=true ignores it (used to clamp saved timers)
+function puzzleCooldown(base) { return ClonesM.debug ? 15 * 1000 : (2 * 3600 - (!base && Game.Has('Your Other Half Off') ? 1800 : 0)) * 1000; }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
 var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]];
@@ -1345,11 +1346,10 @@ function applyCloneReward(rw) {
             break;
         }
         case 'extend_buffs': {
-            var n = 0;
             for (var bn in Game.buffs) {
                 var bb = Game.buffs[bn];
                 if (typeof bb.time !== 'number' || bb.time < 0) continue; // skip permanent/untimed buffs
-                bb.time += 30 * Game.fps; bb.maxTime += 30 * Game.fps; n++;
+                bb.time += 30 * Game.fps; bb.maxTime += 30 * Game.fps;
             }
             note('Buffs have been extended!');
             break;
@@ -1368,8 +1368,7 @@ function applyCloneReward(rw) {
             if (!PM2 || !PM2.G) { fizzle('the potion brewery'); break; }
             var ids = {}, rid;
             for (rid in PM2.G.unlockedReagents) ids[rid] = 1; for (rid in PM2.G.reagents) ids[rid] = 1;
-            var count = 0;
-            for (rid in ids) { PM2.G.reagents[rid] = PM2.G.maxReagents; count++; }
+            for (rid in ids) { PM2.G.reagents[rid] = PM2.G.maxReagents; }
             if (PM2._renderSelectedReagents) PM2._renderSelectedReagents();
             if (PM2._buildReagents) PM2._buildReagents();
             note('Reagents everywhere the eye can see!');
@@ -1382,7 +1381,6 @@ function applyCloneReward(rw) {
             break;
         }
         case 'remove_seasons': {
-            var forgotten = Math.min(5, Game.seasonUses);
             Game.seasonUses = Math.max(0, Game.seasonUses - 5);
             note('Your rememberance of the calendar is suddenly weaker!');
             break;
@@ -1918,7 +1916,7 @@ ClonesM.launch = function() {
         var file = (typeof data.file === 'string' && data.file) ? data.file : null;
         G.puzzleFile = file;
         G.won = saveNum(data.won);
-        G.nextPuzzleAt = Math.min(saveNum(data.nextPuzzleAt), Date.now() + puzzleCooldown());
+        G.nextPuzzleAt = Math.min(saveNum(data.nextPuzzleAt), Date.now() + puzzleCooldown(true));
         var tp = data.tierProg;
         // an unrecognized unlocked tier would lock every tier out
         if (tp && typeof tp === 'object' && TIER_KEYS.indexOf(tp.u) >= 0) {

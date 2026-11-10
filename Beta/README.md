@@ -57,14 +57,18 @@ The mobile version of Cookie Clicker does not support mods at this time.
 
 ## Changelog  
 
-### Version 0.8.3
+### Version 0.8.3 - Gobble Gobble
+* Just in time for the holidays come celebrate overeating and mindless consumerism with Just Natural Expansions new season Thanksgiving. Collect eratic turkeys and golden/wrath cookie coupons for valuable upgrades to all 8 minigames!
 * High levels of JS Console could accidently award an extra execution slot, this has been fixed, sorry if you see 1 less slot. 
 * Fixed a couple of calculation errors with some Heavenly Upgrades, most are now more favorable to the player. 
 * Breath of Growth and Cloneconomics can now both be used together. 
 * Solving a Clone Escape scenario now can drop a Potion Class reagent. 
 * Mega Click popups have had their default cooldown increased and can also now be completely disabled in Options. 
-* Minor bug fixes, improvements, and code cleanup. 
 * Slightly reduced the power of Golden Cookies spawn faster Clone Escape reward. 
+* Terminal minigame slot queue icons are now more descriptive. 
+* Terminal now has the option of activating all 3 loans at once. 
+* Minor bug fixes, improvements, and code cleanup. 
+
 
 ### Version 0.8.2
 * Clone Escape has a new hint/supervisor system that should be much more reliable in showing the minimal set of clues needed for the shown hint. 

@@ -207,40 +207,9 @@
     Game.Tiers['jne10'] = { name: 'Magmallow', color: '#D81A00', special: 1, unlock: -1 };
     Game.Tiers['jne11'] = { name: 'Blazium', color: '#D01078', special: 1, unlock: -1 };
 
-    function getJNETier(threshold) {
-        if (threshold >= 1250) return 'jne11';
-        if (threshold >= 1200) return 'jne10';
-        if (threshold >= 1150) return 'jne9';
-        if (threshold >= 1100) return 'jne8';
-        if (threshold >= 1050) return 'jne7';
-        if (threshold >= 1000) return 'jne6';
-        if (threshold >= 950) return 'jne5';
-        if (threshold >= 900) return 'jne4';
-        if (threshold >= 850) return 'jne3';
-        if (threshold >= 800) return 'jne2';
-        return 'jne1';
-    }
-
-    function getJNEKittenTier(achievementThreshold) {
-        if (achievementThreshold >= 1000) return 'jne11';
-        if (achievementThreshold >= 950) return 'jne10';
-        if (achievementThreshold >= 900) return 'jne9';
-        if (achievementThreshold >= 850) return 'jne8';
-        if (achievementThreshold >= 800) return 'jne7';
-        if (achievementThreshold >= 750) return 'jne6';
-        if (achievementThreshold >= 700) return 'jne5';
-        if (achievementThreshold >= 650) return 'jne4';
-        if (achievementThreshold >= 600) return 'jne3';
-        if (achievementThreshold >= 550) return 'jne2';
-        return 'jne1';
-    }
-
-    function addJNETierLabel(upgrade, threshold) {
-        upgrade.tier = getJNETier(threshold);
-    }
-
-    function addJNEKittenTierLabel(upgrade, achievementThreshold) {
-        upgrade.tier = getJNEKittenTier(achievementThreshold);
+    // jne2 starts at `base`, +1 tier per 50, capped at jne11 (buildings base 800, kittens 550)
+    function addJNETierLabel(upgrade, threshold, base) {
+        upgrade.tier = 'jne' + Math.min(11, Math.max(1, Math.floor((threshold - base) / 50) + 2));
     }
 
 var pendingTerminalMinigameSave = '';
@@ -2707,20 +2676,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
 
-    function setTerminalMinigameSave(serializedState) {
-        try {
-            if (!Game.JNE) Game.JNE = {};
-            Game.JNE.terminalSavedData = (typeof serializedState === 'string') ? serializedState : '';
-            pendingTerminalMinigameSave = Game.JNE.terminalSavedData;
-
-            if (window.TerminalMinigame && typeof window.TerminalMinigame.applySaveData === 'function') {
-                window.TerminalMinigame.applySaveData(Game.JNE.terminalSavedData);
-            }
-        } catch (e) {
-            errorLog('Failed to set Terminal minigame state:', e && e.message ? e.message : e);
-        }
-    }
-
     // Unified minigame configuration
     var minigameConfigs = [
         {
@@ -3200,7 +3155,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var str = g.initFunc.toString();
         if (str.indexOf(marker) < 0) return;
         var snip = "if(Game.season==='thanksgiving'){bgPic=window.jneArt('coupons');picX=Math.floor(Math.random()*4);picY=me.wrath?1:0;picW=128;picH=128;}\n";
-        try { g.initFunc = eval('(' + str.replace(marker, snip + marker) + ')'); g._jneInitInjected = true; }
+        try { g.initFunc = (0, eval)('(' + str.replace(marker, snip + marker) + ')'); g._jneInitInjected = true; }
         catch (e) { console.error('JNE: golden initFunc injection failed', e); }
     }
 
@@ -3427,7 +3382,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }
 
             Game.shimmerTypes['golden']._jneOrigPopFunc = originalPopFunc; // Captured before eval for predictor mode
-            Game.shimmerTypes['golden'].popFunc = eval('(' + str + ')');
+            Game.shimmerTypes['golden'].popFunc = (0, eval)('(' + str + ')');
             window.JNE_lifetimeData = lifetimeData;
             Game.shimmerTypes['golden']._effectInjected = true;
             Game._potionsGoldenCookieHooked = true;
@@ -3614,7 +3569,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         return match + '\n' + injection;
                     });
 
-                    Game.shimmerTypes['golden'].getTimeMod = eval('(' + modifiedFunctionStr + ')');
+                    Game.shimmerTypes['golden'].getTimeMod = (0, eval)('(' + modifiedFunctionStr + ')');
                     Game.shimmerTypes['golden']._goldenCookieHooked = true;
                 } catch (error) {
                     console.error('JNE: Error injecting getTimeMod modifications:', error);
@@ -4057,20 +4012,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                     if (foundPattern) {
                         // 0.005 = ~15.8% per kitten
+                        const kittenMultLines = kittenUpgradeNames.map(function(name) {
+                            return "if(Game.Has('" + name + "')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n";
+                        }).join('');
                         const injection = "//JUST NATURAL EXPANSION MODIFICATIONS FOLLOW\n" +
-                                         "if(Game.Has('Kitten unpaid interns')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten overpaid \"temporary\" contractors')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten remote workers')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten scrum masters')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten UX designers')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten janitors')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten coffee fetchers')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten personal assistants')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten vice presidents')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten board members')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten founders')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten Equity Partners')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
-                                         "if(Game.Has('Kitten Senators')){catMult*=(1+Game.milkProgress*0.005*milkMult);}\n" +
+                                         kittenMultLines +
                                          "//END JUST NATURAL EXPANSION MODIFICATIONS\n";
 
                         let modifiedFunctionStr = originalFunctionStr.replace(
@@ -4078,7 +4024,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             injection + "\n" + originalFunctionStr.match(foundPattern)[0]
                         );
 
-                        Game.CalculateGains = eval('(' + modifiedFunctionStr + ')');
+                        Game.CalculateGains = (0, eval)('(' + modifiedFunctionStr + ')');
                     }
                 }
             } catch (error) {
@@ -4135,13 +4081,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     }
 
     // Lists of mod upgrade names by category for easy removal/addition
-    var cookieUpgradeNames = window.JNEData ? window.JNEData.cookieUpgradeNames : [];
-    var buildingUpgradeNames = window.JNEData ? window.JNEData.buildingUpgradeNames : [];
-
-    var kittenUpgradeNames = ['Kitten unpaid interns', 'Kitten overpaid "temporary" contractors', 'Kitten remote workers', 'Kitten scrum masters', 'Kitten UX designers', 'Kitten janitors', 'Kitten coffee fetchers', 'Kitten personal assistants', 'Kitten vice presidents', 'Kitten board members', 'Kitten founders', 'Kitten Equity Partners', 'Kitten Senators'];
+    var kittenUpgradeNames = window.JNEData ? window.JNEData.kittenUpgradeNames : [];
     var modKittenUpgradeNameSet = {};
     kittenUpgradeNames.forEach(function(name) { modKittenUpgradeNameSet[name] = true; });
-    var heavenlyDonutUpgradeNames = ['Maple frosted donut', 'Boston creme donut', 'Strawberry jelly donut', 'Chocolate frosted donut', 'Donut holes', 'Chocolate filled donut', 'Powdered sugar jelly donut', 'Plain glazed donut', 'Blueberry jelly filled donut', 'Pink frosted donut', 'Chocolate sprinkle donut', 'Bear claw', 'Chocolate eclair'];
+    var heavenlyDonutUpgradeNames = window.JNEData ? window.JNEData.donutUpgradeNames : [];
     var heavenlyGardenUpgradeNames = ['Sparkling sugar cane', 'Krazy kudzu', 'Magic mushroom'];
 
     // Generate combined mod upgrade names array on the fly
@@ -4175,17 +4118,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
 
         if (modSettings.enableExtraSeasons) COUPONS.forEach(function(c) { addName(c[0]); });
-
-        // Fallback to legacy hard-coded lists if upgradeData wasn't available yet
-        if (names.length === 0) {
-            cookieUpgradeNames.forEach(addName);
-            buildingUpgradeNames.forEach(addName);
-            kittenUpgradeNames.forEach(addName);
-            if (modSettings.enableHeavenlyUpgrades) {
-                heavenlyDonutUpgradeNames.forEach(addName);
-                heavenlyGardenUpgradeNames.forEach(addName);
-            }
-        }
 
         return names;
     }
@@ -4645,19 +4577,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         buildingGroups[buildingName] = [];
                     }
 
-                    // Extract threshold for sorting
-                    var threshold = 0;
-                    if (upgradeInfo.unlockCondition) {
-                        var unlockStr = upgradeInfo.unlockCondition.toString();
-                        var thresholdMatch = unlockStr.match(/>=\s*(\d+)/);
-                        if (thresholdMatch) {
-                            threshold = parseInt(thresholdMatch[1]);
-                        }
-                    }
-
                     buildingGroups[buildingName].push({
                         upgrade: upgradeInfo,
-                        threshold: threshold
+                        threshold: upgradeInfo.threshold || 0
                     });
                 }
             }
@@ -4684,19 +4606,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                             buildingGroups[buildingName] = [];
                         }
 
-                        // Extract threshold for sorting
-                        var threshold = 0;
-                        if (upgradeInfo.unlockCondition) {
-                            var unlockStr = upgradeInfo.unlockCondition.toString();
-                            var thresholdMatch = unlockStr.match(/>=\s*(\d+)/);
-                            if (thresholdMatch) {
-                                threshold = parseInt(thresholdMatch[1]);
-                            }
-                        }
-
                         buildingGroups[buildingName].push({
                             upgrade: upgradeInfo,
-                            threshold: threshold
+                            threshold: upgradeInfo.threshold || 0
                         });
                     }
                 }
@@ -4749,19 +4661,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 for (var i = 0; i < upgradeData.kitten.length; i++) {
                     var upgradeInfo = upgradeData.kitten[i];
 
-                    // Extract threshold from unlock condition
-                    var threshold = 0;
-                    if (upgradeInfo.unlockCondition) {
-                        var unlockStr = upgradeInfo.unlockCondition.toString();
-                        var thresholdMatch = unlockStr.match(/>= (\d+)/);
-                        if (thresholdMatch) {
-                            threshold = parseInt(thresholdMatch[1]);
-                        }
-                    }
-
                     sortedKittenUpgrades.push({
                         upgrade: upgradeInfo,
-                        threshold: threshold
+                        threshold: upgradeInfo.threshold || 0
                     });
                 }
 
@@ -5425,7 +5327,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         return lifetimeGardenSacrifices >= threshold;
                     case 'allKittensOwned':
                         var vanillaKittens = ['Kitten helpers', 'Kitten workers', 'Kitten engineers', 'Kitten overseers', 'Kitten managers', 'Kitten accountants', 'Kitten specialists', 'Kitten experts', 'Kitten consultants', 'Kitten assistants to the regional manager', 'Kitten marketeers', 'Kitten analysts', 'Kitten executives', 'Kitten admins', 'Kitten strategists', 'Kitten angels', 'Fortune #103'];
-                        var modKittens = ['Kitten unpaid interns', 'Kitten overpaid "temporary" contractors', 'Kitten remote workers', 'Kitten scrum masters', 'Kitten UX designers', 'Kitten janitors', 'Kitten coffee fetchers', 'Kitten personal assistants', 'Kitten vice presidents', 'Kitten board members', 'Kitten founders', 'Kitten Equity Partners', 'Kitten Senators'];
+                        var modKittens = kittenUpgradeNames;
 
                         if (threshold <= 18) {
                             // Check if all vanilla kittens are owned (Kitten Jamoree)
@@ -5810,6 +5712,18 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // Upgrade data structure
     var upgradeData = window.JNEData ? window.JNEData.upgradeData : null;
+    // building/kitten unlocks come from the def's building + threshold (data.js has no condition code)
+    if (upgradeData) {
+        upgradeData.building.forEach(function(u) {
+            u.unlockCondition = function() {
+                var b = Game.Objects[u.building];
+                return !!b && b.amount >= u.threshold;
+            };
+        });
+        upgradeData.kitten.forEach(function(u) {
+            u.unlockCondition = function() { return Game.AchievementsOwned >= u.threshold; };
+        });
+    }
     var seasonalReindeerData = '00000';
 
     function getSeasonIndex(season) {
@@ -6299,6 +6213,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.shimmerTypes['turkey'].reset();
     }
 
+    // pantheon cooldown after a swap has been set: 16h, then 4h, then 1h (vanilla), minus 10% with the coupon
+    function shortenPantheonCooldown(m) {
+        if (!Game.Has('The Gods Must Be Clearance') || m.swaps >= 3) return;
+        var t = m.swaps == 0 ? 1000 * 60 * 60 * 16 : m.swaps == 1 ? 1000 * 60 * 60 * 4 : 1000 * 60 * 60;
+        m.swapT -= t * 0.1;
+    }
+
     // coupon effects on the vanilla minigames (mod minigames check Game.Has inline)
     function hookCouponMinigames() {
         var farm = Game.Objects['Farm'].minigame, temple = Game.Objects['Temple'].minigame, bank = Game.Objects['Bank'].minigame;
@@ -6307,11 +6228,22 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             farm.getMuts = function() { var r = origMuts.apply(this, arguments); if (Game.Has('Yard sale')) r.forEach(function(m) { m[1] *= 1.05; }); return r; };
             farm.getMuts._jne = 1;
         }
-        if (temple && temple.logic && !temple.logic._jne) { // The Gods Must Be Clearance: 1/9 faster swap timer per tick = 10% shorter
+        // The Gods Must Be Clearance: each pantheon cooldown starts 10% shorter, so the timer shows it straight away
+        if (temple && temple.logic && !temple.logic._jne) {
             var origLogic = temple.logic;
-            temple.logic = function() { origLogic.apply(this, arguments); if (Game.Has('The Gods Must Be Clearance') && temple.swaps < 3) temple.swapT -= 1000 / Game.fps / 9; };
+            temple.logic = function() {
+                var before = this.swaps;
+                origLogic.apply(this, arguments);
+                if (this.swaps > before) shortenPantheonCooldown(this);
+            };
             temple.logic._jne = 1;
         }
+        if (temple && temple.useSwap && !temple.useSwap._jne) {
+            var origUse = temple.useSwap;
+            temple.useSwap = function() { var r = origUse.apply(this, arguments); shortenPantheonCooldown(temple); return r; };
+            temple.useSwap._jne = 1;
+        }
+        if (Game.useSwap && temple && Game.useSwap !== temple.useSwap) Game.useSwap = temple.useSwap; // Game.useSwap is the same function
         if (bank && bank.takeLoan && !bank.takeLoan._jne) { // Overstock Sale
             var origLoan = bank.takeLoan;
             Game.takeLoan = bank.takeLoan = function(id, interest) {
@@ -6770,25 +6702,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             upgrade.isUnlocked = function() { return this.unlockCondition ? this.unlockCondition() : true; };
             upgrade.isBought = function() { return this.bought > 0; };
 
-            // Apply  tier label
-            if (upgradeInfo.building && upgradeInfo.unlockCondition) {
-                var threshold = 0;
-                var unlockStr = upgradeInfo.unlockCondition.toString();
-                var thresholdMatch = unlockStr.match(/>=\s*(\d+)/); //yea yea hacky but I didnt want to try and script a massive file edit
-                if (thresholdMatch) {
-                    threshold = parseInt(thresholdMatch[1]);
-                    addJNETierLabel(upgrade, threshold);
-                }
+            // Apply tier label
+            if (upgradeInfo.building && upgradeInfo.threshold !== undefined) {
+                addJNETierLabel(upgrade, upgradeInfo.threshold, 800);
             }
-
-            if (upgradeInfo.pool === 'kitten' && upgradeInfo.unlockCondition) {
-                var achievementThreshold = 0;
-                var unlockStr = upgradeInfo.unlockCondition.toString();
-                var thresholdMatch = unlockStr.match(/>=\s*(\d+)/);
-                if (thresholdMatch) {
-                    achievementThreshold = parseInt(thresholdMatch[1]);
-                    addJNEKittenTierLabel(upgrade, achievementThreshold);
-                }
+            if (upgradeInfo.pool === 'kitten' && upgradeInfo.threshold !== undefined) {
+                addJNETierLabel(upgrade, upgradeInfo.threshold, 550);
             }
 
             // Start all upgrades as locked - our checkAndUnlockOrderUpgrades function will manage unlock state
@@ -6857,14 +6776,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         };
 
         // Apply tier label
-        if (upgradeInfo.pool === 'kitten' && upgradeInfo.unlockCondition) {
-            var achievementThreshold = 0;
-            var unlockStr = upgradeInfo.unlockCondition.toString();
-            var thresholdMatch = unlockStr.match(/>=\s*(\d+)/); //yea yea hacky but I didnt want to try and script a massive file edit
-            if (thresholdMatch) {
-                achievementThreshold = parseInt(thresholdMatch[1]);
-                addJNEKittenTierLabel(Game.last, achievementThreshold);
-            }
+        if (upgradeInfo.pool === 'kitten' && upgradeInfo.threshold !== undefined) {
+            addJNETierLabel(Game.last, upgradeInfo.threshold, 550);
         }
 
         registerUpgrade(upgradeInfo, 'kitten', { kitten: upgradeInfo.kitten });
@@ -7152,14 +7065,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             }
 
             // Apply tier label
-            if (Game.last && upgradeInfo.unlockCondition) {
-                var threshold = 0;
-                var unlockStr = upgradeInfo.unlockCondition.toString();
-                var thresholdMatch = unlockStr.match(/>=\s*(\d+)/); //yea yea hacky but I didnt want to try and script a massive file edit
-                if (thresholdMatch) {
-                    threshold = parseInt(thresholdMatch[1]);
-                    addJNETierLabel(Game.last, threshold);
-                }
+            if (Game.last && upgradeInfo.threshold !== undefined) {
+                addJNETierLabel(Game.last, upgradeInfo.threshold, 800);
             }
         } catch (e) {
             console.error('Error creating building upgrade:', upgradeInfo.name, e);
@@ -7580,7 +7487,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (modSaveData.settings.enableMinigames !== undefined) {
                 modSettings.enableMinigames = modSaveData.settings.enableMinigames;
             } else if (modSaveData.settings.enableJSMiniGame !== undefined || modSaveData.settings.enableDownlineMinigame !== undefined) {
-                // Migrate old individual minigame settings to combined setting
+                // pre-0.6.7 save format, safe to remove after June 2027: migrate old individual minigame settings
                 var jsEnabled = modSaveData.settings.enableJSMiniGame || false;
                 var downlineEnabled = modSaveData.settings.enableDownlineMinigame || false;
                 modSettings.enableMinigames = jsEnabled || downlineEnabled;
@@ -8065,7 +7972,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (huData && huData.boughtUpgrades && Array.isArray(huData.boughtUpgrades)) {
                 heavenlyUpgradesArray = huData.boughtUpgrades;
             } else if (huData && huData.upgrades) {
-                // Legacy object format support
+                // pre-0.6.7 save format, safe to remove after June 2027: legacy object format
                 heavenlyUpgradesArray = Object.keys(huData.upgrades)
                     .filter(function(k) { return huData.upgrades[k].bought; });
             }
@@ -8089,7 +7996,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 cu: Object.keys(saveObj.upgrades || {}) // coupons found but not bought
                     .filter(function(k) { return saveObj.upgrades[k].unlocked && !saveObj.upgrades[k].bought; }),
                 a: wonAchievements,
-                h: heavenlyUpgradesArray,
+                h: heavenlyUpgradesArray, // read only by the pre-0.6.7 h[] reader, drop with it after June 2027
                 hu: huDataString, // Save full heavenly upgrades data
                 lt: saveObj.lifetime,
                 s: saveObj.settings,
@@ -8121,6 +8028,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         try {
             const data = JSON.parse(str);
 
+            // pre-0.6.7 uncompressed save, safe to remove after June 2027
             if (data.version !== undefined) {
                 return data;
             }
@@ -8174,6 +8082,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 Game.JNE.potionsSavedDataIsOpen = potionsIsOpen;
             }
 
+            // pre-0.6.7 save format, safe to remove after June 2027: encode unencoded terminal strings
             var terminalData = data.t;
             if (typeof terminalData === 'string' && terminalData !== '') {
                 if (terminalData.indexOf('%') === -1 &&
@@ -9180,7 +9089,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                         debugLog('mod.saveSystem.load: restored lifetime data from save');
                     }
 
-                    // Migrate old seasonal reindeer achievements to bit string format can remove in a few months.
+                    // pre-0.6.7 save format, safe to remove after June 2027: migrate old seasonal reindeer achievements to bit string
                     if (modData.lifetime && modData.lifetime.seasonalReindeerData) {
                         // New format: use the saved bit string directly
                         seasonalReindeerData = modData.lifetime.seasonalReindeerData;

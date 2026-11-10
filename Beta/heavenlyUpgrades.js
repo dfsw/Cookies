@@ -3362,7 +3362,7 @@
 
                 if (funcStr.indexOf(returnPattern) !== -1) {
                     funcStr = funcStr.replace(returnPattern, injection + returnPattern);
-                    Game.computeSeasonPrices = eval('(' + funcStr + ')');
+                    Game.computeSeasonPrices = (0, eval)('(' + funcStr + ')');
                     Game.computeSeasonPrices._blackfridayHooked = true;
 
                     try {
@@ -6058,12 +6058,7 @@
         }
 
         // ===== SAVE/LOAD SYSTEM =====
-        var DONUT_NAMES = [
-            'Maple frosted donut', 'Boston creme donut', 'Strawberry jelly donut',
-            'Chocolate frosted donut', 'Donut holes', 'Chocolate filled donut',
-            'Powdered sugar jelly donut', 'Plain glazed donut', 'Blueberry jelly filled donut',
-            'Pink frosted donut', 'Chocolate sprinkle donut', 'Bear claw', 'Chocolate eclair'
-        ];
+        var DONUT_NAMES = window.JNEData.donutUpgradeNames;
 
         function getHeavenlyUpgradeNames() {
             if (!Game || !Game.Upgrades) {
@@ -6081,7 +6076,7 @@
                     name === 'Toy mode [on]' || name === 'Toy mode [off]' ||
                     name === 'Pink stuff [on]' || name === 'Pink stuff [off]' ||
                     name === 'Sugar trade' ||
-                    // Support old save system - check for known heavenly upgrade patterns - remove down the road
+                    // pre-0.6.7 save names, safe to remove after June 2027
                     (name.indexOf('Just natural expansion') === 0) ||
                     (name.indexOf('Morrowen') === 0) ||
                     (name.indexOf('Solgreth') === 0) ||
@@ -6231,7 +6226,9 @@
                         if (M.plants['magicMushroom']) saveData.garden.modSeedsUnlocked['magicMushroom'] = M.plants['magicMushroom'].unlocked || 0;
                     }
                 } else {
-                    // Farm not loaded, skipping garden save
+                    // Farm not loaded yet: hold the last garden block until it can be applied
+                    var _prevGarden = Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.garden;
+                    if (_prevGarden) saveData.garden = JSON.parse(JSON.stringify(_prevGarden));
                 }
 
                 // Save custom buffs
@@ -6357,7 +6354,7 @@
             if (!saveData || typeof saveData !== 'object') {
                 return;
             }
-            // no version + boughtUpgrades + upgrades = empty placeholder, ignore it
+            // no version + boughtUpgrades + upgrades = empty placeholder, ignore it (pre-0.6.7 `upgrades` part: safe to remove after June 2027)
             if (!saveData.version && !saveData.boughtUpgrades && !saveData.upgrades) {
                 return;
             }
@@ -6446,7 +6443,7 @@
             }
             Game._gildedAllureBuffTypesCreated = false;
 
-            // Migration: rename "Godzmak's Headstart" (typo) to "Godzamok's Headstart"
+            // pre-0.6.7 save format, safe to remove after June 2027: rename "Godzmak's Headstart" (typo) to "Godzamok's Headstart"
             var _oldName = "Godzmak's Headstart";
             var _newName = "Godzamok's Headstart";
             var _hasOld = (saveData.boughtUpgrades && saveData.boughtUpgrades.indexOf(_oldName) !== -1) ||
@@ -6459,7 +6456,7 @@
                 }
             }
 
-            // restore bought states (new array format + legacy object format)
+            // restore bought states (new array format; legacy h[] fallback is pre-0.6.7, safe to remove after June 2027)
             var ownedUpgradeNames = (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades)) ? saveData.boughtUpgrades :
                 ((saveData.h && Array.isArray(saveData.h)) ? saveData.h : null); // old compact format
             if (ownedUpgradeNames) {
@@ -6472,7 +6469,7 @@
                     }
                 }
             } else if (saveData.upgrades) {
-                // Legacy format support
+                // pre-0.6.7 save format, safe to remove after June 2027
                 if (Array.isArray(saveData.upgrades)) {
                     // Old array format - upgrade names only
                     for (var i = 0; i < saveData.upgrades.length; i++) {
@@ -6514,7 +6511,7 @@
             // Add new pantheon spirits (doesn't recreate upgrades)
             addNewPantheonSpirits();
 
-            //Re-apply donut bought states after setupBoxOfDonuts creates them
+            // Re-apply donut bought states after setupBoxOfDonuts creates them (legacy `upgrades` part: pre-0.6.7, safe to remove after June 2027)
             if (saveData.upgrades && !Array.isArray(saveData.upgrades)) {
                 DONUT_NAMES.forEach(function(name) {
                     if (saveData.upgrades[name] && Game.Upgrades[name]) {

@@ -59,7 +59,8 @@ function flushPendingAchievementWins() {
 M.launch = function () {
     var M = this;
     M.name = M.parent.minigameName;
-    M.maxSlots = 12;
+    // 10 level + Supreme Intellect + Overclocked GPUs + Coupon Code
+    M.maxSlots = 13;
 
     const TERMINAL_BACKGROUND_URL = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/TerminalBG.png';
     const TERMINAL_DIRECTIONAL_URL = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@refs/heads/main/directional.png';
@@ -529,6 +530,7 @@ M.launch = function () {
         ];
         if (Game.JNE && Game.JNE.enableExtraSeasons) {
             options.push({ value: 'season:lunarnewyear', label: 'Lunar New Year season', icon: [9, 12, getCustomSpriteSheet()] });
+            options.push({ value: 'season:thanksgiving', label: 'Thanksgiving season', icon: [18, 15, getCustomSpriteSheet()] });
         }
         return options;
     }
@@ -1108,6 +1110,7 @@ M.launch = function () {
             }
             config[field.id] = value;
         }
+        // pre-0.6.7 switch/season config, safe to remove after June 2027
         if (program.key === 'switchSeason') {
             var legacySwitch = existingConfig && existingConfig.switch;
             var legacySeason = existingConfig && existingConfig.season;
@@ -3207,6 +3210,7 @@ M.launch = function () {
         }
 
         try {
+            // pre-0.6.7 save format, safe to remove after June 2027
             var legacyFormat = str.indexOf(';') !== -1;
             var unlocked;
             var assignments = [];
