@@ -11,10 +11,10 @@
 
     // Load the custom sprite sheet  (github then jsdelivr)
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
-        ? 'https://raw.githubusercontent.com/dfsw/Cookies/main/updatedSpriteSheet.png?v=' + Date.now()
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/beta/updatedSpriteSheet.png?v=' + Date.now()
         : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png?v=' + Date.now();
     var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/updatedSpriteSheet.png?v=' + Date.now()
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png?v=' + Date.now()
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png?v=' + Date.now();
 
     var vanillaResBase = (typeof Game !== 'undefined' && Game.resPath) || 'https://orteil.dashnet.org/cookieclicker/';
