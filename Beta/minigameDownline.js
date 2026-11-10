@@ -316,7 +316,7 @@ DownlineM.init = function(div) {
       width: 48px;
       height: 48px;
       background-repeat: no-repeat;
-      background-image: url(https://orteil.dashnet.org/cookieclicker/img/icons.png);
+      background-image: url('${resPath}img/icons.png');
       background-position: -1392px -672px;
       filter: drop-shadow(0 3px 2px #000);
       cursor: pointer;
@@ -524,7 +524,7 @@ DownlineM.init = function(div) {
       height: 36px;
       pointer-events: none;
       box-sizing: border-box;
-      background: url(https://orteil.dashnet.org/cookieclicker/img/pieFill.png) no-repeat;
+      background: url('${resPath}img/pieFill.png') no-repeat;
       background-size: 648px 288px; 
       opacity: 0.5;
       z-index: 2;
@@ -540,8 +540,8 @@ DownlineM.init = function(div) {
     }
     #downline-freeze-btn { flex-shrink: 0; }
     #downline-wrap #downline-freeze-btn.gardenSeed { cursor: pointer; display: inline-block; width: 40px; height: 40px; position: relative; margin: 0; }
-    #downline-wrap #downline-freeze-btn .gardenSeedIcon { pointer-events: none; display: inline-block; position: absolute; left: -4px; top: -4px; width: 48px; height: 48px; background: url(https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png); }
-    #downline-wrap #downline-freeze-btn.gardenSeed.on::before { pointer-events: none; content: ''; display: block; position: absolute; left: -10px; top: -10px; width: 60px; height: 60px; background: url(https://orteil.dashnet.org/cookieclicker/img/selectTarget.png) no-repeat center; background-size: 100% 100%; animation: wobble 0.2s ease-out; z-index: 10; }
+    #downline-wrap #downline-freeze-btn .gardenSeedIcon { pointer-events: none; display: inline-block; position: absolute; left: -4px; top: -4px; width: 48px; height: 48px; background: url('${resPath}img/gardenPlants.png'); }
+    #downline-wrap #downline-freeze-btn.gardenSeed.on::before { pointer-events: none; content: ''; display: block; position: absolute; left: -10px; top: -10px; width: 60px; height: 60px; background: url('${resPath}img/selectTarget.png') no-repeat center; background-size: 100% 100%; animation: wobble 0.2s ease-out; z-index: 10; }
     .downline-ticker-wrap {
       flex: 1;
       min-width: 0;
@@ -906,9 +906,8 @@ DownlineM.init = function(div) {
       var mult = 1 + (bonus * 0.1);
       if (G.actionDurationMult) mult *= G.actionDurationMult;
      
-      if (Game.hasBuff('Breath of Growth') || Game.hasBuff('Cloneconomics')) {
-        mult *= 2;
-      }
+      if (Game.hasBuff('Breath of Growth')) mult *= 2;
+      if (Game.hasBuff('Cloneconomics')) mult *= 2;
       return mult;
     }
 
@@ -2241,7 +2240,7 @@ DownlineM.init = function(div) {
       if (descContent) parts.push('<div class="description">' + (descHtml ? descContent : escapeTooltipHtml(descContent)) + '</div>');
       if (def && def.durationSec != null) {
         var baseDur = def.durationSec;
-        var durationMult = hasBoredomEffect('actions_25_less') ? 0.75 : 1;
+        var durationMult = (hasBoredomEffect('actions_25_less') ? 0.75 : 1) * (Game.Has('Refer a Friend') ? 1.1 : 1);
         var auraMult = getSupremeIntellectDurationMult();
         var actualDur = baseDur * durationMult * auraMult;
         var durationText = 'Duration: <b>' + escapeTooltipHtml(formatDuration(actualDur)) + '</b>';
@@ -2515,7 +2514,7 @@ DownlineM.init = function(div) {
       chip.className = 'downline-active-chip'; chip.setAttribute('data-name', name); chip.title = name;
       chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
       var overlay = document.createElement('span'); overlay.className = 'downline-active-overlay'; chip.appendChild(overlay);
-      var durationMult = hasBoredomEffect('actions_25_less') ? 0.75 : 1;
+      var durationMult = (hasBoredomEffect('actions_25_less') ? 0.75 : 1) * (Game.Has('Refer a Friend') ? 1.1 : 1);
       var auraMult = getSupremeIntellectDurationMult();
       var total = Math.max(def.durationSec * durationMult * auraMult, 0.001);
       var state = { name: name, totalSec: total, remainSec: total };
@@ -2977,7 +2976,7 @@ DownlineM.init = function(div) {
 
     function playFreezeSound() {
       try {
-        var a = new Audio('https://orteil.dashnet.org/cookieclicker/snd/freezeGarden.mp3');
+        var a = new Audio((Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'snd/freezeGarden.mp3');
         a.play().catch(function () {});
         a.volume = 0.5;
       } catch (e) {}
@@ -3442,6 +3441,7 @@ DownlineM.init = function(div) {
     DownlineM.doRebrand = doRebrand;
     DownlineM.downlineDoRelease = downlineDoRelease;
     DownlineM.activateSugarRushImpl = function() {
+      if ((Game.lumps || 0) < 1) return;
       Game.lumps -= 1;
       Game.recalculateGains = 1;
       G.lumpSpeedBoostEnd = Date.now() + 30 * 60 * 1000;

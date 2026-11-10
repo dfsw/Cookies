@@ -465,10 +465,10 @@ var POTIONS = [
         name: "Decoction of Winter",
         icon: [21, 26, 'custom'],
         desc: "Winter is coming. What a waste that whole thing ended up being. Is this a good platform to rant about an old TV show on? I don\'t really care if it is or not, I am still bitter and pissed off about the whole thing.",
-        effect: "Reindeer and lanterns are 25% more common for the next hour.",
+        effect: "Seasonal spawns are 25% more common for the next hour.",
         brewTime: 60*15,
         duration: 3600,
-        misbrew: "Reindeer and lanterns do not spawn for the next hour.",
+        misbrew: "Seasonal spawns stop for the next hour.",
         reagents: { reindeer_fur: 1, culture_of_time: 1, captured_auroras: 1 },
     },
     {
@@ -486,10 +486,10 @@ var POTIONS = [
         name: "Whisper of Boreas",
         icon: [19, 26, 'custom'],
         desc: "The North remembers. Okay, thats my seconds Game of Thrones reference in this minigame, I\'m done I promise.",
-        effect: "Reindeer and lantern gains are increased by 20% for 30 minutes.",
+        effect: "Seasonal rewards are increased by 20% for 30 minutes.",
         brewTime: 60*45,
         duration: 1800,
-        misbrew: "Reindeer and lantern gains are reduced by 50% for an hour.",
+        misbrew: "Seasonal rewards are reduced by 50% for an hour.",
         reagents: { reindeer_fur: 1, flower_petals: 1, roots: 1 },
     },
     {
@@ -1128,11 +1128,11 @@ function updatePotionEffects() {
         }
     );
     def('decoction_of_winter',
-        function(p) { Game.killBuff('Decoction of Winter (misbrewed)'); Game.gainBuff('Decoction of Winter', 3600, 1.25); Game.Notify(p.name + ' consumed', 'Reindeer and lanterns are 25% more common for the next hour.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Decoction of Winter (misbrewed)'); Game.gainBuff('Decoction of Winter', 3600, 1.25); Game.Notify(p.name + ' consumed', 'Seasonal spawns are 25% more common for the next hour.', getIconArray(p), 6); },
         function(p) {
             Game.killBuff('Decoction of Winter');
             Game.gainBuff('Decoction of Winter (misbrewed)', 3600, 0);
-            Game.Notify(p.name + ' misbrewed', 'Reindeer and lanterns do not spawn for the next hour.', getIconArray(p), 6);
+            Game.Notify(p.name + ' misbrewed', 'Seasonal spawns stop for the next hour.', getIconArray(p), 6);
             if (PotionsM._updateEffs) PotionsM._updateEffs();
             if (Game.CalculateGains) Game.CalculateGains();
             if (Game.shimmerTypes) {
@@ -1140,6 +1140,8 @@ function updatePotionEffects() {
                 if (rd && rd.spawnsOnTimer && rd.getMinTime) { rd.minTime = rd.getMinTime(rd); rd.maxTime = rd.getMaxTime(rd); }
                 var ln = Game.shimmerTypes['lantern'];
                 if (ln && ln.spawnsOnTimer && ln.getMinTime) { ln.minTime = ln.getMinTime(ln); ln.maxTime = ln.getMaxTime(ln); }
+                var tk = Game.shimmerTypes['turkey'];
+                if (tk && tk.spawnsOnTimer && tk.getMinTime) { tk.minTime = tk.getMinTime(tk); tk.maxTime = tk.getMaxTime(tk); }
             }
         }
     );
@@ -1417,8 +1419,8 @@ function updatePotionEffects() {
         function(p) { Game.killBuff('Ember of Dragon Fire'); Game.gainBuff('Ember of Dragon Fire (misbrewed)', 3600, 0.7); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Golden cookie gains reduced by 30% for 30 minutes.', getIconArray(p), 6); }
     );
     def('whisper_of_boreas',
-        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Reindeer and lantern gains increased by 20% for 30 minutes.', getIconArray(p), 6); },
-        function(p) { Game.killBuff('Whisper of Boreas'); Game.gainBuff('Whisper of Boreas (misbrewed)', 3600, 0.5); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Reindeer and lantern gains reduced by 50% for an hour.', getIconArray(p), 6); }
+        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Seasonal rewards are increased by 20% for 30 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Whisper of Boreas'); Game.gainBuff('Whisper of Boreas (misbrewed)', 3600, 0.5); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Seasonal rewards are reduced by 50% for an hour.', getIconArray(p), 6); }
     );
     def('breath_of_growth',
         function(p) {
@@ -2401,6 +2403,8 @@ createPotionBuffType('Decoction of Winter (misbrewed)', 'decoction_of_winter', t
             if (rd && rd.spawnsOnTimer && rd.getMinTime) { rd.minTime = rd.getMinTime(rd); rd.maxTime = rd.getMaxTime(rd); }
             var ln = Game.shimmerTypes['lantern'];
             if (ln && ln.spawnsOnTimer && ln.getMinTime) { ln.minTime = ln.getMinTime(ln); ln.maxTime = ln.getMaxTime(ln); }
+            var tk = Game.shimmerTypes['turkey'];
+            if (tk && tk.spawnsOnTimer && tk.getMinTime) { tk.minTime = tk.getMinTime(tk); tk.maxTime = tk.getMaxTime(tk); }
         }
         // vanilla really doesnt like shimmer timers to be set to infinite so in order to break it we just force spawn a reindeer onDie.
         if (Game.shimmerTypes && Game.shimmerTypes['reindeer'] && Game.season === 'christmas') {
@@ -3169,7 +3173,7 @@ PotionsM.init = function(div) {
     /* === catalog column === */
     '.potions-mid-col{flex:1;min-width:180px;display:flex;flex-direction:column;}','.potions-catalog-seed,.potions-reagent-item{cursor:pointer;display:inline-block;width:40px;height:40px;position:relative;margin:1px 8px 8px 1px;}','.potions-catalog-seed.undiscovered{opacity:0;pointer-events:none;cursor:default;}','.potions-catalog-seed:hover .potions-catalog-seed-icon{animation:bounce 0.8s;z-index:1000000001;} .potions-catalog-seed:active .potions-catalog-seed-icon{animation:pucker 0.2s;}','.noFancy .potions-catalog-seed:hover .potions-catalog-seed-icon,.noFancy .potions-catalog-seed:active .potions-catalog-seed-icon,.noFancy .potions-reagent-item:hover .potions-reagent-item-icon,.noFancy .potions-reagent-item:active .potions-reagent-item-icon{animation:none;}','.potions-catalog-seed.on:before{pointer-events:none;content:\'\';display:block;position:absolute;left:-10px;top:-10px;width:60px;height:60px;background:url(' + resPath + 'img/selectTarget.png);animation:wobble 0.2s ease-out;z-index:10;}',
     /* === reagents column === */
-    '#potions-reagents-list{display:flex;flex-wrap:wrap;gap:0;padding:2px 20px 20px 2px;}','.potions-reagent-item.empty .potions-reagent-item-icon{opacity:0.2;} .potions-reagent-item:hover .potions-reagent-item-icon{animation:bounce 0.8s;} .potions-reagent-item:active .potions-reagent-item-icon{animation:pucker 0.2s;}','.potions-reagent-item .potions-reagent-shine{pointer-events:none;display:none;position:absolute;left:-12px;top:-12px;width:64px;height:64px;background:url(https://orteil.dashnet.org/cookieclicker/img/shine.png);background-size:64px 64px;z-index:0;opacity:0.4}','.potions-reagent-item.highlighted .potions-reagent-shine{display:block;animation:spin 4s linear infinite;} .potions-reagent-item.highlighted .potions-reagent-item-icon{z-index:1;position:relative;}',
+    '#potions-reagents-list{display:flex;flex-wrap:wrap;gap:0;padding:2px 20px 20px 2px;}','.potions-reagent-item.empty .potions-reagent-item-icon{opacity:0.2;} .potions-reagent-item:hover .potions-reagent-item-icon{animation:bounce 0.8s;} .potions-reagent-item:active .potions-reagent-item-icon{animation:pucker 0.2s;}','.potions-reagent-item .potions-reagent-shine{pointer-events:none;display:none;position:absolute;left:-12px;top:-12px;width:64px;height:64px;background:url(' + resPath + 'img/shine.png);background-size:64px 64px;z-index:0;opacity:0.4}','.potions-reagent-item.highlighted .potions-reagent-shine{display:block;animation:spin 4s linear infinite;} .potions-reagent-item.highlighted .potions-reagent-item-icon{z-index:1;position:relative;}',
     /* === icon base === */
     '.potions-icon{display:inline-block;width:48px;height:48px;background-repeat:no-repeat;pointer-events:none;}',
     /* === section labels === */
@@ -3185,7 +3189,7 @@ PotionsM.init = function(div) {
     }
 
     var prestigeBtnHtml = '<div id="potions-prestige-btn" style="display:none;position:absolute;bottom:14px;right:14px;z-index:10;cursor:pointer;width:24px;height:24px;overflow:hidden;">'
-        + '<div style="width:48px;height:48px;background-image:url(https://orteil.dashnet.org/cookieclicker/img/icons.png);background-position:-480px -528px;transform:scale(0.5);transform-origin:top left;opacity:0.6;"></div>'
+        + '<div style="width:48px;height:48px;background-image:url(' + resPath + 'img/icons.png);background-position:-480px -528px;transform:scale(0.5);transform-origin:top left;opacity:0.6;"></div>'
         + '</div>';
     div.innerHTML = '<div id="potions-bg"></div><div id="potions-wrap" style="position:relative;">'
         + '<div class="potions-main"><div class="potions-slots-section"><div class="potions-brew-content"><div class="potions-brew-half"><div class="potions-brew-slots" id="potions-brew-slots">' + slotsHtml + '</div><div id="potionsPotionsBrewed"></div></div><div class="potions-brew-half"><div class="potions-brew-selection"><div class="potions-selected-reagents" id="potions-selected-reagents"></div><div class="potions-brew-actions" id="potions-brew-actions"></div></div></div></div></div>'
@@ -3685,12 +3689,12 @@ PotionsM._getReagentDef = function(reagentId) {
     return null;
 };
 
-PotionsM.reagentRoll = function(reagentId) {
+PotionsM.reagentRoll = function(reagentId, baseChance) {
     // Don't award reagents if minigame isn't loaded or building level < 1
     if (!PotionsM.parent || PotionsM.parent.level < 1 || !Game._potionsGrimoireReady || Game.ascensionMode == 1) return false;
     var rDef = PotionsM._getReagentDef(reagentId);
     if (!rDef) return false;
-    var dropChance = rDef.dropChance || 0;
+    var dropChance = baseChance != null ? baseChance : (rDef.dropChance || 0);
     if (typeof Game.dropRateMult === 'function') {
         dropChance *= Game.dropRateMult();
     }
@@ -4107,6 +4111,7 @@ PotionsM._startBrew = function() {
         }
         // Accomplishmint
         if (Game.ascensionMode == 104) speedMultiplier *= 0.25;
+        if (Game.Has('A Steep Discount')) speedMultiplier *= 0.9;
         brewTime *= speedMultiplier;
         
         // Override brew time to 5 seconds in debug mode
@@ -4933,6 +4938,7 @@ PotionsM._resetImpl = function(hard, _calledFromLoad) {
         }
         G.triedRecipes = TriedRecipes.create();
         G.totalPotionsBrewed = 0;
+        G.potionsBrewed = 0;
         G.seededAttarRolls = 0;
         G.totalReagentsCollected = 0;
         G.totalFailedDiscoveries = 0;

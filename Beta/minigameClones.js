@@ -2,16 +2,16 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.2';
+const CLONES_VERSION = '1.0.4';
 var PUZZLE_BASE_BETA = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
 var PUZZLE_BASE_RELEASE = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/ClonePuzzles/';
 var PUZZLE_BASE_FALLBACK = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/ClonePuzzles/';
 function puzzleBase() { return (Game.JNE && Game.JNE.beta === false) ? PUZZLE_BASE_RELEASE : PUZZLE_BASE_BETA; }
 // release files retry on the jsDelivr mirror when raw.githubusercontent.com won't load
-function puzzleFetch(path) {
+function puzzleFetch(path, bust) {
     var base = puzzleBase();
     var get = function(b) {
-        return fetch(b + path + '?t=' + Date.now()).then(function(r) {
+        return fetch(b + path + (bust ? '?t=' + Date.now() : '')).then(function(r) {
             if (!r.ok) throw r;
             return r.json();
         });
@@ -21,10 +21,10 @@ function puzzleFetch(path) {
         return get(PUZZLE_BASE_FALLBACK);
     });
 }
-function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000; }
+function puzzleCooldown() { return ClonesM.debug ? 15 * 1000 : (2 * 3600 - (Game.Has('Your Other Half Off') ? 1800 : 0)) * 1000; }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
-var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]]; 
+var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]];
 
 var ClonesM = {};
 window.ClonesM = ClonesM;
@@ -121,7 +121,7 @@ function enforceTraits(genes, cardTraits, usedTraits, rng) {
     if (wanted.some(function(t) { return PROP_OF(t) === 'hairCol'; }))
         HAIR_BALD_LIKE.forEach(function(i) { propForbid.hair.add(i); });
 
-    // each wanted acc trait claims a free slot 
+    // each wanted acc trait claims a free slot
     var slots = ACC_SLOTS.map(function(n) { return g[n]; });
     var wantedExtra = function(s) { return wanted.some(function(w) { return (TRAITS[w].extras || []).indexOf(s) !== -1; }); };
     wanted.forEach(function(t) {
@@ -159,7 +159,7 @@ var GENES = [
     { id: 'acc1',    choices: [[0,0],[5,1],[5,0],[5,2],[0,4],[1,4],[2,4],[6,4],[8,5],[3,4],[7,5],[6,0],[6,1],[4,4],[5,4],[2,5],[7,4],[0,5],[1,5],[6,5],[6,2],[6,3],[7,0],[7,2],[7,3],[8,1],[8,3],[8,4],[9,3],[9,0],[10,1],[10,2],[9,4],[9,5],[10,4],[10,5]] },
     { id: 'acc2',    choices: null }
 ];
-GENES[6].choices = GENES[5].choices; // acc2 shares 
+GENES[6].choices = GENES[5].choices; // acc2 shares
 var SPRITES = { you: null, addons: null };
 var PALETTE = null;
 var SKIN_SRC_ROW = 1, HAIR_SRC_ROW = 22;
@@ -247,7 +247,7 @@ function youSprite(genes) {
     return wrap;
 }
 
-// due to problems with built in audio player we deployed an open source one. 
+// due to problems with built in audio player we deployed an open source one.
 var SND = { ctx: null, noAC: false, bufs: {}, pending: {} };
 function loadSnd(url) {
     if (SND.bufs[url] !== undefined) return;
@@ -280,7 +280,7 @@ function playSnd(url, vol) {
         var buf = SND.bufs[url];
         if (!buf) { // still loading or failed
             if (buf === null) SND.pending[url] = v; // repeats coalesce into one delayed play
-            else if (SND.noAC && window.PlaySound) PlaySound(url, vol); // no WebAudio 
+            else if (SND.noAC && window.PlaySound) PlaySound(url, vol); // no WebAudio
             return;
         }
         var c = SND.ctx;
@@ -305,9 +305,9 @@ var G = {
     loading: false, picking: undefined, index: null, restore: null,
     populated: null, popGen: 0, populating: false,
     ready: false, reqId: 0, stacked: false, debugSalt: 0,
-    tierProg: { u: 'E', p: null }, // unlock 
-    cleanWins: 0, // lifetime no mistake clears 
-    tutorialDone: 0, 
+    tierProg: { u: 'E', p: null }, // unlock
+    cleanWins: 0, // lifetime no mistake clears
+    tutorialDone: 0,
     rot: { last: {} } // per-tier completion bitsets + last-finished index
 };
 function clearRun() {
@@ -316,7 +316,7 @@ function clearRun() {
     G.hintCell = null; G.tellRow = -1; G.populated = null; G.populating = false;
     G.claimed = 0; G.earlyCells = []; G.tFirst = 0; G.tDone = 0; G.popOrder = null;
     G.failed = 0; G.reward = null; G.redeemed = 0; G.redeemedRw = null;
-    G.spinPending = 0; G.yousSeed = null; G.tutBonus = 0; G.restored = 0;
+    G.spinPending = 0; G.spinInstant = 0; G.yousSeed = null; G.tutBonus = 0; G.restored = 0;
     closePrizeSlots();
 }
 var RUN_FIELDS = ['ys', 'solved', 'earned', 'hintedCells', 'mistakeCells', 'cornerTags', 'dimmed', 'claimed',
@@ -372,7 +372,7 @@ function loadIndex(cb) {
         if (Object.keys(idx).length) { G.index = idx; cb(idx); } else setStatus('Puzzle list is empty.');
     };
     var fail = function() { setStatus('Couldn\'t load puzzle list.'); };
-    puzzleFetch('index.json').then(got).catch(fail);
+    puzzleFetch('index.json', true).then(got).catch(fail);
 }
 function ensurePuzzle() {
     if (!G.ready || G.puzzle || G.loading) return;
@@ -382,7 +382,7 @@ function ensurePuzzle() {
 // per-tier completion bitset: bit (i&7) of byte (i>>3) flags catalog index i as
 // finished this cycle. `last` holds each tier's most recently finished index so a
 // fresh cycle can't re-deal it instantly. Bits are only set when a board reaches
-// 20 cells, so abandoned puzzles stay eligible. 
+// 20 cells, so abandoned puzzles stay eligible.
 var ROT_KEYS = 'emthv';
 function isPlayed(bits, i) { return !!(bits[i >> 3] & (1 << (i & 7))); }
 function markPlayed(bits, i) { bits[i >> 3] |= 1 << (i & 7); }
@@ -475,15 +475,26 @@ function startPuzzle(file, saved, retried) {
     if (!saved) G.yous = null;
     G.loading = true;
     var req = ++G.reqId;
-    puzzleFetch(file + '.json').then(function(data) {
+    puzzleFetch(file + '.json').catch(function(e) {
+        // a claimed run never redraws its board, so a removed puzzle file can't strand its prize
+        if (saved && saved.claimed && e && e.status === 404) return { grid: new Array(20).fill(0) };
+        throw e;
+    }).then(function(data) {
         if (req !== G.reqId) return;
         G.loading = false;
         G.puzzleFile = data.name || file;
         applyPuzzle(data, saved);
         renderBoard();
-    }).catch(function() {
+    }).catch(function(e) {
         if (req !== G.reqId) return;
         G.loading = false;
+        // an unfinished run on a removed puzzle can never load, so drop it and say so
+        if (saved && e && e.status === 404) {
+            G.restore = null; G.puzzleFile = null;
+            var list = l('clonesClues');
+            if (list) list.textContent = 'That scenario no longer exists, maybe you got updated ones?';
+            return;
+        }
         // a saved run is never swapped for a fresh board; G.restore keeps it in saves until it loads
         if (!retried) startPuzzle(wanted, saved, true);
         else setStatus('Couldn\'t load ' + file + '.');
@@ -563,6 +574,7 @@ function applyPuzzle(data, saved) {
         G.tutBonus = saved.tutBonus ? 1 : 0; // graduation prize still owed if Finish wasn't pressed
         // a held, unredeemed prize gets its slot reveal back on reload
         G.spinPending = (G.reward && !G.redeemed) ? 1 : 0;
+        G.spinInstant = G.spinPending; // reload shows the prize without the reel spin
         svSolved.forEach(function(i) { G.solved[i] = grid[i]; });
         svEarned.forEach(function(c) { G.earned.push(c); G.readMask |= 1 << c; });
         // resumed mid-run: the flawless V clear has to happen in a single session
@@ -601,7 +613,7 @@ function dealYous() {
             d = decks[gi] = { order: shuffle(GENES[gi].choices.map(function(_, k) { return k; }), rng), pos: 0 };
         return d.order[d.pos++];
     };
-    // accessories distribute 
+    // accessories distribute
     var extraUse = {};
     var pickExtra = function(forbidden) {
         var best = Infinity, ties = [];
@@ -752,7 +764,7 @@ function stripTags(i) {
 }
 
 var CORNER_COLORS = ['none', 'red', 'green', 'yellow', 'blue', 'purple', 'orange'];
-var TAG_LETTERS = {}; // single-letter color codes 
+var TAG_LETTERS = {}; // single-letter color codes
 CORNER_COLORS.forEach(function(c) { TAG_LETTERS[c[0]] = c; });
 function addCornerTags(cell, i) {
     var tags = G.cornerTags[i] || (G.cornerTags[i] = {});
@@ -832,9 +844,9 @@ function showClaim() {
 function renderStats() {
     var grid = l('clonesGrid'), list = l('clonesClues');
     if (!grid || !list) return;
-    var gen = ++G.popGen; // stale populate 
+    var gen = ++G.popGen; // stale populate
     list.innerHTML = '';
-    //exit animiation 
+    //exit animiation
     var order = G.popOrder || ALL_CELLS;
     var lastDelay = 0;
     for (var i = 0; i < 20; i++) {
@@ -858,7 +870,7 @@ function renderStats() {
             showStats(list);
             if (G.spinPending) spinPrize();
         }, 550);
-    }, lastDelay + 1350); 
+    }, lastDelay + 1350);
 }
 function spriteIconHtml(sheet, ic) {
     return '<div style="display:inline-block;width:24px;height:24px;vertical-align:-7px;margin-right:2px;overflow:hidden;"><div style="width:48px;height:48px;background-image:url(' + sheet + ');background-position:' + (-ic[0] * 48) + 'px ' + (-ic[1] * 48) + 'px;transform:scale(0.5);transform-origin:top left;"></div></div>';
@@ -905,7 +917,7 @@ function showPrizeSlots(opts) {
     var title = slot.querySelector('.prize-title');
     if (title) title.textContent = opts.winner.name;
     slot.style.setProperty('--pitch', '80px'); // 70px window + 10px gap
-    if (reduced) { slot.classList.add('done'); return Promise.resolve(); }
+    if (reduced || opts.instant) { slot.classList.add('done'); return Promise.resolve(); }
     var promises = [0.62, 0.81, 1].map(function(fraction, index) {
         var reel = document.createElement('div'); reel.className = 'reel';
         var track = document.createElement('div'); track.className = 'track';
@@ -955,19 +967,22 @@ function closePrizeSlots() {
     slot.hidden = true;
     var lb = l('clonesRedeemedLabel'); if (lb) lb.style.display = 'none';
 }
-// the redeemed prize text 
+// the redeemed prize text
 function showRedeemedLabel() {
     var lb = l('clonesRedeemedLabel'), rw = G.redeemedRw && G.redeemedRw.reward;
     if (lb && rw) { lb.innerHTML = 'Redeemed:<br><b>' + rw.name + '</b>'; lb.style.display = ''; }
 }
-// filler comes only from tiers that had a nonzero chance 
+// filler comes only from tiers that had a nonzero chance
 function spinPrize() {
     var r = G.reward;
     if (!r) { G.spinPending = 0; return; }
+    var instant = G.spinInstant;
+    G.spinInstant = 0;
     showPrizeSlots({
         winner: r.reward,
         eligibleRewards: REWARDS.filter(function(x) { return r.weights[x.tier - 1] > 0 && rewardUnlocked(x); }),
-        duration: 5000
+        duration: 5000,
+        instant: instant
     }).then(function() {
         G.spinPending = 0;
         if (l('clonesRewardLine')) l('clonesRewardLine').innerHTML = rewardLineHtml();
@@ -989,6 +1004,7 @@ function showStats(list) {
         'Undeducible picks: <b>' + G.earlyCells.length + '</b><br>' +
         'Mistakes: <b>' + G.mistakeCells.length + '</b><br>' +
         '<span id="clonesRewardLine">' + rewardLineHtml() + '</span>' +
+        'Scenario: <b>' + (G.puzzleFile || '—') + '</b>' +
         '</div>';
     if (G.redeemedRw) { closePrizeSlots(); showRedeemedLabel(); }
 }
@@ -1038,7 +1054,7 @@ var REWARDS = [
     { id: 'dragon_harvest', name: 'Gain a dragon harvest buff', tier: 5, icon: [6, 17], sheet: 'custom' },
     { id: 'random_gc', name: 'Spawn a Golden Cookie', tier: 4, icon: [23, 6] },
     { id: 'reset_minigames', name: 'Reset minigame cooldowns', tier: 4, icon: [8, 0] },
-    { id: 'gc_faster', name: 'Golden Cookies spawn 25% faster for an hour', tier: 4, icon: [3, 5] },
+    { id: 'gc_faster', name: 'Golden Cookies spawn 15% faster for an hour', tier: 4, icon: [3, 5] },
     { id: 'double_cps', name: 'Double CpS for 7 minutes', tier: 4, icon: [20, 14], sheet: 'custom' },
     { id: 'grimoire_mana', name: 'Restore 50% mana', tier: 4, icon: [14, 16], sheet: 'custom' },
     { id: 'free_yous', name: 'Gain 5 free Yous', tier: 3, icon: [35, 36] },
@@ -1103,7 +1119,7 @@ function redeemRng(rw) {
 }
 function rollReward(salt) {
     var rng = rollRng(String((window.Game && Game.seed) || 'seed') + '/' + G.won + '/' + (salt || 0));
-    // first tutorial clear graduates with a free tier 2 
+    // first tutorial clear graduates with a free tier 2
     if (G.puzzle && G.puzzle.tutorial) {
         if (!G.tutBonus) return null;
         G.tutBonus = 0;
@@ -1240,7 +1256,7 @@ var SIMPLE_REWARDS = {
     dragon_harvest: { buff: 'dragon harvest',        secs: 60,   mult: 15,   msg: 'Dragons begin the harvest!', durMod: 1 },
     random_gc:      { shimmer: 'golden', force: { noWrath: true },           msg: 'A golden cookie appears!' },
     reset_minigames:{ run: function() { Game.lumpRefill = 0; },              msg: 'Cooldowns cleared!' },
-    gc_faster:      { buff: 'clone greed',         secs: 3600, mult: 1.25, msg: 'Golden cookies now spawn faster!', effs: 1 },
+    gc_faster:      { buff: 'clone greed',         secs: 3600, mult: 1.15, msg: 'Golden cookies now spawn faster!', effs: 1 },
     free_yous:      { run: function() { Game.Objects['You'].getFree(5); Game.recalculateGains = 1; }, msg: 'Additional Yous appear!' },
     double_cps:     { buff: 'clone twinning',        secs: 420,  mult: 2,    msg: 'Cookie production doubled!' },
     grimoire_mana:  { run: function() {
@@ -1344,7 +1360,7 @@ function applyCloneReward(rw) {
             if (!Game.buffTypesByName || !Game.buffTypesByName[pn]) { fizzle('the potion brewery'); break; }
             var pa = POTION_BUFFS[pn];
             Game.gainBuff(pn, pa[0], pa[1]);
-            note('You gain ' + pn + 'from your Potions Class!');
+            note('You gain ' + pn + ' from your Potions Class!');
             break;
         }
         case 'fill_reagents': {
@@ -1379,7 +1395,7 @@ ClonesM.claimReward = function() {
     if (G.claimed || Object.keys(G.solved).length < 20) return;
     G.claimed = 1;
     G.reward = rollReward(); // held for activation; null when the run failed
-    G.spinPending = G.reward ? 1 : 0; 
+    G.spinPending = G.reward ? 1 : 0;
     renderBoard();
 };
 function grantReward(rw) {
@@ -1451,7 +1467,7 @@ ClonesM.debugSolve = function() {
     if (Object.keys(G.solved).length === 20) completePuzzle();
 };
 function completePuzzle() {
-    if (G.tDone) return; // already counted 
+    if (G.tDone) return; // already counted
     G.tDone = Date.now();
 
     if (G.puzzle.tutorial) {
@@ -1468,6 +1484,11 @@ function completePuzzle() {
             G.nextPuzzleAt = Date.now() + puzzleCooldown() * (mist ? 1 : 0.5); // flawless clears halve it
             syncCompleted();
             updateCooldown();
+            // Potions Class immortal essence: 90% if flawless, else 30%
+            var PM = window.PotionsM;
+            if (PM && PM.reagentRoll && PM.reagentRoll('immortal_essence', mist ? 0.3 : 0.9)) {
+                PM._addReagent('immortal_essence', 1, 'clone_escape');
+            }
         }
         recordTierProgress();
         if (!mist) G.cleanWins++;
@@ -1565,10 +1586,10 @@ ClonesM.hint = function() {
     var pool = [];
     for (var c = 0; c < 20; c++) if ((fm & (1 << c)) && G.hintedCells.indexOf(c) === -1) pool.push(c);
     if (!pool.length) for (c = 0; c < 20; c++) if (fm & (1 << c)) pool.push(c);
-    // prefer a cell provable without dimmed clues 
+    // prefer a cell provable without dimmed clues
     var active = pool.filter(function(c) { return residFor(c).some(function(m) { return !bits(m, true); }); });
     if (active.length) pool = active;
-    // cite the leanest conditional proof 
+    // cite the leanest conditional proof
     var best = -1, bestDim = 99, bestBits = 99;
     var i = pool[Math.floor(Math.random() * pool.length)];
     residFor(i).forEach(function(m) {
@@ -1675,7 +1696,7 @@ ClonesM.newPuzzle = function(force) {
     startPuzzle(null); // clearRun wipes any held prize
 };
 
-//just some AI generated CSS junk im so over css 
+//just some AI generated CSS junk im so over css
 var BG_URL = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/CloneBG.png';
 var BG_URL_CDN = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CloneBG.png';
 var CSS = '.clones-wrap{padding:8px 12px 18px;font-size:12px;color:#ccc;position:relative;' +
@@ -1830,7 +1851,7 @@ ClonesM.launch = function() {
         });
         updateCooldown();
         if (G.puzzle) {
-            renderBoard(); 
+            renderBoard();
             return;
         }
         setStatus('Loading sprites…');

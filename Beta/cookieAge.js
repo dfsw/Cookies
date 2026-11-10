@@ -13,7 +13,7 @@
     var expansionVersion = '1.0.13';
     var debugMode = false;
 
-    var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
+    var gardenSpriteSheetUrl = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/gardenPlants.png';
 
     var PUZZLE_ORDER = {
         investigate: [
@@ -3039,7 +3039,7 @@
 
     TrialScalesPatiencePuzzle.prototype.initializeTracking = function() {
         return {
-            requiredAuras: [5, 7],
+            requiredAuras: [20, 7],
             petCount: 0,
             requiredPets: 7,
             hooked: false
@@ -7406,7 +7406,7 @@
             return getHintTooltipContent();
         },
         getTrackStatus: function() {
-            if (!cookieAgeData.puzzles.tracks) return null;
+            if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) return null;
 
             return {
                 investigate: {

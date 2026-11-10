@@ -57,19 +57,35 @@ The mobile version of Cookie Clicker does not support mods at this time.
 
 ## Changelog  
 
-### Version 0.8.1
+### Version 0.8.3
+* High levels of JS Console could accidently award an extra execution slot, this has been fixed, sorry if you see 1 less slot. 
+* Fixed a couple of calculation errors with some Heavenly Upgrades, most are now more favorable to the player. 
+* Breath of Growth and Cloneconomics can now both be used together. 
+* Solving a Clone Escape scenario now can drop a Potion Class reagent. 
+* Mega Click popups have had their default cooldown increased and can also now be completely disabled in Options. 
+* Minor bug fixes, improvements, and code cleanup. 
+* Slightly reduced the power of Golden Cookies spawn faster Clone Escape reward. 
+
+### Version 0.8.2
 * Clone Escape has a new hint/supervisor system that should be much more reliable in showing the minimal set of clues needed for the shown hint. 
-* Puzzles have been regenerated using an updated engine, they include more clue types, more diversity of clues, better phsyical trait clue systems, and will hopefully between align to difficulty tiers. They also should be even more fun to play. Any puzzle mid-solve will be lost on game reload with the updated set. 
+* Puzzles have been regenerated using an updated engine, they include more clue types, more diversity of clues, better phsyical trait clue systems, and will hopefully better align to difficulty tiers. They also should be even more fun to play. Any puzzle mid-solve will be lost on game reload with the updated set. 
 * Physical trait clues (has a beard, wears glasses) will now highlight those cells when you mouse over the keywords in the clue. Clues may now reference multiple traits at once. 
 * Clone Escape can no longer give rewards that are for minigames that the user has not yet unlocked. 
 * Moved a couple of tier rewards around based on feedback.
+* Added a glossary to Clone Escape to quickly look up the definition of various keywords.
 * The two custom buffs from Clone Escape now properly restore on save reload. 
 * Flawless solves in Clone Escape will result in a 50% reduced cooldown on your next scenario. 
 * Player hypnosis in Downline has new effects. 
 * Soil Inspector fixes for Wood Chips and Supreme Intellect
 * Downline now adds an action slot each Fractal Engine level until 10 slots are unlocked. 
-* Downline trend indicators no longer blink when a bar is maxed
+* Downline trend indicators no longer blink when a bar is maxed.
+* Some small potion tweaks to behavior mostly around how they respond to edge cases involving potions of chaos. 
+* Downline interface updates are throttled during boost now so higher speeds arent rendering more often. 
+* Nepenthe of Undoing if used while another Nepenthe of Undoing is active it will overwrite the first buff while stealing the remaining time from it. 
+* Potion of Chaos can no longer grant a prestige potion effect if you already have that prestige potion brewed, brewing, or its buff active. 
 * Minor bug fixes, improvements, and code cleanup. 
+
+(There was no 0.8.1 version and I don't want to talk about it.)
 
 
 ### Version 0.8.0 - Major Version - Clones!
