@@ -11,10 +11,10 @@
 
     // Load the custom sprite sheet  (github then jsdelivr)
     var CUSTOM_SHEET_PRIMARY_URL = BETA_MODE
-        ? 'https://raw.githubusercontent.com/dfsw/Cookies/refs/heads/beta/updatedSpriteSheet.png?v=' + Date.now()
+        ? 'https://raw.githubusercontent.com/dfsw/Cookies/main/updatedSpriteSheet.png?v=' + Date.now()
         : 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/refs/heads/main/updatedSpriteSheet.png?v=' + Date.now();
     var CUSTOM_SHEET_FALLBACK_URL = BETA_MODE
-        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@beta/updatedSpriteSheet.png?v=' + Date.now()
+        ? 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/updatedSpriteSheet.png?v=' + Date.now()
         : 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/updatedSpriteSheet.png?v=' + Date.now();
 
     var vanillaResBase = (typeof Game !== 'undefined' && Game.resPath) || 'https://orteil.dashnet.org/cookieclicker/';
@@ -25,6 +25,8 @@
         gardenPlants: vanillaResBase + 'img/gardenPlants.png'
     };
     function getSpriteSheet(sheetName) { return spriteSheets[sheetName] || ''; }
+    // a sheet name becomes its URL; anything else (full or protocol-relative URL) is already resolved
+    function resolveSheet(s) { return (typeof s === 'string' && spriteSheets[s]) || s; }
     window.getSpriteSheet = getSpriteSheet;
 
     function fetchSheet(url) {
@@ -1750,8 +1752,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             createTurkeyShimmerType();
             var cb = Game.Upgrades['Cornucopia biscuit'];
             if (cb && Game.Has('Season switcher')) Game.Unlock('Cornucopia biscuit');
-            var sw = Game.Upgrades['Season switcher'];
-            if (sw) sw.icon = JNE.icon(18, 15, 'custom');
         } else {
             // Remove lantern achievements when feature is disabled
             removeLanternAchievements();
@@ -1965,7 +1965,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 <a class="option" id="toggle-extra-seasons" style="text-decoration:none;color:${modSettings.enableExtraSeasons ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
                                     Extra Seasons<br><b style="font-size:12px;">${modSettings.enableExtraSeasons ? 'ON' : 'OFF'}</b>
                                 </a>
-                                <label>(Adds a new season for Lunar New Year.)</label>
+                                <label>(Adds new seasons for Lunar New Year and Thanksgiving.)</label>
                             </div>
                             <div class="listing">
                                 <a class="option" id="toggle-cookie-age" style="text-decoration:none;color:${modSettings.enableCookieAge ? 'lime' : 'red'};width:130px;display:inline-block;margin-left:-5px;text-align:right;font-size:12px;cursor:pointer;">
@@ -2187,11 +2187,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                                 var crateClass = 'crate upgrade enabled';
                                 if (!Game.prefs.crates) crateClass += ' noFrame';
 
-                                var isCustomIcon = icon.hasOwnProperty('_jneSheetName') && icon._jneSheetName === 'custom';
-                                var iconUrl = icon[2];
-                                if (!isCustomIcon && typeof iconUrl === 'string' && !iconUrl.startsWith('http')) {
-                                    iconUrl = getSpriteSheet(iconUrl);
-                                }
+                                var iconUrl = resolveSheet(icon[2]);
 
                                 var description = puzzle.description.replace(/\\n/g, '<br>');
                                 var clue = (puzzle.clue || puzzle.description).replace(/\\n/g, '<br>');
@@ -3203,7 +3199,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         var marker = 'me.x=Math.floor(Math.random()*Math.max(0,(Game.bounds.right-300)';
         var str = g.initFunc.toString();
         if (str.indexOf(marker) < 0) return;
-        var snip = "if(Game.season==='thanksgiving'){bgPic='" + THANKS_COOKIES + "';picX=Math.floor(Math.random()*4);picY=me.wrath?1:0;picW=128;picH=128;}\n";
+        var snip = "if(Game.season==='thanksgiving'){bgPic=window.jneArt('coupons');picX=Math.floor(Math.random()*4);picY=me.wrath?1:0;picW=128;picH=128;}\n";
         try { g.initFunc = eval('(' + str.replace(marker, snip + marker) + ')'); g._jneInitInjected = true; }
         catch (e) { console.error('JNE: golden initFunc injection failed', e); }
     }
@@ -3403,7 +3399,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     "if(_jneSeason==='halloween'&&(PotionsM.G.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
                     "if(_jneCands.length>0)PotionsM.reagentRollOne(_jneCands,'shimmer');" +
                 "}" +
-                "if(!me._predictionMode&&Game.JNE&&Game.JNE.rollCoupon)Game.JNE.rollCoupon(me.force==='cookie storm drop'?0.025:0.05);" +
+                "if(!me._predictionMode&&Game.JNE&&Game.JNE.rollCoupon)Game.JNE.rollCoupon(me.force==='cookie storm drop'?0.01:0.05);" +
                 "//JNE_END\n";
 
             // Apply modifications using exact vanilla patterns
@@ -4231,9 +4227,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         if (Array.isArray(icon) && icon.length === 3) {
             var spriteSheet = icon[2];
             // Only convert if it's a simple name (not a full URL)
-            if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
-                return [icon[0], icon[1], getSpriteSheet(spriteSheet)];
-            }
+            if (typeof spriteSheet === 'string') return [icon[0], icon[1], resolveSheet(spriteSheet)];
         } else if (Array.isArray(icon) && icon.length === 2) {
             // Convert [x, y] to [x, y, sheet]
             return [icon[0], icon[1], getSpriteSheet('main')];
@@ -4386,10 +4380,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 // Already resolved by Game.JNE.icon - leave as-is
             } else {
                 // resolve sprite sheet (string name or URL)
-                if (typeof spriteSheet === 'string' && !spriteSheet.startsWith('http')) {
-                    spriteSheet = getSpriteSheet(spriteSheet);
-                }
-                finalIcon = [x, y, spriteSheet];
+                finalIcon = [x, y, resolveSheet(spriteSheet)];
             }
         } else if (Array.isArray(finalIcon) && finalIcon.length === 2) {
             finalIcon = [finalIcon[0], finalIcon[1], getSpriteSheet('main')];
@@ -4523,9 +4514,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     Game.storeToRefresh = 1;
 
                     setTimeout(function() {
-                        if (typeof mod !== 'undefined' && mod.saveSystem && typeof mod.saveSystem.checkAndUnlockAllUpgrades === 'function') {
-                            mod.saveSystem.checkAndUnlockAllUpgrades();
-                        }
+                        runUnlockPass();
                     }, 100);
 
                     // persist the achievement via save
@@ -5890,22 +5879,22 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                 // Play spawn sound if sound selector is on something that makes sound
                 if (!this.spawned && Game.chimeType != 0 && Game.ascensionMode != 1) {
-                    PlaySound('https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/lunarny/lantern.mp3', 0.5);
+                    PlaySound(jneArt('lanternSound'), 0.5);
                 }
 
                 me.x = Math.floor(Math.random() * Math.max(0, Game.bounds.right - Game.bounds.left - 256) + Game.bounds.left + 128) - 128;
                 me.y = Game.bounds.bottom + 128;
 
                 var lanternImages = [
-                    { url: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/lunarny/lantern1.png', width: 100, height: 200 },
-                    { url: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/lunarny/lantern2.png', width: 82, height: 200 },
-                    { url: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/lunarny/lantern3.png', width: 127, height: 200 }
+                    { key: 'lantern1', width: 100, height: 200 },
+                    { key: 'lantern2', width: 82, height: 200 },
+                    { key: 'lantern3', width: 127, height: 200 }
                 ];
                 var randomLantern = lanternImages[Math.floor(Math.random() * lanternImages.length)];
 
                 me.l.style.width = randomLantern.width + 'px';
                 me.l.style.height = randomLantern.height + 'px';
-                me.l.style.backgroundImage = 'url(' + randomLantern.url + ')';
+                me.l.style.backgroundImage = 'url(' + jneArt(randomLantern.key) + ')';
                 me.l.style.backgroundSize = 'contain';
                 me.l.style.backgroundRepeat = 'no-repeat';
                 me.l.style.opacity = '0';
@@ -5986,9 +5975,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 spawnMod = 1 - (1 - spawnMod) * zodiacMult;
                 m *= spawnMod;
 
-                // Apply potion effects for lantern frequency
-                if (Game.hasBuff('Decoction of Winter')) m *= 0.75;
-                if (Game.hasBuff('Decoction of Winter (misbrewed)')) m = Infinity;
+                m *= decoctionSpawnMod();
 
                 if (zodiacMult > 1) {
                     var godLvl = Game.hasGod && Game.hasGod('seasons') > 0 ? Game.hasGod('seasons') : 0;
@@ -6123,7 +6110,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
     function createThanksgivingSeason() {
         if (!modSettings.enableExtraSeasons || Game.Upgrades['Cornucopia biscuit']) return;
         Game.seasons['thanksgiving'] = { name: 'Thanksgiving', start: 'Thanksgiving season has started!', over: 'Thanksgiving season is over.', trigger: 'Cornucopia biscuit' };
-        new Game.Upgrade('Cornucopia biscuit', 'Triggers <b>Thanksgiving season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>Be thankful for what you have. Be hungry for what you want.</q>', Game.seasonTriggerBasePrice, JNE.icon(16, 17, 'custom'));
+        new Game.Upgrade('Cornucopia biscuit', 'Triggers <b>Thanksgiving season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>Be thankful for what you have. Be hungry for what you want.</q>', Game.seasonTriggerBasePrice, JNE.icon(18, 15, 'custom'));
         Game.last.season = 'thanksgiving'; Game.last.order = 24002; Game.last.ddesc = Game.last.desc;
         COUPONS.forEach(function(c, i) {
             new Game.Upgrade(c[0], c[2] + '<q>' + c[3] + '</q>', 1, JNE.icon(c[4], 11, 'custom'));
@@ -6158,12 +6145,41 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         ['The Gods Must Be Clearance', 'Temple', 'Pantheon cooldowns are <b>10%</b> faster.', 'Now available without Coca-Cola bottles.', 14],
         ['Overstock Sale', 'Bank', 'Stock Market loans last <b>10%</b> longer.', 'NINJA please.', 13]
     ];
-    var TURKEY_SOUND = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/lunarny/lantern.mp3';
-    var TURKEY_PIC = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/turkey.png'; // 256x128 sheet: two 128x128 turkeys
     var TURKEY_FRAMES = ['0 0', '-128px 0'];
-    var THANKS_COOKIES = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/coupons.png'; // 512x256: 4x2 grid of 128px, row 0 golden, row 1 wrath
+    var TURKEY_WOBBLE = 30; // sideways sine wave, px
+    // Seasonal art and sounds on GitHub, with a jsDelivr fallback. Probed once at load; a failed GitHub copy switches to the mirror.
+    var JNE_ASSET_GH = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/';
+    var JNE_ASSET_CDN = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/';
+    var JNE_ART = {
+        turkey: 'thanksgiving/turkey.png', // 256x128: two 128px turkeys
+        coupons: 'thanksgiving/coupons.png', // 512x256: 4x2 grid of 128px, row 0 golden, row 1 wrath
+        lantern1: 'lunarny/lantern1.png',
+        lantern2: 'lunarny/lantern2.png',
+        lantern3: 'lunarny/lantern3.png',
+        lanternSound: 'lunarny/lantern.mp3',
+        turkeySound: 'thanksgiving/turkey.mp3'
+    };
+    var JNE_ART_CDN = {}; // keys whose GitHub copy failed to load
+    function jneArt(key) { return (JNE_ART_CDN[key] ? JNE_ASSET_CDN : JNE_ASSET_GH) + JNE_ART[key]; }
+    window.jneArt = jneArt;
+    Object.keys(JNE_ART).forEach(function(key) {
+        var fail = function() { JNE_ART_CDN[key] = true; };
+        if (/Sound$/.test(key)) {
+            if (typeof Audio === 'undefined') return;
+            var snd = new Audio();
+            snd.preload = 'metadata';
+            snd.onerror = fail;
+            snd.src = jneArt(key);
+        } else {
+            if (typeof Image === 'undefined') return;
+            var img = new Image();
+            img.onerror = fail;
+            img.src = jneArt(key);
+        }
+    });
     var SELEBRAK_MORE = [0, 0.15, 0.10, 0.05], SELEBRAK_SLOWER = [0, 0.10, 0.07, 0.03]; // by god slot (diamond/ruby/jade)
 
+    // Wednesday before US Thanksgiving through the Tuesday after
     function isThanksgivingSeason() {
         var d = new Date(), y = d.getFullYear(), tg = new Date(y, 10, 22 + (4 - new Date(y, 10, 1).getDay() + 7) % 7); // 4th Thursday
         var diff = Math.round((new Date(y, d.getMonth(), d.getDate()) - tg) / 864e5);
@@ -6193,9 +6209,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     // grace period: if a heading would leave the screen within the travel distance, aim at the centre instead
     function turkeyAngle(me, ang, travel, b) {
-        var x = me.x + Math.cos(ang) * travel, y = me.y + Math.sin(ang) * travel;
-        if (x >= b.left && x + 128 <= b.right && y >= b.top && y + 128 <= b.bottom) return ang;
+        var x = me.x + Math.cos(ang) * travel, y = me.y + Math.sin(ang) * travel, m = TURKEY_WOBBLE;
+        if (x >= b.left + m && x + 128 <= b.right - m && y >= b.top + m && y + 128 <= b.bottom - m) return ang;
         return turkeyCentreAngle(me, b);
+    }
+
+    // Decoction of Winter: seasonal spawns 25% more common, or none when misbrewed
+    function decoctionSpawnMod() {
+        if (Game.hasBuff('Decoction of Winter (misbrewed)')) return Infinity;
+        return Game.hasBuff('Decoction of Winter') ? 0.75 : 1;
     }
 
     function createTurkeyShimmerType() {
@@ -6211,15 +6233,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             },
             initFunc: function(me) {
                 if (Game.season !== 'thanksgiving') { me.die(); return; }
-                if (!this.spawned && Game.chimeType != 0 && Game.ascensionMode != 1) PlaySound(TURKEY_SOUND, 0.5);
+                if (!this.spawned && Game.chimeType != 0 && Game.ascensionMode != 1) PlaySound(jneArt('turkeySound'), 0.5);
                 var b = Game.bounds;
                 me.x = Math.random() < 0.5 ? b.left - 100 : b.right;
                 me.y = b.top + (b.bottom - b.top) * (0.2 + Math.random() * 0.6) - 64; // middle band: never starts on an edge
                 me.base = 0.8 * 2 * (b.bottom - b.top + 256) / (5 * Game.fps) * (1 - god(SELEBRAK_SLOWER)); // 20% slower than 2x lantern speed
                 me.ang = turkeyAngle(me, turkeyCentreAngle(me, b), Game.fps * 3 * me.base, b);
-                me.spd = me.base; me.turn = 15; me.age = 0;
+                me.spd = me.base; me.turn = 15; me.age = 0; me.amp = TURKEY_WOBBLE; me.ph = Math.random() * Math.PI * 2;
                 var s = me.l.style;
-                s.width = s.height = S + 'px'; s.backgroundImage = 'url(' + TURKEY_PIC + ')';
+                s.width = s.height = S + 'px'; s.backgroundImage = 'url(' + jneArt('turkey') + ')';
                 s.backgroundSize = '256px 128px'; s.backgroundRepeat = 'no-repeat'; s.opacity = '1'; s.display = 'block';
                 s.backgroundPosition = TURKEY_FRAMES[Math.floor(Math.random() * TURKEY_FRAMES.length)];
                 me.l.setAttribute('alt', 'Turkey');
@@ -6234,8 +6256,13 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 me.x += Math.cos(me.ang) * me.spd;
                 me.y += Math.sin(me.ang) * me.spd;
                 me.age++;
-                var inView = me.x < b.right && me.x + S > b.left && me.y < b.bottom && me.y + S > b.top;
-                var fullyIn = me.x >= b.left && me.x + S <= b.right && me.y >= b.top && me.y + S <= b.bottom;
+                // drawn position: the path plus a sine wave sideways to the heading; the wobble fades out once leaving
+                if (me.exiting && me.amp > 0) me.amp--;
+                var wob = me.amp * Math.sin(me.age * 0.14 + me.ph);
+                var px = me.x - Math.sin(me.ang) * wob, py = me.y + Math.cos(me.ang) * wob;
+                me.px = px; me.py = py;
+                var inView = px < b.right && px + S > b.left && py < b.bottom && py + S > b.top;
+                var fullyIn = px >= b.left && px + S <= b.right && py >= b.top && py + S <= b.bottom;
                 if (fullyIn) me.seen = 1;
                 if (inView) me.inView = (me.inView || 0) + 1;
                 // once fully on screen, leaving by any edge locks the heading; 7s on screen forces an exit from the centre
@@ -6243,11 +6270,11 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     if (me.seen && !fullyIn) me.exiting = 1;
                     else if ((me.inView || 0) >= Game.fps * 7) {
                         me.exiting = 1;
-                        me.ang = Math.atan2(me.y + S / 2 - (b.top + b.bottom) / 2, me.x + S / 2 - (b.left + b.right) / 2);
+                        me.ang = Math.atan2(py + S / 2 - (b.top + b.bottom) / 2, px + S / 2 - (b.left + b.right) / 2);
                     }
                 }
                 if ((me.exiting && !inView) || me.age > Game.fps * 60) { me.die(); return; }
-                me.l.style.transform = 'translate(' + me.x + 'px,' + me.y + 'px) scaleX(' + (Math.cos(me.ang) < 0 ? -1 : 1) + ')'; // art faces right
+                me.l.style.transform = 'translate(' + px + 'px,' + py + 'px) scaleX(' + (Math.cos(me.ang) < 0 ? -1 : 1) + ')'; // art faces right
             },
             popFunc: function(me) {
                 modTracking.turkeysCaught = (modTracking.turkeysCaught || 0) + 1;
@@ -6259,15 +6286,15 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 Game.Popup('<div style="font-size:80%;">+' + moniStr + '</div>', Game.mouseX, Game.mouseY);
                 Game.SparkleAt(Game.mouseX, Game.mouseY);
                 PlaySound('snd/shimmerClick.mp3');
-                Game.JNE.rollCoupon(0.10);
+                Game.JNE.rollCoupon(0.20);
                 me.die();
             },
             missFunc: function() {},
             spawnsOnTimer: true,
             spawnConditions: function() { return Game.season === 'thanksgiving'; },
             spawned: 0, time: 0, minTime: 0, maxTime: 0,
-            getMinTime: function() { return Math.ceil(Game.fps * 60 * 2 / (1 + god(SELEBRAK_MORE))); },
-            getMaxTime: function() { return Math.ceil(Game.fps * 60 * 4 / (1 + god(SELEBRAK_MORE))); }
+            getMinTime: function() { return Math.ceil(Game.fps * 60 * 2 / (1 + god(SELEBRAK_MORE)) * decoctionSpawnMod()); },
+            getMaxTime: function() { return Math.ceil(Game.fps * 60 * 4 / (1 + god(SELEBRAK_MORE)) * decoctionSpawnMod()); }
         };
         Game.shimmerTypes['turkey'].reset();
     }
@@ -8059,6 +8086,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 ts: saveObj.saveTimestamp,
                 u: Object.keys(saveObj.upgrades || {})
                     .filter(function(k) { return saveObj.upgrades[k].bought; }),
+                cu: Object.keys(saveObj.upgrades || {}) // coupons found but not bought
+                    .filter(function(k) { return saveObj.upgrades[k].unlocked && !saveObj.upgrades[k].bought; }),
                 a: wonAchievements,
                 h: heavenlyUpgradesArray,
                 hu: huDataString, // Save full heavenly upgrades data
@@ -8099,6 +8128,9 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             const upgrades = {};
             (data.u || []).forEach(function(name) {
                 upgrades[name] = {bought: 1};
+            });
+            (data.cu || []).forEach(function(name) {
+                upgrades[name] = {bought: 0, unlocked: 1};
             });
 
             const achievements = {};
@@ -8582,6 +8614,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             div.innerHTML = '<b>' + loc("Challenge mode:") + '</b><span style="cursor:pointer;" ' + Game.getTooltip('<div style="min-width:200px;text-align:center;font-size:11px;" id="tooltipChallengeMode">' + mode.desc + '</div>', 'top') + '><div class="icon" style="display:inline-block;float:none;transform:scale(0.5);margin:-24px -16px -19px -8px;' + writeIcon(mode.icon) + '"></div>' + mode.dname + '</span>';
             special.insertBefore(div, special.firstChild);
         });
+    }
+
+    // run the mod's unlock pass (the mod object is only reachable through the vanilla registry)
+    function runUnlockPass() {
+        var m = Game.mods && Game.mods['JustNaturalExpansionMod'];
+        if (m && typeof m.checkAndUnlockAllUpgrades === 'function') m.checkAndUnlockAllUpgrades();
     }
 
     Game.registerMod('JustNaturalExpansionMod', {
@@ -9251,8 +9289,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 var upgradeName = modUpgradeNamesList[i];
                 var upgrade = Game.Upgrades ? Game.Upgrades[upgradeName] : null;
 
-                // Skip Order upgrades (already handled above)
-                if (!upgrade || upgradeName.startsWith('Order of the ')) {
+                // Skip Order upgrades (already handled above) and coupons (unlocked when found, restored on load)
+                if (!upgrade || upgradeName.startsWith('Order of the ') || upgrade._coupon) {
                     continue;
                 }
 
@@ -9810,9 +9848,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
                 // Check upgrades after earning The Final Challenger
                 setTimeout(function() {
-                    if (typeof mod !== 'undefined' && mod.saveSystem && typeof mod.saveSystem.checkAndUnlockAllUpgrades === 'function') {
-                        mod.saveSystem.checkAndUnlockAllUpgrades();
-                    }
+                    runUnlockPass();
                 }, 100);
             }
         }
