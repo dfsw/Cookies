@@ -3326,7 +3326,7 @@ window.JNEData = {
         vanillaAchievements: {
             names: ["Vanilla Star"],
             thresholds: [622], 
-            descs: ["Own all <b>622 original achievements.</b><q>Wow congratulations 100% achievements! Now just 459 more to go.</q>"],
+            descs: ["Own all <b>622 original achievements.</b><q>Wow congratulations 100% achievements! {remaining}</q>"],
             customIcons: [[22, 7]],
             orders: [400000.143]
         },

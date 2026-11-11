@@ -9332,6 +9332,17 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
     }
 
+    function updateVanillaStarFlavor() {
+        var star = Game.Achievements['Vanilla Star'];
+        if (!star) return;
+        if (!star._jneFlavorTemplate) star._jneFlavorTemplate = star.desc;
+        var left = modAchievementNames.filter(function(n) { return Game.Achievements[n] && !Game.Achievements[n].won; }).length;
+        var text = left > 0 ? 'Now just ' + left + ' more to go.' : 'OMG you have done it.';
+        if (star._jneFlavorText === text) return;
+        star._jneFlavorText = text;
+        star.desc = star.baseDesc = star.ddesc = star._jneFlavorTemplate.replace('{remaining}', text);
+    }
+
     function checkModAchievements() {
         if (!Game || !Game.Achievements || Game.OnAscend || (Game.JNE && Game.JNE.isLoadingFromSave)) return;
 
@@ -9519,6 +9530,8 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 markAchievementWon(achievementName);
             }
         }
+
+        updateVanillaStarFlavor();
 
         // Check botanical perfection achievement
         if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
