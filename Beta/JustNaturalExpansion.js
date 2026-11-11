@@ -3349,7 +3349,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     "if(_jneSeason==='halloween'&&(PotionsM.G.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
                     "if(_jneCands.length>0)PotionsM.reagentRollOne(_jneCands,'shimmer');" +
                 "}" +
-                "if(!me._predictionMode&&Game.JNE&&Game.JNE.rollCoupon)Game.JNE.rollCoupon(me.force==='cookie storm drop'?0.01:0.05);" +
+                "if(!me._predictionMode&&Game.JNE&&Game.JNE.rollCoupon)Game.JNE.rollCoupon(me.forceObj&&me.forceObj.type==='cookie storm drop'?0.01:0.03);" +
                 "//JNE_END\n";
 
             // Apply modifications using exact vanilla patterns
@@ -6031,7 +6031,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
 
     var MOD_SEASONS = { lunarnewyear: 1, thanksgiving: 1 };
     var COUPONS = [
-        ['Coupon Code', 'Javascript console', '<b>+1</b> Terminal slot.', 'Verified working October 2014.', 19],
+        ['Coupon Code', 'Javascript console', 'Grants <b>1 additional</b> Terminal slot.', 'Verified working October 2014.', 19],
         ['Your Other Half Off', 'You', 'Clone Escape cooldown is <b>25%</b> faster.', 'All selves are final, you must continue to be yourself at all times.', 22],
         ['A Steep Discount', 'Alchemy lab', 'Brew time is <b>10%</b> faster.', 'Glug glug glug.', 6],
         ['Refer a Friend', 'Fractal engine', 'Downline actions last <b>10%</b> longer.', 'It’s not a pyramid scheme. It’s a reverse funnel.', 18],
