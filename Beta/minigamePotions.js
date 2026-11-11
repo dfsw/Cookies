@@ -966,6 +966,16 @@ var TriedRecipes = (function() {
     };
 }());
 
+// grimoire spell buffs carry no aura tag because consistency I guess.
+var SPELL_POSITIVE_BUFFS = { "Haggler's luck": 1, 'Crafty pixies': 1, 'Magic adept': 1 };
+var SPELL_NEGATIVE_BUFFS = { "Haggler's misery": 1, 'Nasty goblins': 1, 'Magic inept': 1 };
+function buffAuraKind(b) {
+    if (!b) return 0;
+    if (b.aura === 1 || SPELL_POSITIVE_BUFFS[b.name]) return 1;
+    if (b.aura === 2 || SPELL_NEGATIVE_BUFFS[b.name]) return 2;
+    return 0;
+}
+
 function getIconArray(p) {
     return [p.icon[0], p.icon[1], ICON_SHEETS[p.icon[2]] || ICON_SHEETS.main];
 }
@@ -1354,7 +1364,7 @@ function updatePotionEffects() {
             else { Game.Notify(p.name + ' consumed', 'Could not summon golden cookie.', getIconArray(p), 6); }
         },
         function(p) {
-            var pbs = []; for (var i in Game.buffs) { if (Game.buffs[i] && Game.buffs[i].aura === 1) pbs.push(Game.buffs[i].name); }
+            var pbs = []; for (var i in Game.buffs) { if (buffAuraKind(Game.buffs[i]) === 1) pbs.push(Game.buffs[i].name); }
             if (pbs.length > 0) { var rb = pbs[Math.floor(Math.random() * pbs.length)]; Game.killBuff(rb); Game.Notify(p.name + ' misbrewed', 'Ended the ' + rb + ' buff.', getIconArray(p), 6); }
             else { Game.Notify(p.name + ' misbrewed', 'No positive buffs to remove.', getIconArray(p), 6); }
         }
@@ -1369,7 +1379,7 @@ function updatePotionEffects() {
     );
     def('shadow_of_remorse',
         function(p) {
-            var nbs = []; for (var i in Game.buffs) { if (Game.buffs[i] && Game.buffs[i].aura === 2) nbs.push(Game.buffs[i].name); }
+            var nbs = []; for (var i in Game.buffs) { if (buffAuraKind(Game.buffs[i]) === 2) nbs.push(Game.buffs[i].name); }
             if (nbs.length > 0) { var rb = nbs[Math.floor(Math.random() * nbs.length)]; Game.killBuff(rb); Game.Notify(p.name + ' consumed', 'Removed ' + rb + '.', getIconArray(p), 6); }
             else { Game.Notify(p.name + ' consumed', 'No negative buffs to remove.', getIconArray(p), 6); }
         },
@@ -1648,7 +1658,7 @@ function updatePotionEffects() {
             var pos = [];
             for (var bn in Game.buffs) {
                 if (bn === 'Nepenthe of Undoing') continue;
-                if (Game.buffs[bn] && Game.buffs[bn].aura === 1) pos.push(bn);
+                if (buffAuraKind(Game.buffs[bn]) === 1) pos.push(bn);
             }
             var n = Math.min(pos.length, 6);
             if (n === 0) { Game.Notify(p.name + ' consumed', 'No positive buffs to remove. Nothing happened.', getIconArray(p), 6); return; }
@@ -1668,7 +1678,7 @@ function updatePotionEffects() {
         },
         function(p) {
             var pos = [];
-            for (var bn in Game.buffs) { if (Game.buffs[bn] && Game.buffs[bn].aura === 1) pos.push(bn); }
+            for (var bn in Game.buffs) { if (buffAuraKind(Game.buffs[bn]) === 1) pos.push(bn); }
             var n = Math.min(pos.length, 6);
             if (n === 0) { Game.Notify(p.name + ' misbrewed', 'No positive buffs to remove.', getIconArray(p), 6); return; }
             for (var i = 0; i < n; i++) Game.killBuff(pos[i]);

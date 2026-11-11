@@ -58,7 +58,7 @@ The mobile version of Cookie Clicker does not support mods at this time.
 ## Changelog  
 
 ### Version 0.8.3 - Gobble Gobble
-* Just in time for the holidays, come celebrate overeating and mindless consumerism like only an American can, with Just Natural Expansion’s new Thanksgiving season. Collect erratic turkeys and golden/wrath cookie coupons for valuable upgrades to all 8 minigames!
+* Just in time for the holidays, come celebrate overeating and mindless consumerism like only an American can, with Just Natural Expansion’s new Thanksgiving season. Collect erratic turkeys and find Black Friday coupons for valuable upgrades to all 8 minigames!
 * High levels of the JS Console could accidentally award an extra execution slot. This has been fixed, sorry if you see one fewer slot.
 * Fixed a couple of calculation errors with some Heavenly Upgrades, most are now more favorable to the player.
 * Breath of Growth and Cloneconomics can now both be used together.
@@ -70,6 +70,8 @@ The mobile version of Cookie Clicker does not support mods at this time.
 * You must now exit Frozen state in Downline to add new actions or release the Fractal Engine Minigame. 
 * If your save is older than August or v0.6.7 you may see minor loss of save data, this only applies to your last save, so if you have saved since August there is no concern. 
 * Heavenly upgrade seeds are now reflected in the seeds unlocked totals. 
+* Fixed a bug that could cause naturally starting vanilla base seasons from properly ending. 
+* Effects that target buffs and debuffs now consider lasting spell effects from Grimoire to be buffs or debuffs, added due to extreme community demand.  
 * Minor bug fixes, improvements, and code cleanup.
 
 ### Version 0.8.2
