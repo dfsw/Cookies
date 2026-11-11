@@ -22,7 +22,7 @@ function puzzleFetch(path, bust) {
     });
 }
 // the coupon only shortens cooldowns that start after it is owned; base=true ignores it (used to clamp saved timers)
-function puzzleCooldown(base) { return ClonesM.debug ? 15 * 1000 : (2 * 3600 - (!base && Game.Has('Your Other Half Off') ? 1800 : 0)) * 1000; }
+function puzzleCooldown(base) { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000 * (!base && Game.Has('Your Other Half Off') ? 0.75 : 1); }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
 var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]];

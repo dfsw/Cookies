@@ -1705,15 +1705,12 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (mb && mb.pool === 'toggle' && Game.Has('Season switcher')) {
                 Game.Unlock('Lunar biscuit');
             }
-            // Create lantern achievements now that the feature is enabled
-            if (achievementsCreated) createLanternAchievements();
-            createLunarSeason();
-            createThanksgivingSeason();
+            createExtraSeasons();
             COUPONS.forEach(function(c) {
                 var u = Game.Upgrades[c[0]], sv = modSaveData && modSaveData.upgrades && modSaveData.upgrades[c[0]];
                 if (u && sv) { u.bought = sv.bought || 0; if (sv.unlocked || sv.bought) u.unlocked = 1; }
             });
-            if (achievementsCreated) setTurkeyAchievements(true);
+            if (achievementsCreated) setExtraSeasonAchievements(true);
             // Recreate lantern shimmer type if it was deleted
             if (Game.shimmerTypes && !Game.shimmerTypes['lantern']) {
                 createLanternShimmerType();
@@ -1722,9 +1719,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             var cb = Game.Upgrades['Cornucopia biscuit'];
             if (cb && Game.Has('Season switcher')) Game.Unlock('Cornucopia biscuit');
         } else {
-            // Remove lantern achievements when feature is disabled
-            removeLanternAchievements();
-            setTurkeyAchievements(false);
+            setExtraSeasonAchievements(false);
             // Kill any active lanterns before deleting shimmer type
             if (Game.shimmers) {
                 for (var i = Game.shimmers.length - 1; i >= 0; i--) {
@@ -4699,7 +4694,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
 
         // ===== EXTRA SEASONS =====
-        if (modSettings.enableExtraSeasons) { createLunarSeason(); createThanksgivingSeason(); }
+        createExtraSeasons();
 
         // ===== SECTION 10: FINAL SETUP =====
             dedupeCookieUpgradePool();
@@ -5753,8 +5748,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         );
     }
 
-    // Lunar New Year lantern and zodiac achievements
-    var lanternAchievementNames = ['Yi Lu Fa', 'For My Whole Life', 'Everything Everywhere All at Once'];
     // lantern payout, shared with turkeys (zodiac is null outside LNY)
     function lanternReward() {
         var val = Game.cookiesPs * 60;
@@ -5911,169 +5904,157 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.shimmerTypes['lantern'].reset();
     }
 
-    // ===== EXTRA SEASONS: LUNAR NEW YEAR + THANKSGIVING creation (run at load and when enabled) =====
-    function createLunarSeason() {
-    // ===== EXTRA SEASONS: LUNAR NEW YEAR =====
-        // Create Lunar biscuit upgrade if Extra Seasons is enabled
-        if (modSettings.enableExtraSeasons && !Game.Upgrades['Lunar biscuit']) {
-            // Add Lunar New Year season definition
-            Game.seasons['lunarnewyear'] = {
-                name: 'Lunar New Year',
-                start: 'Lunar New Year season has started!',
-                over: 'Lunar New Year season is over.',
-                trigger: 'Lunar biscuit',
-                endIcon: JNE.icon(6, 13, 'custom')
-            };
+    // Seasons LNY/Thanksgiving
+    var EXTRA_SEASONS = [
+        {
+            key: 'lunarnewyear', name: 'Lunar New Year', trigger: 'Lunar biscuit', order: 24001,
+            icon: [9, 12], endIcon: [6, 13],
+            achievements: [
+                { name: 'Yi Lu Fa', desc: 'Click <b>168 lanterns</b> across all ascensions.<q>愿你一路发财</q>', order: 22400.1701, icon: [9, 12, 'custom'], req: createRequirementFunction('lanternClicks', 168) },
+                { name: 'For My Whole Life', desc: 'Click <b>1,314 lanterns</b> across all ascensions.<q>一生一世，富足安康</q>', order: 22400.1702, icon: [12, 16, 'custom'], req: createRequirementFunction('lanternClicks', 1314) },
+                { name: 'Everything Everywhere All at Once', desc: 'Experience every Lunar Zodiac for at least 2 hours(continuously).<q>十二生肖，十二时辰，一位极有耐心的烘焙师。</q>', order: 22400.1703, icon: [10, 11, 'custom'], req: createRequirementFunction('zodiacVisits', 12) }
+            ],
+            desc: 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>',
+            windowActive: function() { return isLunarNewYearSeason(); },
+            // zodiac notice and lantern reset replace the default start message
+            onStart: function() {
+                var zodiac = Game.JNE.getCurrentLunarZodiac();
+                Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
+                if (Game.shimmerTypes && Game.shimmerTypes['lantern']) Game.shimmerTypes['lantern'].reset();
+            },
+            header: function() {
+                if (Game.season !== 'lunarnewyear') return '';
+                var zodiac = Game.JNE.getCurrentLunarZodiac();
+                return '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
+            }
+        },
+        {
+            key: 'thanksgiving', name: 'Thanksgiving', trigger: 'Cornucopia biscuit', order: 24002,
+            icon: [18, 15], endIcon: null,
+            achievements: [
+            { name: 'Gobble gobble', order: 22400.1704, icon: [18, 16, 'custom'],
+              desc: 'Collect <b>200 turkeys</b> across all ascensions.<q>Almost the national bird of America, it probably would have made the meal more awkward though</q>',
+              req: function() { return Game.JNE.getLifetimeTurkeys() >= 200; } },
+            { name: 'The consumerist', order: 22400.1705, icon: [29, 21, 'main'],
+              desc: 'Collect <b>all Black Friday coupons</b>.<q>A riot disguised as mindless consumerism, what\'s not to like?</q>',
+              req: function() { return COUPONS.every(function(c) { return Game.Has(c[0]); }); } },
+            { name: 'Dinner first', order: 22400.1706, icon: [18, 15, 'custom'],
+              desc: 'Collect a turkey during a <b>cookie storm</b>.<q>Tryptophan induced coma not included</q>',
+              req: function() { return false; } } // awarded directly on catch
+            ],
+            desc: 'Triggers <b>Thanksgiving season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>Be thankful for what you have. Be hungry for what you want.</q>',
+            windowActive: function() { return isThanksgivingSeason(); },
+            // starts by itself during its window if no season is set
+            forceInWindow: true,
+            afterCreate: function() {
+                COUPONS.forEach(function(c) {
+                    new Game.Upgrade(c[0], c[2] + '<q>' + c[3] + '</q>', 1, JNE.icon(c[4], 11, 'custom'));
+                    Game.last.priceFunc = couponCost; Game.last.order = COUPON_ORDER[c[1]] || 24001.99; Game.last.ddesc = Game.last.desc; Game.last._coupon = true;
+                    if (Game.seasonDrops && Game.seasonDrops.indexOf(c[0]) < 0) Game.seasonDrops.push(c[0]); // Keepsakes / Regifting
+                });
+            },
+            header: function() {
+                var names = COUPONS.map(function(c) { return c[0]; });
+                var owned = names.filter(function(n) { return Game.Has(n); }).length;
+                return Game.listTinyOwnedUpgrades(names) + '<br><br>You\'ve clipped <b>' + owned + '/' + names.length + '</b> coupons.<div class="line"></div>';
+            }
+        }
+    ];
 
-            // Create the trigger upgrade
-            new Game.Upgrade('Lunar biscuit', 'Triggers <b>Lunar New Year season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>财源广进</q>', Game.seasonTriggerBasePrice, JNE.icon(9, 12, 'custom'));
-            Game.last.season = 'lunarnewyear';
-            Game.last.pool = 'toggle';
-            Game.last.order = 24001;
+    function createExtraSeasons() {
+        if (!modSettings.enableExtraSeasons) return;
+        var created = false;
+        EXTRA_SEASONS.forEach(function(s) {
+            if (Game.Upgrades[s.trigger]) return;
+            created = true;
+            Game.seasons[s.key] = {
+                name: s.name, start: s.name + ' season has started!', over: s.name + ' season is over.', trigger: s.trigger,
+                endIcon: s.endIcon && JNE.icon(s.endIcon[0], s.endIcon[1], 'custom')
+            };
+            new Game.Upgrade(s.trigger, s.desc, Game.seasonTriggerBasePrice, JNE.icon(s.icon[0], s.icon[1], 'custom'));
+            Game.last.season = s.key;
+            Game.last.order = s.order;
             Game.last.ddesc = Game.last.desc;
-
-            Game.computeSeasons();
-            Game.computeSeasonPrices();
-
-            // custom buyFunction, must be after computeSeasons to override vanilla's
-            var lunarBiscuit = Game.Upgrades['Lunar biscuit'];
-            lunarBiscuit.buyFunction = function() {
-                Game.seasonUses += 1;
-                Game.computeSeasonPrices();
-                for (var i in Game.seasons) {
-                    var me = Game.Upgrades[Game.seasons[i].trigger];
-                    if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
-                }
-                if (Game.season != '' && Game.season != this.season) {
-                    var endIcon = Game.seasons[Game.season].endIcon || Game.seasons[Game.season].triggerUpgrade.icon;
-                    Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', endIcon, 4);
-                }
-                Game.season = this.season;
-                Game.seasonT = Game.getSeasonDuration();
-                var isLNY = Game.season === 'lunarnewyear';
-                if (isLNY) {
-                    var zodiac = Game.JNE.getCurrentLunarZodiac();
-                    Game.Notify('Lunar New Year has started!', "It's the year of the " + zodiac.animal, Game.Upgrades['Lunar biscuit'].icon, 4);
-                    if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
-                        Game.shimmerTypes['lantern'].reset();
-                    }
-                }
-                Game.storeToRefresh = 1;
-                Game.upgradesToRebuild = 1;
-            };
-
-            lunarBiscuit.clickFunction = function(me) {
-                return function() {
-                    if (me.bought && Game.season && me == Game.seasons[Game.season].triggerUpgrade) {
-                        me.lose();
-                        var endIcon = Game.seasons[Game.season].endIcon || Game.seasons[Game.season].triggerUpgrade.icon;
-                        Game.Notify(Game.seasons[Game.season].over, '', endIcon);
-                        if (Game.Has('Season switcher')) {
-                            Game.Unlock(Game.seasons[Game.season].trigger);
-                            Game.seasons[Game.season].triggerUpgrade.bought = 0;
-                        }
-                        Game.storeToRefresh = 1;
-                        Game.upgradesToRebuild = 1;
-                        Game.recalculateGains = 1;
-                        Game.season = Game.baseSeason;
-                        Game.seasonT = -1;
-                        PlaySound('snd/tick.mp3');
-                        return false;
-                    }
-                    return true;
-                };
-            }(lunarBiscuit);
-
-            // Add to Game.customUpgrades for CCSE recognition (separate copy with array-wrapped buyFunction)
-            if (typeof CCSE !== 'undefined' && Game.customUpgrades) {
-                Game.customUpgrades['Lunar biscuit'] = {
-                    name: lunarBiscuit.name,
-                    buyFunction: [lunarBiscuit.buyFunction]
-                };
-            }
-
-            Game.Upgrades['Lunar biscuit'].descFunc = function() {
-                var zodiacStr = '';
-                if (Game.season === 'lunarnewyear') {
-                    var zodiac = Game.JNE.getCurrentLunarZodiac();
-                    zodiacStr = '<div style="text-align:center;"><b>Year of the ' + zodiac.animal + '</b><br><small>' + zodiac.effect + '</small><div class="line"></div></div>';
-                }
-                return zodiacStr + '<div style="text-align:center;">' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.desc;
-            };
-
-            lunarBiscuit.displayFuncWhenOwned = function() {
-                return '<div style="text-align:center;">Time remaining:<br><b>' + (Game.Has('Eternal seasons') ? 'forever' : Game.sayTime(Game.seasonT, -1)) + '</b><div style="font-size:80%;">(Click again to cancel season)</div></div>';
-            };
-            if (Game.Has('Season switcher')) Game.Unlock('Lunar biscuit');
-
-            if (isLunarNewYearSeason()) Game.baseSeason = 'lunarnewyear';
-
-            // Restore bought state after load: if season is active with time remaining, mark biscuit as bought
-            if (Game.season === 'lunarnewyear' && Game.seasonT > 0) {
-                var mb = Game.Upgrades['Lunar biscuit'];
-                if (mb && !mb.bought) {
-                    mb.bought = 1;
-                    Game.UpgradesOwned++;
-                    Game.upgradesToRebuild = 1;
-                    Game.storeToRefresh = 1;
-                }
-            }
-        }
-    }
-
-    function createThanksgivingSeason() {
-        if (!modSettings.enableExtraSeasons || Game.Upgrades['Cornucopia biscuit']) return;
-        Game.seasons['thanksgiving'] = { name: 'Thanksgiving', start: 'Thanksgiving season has started!', over: 'Thanksgiving season is over.', trigger: 'Cornucopia biscuit' };
-        new Game.Upgrade('Cornucopia biscuit', 'Triggers <b>Thanksgiving season</b> for the next 24 hours.<br>Triggering another season will cancel this one.<br>Cost scales with unbuffed CpS and increases with every season switch.<q>Be thankful for what you have. Be hungry for what you want.</q>', Game.seasonTriggerBasePrice, JNE.icon(18, 15, 'custom'));
-        Game.last.season = 'thanksgiving'; Game.last.order = 24002; Game.last.ddesc = Game.last.desc;
-        COUPONS.forEach(function(c, i) {
-            new Game.Upgrade(c[0], c[2] + '<q>' + c[3] + '</q>', 1, JNE.icon(c[4], 11, 'custom'));
-            Game.last.priceFunc = couponCost; Game.last.order = 24100 + i; Game.last.ddesc = Game.last.desc; Game.last._coupon = true;
-            if (Game.seasonDrops && Game.seasonDrops.indexOf(c[0]) < 0) Game.seasonDrops.push(c[0]); // Keepsakes / Regifting
+            if (s.afterCreate) s.afterCreate();
         });
-        var names = COUPONS.map(function(c) { return c[0]; });
-        Game.Upgrades['Cornucopia biscuit'].descFunc = function() {
-            var owned = names.filter(function(n) { return Game.Has(n); }).length;
-            return '<div style="text-align:center;">' + Game.listTinyOwnedUpgrades(names) + '<br><br>You\'ve clipped <b>' + owned + '/' + names.length + '</b> coupons.<div class="line"></div>' + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.ddesc;
+        if (!created) return;
+        // computeSeasons rebinds every trigger's handlers, so the custom ones go on after it
+        Game.computeSeasons();
+        Game.computeSeasonPrices();
+        EXTRA_SEASONS.forEach(applySeasonHandlers);
+    }
+
+    function applySeasonHandlers(s) {
+        var up = Game.Upgrades[s.trigger];
+        up.buyFunction = function() {
+            Game.seasonUses += 1;
+            Game.computeSeasonPrices();
+            for (var i in Game.seasons) {
+                var me = Game.Upgrades[Game.seasons[i].trigger];
+                if (me.name != this.name) { Game.Lock(me.name); Game.Unlock(me.name); }
+            }
+            if (Game.season != '' && Game.season != this.season) {
+                var endIcon = Game.seasons[Game.season].endIcon || Game.seasons[Game.season].triggerUpgrade.icon;
+                Game.Notify(Game.seasons[Game.season].over + '<div class="line"></div>', '', endIcon, 4);
+            }
+            Game.season = this.season;
+            Game.seasonT = Game.getSeasonDuration();
+            if (s.onStart) s.onStart();
+            else Game.Notify(Game.seasons[this.season].start + '<div class="line"></div>', '', this.icon, 4);
+            if (Game.Objects['Grandma'] && Game.Objects['Grandma'].redraw) Game.Objects['Grandma'].redraw();
+            Game.storeToRefresh = 1;
+            Game.upgradesToRebuild = 1;
         };
-        // computeSeasons rebinds every trigger's handlers, so keep the Lunar biscuit's custom ones
-        var lny = Game.Upgrades['Lunar biscuit'], lnyFns = lny && [lny.buyFunction, lny.clickFunction];
-        Game.computeSeasons(); Game.computeSeasonPrices();
-        if (lnyFns) { lny.buyFunction = lnyFns[0]; lny.clickFunction = lnyFns[1]; }
-        if (Game.Has('Season switcher')) Game.Unlock('Cornucopia biscuit');
-        if (isThanksgivingSeason()) {
-            Game.baseSeason = 'thanksgiving';
-            if (!Game.season) { Game.season = 'thanksgiving'; Game.seasonT = -1; }
+        if (typeof CCSE !== 'undefined' && Game.customUpgrades) {
+            Game.customUpgrades[s.trigger] = { name: up.name, buyFunction: [up.buyFunction] };
+        }
+        up.descFunc = function() {
+            var header = s.header ? s.header() : '';
+            return '<div style="text-align:center;">' + header + Game.saySeasonSwitchUses() + '<div class="line"></div></div>' + this.ddesc;
+        };
+        up.displayFuncWhenOwned = function() {
+            return '<div style="text-align:center;">Time remaining:<br><b>' + (Game.Has('Eternal seasons') ? 'forever' : Game.sayTime(Game.seasonT, -1)) + '</b><div style="font-size:80%;">(Click again to cancel season)</div></div>';
+        };
+        if (Game.Has('Season switcher')) Game.Unlock(s.trigger);
+        if (s.windowActive()) {
+            Game.baseSeason = s.key;
+            if (s.forceInWindow && !Game.season) { Game.season = s.key; Game.seasonT = -1; }
+        }
+        // after a load, a season still running means its trigger was bought
+        if (Game.season === s.key && Game.seasonT > 0 && !up.bought) {
+            up.bought = 1;
+            Game.UpgradesOwned++;
+            Game.upgradesToRebuild = 1;
+            Game.storeToRefresh = 1;
         }
     }
 
-    //Thanksgiving
     var MOD_SEASONS = { lunarnewyear: 1, thanksgiving: 1 };
     var COUPONS = [
         ['Coupon Code', 'Javascript console', '<b>+1</b> Terminal slot.', 'Verified working October 2014.', 19],
-        ['Your Other Half Off', 'You', 'Clone Escape cooldown is <b>30 minutes</b> shorter.', 'All selves are final, you must continue to be yourself at all times.', 22],
+        ['Your Other Half Off', 'You', 'Clone Escape cooldown is <b>25%</b> faster.', 'All selves are final, you must continue to be yourself at all times.', 22],
         ['A Steep Discount', 'Alchemy lab', 'Brew time is <b>10%</b> faster.', 'Glug glug glug.', 6],
         ['Refer a Friend', 'Fractal engine', 'Downline actions last <b>10%</b> longer.', 'It’s not a pyramid scheme. It’s a reverse funnel.', 18],
-        ['Yard sale', 'Farm', 'Garden plants mutate <b>5%</b> more.', 'Everything must grow!', 2],
+        ['Yard sale', 'Farm', 'Garden plants mutate <b>10%</b> more.', 'Everything must grow!', 2],
         ['Unlimited free refills', 'Wizard tower', 'Mana recharges <b>5%</b> faster.', 'Now serving bottomless mana. The bottom is closer than advertised.', 15],
         ['The Gods Must Be Clearance', 'Temple', 'Pantheon cooldowns are <b>10%</b> faster.', 'Now available without Coca-Cola bottles.', 14],
         ['Overstock Sale', 'Bank', 'Stock Market loans last <b>10%</b> longer.', 'NINJA please.', 13]
     ];
+    var COUPON_ORDER = { 'Farm': 24001.01, 'Bank': 24001.02, 'Temple': 24001.03, 'Wizard tower': 24001.04, 'Alchemy lab': 24001.05, 'Fractal engine': 24001.06, 'Javascript console': 24001.07, 'You': 24001.08 };
     var TURKEY_FRAMES = ['0 0', '-128px 0'];
-    var TURKEY_WOBBLE = 30; // sideways sine wave, px
-    // Seasonal art and sounds on GitHub, with a jsDelivr fallback. Probed once at load; a failed GitHub copy switches to the mirror.
+    var TURKEY_WOBBLE = 30;
     var JNE_ASSET_GH = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/';
     var JNE_ASSET_CDN = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/';
     var JNE_ART = {
-        turkey: 'thanksgiving/turkey.png', // 256x128: two 128px turkeys
-        coupons: 'thanksgiving/coupons.png', // 512x256: 4x2 grid of 128px, row 0 golden, row 1 wrath
+        turkey: 'thanksgiving/turkey.png',
+        coupons: 'thanksgiving/coupons.png', //row 0 golden, row 1 wrath
         lantern1: 'lunarny/lantern1.png',
         lantern2: 'lunarny/lantern2.png',
         lantern3: 'lunarny/lantern3.png',
         lanternSound: 'lunarny/lantern.mp3',
         turkeySound: 'thanksgiving/turkey.mp3'
     };
-    var JNE_ART_CDN = {}; // keys whose GitHub copy failed to load
+    var JNE_ART_CDN = {};
     function jneArt(key) { return (JNE_ART_CDN[key] ? JNE_ASSET_CDN : JNE_ASSET_GH) + JNE_ART[key]; }
     window.jneArt = jneArt;
     Object.keys(JNE_ART).forEach(function(key) {
@@ -6128,7 +6109,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         return turkeyCentreAngle(me, b);
     }
 
-    // Decoction of Winter: seasonal spawns 25% more common, or none when misbrewed
     function decoctionSpawnMod() {
         if (Game.hasBuff('Decoction of Winter (misbrewed)')) return Infinity;
         return Game.hasBuff('Decoction of Winter') ? 0.75 : 1;
@@ -6179,7 +6159,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 var fullyIn = px >= b.left && px + S <= b.right && py >= b.top && py + S <= b.bottom;
                 if (fullyIn) me.seen = 1;
                 if (inView) me.inView = (me.inView || 0) + 1;
-                // once fully on screen, leaving by any edge locks the heading; 7s on screen forces an exit from the centre
                 if (!me.exiting) {
                     if (me.seen && !fullyIn) me.exiting = 1;
                     else if ((me.inView || 0) >= Game.fps * 7) {
@@ -6213,22 +6192,20 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         Game.shimmerTypes['turkey'].reset();
     }
 
-    // pantheon cooldown after a swap has been set: 16h, then 4h, then 1h (vanilla), minus 10% with the coupon
     function shortenPantheonCooldown(m) {
         if (!Game.Has('The Gods Must Be Clearance') || m.swaps >= 3) return;
         var t = m.swaps == 0 ? 1000 * 60 * 60 * 16 : m.swaps == 1 ? 1000 * 60 * 60 * 4 : 1000 * 60 * 60;
         m.swapT -= t * 0.1;
     }
 
-    // coupon effects on the vanilla minigames (mod minigames check Game.Has inline)
+    // mod minigames check Game.Has inline
     function hookCouponMinigames() {
-        var farm = Game.Objects['Farm'].minigame, temple = Game.Objects['Temple'].minigame, bank = Game.Objects['Bank'].minigame;
+        var farm = Game.Objects['Farm'].minigame, temple = Game.Objects['Temple'].minigame;
         if (farm && farm.getMuts && !farm.getMuts._jne) { // Yard sale
             var origMuts = farm.getMuts;
-            farm.getMuts = function() { var r = origMuts.apply(this, arguments); if (Game.Has('Yard sale')) r.forEach(function(m) { m[1] *= 1.05; }); return r; };
+            farm.getMuts = function() { var r = origMuts.apply(this, arguments); if (Game.Has('Yard sale')) r.forEach(function(m) { m[1] *= 1.10; }); return r; };
             farm.getMuts._jne = 1;
         }
-        // The Gods Must Be Clearance: each pantheon cooldown starts 10% shorter, so the timer shows it straight away
         if (temple && temple.logic && !temple.logic._jne) {
             var origLogic = temple.logic;
             temple.logic = function() {
@@ -6244,106 +6221,34 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             temple.useSwap._jne = 1;
         }
         if (Game.useSwap && temple && Game.useSwap !== temple.useSwap) Game.useSwap = temple.useSwap; // Game.useSwap is the same function
-        if (bank && bank.takeLoan && !bank.takeLoan._jne) { // Overstock Sale
-            var origLoan = bank.takeLoan;
-            Game.takeLoan = bank.takeLoan = function(id, interest) {
-                var r = origLoan.apply(this, arguments), buff = !interest && Game.Has('Overstock Sale') && Game.buffs['Loan ' + id];
-                if (buff) { buff.time *= 1.1; buff.maxTime *= 1.1; }
-                return r;
+        if (!Game.gainBuff._jneOverstock) {
+            var origGain = Game.gainBuff;
+            Game.gainBuff = function(type, time) {
+                var args = Array.prototype.slice.call(arguments);
+                if (/^loan \d$/.test(type) && Game.Has('Overstock Sale')) args[1] = time * 1.1;
+                return origGain.apply(this, args);
             };
-            bank.takeLoan._jne = 1;
+            Game.gainBuff._jneOverstock = true;
         }
     }
 
-    function createLanternAchievements() {
-        if (!modSettings.enableExtraSeasons) return;
-
-        var lanternAchs = [
-            {
-                name: 'Yi Lu Fa',
-                desc: 'Click <b>168 lanterns</b> across all ascensions.<q>愿你一路发财</q>',
-                order: 22400.1701,
-                type: 'lanternClicks',
-                threshold: 168,
-                icon: JNE.icon(9, 12, 'custom')
-            },
-            {
-                name: 'For My Whole Life',
-                desc: 'Click <b>1,314 lanterns</b> across all ascensions.<q>一生一世，富足安康</q>',
-                order: 22400.1702,
-                type: 'lanternClicks',
-                threshold: 1314,
-                icon: JNE.icon(12, 16, 'custom')
-            },
-            {
-                name: 'Everything Everywhere All at Once',
-                desc: 'Experience every Lunar Zodiac for at least 2 hours(continuously).<q>十二生肖，十二时辰，一位极有耐心的烘焙师。</q>',
-                order: 22400.1703,
-                type: 'zodiacVisits',
-                threshold: 12,
-                icon: JNE.icon(10, 11, 'custom')
-            }
-        ];
-
-        for (var i = 0; i < lanternAchs.length; i++) {
-            var d = lanternAchs[i];
-            if (Game.Achievements[d.name]) continue; // already created
-            createAchievement(
-                d.name,
-                d.desc,
-                d.icon,
-                d.order,
-                createRequirementFunction(d.type, d.threshold),
-                null
-            );
-            // Restore won state if it was previously won
-            if (window.JNE_ProtectedAchievements && window.JNE_ProtectedAchievements[d.name]) {
-                markAchievementWonFromSave(d.name);
-            }
-        }
-    }
-
-    // Thanksgiving achievements: created with extra seasons, removed (won state kept) when disabled
-    var turkeyAchs = [
-        { name: 'Gobble gobble', order: 22400.1704, icon: [18, 16, 'custom'],
-          desc: 'Collect <b>200 turkeys</b> across all ascensions.<q>Almost the national bird of America, it probably would have made the meal more awkward though</q>',
-          req: function() { return Game.JNE.getLifetimeTurkeys() >= 200; } },
-        { name: 'The consumerist', order: 22400.1705, icon: [29, 21, 'main'],
-          desc: 'Collect <b>all Black Friday coupons</b>.<q>A riot disguised as mindless consumerism, what\'s not to like?</q>',
-          req: function() { return COUPONS.every(function(c) { return Game.Has(c[0]); }); } },
-        { name: 'Dinner first', order: 22400.1706, icon: [18, 15, 'custom'],
-          desc: 'Collect a turkey during a <b>cookie storm</b>.<q>Tryptophan induced coma not included</q>',
-          req: function() { return false; } } // awarded directly on catch
-    ];
-    function setTurkeyAchievements(on) {
-        turkeyAchs.forEach(function(d) {
-            var a = Game.Achievements[d.name];
-            if (on && !a) {
-                createAchievement(d.name, d.desc, JNE.icon(d.icon[0], d.icon[1], d.icon[2]), d.order, d.req, null);
-                if (window.JNE_ProtectedAchievements && window.JNE_ProtectedAchievements[d.name]) markAchievementWonFromSave(d.name);
-            } else if (!on && a) {
-                if (a.won) (window.JNE_ProtectedAchievements = window.JNE_ProtectedAchievements || {})[d.name] = 1;
-                delete Game.Achievements[d.name];
-                var idx = modAchievementNames.indexOf(d.name);
-                if (idx !== -1) modAchievementNames.splice(idx, 1);
-            }
-        });
-    }
-
-    function removeLanternAchievements() {
-        for (var i = 0; i < lanternAchievementNames.length; i++) {
-            var name = lanternAchievementNames[i];
-            if (Game.Achievements[name]) {
-                // Save won state before deleting
-                if (Game.Achievements[name].won) {
-                    if (!window.JNE_ProtectedAchievements) window.JNE_ProtectedAchievements = {};
-                    window.JNE_ProtectedAchievements[name] = 1;
+    // Each season owns its achievements: created with extra seasons, removed (won state kept) when off
+    function setExtraSeasonAchievements(on) {
+        EXTRA_SEASONS.forEach(function(s) {
+            s.achievements.forEach(function(d) {
+                var a = Game.Achievements[d.name];
+                if (on) {
+                    if (!modSettings.enableExtraSeasons || a) return;
+                    createAchievement(d.name, d.desc, JNE.icon(d.icon[0], d.icon[1], d.icon[2]), d.order, d.req, null);
+                    if (window.JNE_ProtectedAchievements && window.JNE_ProtectedAchievements[d.name]) markAchievementWonFromSave(d.name);
+                } else {
+                    if (a && a.won) (window.JNE_ProtectedAchievements = window.JNE_ProtectedAchievements || {})[d.name] = 1;
+                    if (a) delete Game.Achievements[d.name];
+                    var idx = modAchievementNames.indexOf(d.name);
+                    if (idx !== -1) modAchievementNames.splice(idx, 1);
                 }
-                delete Game.Achievements[name];
-            }
-            var idx = modAchievementNames.indexOf(name);
-            if (idx !== -1) modAchievementNames.splice(idx, 1);
-        }
+            });
+        });
     }
 
       // Initialize tracking and auxiliary states
@@ -7640,7 +7545,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (_ss && _ss.season && Game.seasons && Game.seasons[_ss.season]) {
                 Game.season = _ss.season;
                 Game.seasonT = _ss.seasonT || 0;
-                if (_ss.baseSeason && Game.seasons[_ss.baseSeason]) Game.baseSeason = _ss.baseSeason;
             }
             if (Game.season && Game.seasons && Game.seasons[Game.season] && Game.seasonT > 0) {
                 var _trigUp = Game.seasons[Game.season].triggerUpgrade;
@@ -7779,7 +7683,6 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
             if (_ss && _ss.season && Game.seasons && Game.seasons[_ss.season]) {
                 Game.season = _ss.season;
                 Game.seasonT = _ss.seasonT || 0;
-                if (_ss.baseSeason && Game.seasons[_ss.baseSeason]) Game.baseSeason = _ss.baseSeason;
                 if (Game.shimmerTypes && Game.shimmerTypes['lantern']) {
                     Game.shimmerTypes['lantern'].reset();
                 }
@@ -9279,8 +9182,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         }
 
         createSeasonalReindeerAchievements();
-        createLanternAchievements();
-        if (modSettings.enableExtraSeasons) setTurkeyAchievements(true);
+        setExtraSeasonAchievements(true);
         createLanternShimmerType();
         createTurkeyShimmerType();
 

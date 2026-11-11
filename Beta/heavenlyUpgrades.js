@@ -400,6 +400,10 @@
                 Game.registerHook('check', runUpgradeSetups, 'JNE upgrade setups');
                 Game._jneUpgradeSetupsCheckHooked = true;
             }
+            if (Game.registerHook && !Game._jneSeedsLabelHooked) {
+                Game.registerHook('draw', updateSeedsLabel, 'JNE bonus seeds label');
+                Game._jneSeedsLabelHooked = true;
+            }
             // Create ALL conditional upgrades NOW before any load can happen
             // so donuts, toggle upgrades, etc. exist when save data is loaded
             runUpgradeSetups(true);  // forceAll=true to skip ownership checks
@@ -2126,6 +2130,27 @@
                     }
                 };
             }
+        }
+
+        // Appends "(+x/y)" to the vanilla "Seeds (a/b)" label
+        var SEEDS_LABEL_MARK = '<small class="jneBonusSeeds" style="color:#70a;">';
+        var SEED_UPGRADES = { sparklingSugarCane: 'Sparkling sugar cane', krazyKudzu: 'Krazy kudzu', magicMushroom: 'Magic mushroom' };
+        function updateSeedsLabel() {
+            var farm = Game.Objects && Game.Objects['Farm'];
+            var M = farm && farm.onMinigame && farm.minigameLoaded && farm.minigame;
+            var el = M && M.plants && l('gardenSeedsUnlocked');
+            if (!el) return;
+            var total = 0, got = 0;
+            for (var key in SEED_UPGRADES) {
+                var p = M.plants[key];
+                if (!p || !Game.Has(SEED_UPGRADES[key])) continue;
+                total++;
+                if (p.unlocked) got++;
+            }
+            var html = el.innerHTML, at = html.indexOf(SEEDS_LABEL_MARK);
+            var base = at >= 0 ? html.slice(0, at) : html;
+            var want = total ? base + SEEDS_LABEL_MARK + ' (+' + got + '/' + total + ')</small>' : base;
+            if (html !== want) el.innerHTML = want;
         }
 
         function setupHeavenlyPlantUnlocks() {
