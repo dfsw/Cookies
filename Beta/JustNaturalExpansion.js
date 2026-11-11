@@ -6081,10 +6081,10 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
         return diff >= -1 && diff <= 5;
     }
 
-    // cost scales from 10 minutes to 24 hours of CpS with coupons owned
+    //15 minute then double each time
     function couponCost() {
         var owned = COUPONS.filter(function(c) { return Game.Upgrades[c[0]] && Game.Upgrades[c[0]].bought; }).length;
-        return Game.unbuffedCps * 60 * (10 + 1430 * owned / 7);
+        return Game.unbuffedCps * 60 * 15 * Math.pow(2, owned);
     }
 
     // roll for a drop, then pick among the coupons not yet found
