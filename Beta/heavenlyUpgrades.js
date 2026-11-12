@@ -620,6 +620,11 @@
                 });
             }
 
+            if (Game.buffTypesByName && !Game.buffTypesByName['gilded allure']) {
+                new Game.buffType('gilded allure', (t,p)=>({name:'Gilded allure',desc:'Golden cookies appear 30% more often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
+                new Game.buffType('midas curse', (t,p)=>({name:'Midas curse',desc:'Golden cookies appear 75% less often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
+            }
+
             if (Game.buffTypesByName && !Game.buffTypesByName['jam filling']) {
                 new Game.buffType('jam filling', function(time, pow) {
                     return { name: 'Jam filling', desc: 'Cookie production x' + pow + ' for ' + Game.sayTime(time * Game.fps, -1) + '!', icon: [19, 8], multCpS: pow, time: time * Game.fps };
@@ -3208,12 +3213,6 @@
         }
 
         function setupGildedAllureSpell() {
-            if (Game.buffType && !Game._gildedAllureBuffTypesCreated) {
-                Game._gildedAllureBuffTypesCreated = true;
-                new Game.buffType('gilded allure', (t,p)=>({name:'Gilded allure',desc:'Golden cookies appear 30% more often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
-                new Game.buffType('midas curse', (t,p)=>({name:'Midas curse',desc:'Golden cookies appear 75% less often for the next '+Game.sayTime(t*Game.fps,-1)+'.',icon:JNE.icon(20,19,'custom'),time:t*Game.fps}));
-            }
-
             var tower = Game.Objects['Wizard tower'];
             if (!tower || !tower.minigameLoaded || !tower.minigame) return;
             var M = tower.minigame;
@@ -4373,6 +4372,17 @@
             return parts.join(' ');
         }
 
+        var STOPWATCH_IMG_URL = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/stopwatch.png';
+        function getStopwatchImg() {
+            if (!Game._jneStopwatchImg) {
+                var im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.src = STOPWATCH_IMG_URL;
+                Game._jneStopwatchImg = im;
+            }
+            return Game._jneStopwatchImg;
+        }
+
         function setupGoldenStopwatch() {
             if (!Game.registerHook || Game._goldenStopwatchHooked) return;
             if (!Game.Has('Golden stopwatch')) return;
@@ -4429,8 +4439,7 @@
                     if (tab === 'santa') { pic = Pic('santa.png?v=' + Game.version); sx = 96 * Game.santaLevel; sy = 0; }
                     else if (tab === 'dragon') { pic = Pic('dragon.png?v=' + Game.version); sx = 96 * Game.dragonLevels[Game.dragonLevel].pic; sy = 0; }
                     else if (tab === 'stopwatch') {
-                        var up = Game.Upgrades['Golden stopwatch'];
-                        if (up && up.icon) { pic = Pic(up.icon[2] || getSpriteSheet('custom')); sx = up.icon[0] * 48; sy = up.icon[1] * 48; srcW = srcH = 48; }
+                        if (Game.Upgrades['Golden stopwatch']) { pic = getStopwatchImg(); sx = 0; sy = 0; srcW = srcH = 64; }
                     }
                     if (pic) {
                         if (Game.prefs.fancy) {
@@ -4451,19 +4460,9 @@
                     return Game._jneOriginalToggleSpecialMenu.apply(this, arguments);
                 }
                 if (on && Game.specialTab === 'stopwatch') {
-                    var up = Game.Upgrades['Golden stopwatch'];
-                    if (up && up.icon) {
-                        var c = document.createElement('canvas'), ctx = c.getContext('2d'), img = new Image();
-                        c.width = c.height = 96;
-                        img.crossOrigin = 'anonymous';
-                        img.onload = function() {
-                            ctx.drawImage(img, up.icon[0] * 48, up.icon[1] * 48, 48, 48, 0, 0, 96, 96);
-                            if (l('specialPic')) l('specialPic').style.backgroundImage = 'url(' + c.toDataURL() + ')';
-                        };
-                        img.src = up.icon[2] || getSpriteSheet('custom');
-                    }
                     swState.shimmerSig = ''; swState.buffSig = '';
                     l('specialPopup').innerHTML = '<div id="specialPic" style="position:absolute;left:-16px;top:-64px;width:96px;height:96px;background-repeat:no-repeat;filter:drop-shadow(0px 3px 2px #000);-webkit-filter:drop-shadow(0px 3px 2px #000);background-size:96px 96px;"></div><div class="close" onclick="PlaySound(\'snd/press.mp3\');Game.ToggleSpecialMenu(0);">x</div><h3>Golden Stopwatch</h3><div class="line"></div><div id="TimerBar" style="text-align:left;margin-bottom:4px;"><div id="TimerBarShimmers"></div><div id="TimerBarBuffs"></div></div>';
+                    if (l('specialPic')) l('specialPic').style.backgroundImage = 'url(' + STOPWATCH_IMG_URL + ')';
                     l('specialPopup').className = 'framed prompt onScreen';
                     return;
                 }
@@ -5591,7 +5590,7 @@
                 desc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.',
                 ddesc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
                 price: 50000e15,
-                icon: JNE.icon(14, 15, 'custom'),
+                icon: JNE.icon(3, 17, 'custom'),
                 posX: -3104,
                 posY: -557,
                 require: ['Distilled essence of retripled luck', 'Lucky fading payout']
@@ -6466,7 +6465,6 @@
                 M._gildedAllureTooltipHooked = false;
                 M._shinyWrinklerHooked = false;
             }
-            Game._gildedAllureBuffTypesCreated = false;
 
             // pre-0.6.7 save format, safe to remove after June 2027: rename "Godzmak's Headstart" (typo) to "Godzamok's Headstart"
             var _oldName = "Godzmak's Headstart";
