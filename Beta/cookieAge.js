@@ -6906,12 +6906,15 @@
     }
 
     var newsTickerFunction = null;
+    var tickerQuietUntil = 0; // no ticker items while a save is still loading
 
     function setupNewsTicker() {
         if (newsTickerFunction) {return;}
+        tickerQuietUntil = Date.now() + 2000;
 
 		if (Game.modHooks && Game.modHooks['ticker']) {
 			newsTickerFunction = function() {
+                if (Date.now() < tickerQuietUntil) {return [];}
                 var newsItems = [];
 
                 if (Game.JNE && Game.JNE.cookieAgeProgress >= 0) {
@@ -7449,6 +7452,7 @@
                 }
             }
             cookieAgeData.puzzles = null;
+            tickerQuietUntil = Date.now() + 2000;
         }
     };
 

@@ -68,6 +68,7 @@ The mobile version of Cookie Clicker does not support mods at this time.
 * High levels of the JS Console could accidentally award an extra execution slot in Terminal. This has been fixed, sorry if you see one fewer slot.
 * Mega Click popups notifications have had their default cooldown increased and can now also be completely disabled in Options. Neither effects the ability to get a Mega Click. 
 * You must now exit Frozen state in Downline to add new actions or release the Fractal Engine Minigame. 
+* Some tweaking to Downline action stats to try and make things a bit more balanced. 
 * If your save is older than August 2026 or v0.6.7 you may see minor loss of save data, this only applies to your last save, so if you have saved since August there is no concern. 
 * Heavenly upgrade seeds are now reflected in the seeds unlocked totals in the Garden seed catalog. 
 * Fixed a couple of calculation errors with some Heavenly Upgrades, most are now more favorable to the player.

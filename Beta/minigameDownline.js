@@ -1491,7 +1491,7 @@ DownlineM.init = function(div) {
         unique: true,
         flavor: 'A You minigame sounds like an easy project, or at least it did... Betcha its done before dungeons though.',
         unlock: { conditions: [{ stat: 'hype', min: 100 }, { stat: 'commitment', min: 100 }], tempConditions: [{ stat: 'players', min: 100 }] },
-        effects: { hype: 1, commitment: 1, players: -3, reputation: 1},
+        effects: { hype: 1, commitment: 1, players: -2, reputation: 1},
         headline: 'New minigame inside cookie game: Players clamor for game within a game concept' },
 
       { name: 'Improve modding support', icon: [16,5], durationSec: 2 * 60 * 60, costCps: 35 * 60,
@@ -1541,7 +1541,7 @@ DownlineM.init = function(div) {
         desc: 'Translate the game into new languages.',
         flavor: 'Cookies now in Elvish, Klingon, Dothraki, Na\'vi, and Parseltongue',
         unlock: { conditions: [{ stat: 'players', min: 200 }, { stat: 'reputation', min: 400 }], tempConditions: [{ stat: 'hype', min: 150 }] },
-        effects: { players: 2, reputation: 1, commitment: 1, hype: -2 },
+        effects: { players: 2, reputation: 1, commitment: 1.5, hype: -2 },
         headline: 'Cookie Clicker now runs in Elvish and Parseltongue, more critical langauges being added soon says developer' },
 
       { name: 'Add accessibility', icon: [35, 31], durationSec: 1.5 * 60 * 60, costCps: 90 * 60,
@@ -1555,7 +1555,7 @@ DownlineM.init = function(div) {
         desc: 'Launch on a new system. Big player influx; existing community commitment dips due to fragmentation of gameplay.',
         flavor: 'Now on iOS? Nope we are releasing it on Samsung Branded Toasters, iOS soon though.',
         unlock: { conditions: [{ stat: 'players', min: 300 }], tempConditions: [{ stat: 'hype', min: 500 }, { stat: 'commitment', min: 500 }] },
-        effects: { players: 25, commitment: -5 },
+        effects: { players: 20, commitment: -6 },
         headline: 'Cookie Clicker now available on iOS nope strike that it\'s available on Smart Mattresses' },
 
         { name: 'Post Memes', icon: [27,21], durationSec: 1 * 60 * 60, costCps: 12 * 60,
@@ -1591,7 +1591,7 @@ DownlineM.init = function(div) {
         desc: 'Send in the slightly creepy guy in the giant kitten outfit.',
         flavor: "He has a little dance he does and everything",
         unlock: { conditions: [{ stat: 'players', min: 100 }, { stat: 'hype', min: 100 }] },
-        effects: { players: 4, reputation: 1.5, hype: -2, commitment: -1, referrals: 1 },
+        effects: { players: 3, reputation: 1.5, hype: -2, commitment: -1.5, referrals: 1 },
         headline: 'Kitten mascot waves at shoppers, wholesome but forgettable' },
 
         { name: 'Ban cheaters', icon: [1,7], durationSec: 1 * 60 * 60, costCps: 35 * 60,
@@ -1612,7 +1612,7 @@ DownlineM.init = function(div) {
         desc: "Whisper campaigns against rival games.",
         flavor: 'All\'s fair in love and cookies.',
         unlock: { conditions: [{ stat: 'players', min: 150 }], tempConditions: [{ stat: 'hype', min: 150 }, { stat: 'referrals', min: 200 }] },
-        effects: { hype: 7, commitment: 2, reputation: -3, referrals: -3},
+        effects: { hype: 6, commitment: 2, reputation: -3, referrals: -3},
         headline: 'Rumors spread that Burger Tapper uses child labor and counterfeit pixels' },
 
         { name: 'Clickbait videos', icon: [1,33], durationSec: 3 * 60 * 60, costCps: 30 * 60,
@@ -1633,7 +1633,7 @@ DownlineM.init = function(div) {
         desc: 'Five stars across the board. Suspiciously uniform praise.',
         flavor: "Best game ever. Let me know if you would like the review to sound more human.",
         unlock: { conditions: [{ stat: 'players', min: 250 }], tempConditions: [{ stat: 'reputation', max: 700 }] },
-        effects: { players: 8, reputation: -2, hype: 5, commitment: -1 },
+        effects: { players: 8, reputation: -2, hype: 4, commitment: -1 },
         headline: 'How to spot fake online reviews: Expose tonight at 9pm' },
 
         { name: 'Aggressively moderate negative reviews', icon: [21,30], durationSec: 2 * 60 * 60, costCps: 25 * 60,
@@ -1654,7 +1654,7 @@ DownlineM.init = function(div) {
         desc: 'Paying players to find more players. No way this one can go wrong.',
         flavor: 'What\'s the worst thing that could happen?',
         unlock: { conditions: [{ stat: 'players', min: 150 }, { stat: 'reputation', min: 300 }], tempConditions: [{ stat: 'reputation', min: 750 }] },
-        effects: { referrals: 8, reputation: -2, commitment: -1, hype: -1},
+        effects: { referrals: 7, reputation: -2, commitment: -1.5, hype: -1.5},
         headline: 'Refer-a-friend rewards launch: "is it growth or bribery?" we tell you what to think tonight at 11' },
 
         { name: 'Player hypnosis', icon: [19,24], sheet: 'custom', durationSec: 3 * 60 * 60, costCps: 120 * 60,
@@ -1682,7 +1682,7 @@ DownlineM.init = function(div) {
         desc: 'Each player just needs to recruit three more. Then each of those players will recruit 3 more.',
         flavor: "It's not a pyramid. It's a reverse funnel.",
         unlock: { conditions: [{ stat: 'players', min: 500 }, { stat: 'hype', min: 150 }], tempConditions: [{ stat: 'reputation', min: 800 }] },
-        effects: { players: 20, referrals: 5, reputation: -6, commitment: 6, hype: -3},
+        effects: { players: 20, referrals: 4, reputation: -6, commitment: 5, hype: -3.5},
         headline: 'Massive backlash on some sort of Cookie Pyramid Scam. Somehow didn\'t even involve edible cookies' },
 
         { name: 'Launch swag store', icon: [14,9], durationSec: 1.5 *  60 * 60, costCps: 90 * 60,
@@ -1786,10 +1786,10 @@ DownlineM.init = function(div) {
         effects: { players: 15, commitment: 4, hype: -4, reputation: -4 },
         headline: 'Nightly news viewers report urge to click after watching' },
 
-      { name: 'Make a fake botnet', icon: [4,9], durationSec: 3 * 60 * 60, costCps: 200 * 60,
+      { name: 'Make a fake botnet', icon: [4,9], durationSec: 3 * 60 * 60, costCps: 300 * 60,
         desc: "Inflate your numbers with AI bots. Nobody will notice, right… RIGHT?",
         flavor: "A player is a player, can't get picky now... we're too deep.",
-        unlock: { conditions: [{ stat: 'players', min: 300 }], tempConditions: [{ stat: 'reputation', min: 800 }] },
+        unlock: { conditions: [{ stat: 'players', min: 1000 }], tempConditions: [{ stat: 'reputation', min: 800 }] },
         effects: { players: 50, commitment: -3, reputation: -8, hype: 3, referrals: -2 },
         headline: 'Fake players inflate numbers, CEO claims "they are just highly efficient users"' },
 
