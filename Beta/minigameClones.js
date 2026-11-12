@@ -49,12 +49,7 @@ ClonesM.parent = getYou() || {
 };
 if (getYou()) ClonesM.parent.minigame = ClonesM;
 
-var NAMES = (
-  'Alex Arden Ari Ash Avery Bailey Blair Blake Cameron Casey Charlie ' +
-  'Dakota Dana Drew Emerson Finley Hayden Indigo Jackie Jamie Jesse Jo ' +
-  'Jordan Jules Kai Kendall Kit Lane Logan Marley Morgan Nicky Parker Pat ' +
-  'Quinn Reese Remy Riley River Robin Rowan Sage Sam Sawyer Sidney Skyler Terry Taylor'
-).split(' ');
+var NAMES = 'Alex Andy Arden Ari Ash Avery Bailey Blair Blake Cameron Casey Charlie Corey Elliot Dakota Dana Drew Emerson Finley Hayden Indigo Jackie Jamie Jesse Jo Jordan Jules Kai Kendall Kit Lane Logan Marley Max Morgan Nicky Parker Pat Quinn Reese Remy Riley River Robin Rowan Sage Sam Sawyer Sidney Skyler Terry Taylor Yuri'.split(' ');
 
 var COLS = 'ABCD';
 var ALL_CELLS = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];

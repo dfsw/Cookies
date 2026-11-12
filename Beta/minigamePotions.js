@@ -810,7 +810,7 @@ var REAGENTS = [
         name: "Flower Petals",
         icon: [4, 13, 'garden'],
         flavor: "Pressed petals from the garden's most benevolent blooms.",
-        gather: "Found by harvesting mature Shimmerlily, Nursetulip, Chimrose, Everdaisy, or any clover variant in the Garden.",
+        gather: "Found by harvesting mature Shimmerlily, Nursetulip, Chimrose, Everdaisy, or any clover variant in the Garden, or by finding lanterns in Lunar New Year.",
         dropChance: 0.07,
     },
     {
@@ -842,7 +842,7 @@ var REAGENTS = [
         name: "Extract of Entrepreneurship",
         icon: [17, 6, 'main'],
         flavor: "Has also been called concentrate of hustle.",
-        gather: "Performing any actions in the Downline has a chance to reward you with extract of entrepreneurship.",
+        gather: "Performing any actions in the Downline or clipping Black Friday coupons has a chance to reward you with extract of entrepreneurship.",
         dropChance: 0.10,
     },
     {
@@ -966,14 +966,14 @@ var TriedRecipes = (function() {
     };
 }());
 
-// grimoire spell buffs carry no aura tag because consistency I guess.
-var SPELL_POSITIVE_BUFFS = { "Haggler's luck": 1, 'Crafty pixies': 1, 'Magic adept': 1 };
-var SPELL_NEGATIVE_BUFFS = { "Haggler's misery": 1, 'Nasty goblins': 1, 'Magic inept': 1 };
+// grimoire spell buffs carry no aura tag, so they are listed by name (1 positive, 2 negative)
+var SPELL_BUFF_KIND = {
+    "Haggler's luck": 1, 'Crafty pixies': 1, 'Magic adept': 1,
+    "Haggler's misery": 2, 'Nasty goblins': 2, 'Magic inept': 2
+};
 function buffAuraKind(b) {
     if (!b) return 0;
-    if (b.aura === 1 || SPELL_POSITIVE_BUFFS[b.name]) return 1;
-    if (b.aura === 2 || SPELL_NEGATIVE_BUFFS[b.name]) return 2;
-    return 0;
+    return b.aura || SPELL_BUFF_KIND[b.name] || 0;
 }
 
 function getIconArray(p) {

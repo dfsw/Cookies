@@ -3347,6 +3347,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                     "if(!_jneIsWrath&&(PotionsM.G.reagents['golden_flour']||0)<5)_jneCands.push('golden_flour');" +
                     "if(_jneSeason==='easter'&&(PotionsM.G.reagents['rabbit_feet']||0)<5)_jneCands.push('rabbit_feet');" +
                     "if(_jneSeason==='halloween'&&(PotionsM.G.reagents['cats_whiskers']||0)<5)_jneCands.push('cats_whiskers');" +
+                    "if(_jneSeason==='thanksgiving'&&(PotionsM.G.reagents['extract_of_entrepreneurship']||0)<5&&PotionsM.reagentRoll('extract_of_entrepreneurship',0.15))PotionsM._addReagent('extract_of_entrepreneurship',1,'coupon');" +
                     "if(_jneCands.length>0)PotionsM.reagentRollOne(_jneCands,'shimmer');" +
                 "}" +
                 "if(!me._predictionMode&&Game.JNE&&Game.JNE.rollCoupon)Game.JNE.rollCoupon(me.forceObj&&me.forceObj.type==='cookie storm drop'?0.01:0.03);" +
@@ -5856,6 +5857,7 @@ function updateUnlockStatesForUpgrades(upgradeNames, enable) {
                 modTracking.lanternsClicked = (modTracking.lanternsClicked || 0) + 1;
                 var moni = lanternReward();
                 Game.Earn(moni);
+                if (typeof PotionsM !== 'undefined' && PotionsM && PotionsM.reagentRoll && PotionsM.reagentRoll('flower_petals', 0.15)) PotionsM._addReagent('flower_petals', 1, 'lantern');
                 var moniStr = loc('%1 cookie', LBeautify(moni));
                 Game.Notify('You found a lantern!', 'The lantern gives you ' + moniStr + '.', JNE.icon(23, 24, 'custom'), 6);
                 Game.Popup('<div style="font-size:80%;">+' + moniStr + '</div>', Game.mouseX, Game.mouseY);
