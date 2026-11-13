@@ -3159,7 +3159,7 @@ M.launch = function () {
         var aw = '';
         terminalAchievementNames.forEach(function(n, i) {
             var a = Game.Achievements && (Game.Achievements[n] || Game.Achievements[n + ' [DISABLED]']);
-            if (a && (a.won || a._savedWonStatus)) aw += (aw ? ',' : '') + i;
+            if (a && (a.won || a._savedWonStatus)) aw += (aw ? '.' : '') + i; // no commas: vanilla splits building saves on them
         });
         var saveParts = [
             Math.max(0, slotsToSave),
@@ -3305,7 +3305,7 @@ M.launch = function () {
             var awPart = (legacyFormat ? legacyParts[7] : parts[7]) || '-';
             var wonNames = [];
             if (awPart !== '-') {
-                awPart.split(',').forEach(function(p) {
+                awPart.split('.').forEach(function(p) {
                     var wn = terminalAchievementNames[parseInt(p, 10)];
                     if (wn) wonNames.push(wn);
                 });
