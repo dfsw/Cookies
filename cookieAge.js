@@ -13,7 +13,7 @@
     var expansionVersion = '1.0.13';
     var debugMode = false;
 
-    var gardenSpriteSheetUrl = 'https://orteil.dashnet.org/cookieclicker/img/gardenPlants.png';
+    var gardenSpriteSheetUrl = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/gardenPlants.png';
 
     var PUZZLE_ORDER = {
         investigate: [
@@ -3039,7 +3039,7 @@
 
     TrialScalesPatiencePuzzle.prototype.initializeTracking = function() {
         return {
-            requiredAuras: [5, 7],
+            requiredAuras: [20, 7],
             petCount: 0,
             requiredPets: 7,
             hooked: false
@@ -6906,12 +6906,15 @@
     }
 
     var newsTickerFunction = null;
+    var tickerQuietUntil = 0; // no ticker items while a save is still loading
 
     function setupNewsTicker() {
         if (newsTickerFunction) {return;}
+        tickerQuietUntil = Date.now() + 2000;
 
 		if (Game.modHooks && Game.modHooks['ticker']) {
 			newsTickerFunction = function() {
+                if (Date.now() < tickerQuietUntil) {return [];}
                 var newsItems = [];
 
                 if (Game.JNE && Game.JNE.cookieAgeProgress >= 0) {
@@ -7406,7 +7409,7 @@
             return getHintTooltipContent();
         },
         getTrackStatus: function() {
-            if (!cookieAgeData.puzzles.tracks) return null;
+            if (!cookieAgeData.puzzles || !cookieAgeData.puzzles.tracks) return null;
 
             return {
                 investigate: {
@@ -7449,6 +7452,7 @@
                 }
             }
             cookieAgeData.puzzles = null;
+            tickerQuietUntil = Date.now() + 2000;
         }
     };
 
