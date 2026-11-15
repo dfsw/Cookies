@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.1.12';
+const POTIONS_VERSION = '1.1.13';
 
 // =====================================================================
 // Potions

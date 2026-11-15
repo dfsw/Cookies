@@ -3039,7 +3039,6 @@
 
     TrialScalesPatiencePuzzle.prototype.initializeTracking = function() {
         return {
-            requiredAuras: [20, 7],
             petCount: 0,
             requiredPets: 7,
             hooked: false
