@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const POTIONS_VERSION = '1.1.13';
+const POTIONS_VERSION = '1.1.15';
 
 // =====================================================================
 // Potions
@@ -44,9 +44,9 @@ var POTIONS = [
         name: "Tincture of Purpose",
         icon: [12, 26, 'custom'],
         desc: "Now I am become Speed, the destroyer of worlds.",
-        effect: "+30% CpS for 2 minutes.",
+        effect: "+30% CpS for 3 minutes.",
         brewTime: 60*60*2,
-        duration: 120,
+        duration: 180,
         misbrew: "-70% CpS for 10 minutes.",
         reagents: { nectar_of_effort: 1, extract_of_entrepreneurship: 1, dragon_scales: 1 },
     },
@@ -55,9 +55,9 @@ var POTIONS = [
         name: "Infusion of Chance",
         icon: [9, 31, 'main'],
         desc: "After drinking this, my yard was overgrown with four-leaf clovers made entirely out of lucky pennies.",
-        effect: "Random drops (including reagents) are 30% more common for 30 minutes.",
-        brewTime: 60*45,
-        duration: 1800,
+        effect: "Random drops (including reagents) are 30% more common for an hour.",
+        brewTime: 60*60,
+        duration: 3600,
         misbrew: "Random drops are 50% less common for an hour.",
         reagents: { rabbit_feet: 1, cats_whiskers: 1, nectar_of_effort: 1 },
     },
@@ -66,10 +66,10 @@ var POTIONS = [
         name: "Ointment of Plenty",
         icon: [23, 25, 'custom'],
         desc: "Rub directly into the hands for best results, also known to help with arthritis.",
-        effect: "Reagents drop 100% more often for the next 10 minutes.",
+        effect: "Reagents drop 100% more often for the next 30 minutes.",
         brewTime: 60*60*1,
-        duration: 600,
-        misbrew: "Reagent drops are 50% less common for the next 30 minutes.",
+        duration: 1800,
+        misbrew: "Reagent drops are 50% less common for the next hour.",
         reagents: { nectar_of_effort: 1, terra: 1, reindeer_fur: 1 },
     },
     {
@@ -154,7 +154,7 @@ var POTIONS = [
         name: "Ember of Dragon Fire",
         icon: [23, 26, 'custom'],
         desc: "A cinder that never cools. Krumblor has been giving you the side eye ever since you bottled it.",
-        effect: "Golden cookie gains are increased by 10% for an hour.",
+        effect: "Golden cookie gains are increased by 20% for an hour.",
         brewTime: 60*60,
         duration: 60 * 60,
         misbrew: "Golden cookie gains are reduced by 30% for an hour.",
@@ -263,7 +263,7 @@ var POTIONS = [
         icon: [15, 26, 'custom'],
         desc: "Raw, unadulterated time compressed into a flask. Use promptly, or don\'t this concept of time is kinda losing all meaning with this one anyway.",
         effect: "The Garden ticks 10 times.",
-        brewTime: 60*60*2,
+        brewTime: 60*60*2.5,
         duration: 1800,
         misbrew: "Plant effects are reduced by 50% for 30 minutes.",
         reagents: { terra: 1, fungus_culture: 1, culture_of_time: 1 },
@@ -273,7 +273,7 @@ var POTIONS = [
         name: "Tears of Landis",
         icon: [4, 26, 'custom'],
         desc: "A rare mixture that has the power to bend the nature of sugar itself.",
-        effect: "Reroll your currently growing sugar lump type.",
+        effect: "Reroll your currently growing sugar lump type, but only if it is a normal lump. Special lumps are left alone.",
         brewTime: 60*60*6,
         misbrew: "Your current sugar lump is botched and lost.",
         reagents: { immortal_essence: 1, roots: 1, pure_cane_sugar: 1 },
@@ -293,7 +293,7 @@ var POTIONS = [
         name: "Vitae of the Mother",
         icon: [1, 8, 'main'],
         desc: "Warm and nurturing, it hums with a motherly energy.",
-        effect: "Milk is 3% more powerful for 15 minutes.",
+        effect: "Milk is 2% more powerful for 15 minutes.",
         brewTime: 60*60 * 3,
         duration: 900,
         misbrew: "Milk is 15% weaker for an hour.",
@@ -316,7 +316,7 @@ var POTIONS = [
         icon: [21, 25, 'custom'],
         desc: "Smells of old books, some alchemists have been known to apply it to their necks before dates with librarians, it has proved <b>highly</b> effective in that regard.",
         effect: "Mana recharges faster for 10 minutes.",
-        brewTime: 60*60*1,
+        brewTime: 60*60*1.5,
         duration: 600,
         misbrew: "Mana recharges slower for 20 minutes.",
         reagents: { magical_infusion: 1, dragon_scales: 1, pure_cane_sugar: 1 },
@@ -368,7 +368,7 @@ var POTIONS = [
         name: "Spirit of Protection",
         icon: [3, 26, 'custom'],
         desc: "A shimmering guardian in liquid form, tastes like electricity though, you know what I mean, like stinging pennies.",
-        effect: "The shimmering veil's reinforced membrane has a 90% chance to not shatter for the next 30 seconds.",
+        effect: "The shimmering veil's reinforced membrane has a 95% chance to not shatter for the next 30 seconds.",
         brewTime: 60*20,
         duration: 30,
         misbrew: "The shimmering veil shatters instantly.",
@@ -390,7 +390,7 @@ var POTIONS = [
         icon: [10, 7, 'main'],
         desc: "Every sip is a surprise.",
         effect: "A completely random potion effect with half the normal misbrew chance. This may trigger a potion you have not yet discovered.",
-        brewTime: 60*30,
+        brewTime: 60*60,
         misbrewChance: 0.1,
         misbrew: "A random negative potion effect.",
         reagents: { magical_blight: 1, captured_auroras: 1, fungus_culture: 1 },
@@ -486,7 +486,7 @@ var POTIONS = [
         name: "Whisper of Boreas",
         icon: [19, 26, 'custom'],
         desc: "The North remembers. Okay, thats my seconds Game of Thrones reference in this minigame, I\'m done I promise.",
-        effect: "Seasonal rewards are increased by 20% for 30 minutes.",
+        effect: "Seasonal rewards are increased by 30% for 30 minutes.",
         brewTime: 60*45,
         duration: 1800,
         misbrew: "Seasonal rewards are reduced by 50% for an hour.",
@@ -560,7 +560,7 @@ var POTIONS = [
         name: "Wassail of Bedlam",
         icon: [0, 27, 'custom'],
         desc: "A toast to beautiful, absolute chaos. Cheers!",
-        effect: "Immediately spawn 3 wrinklers (if able), 3 lanterns, and 3 reindeer regardless of season.",
+        effect: "Immediately spawn 3 wrinklers (if able), 3 lanterns, 3 turkeys, and 3 reindeer regardless of season.",
         brewTime: 60*40,
         misbrew: "Randomly switches between 3 different seasons sequentially, each at full cost.",
         prestige: true,
@@ -620,7 +620,7 @@ var POTIONS = [
         icon: [5, 27, 'custom'],
         desc: "Chaos, chaos everywhere and not a drop to drink",
         effect: "Fill all empty potion slots with ready-to-use Elixirs of Chaos.",
-        brewTime: 60*30,
+        brewTime: 60*60*2,
         misbrew: "Empty all your potion slots.",
         prestige: true,
         prestigeLocked: true
@@ -666,7 +666,7 @@ var POTIONS = [
         name: "Dew of Secrets",
         icon: [2, 27, 'custom'],
         desc: "You\'ll discover this last anyways.",
-        effect: "Begins an 18-hour brew with a 50% chance of discovering a random unknown potion.",
+        effect: "Begins a 12-hour brew with a 50% chance of discovering a random unknown potion.",
         brewTime: 60*30,
         misbrew: "You forget this potion and its recipe is randomized.",
         prestige: true,
@@ -719,10 +719,10 @@ var REAGENTS = [
     },
     {
         id: 'rabbit_feet',
-        name: "Rabbit's Foot",
+        name: "Lucky Charms",
         icon: [13, 25, 'custom'],
         flavor: "Lucky for you, unlucky for at least one rabbit.",
-        gather: "Collected by clicking on rabbit cookies during Easter.",
+        gather: "Lucky charms are rabbit's feet from Easter golden cookies or wishbones from Thanksgiving turkeys.",
         dropChance: 0.15,
     },
     {
@@ -916,6 +916,12 @@ var TriedRecipes = (function() {
         bitset[byte_i] = (bitset[byte_i] | (1 << bit_i)) & 0xFF;
     }
 
+    function unmark_tried(bitset, a, b, c) {
+        var idx = recipe_index(a, b, c);
+        if (idx < 0 || idx >= NUM_COMBOS) return;
+        bitset[Math.floor(idx / 8)] = (bitset[Math.floor(idx / 8)] & ~(1 << (idx % 8))) & 0xFF;
+    }
+
     function is_tried(bitset, a, b, c) {
         var idx = recipe_index(a, b, c);
         if (idx < 0 || idx >= NUM_COMBOS) return false;
@@ -957,6 +963,7 @@ var TriedRecipes = (function() {
         create:      create_empty,
         index:       recipe_index,
         mark:        mark_tried,
+        unmark:      unmark_tried,
         isTried:     is_tried,
         encode:      encode,
         decode:      decode,
@@ -1061,7 +1068,7 @@ function updatePotionEffects() {
         function(p) { Game.killBuff('Bloom of Industry'); Game.gainBuff('Bloom of Industry (misbrewed)', 1800); Game.Notify(p.name + ' misbrewed', 'Buildings are 30% less effective for 30 minutes.', getIconArray(p), 6); }
     );
     def('tincture_of_purpose',
-        function(p) { Game.killBuff('Tincture of Purpose (misbrewed)'); Game.gainBuff('Tincture of Purpose', 120, 1.3); Game.Notify(p.name + ' consumed', '+30% CpS for 2 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Tincture of Purpose (misbrewed)'); Game.gainBuff('Tincture of Purpose', 180, 1.3); Game.Notify(p.name + ' consumed', '+30% CpS for 3 minutes.', getIconArray(p), 6); },
         function(p) { Game.killBuff('Tincture of Purpose'); Game.gainBuff('Tincture of Purpose (misbrewed)', 600, 0.3); Game.Notify(p.name + ' misbrewed', '-70% CpS for 10 minutes.', getIconArray(p), 6); }
     );
     def('ambrosia_of_the_leech',
@@ -1107,11 +1114,11 @@ function updatePotionEffects() {
         }
     );
     def('vitae_of_the_mother',
-        function(p) { Game.killBuff('Vitae of the Mother (misbrewed)'); Game.gainBuff('Vitae of the Mother', 900, 1.03); Game.Notify(p.name + ' consumed', 'Milk is 3% more powerful for 15 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Vitae of the Mother (misbrewed)'); Game.gainBuff('Vitae of the Mother', 900, 1.02); Game.Notify(p.name + ' consumed', 'Milk is 2% more powerful for 15 minutes.', getIconArray(p), 6); },
         function(p) { Game.killBuff('Vitae of the Mother'); Game.gainBuff('Vitae of the Mother (misbrewed)', 3600, 0.85); Game.Notify(p.name + ' misbrewed', 'Milk is 15% weaker for an hour.', getIconArray(p), 6); }
     );
     def('infusion_of_chance',
-        function(p) { Game.killBuff('Infusion of Chance (misbrewed)'); Game.gainBuff('Infusion of Chance', 1800, 1.3); Game.Notify(p.name + ' consumed', 'Random drops are 30% more common for 30 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Infusion of Chance (misbrewed)'); Game.gainBuff('Infusion of Chance', 3600, 1.3); Game.Notify(p.name + ' consumed', 'Random drops are 30% more common for an hour.', getIconArray(p), 6); },
         function(p) { Game.killBuff('Infusion of Chance'); Game.gainBuff('Infusion of Chance (misbrewed)', 3600, 0.5); Game.Notify(p.name + ' misbrewed', 'Random drops are 50% less common for an hour.', getIconArray(p), 6); }
     );
     def('elixir_of_chaos',
@@ -1208,8 +1215,8 @@ function updatePotionEffects() {
     );
     def('spirit_of_protection',
         function(p) {
-            Game.gainBuff('Spirit of Protection', 30, 0.9);
-            Game.Notify(p.name + ' consumed', 'The shimmering veil has a 90% chance to not shatter for the next 30 seconds.', getIconArray(p), 6);
+            Game.gainBuff('Spirit of Protection', 30, 0.95);
+            Game.Notify(p.name + ' consumed', 'The shimmering veil has a 95% chance to not shatter for the next 30 seconds.', getIconArray(p), 6);
         },
         function(p) {
             Game.killBuff('Spirit of Protection');
@@ -1425,11 +1432,11 @@ function updatePotionEffects() {
         }
     );
     def('ember_of_dragon_fire',
-        function(p) { Game.killBuff('Ember of Dragon Fire (misbrewed)'); Game.gainBuff('Ember of Dragon Fire', 3600, 1.1); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Golden cookie gains increased by 10% for 10 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Ember of Dragon Fire (misbrewed)'); Game.gainBuff('Ember of Dragon Fire', 3600, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Golden cookie gains increased by 20% for an hour.', getIconArray(p), 6); },
         function(p) { Game.killBuff('Ember of Dragon Fire'); Game.gainBuff('Ember of Dragon Fire (misbrewed)', 3600, 0.7); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Golden cookie gains reduced by 30% for 30 minutes.', getIconArray(p), 6); }
     );
     def('whisper_of_boreas',
-        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.2); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Seasonal rewards are increased by 20% for 30 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Whisper of Boreas (misbrewed)'); Game.gainBuff('Whisper of Boreas', 1800, 1.3); updatePotionEffects(); Game.Notify(p.name + ' consumed', 'Seasonal rewards are increased by 30% for 30 minutes.', getIconArray(p), 6); },
         function(p) { Game.killBuff('Whisper of Boreas'); Game.gainBuff('Whisper of Boreas (misbrewed)', 3600, 0.5); updatePotionEffects(); Game.Notify(p.name + ' misbrewed', 'Seasonal rewards are reduced by 50% for an hour.', getIconArray(p), 6); }
     );
     def('breath_of_growth',
@@ -1472,6 +1479,10 @@ function updatePotionEffects() {
     def('tears_of_landis',
         function(p) {
             if (typeof Game.lumpCurrentType !== 'undefined') {
+                if (Game.lumpCurrentType !== 0) {
+                    Game.Notify(p.name + ' consumed', 'Your current sugar lump is special, so it was left alone.', getIconArray(p), 6);
+                    return;
+                }
                 var types=[0];
                 var loop=1;
                 loop+=Game.auraMult('Dragon\'s Curve');
@@ -1609,8 +1620,8 @@ function updatePotionEffects() {
         }
     );
     def('ointment_of_plenty',
-        function(p) { Game.killBuff('Ointment of Plenty (misbrewed)'); Game.gainBuff('Ointment of Plenty', 600, 2.0); Game.Notify(p.name + ' consumed', 'Reagents drop 100% more often for 10 minutes.', getIconArray(p), 6); },
-        function(p) { Game.killBuff('Ointment of Plenty'); Game.gainBuff('Ointment of Plenty (misbrewed)', 1800, 0.5); Game.Notify(p.name + ' misbrewed', 'Reagent drops are 50% less common for 30 minutes.', getIconArray(p), 6); }
+        function(p) { Game.killBuff('Ointment of Plenty (misbrewed)'); Game.gainBuff('Ointment of Plenty', 1800, 2.0); Game.Notify(p.name + ' consumed', 'Reagents drop 100% more often for 30 minutes.', getIconArray(p), 6); },
+        function(p) { Game.killBuff('Ointment of Plenty'); Game.gainBuff('Ointment of Plenty (misbrewed)', 3600, 0.5); Game.Notify(p.name + ' misbrewed', 'Reagent drops are 50% less common for an hour.', getIconArray(p), 6); }
     );
     // =====================================================================
     // Prestige potion effects
@@ -1760,6 +1771,9 @@ function updatePotionEffects() {
                     var lantern = new Game.shimmer('lantern');
                     Game.season = savedSeason;
                     if (lantern) lantern.delay = 0;
+                    Game.season = 'thanksgiving';
+                    new Game.shimmer('turkey');
+                    Game.season = savedSeason;
                     if (Game.elderWrath > 0) Game.SpawnWrinkler();
                 }, k * 300);
             }
@@ -1817,7 +1831,7 @@ function updatePotionEffects() {
             for (var i = 0; i < 3; i++) { if (!G.slots[i]) { emptySlot = i; break; } }
             if (emptySlot === -1) { Game.Notify(p.name + ' consumed', 'No empty brew slot available.', getIconArray(p), 6); return; }
             var now = Date.now() / 1000;
-            G.slots[emptySlot] = { potionId: 'dew_discovering', startTime: now, endTime: now + 64800, reagents: [] };
+            G.slots[emptySlot] = { potionId: 'dew_discovering', startTime: now, endTime: now + 43200, reagents: [] };
             PotionsM._refreshSlots();
             Game.Notify(p.name + ' consumed', 'A long and painful discovery brew has begun.', getIconArray(p), 6);
         },
@@ -1963,6 +1977,7 @@ PotionsM._syncBaselines = function(target) {
     P._lastSeason           = Game.season           || '';
     P._lastDragonAura       = Game.dragonAura       || 0;
     P._lastDragonAura2      = Game.dragonAura2      || 0;
+    P._lastDragonAura3      = Game.JNE && Game.JNE.getDragonAura3 ? Game.JNE.getDragonAura3() : 0;
     P._lastDragonPet        = Game.lastClickedSpecialPic || 0;
     var TM = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
     P._lastPantheonSlots    = TM && TM.slot ? [TM.slot[0], TM.slot[1], TM.slot[2]] : [-1, -1, -1];
@@ -2553,7 +2568,7 @@ PotionsM.launch = function() {
     if (Game.getVeilDefense && !Game.getVeilDefense._spiritOfProtectionInjected) {
         var funcStr = Game.getVeilDefense.toString();
 
-        var injection = "if(Game.hasBuff('Spirit of Protection'))return 0.9;";
+        var injection = "if(Game.hasBuff('Spirit of Protection'))return 0.95;";
         var returnPattern = "return n;";
 
         if (funcStr.indexOf("Game.hasBuff('Spirit of Protection')") !== -1) {
@@ -2590,32 +2605,18 @@ PotionsM._registerHooks = function() {
         Game._potionsClickHookRegistered = true;
     }
 
-    // Hook into Game.magicCpS
-    if (!Game._potionsMagicCpSHooked) {
-        if (!Game._jneOriginalMagicCpSPotions) Game._jneOriginalMagicCpSPotions = Game.magicCpS;
-        var wrapper = function(what) {
-            var mult = Game._jneOriginalMagicCpSPotions.call(this, what);
-
-            if (Game.hasBuff('Bloom of Industry')) {
-                mult *= 1.1;
-            }
-            if (Game.hasBuff('Bloom of Industry (misbrewed)')) {
-                mult *= 0.7;
-            }
-
-            var suspBuff = Game.hasBuff('Suspension of Hallucinogenic');
-            if (suspBuff && suspBuff.buildingName === what) {
-                mult *= 2.0;
-            }
-            var suspCurse = Game.hasBuff('Suspension of Hallucinogenic (misbrewed)');
-            if (suspCurse && suspCurse.buildingName === what) {
-                mult *= 0.5;
-            }
-
-            return mult;
-        };
-        Game.magicCpS = wrapper;
+    // Bloom of Industry / Suspension multipliers (one Game.magicCpS wrapper lives in JNE)
+    if (!Game._potionsMagicCpSHooked && Game.JNE && Game.JNE.addMagicCpSModifier) {
         Game._potionsMagicCpSHooked = true;
+        Game.JNE.addMagicCpSModifier(function(what, mult) {
+            if (Game.hasBuff('Bloom of Industry')) mult *= 1.1;
+            if (Game.hasBuff('Bloom of Industry (misbrewed)')) mult *= 0.7;
+            var suspBuff = Game.hasBuff('Suspension of Hallucinogenic');
+            if (suspBuff && suspBuff.buildingName === what) mult *= 2.0;
+            var suspCurse = Game.hasBuff('Suspension of Hallucinogenic (misbrewed)');
+            if (suspCurse && suspCurse.buildingName === what) mult *= 0.5;
+            return mult;
+        });
     }
 
     // Golden cookie pop modifications are now handled centrally in JustNaturalExpansion
@@ -2688,10 +2689,12 @@ PotionsM._registerHooks = function() {
             // Dragon aura swap captured_auroras
             var aura1 = Game.dragonAura  || 0;
             var aura2 = Game.dragonAura2 || 0;
-            if (aura1 !== PotionsM._lastDragonAura || aura2 !== PotionsM._lastDragonAura2) {
+            var aura3 = Game.JNE && Game.JNE.getDragonAura3 ? Game.JNE.getDragonAura3() : 0;
+            if (aura1 !== PotionsM._lastDragonAura || aura2 !== PotionsM._lastDragonAura2 || aura3 !== PotionsM._lastDragonAura3) {
                 if (PotionsM.reagentRoll('captured_auroras')) PotionsM._addReagent('captured_auroras', 1, 'dragon_aura');
                 PotionsM._lastDragonAura  = aura1;
                 PotionsM._lastDragonAura2 = aura2;
+                PotionsM._lastDragonAura3 = aura3;
             }
 
             // Pantheon spirit swap divine_extraction
@@ -2813,7 +2816,7 @@ PotionsM._registerHooks = function() {
                             'divine_extraction': 'a sprinkling of divine extract',
                             'nectar_of_effort': 'a dash of nectar',
                             'dragon_scales': 'some shimmering scales',
-                            'rabbit_feet': 'one lucky rabbit foot',
+                            'rabbit_feet': 'a handful of lucky charms',
                             'golden_flour': 'a cupful of flour',
                             'pure_cane_sugar': 'a barspoon of pure sugar',
                             'flower_petals': 'some fragrant petals',
@@ -3130,7 +3133,7 @@ PotionsM._hookWrinklerSpawn = function() {
                 var hasShiny = false;
                 if (Game.wrinklers) {
                     for (var i = 0; i < Game.wrinklers.length; i++) {
-                        if (Game.wrinklers[i] && Game.wrinklers[i].type === 1 && Game.wrinklers[i].phase > 0) {
+                        if (Game.wrinklers[i] && Game.wrinklers[i].type == 1 && Game.wrinklers[i].phase > 0) {
                             hasShiny = true; break;
                         }
                     }
@@ -3250,8 +3253,8 @@ PotionsM.init = function(div) {
         (function(idx) {
             var slotEl = $('potionsSlot' + idx);
             if (slotEl) {
-                slotEl.addEventListener('click', function() {
-                    PotionsM._usePotionSlot(idx);
+                slotEl.addEventListener('click', function(e) {
+                    PotionsM._usePotionSlot(idx, !!(e && e.shiftKey));
                 });
                 PotionsM._addTooltip(slotEl, PotionsM.slotTooltip(idx), 'this');
             }
@@ -3387,6 +3390,7 @@ PotionsM.slotTooltip = function(slot) {
                 str += '<div class="description">You have discovered a new stable formula! However you have no idea what it actually does. Try using this potion to discover its effects on the world.</div>';
                 str += getIngredientsHtml(brew.reagents);
                 str += '<q>An unknown concoction shimmers in the vial. Its properties remain a mystery until you dare to drink it.</q>';
+                str += '<div class="line"></div><div class="description" style="text-align:center;"><small>(Shift click to discard without learning)</small></div>';
             } else if (p) {
                 var misbrewChance = PotionsM._getMisbrewChance(p);
                 var misbrewChanceStr = Math.round(misbrewChance * 100) + '%';
@@ -3630,7 +3634,7 @@ PotionsM._attarSeededRoll = function(misbrew) {
     return PotionsM._attarOutcome(r, misbrew);
 };
 
-PotionsM._usePotionSlot = function(slotIndex) {
+PotionsM._usePotionSlot = function(slotIndex, discard) {
     var brew = G.slots[slotIndex];
     if (!brew) return;
     if (brew.potionId === 'useless' || brew.potionId === 'promising' || brew.potionId === 'very_promising' || brew.potionId === 'extraordinary_promising' || brew.potionId === 'useless_brew' || brew.potionId === 'dew_failed') {
@@ -3643,6 +3647,20 @@ PotionsM._usePotionSlot = function(slotIndex) {
     if (brew.potionId === 'dew_discovering') return; // completes automatically, no click interaction
     var p = getPotionById(brew.potionId);
     if (!p) return;
+    if (discard && p.discovered && !p.unlocked) {
+        // forget the discovery so the same recipe can find it again, unless another vial still holds it
+        PlaySound('snd/buyHeavenly.mp3');
+        G.slots[slotIndex] = null;
+        if (!G.slots.some(function(sl) { return sl && sl.potionId === p.id; })) p.discovered = false;
+        // the test shouldn't count as tried, so the same ingredients can be brewed again
+        var rIds = (brew.reagents || []).map(function(rid) { return REAGENTS.findIndex(function(r) { return r.id === rid; }); });
+        if (rIds.length === 3 && rIds.indexOf(-1) < 0 && G.triedRecipes) TriedRecipes.unmark(G.triedRecipes, rIds[0], rIds[1], rIds[2]);
+        PotionsM._buildReagents();
+        PotionsM._buildCatalog();
+        PotionsM._refreshSlots();
+        PotionsM._renderSelectedReagents();
+        return;
+    }
     var remaining = brew.endTime - Date.now() / 1000;
     if (remaining > 0) return;
     // For Attar of the Gambler: capture forced outcome before clearing slot
@@ -4063,7 +4081,10 @@ PotionsM._startBrew = function() {
 
     for (var i = 0; i < 3; i++) {
         var slot = G.slots[i];
-        if (slot && slot.potionId === 'discovering') {
+        // a running experiment, or a discovered potion waiting unused in a slot, blocks the same ingredients
+        var slotPotion = slot ? getPotionById(slot.potionId) : null;
+        var waiting = !!(slotPotion && slotPotion.discovered && !slotPotion.unlocked);
+        if (slot && (slot.potionId === 'discovering' || waiting)) {
             var currentReagents = G.selectedReagents.slice().sort();
             var slotReagents = slot.reagents.slice().sort();
             var isSame = currentReagents.length === slotReagents.length &&
@@ -4566,6 +4587,16 @@ PotionsM._refreshSlotTimers = function() {
         }
     }
 };
+// the names array is declared below the boot call (undefined while boot runs), so the count lives here
+PotionsM._achCount = 6;
+PotionsM._cleanAchWon = function(list) {
+    var out = [];
+    (Array.isArray(list) ? list : []).forEach(function(v) {
+        if (typeof v === 'number' && v >= 0 && v < PotionsM._achCount && out.indexOf(v) === -1) out.push(v);
+    });
+    return out.sort(function(a, b) { return a - b; });
+};
+
 PotionsM._buildSaveDataImpl = function() {
     var now = Date.now() / 1000;
 
@@ -4646,6 +4677,11 @@ PotionsM._buildSaveDataImpl = function() {
             if (ach && ach.won) aw.push(ai);
         }
     }
+
+    // wins are permanent: keep every entry already held, even when the live achievement is missing right now
+    var known = Array.isArray(PotionsM._knownAchWon) ? PotionsM._knownAchWon : [];
+    aw = PotionsM._cleanAchWon(aw.concat(known));
+    PotionsM._knownAchWon = aw.slice();
 
     // rn/pn: record how many reagents/potions exist at save time.
     // On load, if counts differ a new ingredient/potion was added, safe to ignore extras.
@@ -4795,7 +4831,7 @@ PotionsM._loadImpl = function(str) {
             var timeRemaining = sd.t || 0;
             var isDew = potionId === 'dew_discovering';
             var potionDef = (potionId !== 'discovering' && !isDew) ? getPotionById(potionId) : null;
-            var maxBrewTime = potionDef ? potionDef.brewTime : (isDew ? 64800 : 300);
+            var maxBrewTime = potionDef ? potionDef.brewTime : (isDew ? 43200 : 300);
             var timeElapsed = maxBrewTime - timeRemaining;
             var restoredSlot = {
                 potionId:  potionId,
@@ -4827,7 +4863,7 @@ PotionsM._loadImpl = function(str) {
     G.totalReagentsCollected = data.tr || 0;
     G.totalFailedDiscoveries     = data.fd || 0;
 
-    // Achievement won state
+    PotionsM._knownAchWon = PotionsM._cleanAchWon(data.aw);
     if (Array.isArray(data.aw) && typeof potionsAchievementNames !== 'undefined') {
         var anyPending = false;
         for (var ai = 0; ai < data.aw.length; ai++) {
@@ -4919,7 +4955,26 @@ PotionsM._restorePendingBuffs = function() {
     PotionsM._pendingBuffs = null;
 };
 
+PotionsM._keepDivineOnAscend = function() {
+    var now = Date.now() / 1000;
+    for (var i = 0; i < G.slots.length; i++) {
+        var brew = G.slots[i];
+        var pot = brew && getPotionById(brew.potionId);
+        var keep = pot && Game.Has('Divine potions') && brew.potionId !== 'dew_discovering' &&
+            pot.unlocked && brew.endTime <= now && Math.random() < 0.1;
+        if (!keep) G.slots[i] = null;
+    }
+    REAGENTS.forEach(function(r) {
+        var kept = 0;
+        for (var k = 0; k < (G.reagents[r.id] || 0); k++) {
+            if (Game.Has('Divine reagents') && Math.random() < 0.1) kept++;
+        }
+        G.reagents[r.id] = Math.min(kept, G.maxReagents);
+    });
+};
+
 PotionsM._resetImpl = function(hard, _calledFromLoad) {
+    if (hard && !_calledFromLoad) PotionsM._knownAchWon = [];
     if (hard) {
         G.slots = [null, null, null];
         G.reagents = {};
@@ -4974,8 +5029,7 @@ PotionsM._resetImpl = function(hard, _calledFromLoad) {
         }
     } else {
         // Ascension: clear transient state but preserve unlock progress and lifetime totals.
-        // Zero out store counts for unlocked reagents but keep unlocked
-        G.slots = [null, null, null];
+        PotionsM._keepDivineOnAscend();
         G.selectedReagents = [];
         G.highlightedReagents = [];
         G.highlightEndTime = 0;
@@ -4983,9 +5037,6 @@ PotionsM._resetImpl = function(hard, _calledFromLoad) {
         G.craftsmanGrants = {};
         G.cadenceExtensions = {};
         G.catalystSurgeEnd = 0;
-        for (var i = 0; i < REAGENTS.length; i++) {
-            G.reagents[REAGENTS[i].id] = 0;
-        }
     }
     // Refresh UI
     PotionsM._refreshSlots();
@@ -5293,6 +5344,7 @@ if (Game.ready) {
     });
 }
 
+
 var potionsAchievementNames = [
     'The whole pantry',
     'The complete works of questionable medicine',
@@ -5306,6 +5358,19 @@ var potionsAchievementState = {
     achievementsCreated: false
 };
 
+function applyRememberedAchWon() {
+    var list = PotionsM._cleanAchWon((PotionsM._pendingAchWon || []).concat(PotionsM._knownAchWon || []));
+    PotionsM._pendingAchWon = null;
+    list.forEach(function(i) {
+        var name = potionsAchievementNames[i];
+        var ach = Game.Achievements && Game.Achievements[name];
+        if (ach && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(name))) {
+            ach.won = 1;
+            ach._restoredFromSave = true;
+        }
+    });
+}
+
 function createPotionsAchievements() {
     if (!Game.JNE || !Game.JNE.createAchievement) {
         return;
@@ -5313,7 +5378,8 @@ function createPotionsAchievements() {
     if (Game.JNE.enablePotionsMinigame === false) {
         return;
     }
-    if (!potionsAchievementNames || !potionsAchievementNames.length) {
+    // boot calls this before the names and state below are assigned; the deferred call in launch() creates them later
+    if (typeof potionsAchievementState === 'undefined' || !potionsAchievementNames || !potionsAchievementNames.length) {
         return;
     }
 
@@ -5349,6 +5415,7 @@ function createPotionsAchievements() {
             }
         }
         potionsAchievementState.achievementsCreated = true;
+        applyRememberedAchWon();
         return;
     }
 
@@ -5407,18 +5474,7 @@ function createPotionsAchievements() {
     }
     potionsAchievementState.achievementsCreated = true;
 
-    // Apply any achievement won state that was stashed during load (load ran before achievements existed)
-    if (Array.isArray(PotionsM._pendingAchWon)) {
-        var pending = PotionsM._pendingAchWon;
-        PotionsM._pendingAchWon = null;
-        for (var ai = 0; ai < pending.length; ai++) {
-            var wonIdx = pending[ai];
-            if (wonIdx < 0 || wonIdx >= potionsAchievementNames.length) continue;
-            var achN = potionsAchievementNames[wonIdx];
-            var achObj = Game.Achievements && Game.Achievements[achN];
-            if (achObj && !(Game.JNE && Game.JNE.isAccomplishmintSuppressed && Game.JNE.isAccomplishmintSuppressed(achN))) { achObj.won = 1; achObj._restoredFromSave = true; }
-        }
-    }
+    applyRememberedAchWon();
     if (!PotionsM._checkHookRegistered) {
         PotionsM._checkHookRegistered = true;
         setTimeout(function() {
@@ -5471,13 +5527,19 @@ function getAchievementState() {
     for (var i = 0; i < REAGENTS.length; i++) {
         if (REAGENTS[i].unlocked) unlockedReagentsCount++;
     }
-    var unlockedPotionsCount = 0;
+    var unlockedPotionsCount = 0, activePotionsCount = 0, unlockedActivePotionsCount = 0;
     for (var i = 0; i < POTIONS.length; i++) {
         if (POTIONS[i].unlocked) unlockedPotionsCount++;
+        if (isActivePotion(POTIONS[i])) {
+            activePotionsCount++;
+            if (POTIONS[i].unlocked) unlockedActivePotionsCount++;
+        }
     }
     return {
         unlockedReagentsCount: unlockedReagentsCount,
         unlockedPotionsCount: unlockedPotionsCount,
+        unlockedActivePotionsCount: unlockedActivePotionsCount,
+        activePotionsCount: activePotionsCount,
         totalPotionsBrewed: G.totalPotionsBrewed || 0,
         totalReagentsCollected: G.totalReagentsCollected || 0
     };
@@ -5491,7 +5553,8 @@ function checkAndAwardPotionsAchievements() {
     try {
         var state = getAchievementState();
         var truffleHunter = state.unlockedReagentsCount >= REAGENTS.length;
-        var potionMaster = state.unlockedPotionsCount >= POTIONS.length;
+        // all potions knowable right now
+        var potionMaster = state.unlockedActivePotionsCount >= state.activePotionsCount;
         var transfiguration = state.totalPotionsBrewed >= 250;
         var alchemistCollector = state.totalReagentsCollected >= 1500;
 

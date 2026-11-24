@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const TERMINAL_VERSION = '1.0.10';
+const TERMINAL_VERSION = '1.0.11';
 
 var M = {};
 M.parent = Game.Objects && Game.Objects['Javascript console'] ? Game.Objects['Javascript console'] : {
@@ -447,6 +447,10 @@ M.launch = function () {
         return list;
     }
 
+    function getTertiaryAuraSlot() {
+        return Game.JNE && Game.JNE.dragonSlot3Active && Game.JNE.dragonSlot3Active() ? Game.JNE.dragonSlot3 : null;
+    }
+
     function getDragonAuraOptions() {
         var auraSource = Game.dragonAuras || null;
         return DRAGON_AURA_BASE_OPTIONS.map(function (option) {
@@ -557,20 +561,16 @@ M.launch = function () {
 
     function getSweetRuntimeOptions() {
         var frenzyCost = getSugarFrenzyLumpCost();
-        var list = [
-            { value: 'sugarFrenzy', label: 'Activate sugar frenzy<br>(Warning: cost ' + frenzyCost + ' sugar lump' + (frenzyCost === 1 ? '' : 's') + ')', icon: [22, 17] }
-        ];
-        if (Game.Has('Sugar for sugar trading')) {
-            list.push({ value: 'sugarTrade', label: 'Activate sugar trade<br>(Warning: cost 1 sugar lump)', icon: [21, 17] });
-        }
-        list.push(
+        var tradeCost = Game.sugarTradePrice || 1;
+        return [
+            { value: 'sugarFrenzy', label: 'Activate sugar frenzy<br>(Warning: cost ' + frenzyCost + ' sugar lump' + (frenzyCost === 1 ? '' : 's') + ')', icon: [22, 17] },
+            { value: 'sugarTrade', label: 'Activate sugar trade<br>(Warning: cost ' + tradeCost + ' sugar lump' + (tradeCost === 1 ? '' : 's') + ')', icon: [21, 17], ownedBy: 'Sugar for sugar trading' },
             { value: 'refreshMana', label: 'Refresh grimoire mana<br>(Warning: cost 1 sugar lump)', icon: [17, 0] },
             { value: 'refreshPantheon', label: 'Refresh pantheon swaps cooldown<br>(Warning: cost 1 sugar lump)', icon: [16, 0] },
             { value: 'cashInCloneReward', label: 'Redeem your Clone Escape reward', icon: [35, 0] },
             { value: 'harvestLump', label: 'Harvest sugar lump', icon: [29, 27] },
             { value: 'clickGolden', label: 'Click all on screen golden cookies', icon: [23, 6] }
-        );
-        return list;
+        ];
     }
 
     function createSellBuyProgram() {
@@ -779,7 +779,8 @@ M.launch = function () {
                         return [
                             //these are backwards from what most reasonable people would expect, I refuse to catch grief from it though
                             { value: 0, label: 'Primary slot', icon: [0, 10] },
-                            { value: 1, label: 'Secondary slot', icon: [1, 10] }
+                            { value: 1, label: 'Secondary slot', icon: [1, 10] },
+                            { value: 2, label: 'Tertiary slot', icon: [2, 10], ownedBy: 'The legend of Krumblor' }
                         ];
                     },
                     default: 0
@@ -802,8 +803,8 @@ M.launch = function () {
                 config = config || {};
                 var auraName = getDragonAuraLabel(config.aura);
                 var slotIndex = parseInt(config.slot, 10);
-                if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 1) slotIndex = 0;
-                var slotLabel = slotIndex === 0 ? 'primary slot' : 'secondary slot';
+                if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 2) slotIndex = 0;
+                var slotLabel = ['primary slot', 'secondary slot', 'tertiary slot'][slotIndex];
                 return 'Set ' + auraName + ' aura on the ' + slotLabel;
             }
         };
@@ -976,6 +977,20 @@ M.launch = function () {
         };
     }
 
+    var LOADOUT_ICONS = [[0, 10], [1, 10], [2, 10]];
+
+    function createSaveLoadoutProgram() {
+        return {
+            key: 'saveLoadout',
+            name: 'Save loadout',
+            desc: 'Save your queues to one of three slots, then drag a save onto a queue to restore the entire queue.',
+            icon: (Game.JNE && Game.JNE.icon) ? Game.JNE.icon(8, 16, 'custom') : [0, 0],
+            ownedBy: 'Command S',
+            summarizeConfig: function () { return 'Restore Save Slot ' + (M.loadoutCursor + 1); },
+            config: [{ id: 'SAVE_ID', label: 'SAVE_ID', type: 'number', default: 0 }]
+        };
+    }
+
     function buildProgramDefinitions() {
         return [
             createSellBuyProgram(),
@@ -988,7 +1003,8 @@ M.launch = function () {
             createLoanProgram(),
             createBrewSlotProgram(),
             createSwitchSeasonProgram(),
-            createSweetRuntimeSwizzleProgram()
+            createSweetRuntimeSwizzleProgram(),
+            createSaveLoadoutProgram()
         ];
     }
 
@@ -1174,7 +1190,8 @@ M.launch = function () {
             desc: data.desc,
             icon: data.icon,
             config: data.config || [],
-            summarizeConfig: data.summarizeConfig
+            summarizeConfig: data.summarizeConfig,
+            ownedBy: data.ownedBy
         };
         M.programs[data.key] = program;
         M.programsById[i] = program;
@@ -1682,10 +1699,32 @@ M.launch = function () {
         return ok('Sugar frenzy activated.');
     }
 
+    function summonSugarTradeGolden() {
+        if (typeof Game.shimmer === 'function') new Game.shimmer('golden');
+        Game.Notify("Sugar trade", "Summoned a golden cookie.", [21, 17]);
+    }
+
     function activateSugarTrade() {
         var upgrade = Game.Upgrades ? Game.Upgrades['Sugar trade'] : null;
         if (!upgrade) return err('Sugar trade is unavailable.');
         if (!upgrade.unlocked) return err('Sugar trade is not unlocked yet.');
+
+        if (upgrade._reoccuringBusiness) {
+            var cooldown = 24 * 60 * 60 * 1000;
+            var elapsed = Date.now() - (Game.sugarTradeLastUse || 0);
+            if (elapsed < cooldown) {
+                var remainingText = Game.sayTime(Math.ceil((cooldown - elapsed) / 1000 * (Game.fps || 30)), -1);
+                return err('Sugar trade is cooling down. Usable again in ' + remainingText + '.');
+            }
+            var price = Game.sugarTradePrice || 1;
+            if (!haveSugarLumps(price)) return err('Not enough sugar lumps to activate Sugar trade.');
+            Game.sugarTradeLastUse = Date.now();
+            spendSugarLumps(price);
+            Game.sugarTradePrice = price + 1;
+            summonSugarTradeGolden();
+            return ok('Sugar trade activated.');
+        }
+
         if (upgrade.bought) return err('Sugar trade has already been used this ascension.');
         if (!haveSugarLumps(1)) return err('Not enough sugar lumps to activate Sugar trade.');
 
@@ -1693,12 +1732,7 @@ M.launch = function () {
         spendSugarLumps(1);
         upgrade.buy(1);
         upgrade.bought = 1;
-        if (typeof Game.shimmer === 'function') {
-            new Game.shimmer('golden');
-        } else if (typeof Game.shimmerTypes !== 'undefined' && Game.shimmerTypes && Game.shimmerTypes.golden) {
-            new Game.shimmer('golden');
-        }
-        Game.Notify("Sugar trade", "Summoned a golden cookie.", [21, 17]);
+        summonSugarTradeGolden();
         return ok('Sugar trade activated.');
     }
 
@@ -1790,22 +1824,23 @@ M.launch = function () {
         config = config || {};
         if (!Game || !Game.dragonAuras) return err('Dragon mechanics unavailable.');
         var slot = parseInt(config.slot, 10);
-        if (isNaN(slot) || (slot !== 0 && slot !== 1)) return err('Invalid dragon aura slot.');
+        if (isNaN(slot) || slot < 0 || slot > 2) return err('Invalid dragon aura slot.');
         var dragonLevel = Game.dragonLevel || 0;
+        var tertiary = getTertiaryAuraSlot();
         if (slot === 0 && dragonLevel < 5) return err('Primary aura slot not unlocked yet.');
         if (slot === 1 && dragonLevel < 27) return err('Secondary aura slot not unlocked yet.');
+        if (slot === 2 && !tertiary) return err('Tertiary aura slot not unlocked yet.');
         var auraId = parseInt(config.aura, 10);
         if (isNaN(auraId)) auraId = 0;
         var auraData = Game.dragonAuras[auraId];
         if (!auraData) return err('Unknown dragon aura.');
         if (dragonLevel < auraId + 4) return err(auraData.dname + ' is not unlocked yet.');
-        var currentAura = slot === 0 ? Game.dragonAura : Game.dragonAura2;
-        var otherAura = slot === 0 ? Game.dragonAura2 : Game.dragonAura;
-        if (auraId !== 0 && auraId === otherAura) {
-            var otherLabel = slot === 0 ? 'secondary aura slot' : 'primary aura slot';
-            return err(auraData.dname + ' is already assigned to the ' + otherLabel + '.');
-        }
-        var slotLabel = slot === 0 ? 'primary aura slot' : 'secondary aura slot';
+        var slotLabels = ['primary aura slot', 'secondary aura slot', 'tertiary aura slot'];
+        var auras = [Game.dragonAura, Game.dragonAura2, tertiary ? tertiary.aura : 0];
+        var currentAura = auras[slot];
+        var clash = auraId === 0 ? -1 : auras.findIndex(function (a, i) { return i !== slot && a === auraId; });
+        if (clash !== -1) return err(auraData.dname + ' is already assigned to the ' + slotLabels[clash] + '.');
+        var slotLabel = slotLabels[slot];
         if (currentAura === auraId) return ok(auraData.dname + ' is already active on the ' + slotLabel + '.');
 
         var highestBuilding = getHighestOwnedBuilding();
@@ -1813,7 +1848,8 @@ M.launch = function () {
         if (sacrificeNeeded && highestBuilding.amount <= 0) return err('Cannot switch aura; no building available to sacrifice.');
 
         if (slot === 0) Game.dragonAura = auraId;
-        else Game.dragonAura2 = auraId;
+        else if (slot === 1) Game.dragonAura2 = auraId;
+        else tertiary.aura = auraId;
 
         var sacrificeNote = '';
         if (sacrificeNeeded) {
@@ -1956,6 +1992,7 @@ M.launch = function () {
 
     M.slot = [];
     M.slotSettings = [];
+    M.loadoutSaves = [null, null, null];
     M.currentProgramIndex = 0;
 
     M.dragging = null;
@@ -2207,8 +2244,8 @@ M.launch = function () {
             M.renderProgramConfig(program);
         };
 
-        var prevBtn = container.querySelector('.terminalCarouselPrev');
-        var nextBtn = container.querySelector('.terminalCarouselNext');
+        var prevBtn = container.querySelector('.terminalArrow--prev');
+        var nextBtn = container.querySelector('.terminalArrow--next');
         if (prevBtn) {
             AddEvent(prevBtn, 'click', function () { step(-1); });
         }
@@ -2288,8 +2325,8 @@ M.launch = function () {
             if (!column) continue;
             const indexAttr = parseInt(column.getAttribute('data-index'), 10);
             const digitIndex = isNaN(indexAttr) ? 0 : indexAttr;
-            const up = column.querySelector('.terminalDigitArrow--up');
-            const down = column.querySelector('.terminalDigitArrow--down');
+            const up = column.querySelector('.terminalArrow--up');
+            const down = column.querySelector('.terminalArrow--down');
             if (up) {
                 AddEvent(up, 'click', function () {
                     adjustDigit(digitIndex, 1);
@@ -2314,6 +2351,7 @@ M.launch = function () {
     M.renderProgramConfig = function (program) {
         var container = l('terminalProgramConfig');
         if (!container) return;
+        if (program && program.key === 'saveLoadout') { M.renderLoadoutConfig(); return; }
         if (!program || !program.config || !program.config.length) {
             container.innerHTML = '<div class="terminalProgramConfigNone">No additional parameters required.<br>The cookie will be clicked 5 times per Javascript Console Level, up to level 20.</div>';
             return;
@@ -2335,7 +2373,7 @@ M.launch = function () {
             var labelAttr = labelText.replace(/"/g, '&quot;');
 
             if (field.type === 'choice' && field.display === 'iconCarousel') {
-                var iconOptions = M.resolveFieldOptions(field, program, config);
+                var iconOptions = M.resolveFieldOptions(field, program, config).filter(function (o) { return !o.ownedBy || Game.Has(o.ownedBy); });
                 var selectedIndex = -1;
                 var targetValue = '' + value;
                 for (var si = 0; si < iconOptions.length; si++) {
@@ -2356,8 +2394,7 @@ M.launch = function () {
                 html += '<div class="terminalCarouselIcon"><div class="terminalCarouselIconInner usesIcon shadowFilter"></div></div>';
                 html += '<div class="terminalCarouselName">' + (selectedOption ? selectedOption.label : 'Unknown') + '</div>';
                 html += '<div class="terminalCarouselControls">';
-                html += '<div class="terminalCarouselButton terminalCarouselPrev" data-dir="-1"></div>';
-                html += '<div class="terminalCarouselButton terminalCarouselNext" data-dir="1"></div>';
+                html += M.arrowHtml('prev', ' data-dir="-1"') + M.arrowHtml('next', ' data-dir="1"');
                 html += '</div>';
                 html += '</div>';
                 html += '</div>';
@@ -2386,9 +2423,9 @@ M.launch = function () {
                 html += '<div class="terminalDigitStepper">';
                 for (var d = 0; d < digitCount; d++) {
                     html += '<div class="terminalDigitColumn" data-index="' + d + '">';
-                    html += '<div class="terminalDigitArrow terminalDigitArrow--up" data-dir="1"></div>';
+                    html += M.arrowHtml('up', ' data-dir="1"');
                     html += '<div class="terminalDigitValue">' + digitsString.charAt(d) + '</div>';
-                    html += '<div class="terminalDigitArrow terminalDigitArrow--down" data-dir="-1"></div>';
+                    html += M.arrowHtml('down', ' data-dir="-1"');
                     html += '</div>';
                 }
                 html += '</div>';
@@ -2488,6 +2525,7 @@ M.launch = function () {
             M.currentProgramIndex = 0;
         }
         var activeProgram = M.programsById[M.currentProgramIndex];
+        if (!M.programVisible(activeProgram)) { M.currentProgramIndex = 0; activeProgram = M.programsById[0]; }
         var total = M.programsById.length;
         for (var i = 0; i < total; i++) {
             var program = M.programsById[i];
@@ -2539,8 +2577,8 @@ M.launch = function () {
             M.showCurrentProgram();
             return;
         }
-        var nextIndex = (M.currentProgramIndex + direction) % total;
-        if (nextIndex < 0) nextIndex += total;
+        var nextIndex = M.currentProgramIndex;
+        do { nextIndex = ((nextIndex + direction) % total + total) % total; } while (!M.programVisible(M.programsById[nextIndex]) && nextIndex !== M.currentProgramIndex);
         if (nextIndex === M.currentProgramIndex) return;
         M.currentProgramIndex = nextIndex;
         M.showCurrentProgram();
@@ -2693,6 +2731,8 @@ M.launch = function () {
     M.startTemplateDrag = function (commandId) {
         var source = l('terminalProgram' + commandId);
         if (!source) return;
+        var isSave = M.programsById[commandId].key === 'saveLoadout';
+        if (isSave && !M.loadoutSaves[M.loadoutCursor]) return;
 
         var dragDiv = document.createElement('div');
         dragDiv.className = 'ready terminalProgram terminalProgram' + (commandId % 4) + ' titleFont terminalDragged';
@@ -2709,8 +2749,9 @@ M.launch = function () {
         var programConfig = M.cloneConfig(M.ensureProgramConfig(M.programsById[commandId]));
 
         M.dragging = {
-            source: 'template',
+            source: isSave ? 'loadout' : 'template',
             commandId: commandId,
+            loadoutIndex: M.loadoutCursor,
             fromSlot: null,
             dragDiv: dragDiv,
             config: programConfig
@@ -2756,8 +2797,82 @@ M.launch = function () {
         PlaySound('snd/tick.mp3');
     };
 
+    M.programVisible = function (program) {
+        return !program.ownedBy || Game.Has(program.ownedBy);
+    };
+
+    M.loadoutCursor = 0;
+
+    M.arrowHtml = (dir, attrs) => '<div class="terminalArrow terminalArrow--' + dir + '"' + (attrs || '') + '></div>';
+
+    M.loadoutTooltip = function () {
+        var i = M.loadoutCursor, save = M.loadoutSaves[i];
+        var names = save ? save.slot.filter(function (id) { return M.programsById[id]; }).map(function (id) { return M.programsById[id].name; }) : [];
+        return '<div style="padding:8px;width:250px;font-size:11px;text-align:center;"><b>Save ' + (i + 1) + '</b><div class="line"></div>' + (!save ? 'Empty. Use Save Current Queue to store your queues here.' : names.length ? names.join('<br>') : 'No programs queued.') + '</div>';
+    };
+
+    M.saveLoadout = function (i) {
+        var n = M.getUnlockedSlotCount();
+        M.loadoutSaves[i] = { slot: M.slot.slice(0, n), settings: M.slotSettings.slice(0, n).map(function (c) { return c && M.cloneConfig(c); }) };
+        PlaySound('snd/tick.mp3');
+        M.renderLoadoutConfig();
+    };
+
+    M.restoreLoadout = function (i) {
+        var save = M.loadoutSaves[i];
+        if (!save || M.isExecutingSequence) return;
+        M.ensureUnlockedSlots();
+        for (var k = 0; k < M.getUnlockedSlotCount(); k++) {
+            if (M.programsById[save.slot[k]]) setSlot(k, save.slot[k], save.settings[k]);
+            else clearSlot(k);
+        }
+        M.updateSlots();
+        PlaySound('snd/tick.mp3');
+    };
+
+    M.renderLoadoutConfig = function () {
+        if (!l('terminalLoadoutIcon')) {
+            var btn = function (d) { return M.arrowHtml(d.toLowerCase(), ' id="terminalLoadout' + d + '"'); };
+            l('terminalProgramConfig').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;"><div class="terminalCarouselIcon"><div id="terminalLoadoutIcon" class="terminalCarouselIconInner usesIcon shadowFilter"></div></div><div class="terminalCarouselControls">' + btn('Prev') + btn('Next') + '</div><a class="option" id="terminalLoadoutSave" style="margin:8px 0 0 0;">Save Current Queue</a></div>';
+            var icon = l('terminalLoadoutIcon');
+            AddEvent(icon, 'mouseover', function () { Game.tooltip.dynamic = 1; Game.tooltip.draw(icon, M.loadoutTooltip, 'this'); });
+            AddEvent(icon, 'mouseout', function () { Game.tooltip.shouldHide = 1; });
+            AddEvent(l('terminalLoadoutPrev'), 'click', function () { M.loadoutCursor = (M.loadoutCursor + 2) % 3; M.renderLoadoutConfig(); });
+            AddEvent(l('terminalLoadoutNext'), 'click', function () { M.loadoutCursor = (M.loadoutCursor + 1) % 3; M.renderLoadoutConfig(); });
+            AddEvent(l('terminalLoadoutSave'), 'click', function () { M.saveLoadout(M.loadoutCursor); });
+        }
+        var iconEl = l('terminalLoadoutIcon');
+        setIconBackground(iconEl, LOADOUT_ICONS[M.loadoutCursor]);
+        if (Game.tooltip.on && Game.tooltip.from === iconEl) Game.tooltip.draw(iconEl, M.loadoutTooltip, 'this');
+    };
+
+    M.clearDrag = function () {
+        if (M.dragging.dragDiv && M.dragging.dragDiv.parentNode) M.dragging.dragDiv.parentNode.removeChild(M.dragging.dragDiv);
+        M.dragging = null;
+        if (M.slotHovered !== -1) {
+            var hoveredDiv = l('terminalSlot' + M.slotHovered);
+            if (hoveredDiv) hoveredDiv.classList.remove('hovered');
+            M.slotHovered = -1;
+        }
+    };
+
+    M.parseLoadoutSaves = function (part) {
+        try {
+            var saves = JSON.parse(decodeURIComponent(part.replace(/\$/g, '%')));
+            return Array.isArray(saves) ? [saves[0] || null, saves[1] || null, saves[2] || null] : [null, null, null];
+        } catch (e) {
+            return [null, null, null];
+        }
+    };
+
     M.dropProgram = function () {
         if (!M.dragging) return;
+
+        if (M.dragging.source === 'loadout') {
+            if (M.slotHovered !== -1 && M.slotHovered < M.getUnlockedSlotCount()) M.restoreLoadout(M.dragging.loadoutIndex);
+            M.clearDrag();
+            return;
+        }
 
         var target = M.slotHovered;
         if (target !== -1 && target >= M.getUnlockedSlotCount()) target = -1;
@@ -2801,17 +2916,7 @@ M.launch = function () {
         }
 
         M.updateSlots();
-
-        if (M.dragging.dragDiv && M.dragging.dragDiv.parentNode) {
-            M.dragging.dragDiv.parentNode.removeChild(M.dragging.dragDiv);
-        }
-
-        M.dragging = null;
-        if (M.slotHovered !== -1) {
-            var hoveredDiv = l('terminalSlot' + M.slotHovered);
-            if (hoveredDiv) hoveredDiv.classList.remove('hovered');
-            M.slotHovered = -1;
-        }
+        M.clearDrag();
     };
 
     M.hoverSlot = function (slot) {
@@ -2971,22 +3076,11 @@ M.launch = function () {
             '.terminalCarouselIconInner{width:48px;height:48px;}' +
             '.terminalCarouselName{font-size:11px;color:rgba(255,255,255,0.85);}' +
             '.terminalCarouselControls{display:flex;gap:6px;margin-top:4px;}' +
-            '.terminalCarouselButton{cursor:pointer;width:38px;height:28px;background-image:url(' + TERMINAL_DIRECTIONAL_URL + ');background-repeat:no-repeat;border:none;position:relative;}' +
-            '.terminalCarouselButton:active{top:2px;}' +
-            '.terminalCarouselPrev{background-position:0px -56px;}' +
-            '.terminalCarouselNext{background-position:0px -84px;}' +
+            '.terminalArrow{cursor:pointer;width:38px;height:28px;background-image:url(' + TERMINAL_DIRECTIONAL_URL + ');background-repeat:no-repeat;border:none;position:relative;}.terminalArrow:active{top:2px;}.terminalArrow.disabled{opacity:0.4;cursor:default;pointer-events:none;}' +
+            '.terminalArrow--prev{background-position:0px -56px;}.terminalArrow--next{background-position:0px -84px;}.terminalArrow--up{background-position:0px -28px;}.terminalArrow--down{background-position:0px 0px;}' +
             '.terminalDigitStepper{display:flex;gap:2px;}' +
             '.terminalDigitColumn{display:flex;flex-direction:column;align-items:center;gap:4px;}' +
-            '.terminalDigitArrow{width:38px;height:28px;cursor:pointer;background-image:url(' + TERMINAL_DIRECTIONAL_URL + ');background-repeat:no-repeat;border:none;position:relative;}' +
-            '.terminalDigitArrow:active{top:2px;}' +
-            '.terminalDigitArrow--up{background-position:0px -28px;}' +
-            '.terminalDigitArrow--down{background-position:0px 0px;}' +
             '.terminalDigitValue{width:36px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#7fb57e;background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.35);border-radius:8px;}' +
-            '.terminalProgramNav{cursor:pointer;width:38px;height:28px;background-image:url(' + TERMINAL_DIRECTIONAL_URL + ');background-repeat:no-repeat;border:none;position:relative;}' +
-            '.terminalProgramNav:active{top:2px;}' +
-            '.terminalProgramNav.disabled{opacity:0.4;cursor:default;pointer-events:none;}' +
-            '#terminalProgramPrev{background-position:0px -56px;}' +
-            '#terminalProgramNext{background-position:0px -84px;}' +
             '.terminalIcon{pointer-events:none;margin:12px 6px 0 6px;width:48px;height:48px;opacity:0.8;position:relative;}' +
             '.terminalSlot .terminalIcon{margin:10px 6px 0 6px;}' +
             '.terminalSubIcon{position:absolute;right:6px;bottom:16px;margin:0;width:48px;height:48px;transform:scale(0.333);transform-origin:right bottom;pointer-events:none;}' +
@@ -3042,8 +3136,7 @@ M.launch = function () {
         }
         str += '</div>';
         str += '<div id="terminalProgramNavBar">';
-        str += '<div class="terminalProgramNav" id="terminalProgramPrev"></div>';
-        str += '<div class="terminalProgramNav" id="terminalProgramNext"></div>';
+        str += M.arrowHtml('prev', ' id="terminalProgramPrev"') + M.arrowHtml('next', ' id="terminalProgramNext"');
         str += '</div>';
         str += '<div id="terminalProgramParameters" class="framed">';
         str += '<div id="terminalProgramParamsLabel">Parameters</div>';
@@ -3142,7 +3235,7 @@ M.launch = function () {
                 cfg = M.normalizeConfig(M.programsById[progId], cfg || {}, true);
             }
             if (cfg && Object.keys(cfg).length) {
-                settings.push(encodeURIComponent(JSON.stringify(cfg)));
+                settings.push(encodeURIComponent(JSON.stringify(cfg)).replace(/%/g, '$'));
             } else {
                 settings.push('');
             }
@@ -3169,7 +3262,8 @@ M.launch = function () {
             runTotal,
             cooldownStamp,
             isVisible,
-            aw === '' ? '-' : aw
+            aw === '' ? '-' : aw,
+            M.loadoutSaves.some(Boolean) ? encodeURIComponent(JSON.stringify(M.loadoutSaves)).replace(/%/g, '$') : '-'
         ];
         return saveParts.join(' ');
     };
@@ -3195,6 +3289,7 @@ M.launch = function () {
         }
 
         if (!str || str === '') {
+            M.loadoutSaves = [null, null, null];
             M.slot.length = 0;
             M.slotSettings.length = 0;
             M.programsRun = 0;
@@ -3260,7 +3355,7 @@ M.launch = function () {
                     var cfgStr = settingsData[i] || '';
                     if (cfgStr) {
                         try {
-                            var parsed = JSON.parse(decodeURIComponent(cfgStr));
+                            var parsed = JSON.parse(decodeURIComponent(cfgStr.replace(/\$/g, '%')));
                             M.slotSettings[i] = M.normalizeConfig(program, parsed, true);
                         } catch (err) {
                             M.slotSettings[i] = M.cloneConfig(M.ensureProgramConfig(program));
@@ -3302,6 +3397,7 @@ M.launch = function () {
                 }, 50);
             }
 
+            M.loadoutSaves = M.parseLoadoutSaves(legacyFormat ? '-' : parts[8]);
             var awPart = (legacyFormat ? legacyParts[7] : parts[7]) || '-';
             var wonNames = [];
             if (awPart !== '-') {
@@ -3333,6 +3429,7 @@ M.launch = function () {
     };
 
     M.reset = function (hard) {
+        if (hard) M.loadoutSaves = [null, null, null];
         M.slot.length = 0;
         M.slotSettings.length = 0;
         M.dragging = null;

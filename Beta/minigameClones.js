@@ -2,7 +2,7 @@
 (function() {
 'use strict';
 
-const CLONES_VERSION = '1.0.5';
+const CLONES_VERSION = '1.0.6';
 var PUZZLE_BASE_BETA = 'https://raw.githubusercontent.com/dfsw/Cookies/beta/puzzles/';
 var PUZZLE_BASE_RELEASE = 'https://raw.githubusercontent.com/dfsw/Just-Natural-Expansion/main/assets/ClonePuzzles/';
 var PUZZLE_BASE_FALLBACK = 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/ClonePuzzles/';
@@ -22,7 +22,7 @@ function puzzleFetch(path, bust) {
     });
 }
 // the coupon only shortens cooldowns that start after it is owned; base=true ignores it (used to clamp saved timers)
-function puzzleCooldown(base) { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000 * (!base && Game.Has('Your Other Half Off') ? 0.75 : 1); }
+function puzzleCooldown(base) { return ClonesM.debug ? 15 * 1000 : 2 * 3600 * 1000 * (!base && Game.Has('Your Other Half Off') ? 0.85 : 1) * (!base && Game.Has('Faster hypothetical testing scenarios') ? 0.9 : 1); }
 var TIERS = { E: 'Easy', M: 'Medium', T: 'Tricky', H: 'Hard', V: 'Evil' };
 var TIER_KEYS = ['E', 'M', 'T', 'H', 'V'];
 var TIER_ICONS = [[12, 8], [11, 6], [11, 7], [11, 8], [29, 6]];
@@ -780,7 +780,9 @@ function addCornerTags(cell, i) {
         tag.className = 'clones-tag ' + c[0] + ' ' + (tags[c[1]] || 'none');
         AddEvent(tag, 'click', function(e) {
             e.stopPropagation();
-            tags[c[1]] = CORNER_COLORS[(CORNER_COLORS.indexOf(tags[c[1]] || 'none') + 1) % CORNER_COLORS.length];
+            var n = CORNER_COLORS.length, at = CORNER_COLORS.indexOf(tags[c[1]] || 'none');
+            if (e.shiftKey && e.ctrlKey) tags[c[1]] = 'none';
+            else tags[c[1]] = CORNER_COLORS[(at + (e.shiftKey ? n - 1 : 1)) % n];
             tag.className = 'clones-tag ' + c[0] + ' ' + tags[c[1]];
         });
         cell.appendChild(tag);
@@ -1128,9 +1130,6 @@ function rollRng(key) {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 }
-function redeemRng(rw) {
-    return rollRng(String((window.Game && Game.seed) || 'seed') + '/' + G.won + '/' + rw.id);
-}
 function rollReward(salt) {
     var rng = rollRng(String((window.Game && Game.seed) || 'seed') + '/' + G.won + '/' + (salt || 0));
     // first tutorial clear graduates with a free tier 2
@@ -1290,7 +1289,7 @@ var SIMPLE_REWARDS = {
     lump_faster:    { run: function() { Game.lumpT -= 7200000; }, msg: 'Your sugar lump ages!' },
     reindeer_lanterns: { run: function(rw) {
         var hasLantern = !!(Game.shimmerTypes && Game.shimmerTypes['lantern']);
-        var bits = Math.floor(redeemRng(rw)() * 1024);
+        var bits = Math.floor(Math.random() * 1024);
         for (var ri = 0; ri < 10; ri++) (function(n) {
             setTimeout(function() {
                 if (hasLantern && ((bits >> n) & 1)) {
@@ -1353,7 +1352,7 @@ function applyCloneReward(rw) {
             for (var i in Game.Objects) { if (Game.Objects[i].amount >= 10) list.push(Game.Objects[i].id); }
             var M = cloneEffectDurMod();
             if (!list.length) { Game.gainBuff('frenzy', Math.ceil(77 * M), 7); note('No building qualifies — gained a Frenzy instead!'); break; }
-            var objId = list[Math.floor(redeemRng(rw)() * list.length)], pow = Game.ObjectsById[objId].amount / 10 + 1;
+            var objId = list[Math.floor(Math.random() * list.length)], pow = Game.ObjectsById[objId].amount / 10 + 1;
             Game.gainBuff('building buff', Math.ceil(30 * M), pow, objId);
             note('Your ' + Game.ObjectsById[objId].plural + ' are boosting your CpS!');
             break;
@@ -1369,7 +1368,7 @@ function applyCloneReward(rw) {
         }
         case 'potion_effect': {
             // gainBuff throws on an unregistered type, so potions minigame must be loaded
-            var names = Object.keys(POTION_BUFFS), pn = names[Math.floor(redeemRng(rw)() * names.length)];
+            var names = Object.keys(POTION_BUFFS), pn = names[Math.floor(Math.random() * names.length)];
             if (!Game.buffTypesByName || !Game.buffTypesByName[pn]) { fizzle('the potion brewery'); break; }
             var pa = POTION_BUFFS[pn];
             Game.gainBuff(pn, pa[0], pa[1]);
@@ -1388,7 +1387,7 @@ function applyCloneReward(rw) {
             break;
         }
         case 'rare_lump': {
-            var roll = redeemRng(rw)(); // bifurcated 50%, meaty 40%, caramelized 9%, golden 1%
+            var roll = Math.random(); // bifurcated 50%, meaty 40%, caramelized 9%, golden 1%
             Game.lumpCurrentType = roll < 0.50 ? 1 : roll < 0.90 ? 3 : roll < 0.99 ? 4 : 2;
             note('Your sugar lump has morphed into a ' + ['', 'bifurcated', 'golden', 'meaty', 'caramelized'][Game.lumpCurrentType] + '!');
             break;
@@ -1510,6 +1509,7 @@ function completePuzzle() {
             ['The Devil You Clone', tierUnlocked('V')],
             ['The Devil Is in the Duplicates', G.puzzleTier === 'V' && !mist && !G.restored]
         ].forEach(function(a) { awardClonesAchievement(a[0], a[1]); });
+        if (Game.JNE && Game.JNE.onClonesPuzzleSolved) Game.JNE.onClonesPuzzleSolved({ tier: G.puzzleTier, mistakes: mist, hints: G.hintedCells.length, ms: G.tDone - G.tFirst, restored: !!G.restored });
     }
     addEndIcons();
     playSnd('snd/cymbalRev.mp3');
@@ -1990,8 +1990,7 @@ ClonesM.launch = function() {
         G.puzzle = null; G.puzzleFile = null; G.yous = null;
         G.restore = null; G.starterSentence = null;
         clearRun();
-        G.nextPuzzleAt = 0; // fresh run reset cooldown
-        G.tier = G.tierProg.u || 'E'; // snap to highest tier
+        G.tier = G.tierProg.u || 'E'; // snap to highest tier (the cooldown carries over)
         clearBoardUI();
         syncAllUI();
     };
@@ -2051,10 +2050,10 @@ function createClonesAchievements() {
     var baseOrder = 61648;
     [
         { name: 'The Quick and the Duplicate',
-          desc: 'Solve a Clone Escape puzzle in less than 2 minutes with no mistakes.<q>Fast, flawless, and frighteningly efficient. Your performance review has been upgraded from \'expendable\' to \'probably expendable.\'</q>',
+          desc: 'Solve a Clone Escape puzzle in less than 2 minutes with no errors or hints.<q>Fast, flawless, and frighteningly efficient. Your performance review has been upgraded from \'expendable\' to \'probably expendable.\'</q>',
           icon: Game.JNE.icon(35, 13, 'main'), order: baseOrder + 0.1 },
         { name: 'An Allegedly Perfect Record',
-          desc: 'Solve 10 puzzles with no mistakes.<q>Our records indicate a 100% success rate. Our records also indicate that our records have never been wrong. Please do not investigate our records.</q>',
+          desc: 'Solve 10 puzzles with no errors or hints.<q>Our records indicate a 100% success rate. Our records also indicate that our records have never been wrong. Please do not investigate our records.</q>',
           icon: Game.JNE.icon(32, 33, 'main'), order: baseOrder + 0.2 },
         { name: 'Doppelganger gang',
           desc: 'Solve 123 puzzles.<q>Congratulations! You\'ve processed enough suspicious individuals to qualify as an organized crime syndicate in seventeen jurisdictions. Fortunately, Clone Recovery & Sorting® operates in eighteen.</q>',
@@ -2063,7 +2062,7 @@ function createClonesAchievements() {
           desc: 'Unlock the highest difficulty puzzles.<q>By proceeding, you acknowledge that difficulty selection is entirely voluntary, that all resulting psychological distress is considered a workplace perk, and that your soul remains the intellectual property of Clone Recovery & Sorting®.</q>',
           icon: Game.JNE.icon(35, 29, 'main'), order: baseOrder + 0.4 },
         { name: 'The Devil Is in the Duplicates',
-          desc: 'Solve a highest difficulty puzzle with no mistakes or hints.<q>The greatest trick the devil ever pulled was convincing the world he was actually an authentic.</q>',
+          desc: 'Solve a highest difficulty puzzle with no errors or hints.<q>The greatest trick the devil ever pulled was convincing the world he was actually an authentic.</q>',
           icon: Game.JNE.icon(23, 7, 'main'), order: baseOrder + 0.5 }
     ].forEach(function(a) {
         var ach = Game.JNE.createAchievement(a.name, a.desc, a.icon, a.order, null);

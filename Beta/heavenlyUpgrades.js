@@ -3,11 +3,96 @@
         'use strict';
 
         const SIMPLE_MOD_NAME = 'Just Natural Expansion';
-        const MOD_HU_VERSION = '1.0.32';
+        const MOD_HU_VERSION = '1.1.0';
         var isInitialized = false;
         const MOD_ICON = [15, 7];
         const GARDEN_SPRITE_SHEET_URL = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/gardenPlants.png';
         const MOD_PLANT_KEYS = ['sparklingSugarCane', 'krazyKudzu', 'magicMushroom'];
+        const TOGGLE_NAMES = ['Toy mode [on]', 'Toy mode [off]', 'Pink stuff [on]', 'Pink stuff [off]'];
+        function minigameOf(name) { var b = Game.Objects[name]; return b && b.minigame; }
+        function loadedMinigame(name) { var b = Game.Objects[name]; return (b && b.minigameLoaded && b.minigame) || null; }
+        // Wrappers chain, one per tag
+        function swapCustomPlantIcon(result, me, iconMap, customSheet) {
+            if (!(me && isModPlant(me.key) && me.icon >= 34 && me.icon <= 36 && iconMap[me.icon] && result)) return result;
+            var map = iconMap[me.icon];
+            var iconY = -me.icon * 48;
+            result = result.replace(/background:url\(([^)]+gardenPlants\.png[^)]*)\)/g, function(match) {
+                var nextPos = result.indexOf('background-position:', result.indexOf(match));
+                if (nextPos !== -1) {
+                    var posMatch = result.substring(nextPos).match(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/);
+                    if (posMatch && parseInt(posMatch[2]) === iconY) return 'background:url(\'' + customSheet + '\')';
+                }
+                return match;
+            });
+            return result.replace(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/g, function(match, x, y) {
+                if (parseInt(y) !== iconY) return match;
+                return 'background-position:' + (map.baseX - ((parseInt(x) / -48) * 48)) + 'px ' + map.baseY + 'px';
+            });
+        }
+        var STAGE_MULT = [0, 0.1, 0.25, 0.5, 1];
+        function plantStage(age, mature) {
+            if (age >= mature) return 4;
+            if (age >= mature * 0.666) return 3;
+            if (age >= mature * 0.333) return 2;
+            return 1;
+        }
+        // growth-scaled effect strength of one plot tile (soil x stage x plot boost)
+        function plantMult(M, x, y, plant, tile) {
+            return M.soilsById[M.soil].effMult * STAGE_MULT[plantStage(tile[1], plant.mature)] * M.plotBoost[y][x][1];
+        }
+        function sugarCaneTotalMult(M) {
+            var total = 0;
+            for (var y = 0; y < 6; y++) {
+                for (var x = 0; x < 6; x++) {
+                    var tile = M.plot[y][x];
+                    if (!(tile && tile[0] > 0)) continue;
+                    var plant = M.plantsById[tile[0] - 1];
+                    if (plant && plant.key === 'sparklingSugarCane') total += plantMult(M, x, y, plant, tile);
+                }
+            }
+            return total;
+        }
+        function plantBaseCSS(customSheet, vanillaSheet) {
+            var css = '';
+            for (var i = 0; i < 34; i++) css += '#gardenSeedIcon-' + i + ' { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
+            ['custom', 'vanilla'].forEach(function(kind) {
+                var sheet = kind === 'custom' ? customSheet : vanillaSheet;
+                ['.gardenSeedIcon', '.gardenTileIcon', '#gardenCursor'].forEach(function(sel) {
+                    css += sel + '[data-' + kind + '-plant="true"] { background-image: url(\'' + sheet + '\') !important; }\n';
+                });
+            });
+            return css;
+        }
+        function onBuy(upgrade, tag, fn) {
+            if (hookedWith(upgrade, 'buyFunction', tag)) return;
+            var orig = upgrade.buyFunction;
+            var w = function() {
+                if (orig) orig.call(this);
+                fn.call(this);
+            };
+            w._jneOrig = orig;
+            w[tag] = true;
+            upgrade.buyFunction = w;
+        }
+        function hookedWith(obj, key, tag) {
+            for (var f = obj[key]; f; f = f._jneOrig) if (f[tag]) return true;
+            return false;
+        }
+        function hookOnce(obj, key, tag, make) {
+            if (hookedWith(obj, key, tag)) return;
+            var orig = obj[key];
+            if (!orig) return;
+            var w = make(orig);
+            w._jneOrig = orig;
+            w[tag] = true;
+            obj[key] = w;
+        }
+        function gpocHas(name) { return Game.elderWrath > 0 && Game.Has(name); }
+        const SEASON_EXTRA_HOURS = ['Seasonal hours', 'Seasonal overtime', 'Seasonal time off', 'Seasonal retirement'];
+        const SUGAR_BAKING_CAPS = [['Sugar baking VI', 150], ['Sugar baking V', 140], ['Sugar baking IV', 130], ['Sugar baking III', 120], ['Sugar baking II', 110]];
+        const SEASON_BISCUITS = ['Festive biscuit', 'Ghostly biscuit', 'Lovesick biscuit', 'Fool\'s biscuit', 'Bunny biscuit', 'Lunar biscuit', 'Cornucopia biscuit'];
+        function seasonExtraHours() { return SEASON_EXTRA_HOURS.reduce(function(t, n) { return t + (Game.Has(n) ? 6 : 0); }, 0); }
+        function sugarBakingCap() { for (var i = 0; i < SUGAR_BAKING_CAPS.length; i++) if (Game.Has(SUGAR_BAKING_CAPS[i][0])) return SUGAR_BAKING_CAPS[i][1]; return 0; }
         const WEAKEST_LINK_UPGRADES = [
             { name: 'Weakest link', rank: 1, mult: 16 },
             { name: 'The next weakest link', rank: 2, mult: 12 },
@@ -46,39 +131,57 @@
             return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
         }
 
-        //condensed into unreadable mess to save space
+        function entry(id, owned, ready, done, setup) { return { id: id, owned: owned, ready: ready, done: done, setup: setup }; }
+        function always() { return true; }
+        function never() { return false; }
+        function has(name) { return function() { return Game.Has(name); }; }
+        function upExists(name) { return function() { return !!(Game.Upgrades && Game.Upgrades[name]); }; }
+        function upFlag(name, flag) { return function() { var up = Game.Upgrades && Game.Upgrades[name]; return !!(up && up[flag]); }; }
+        function gameFlag(flag) { return function() { return !!Game[flag]; }; }
+        function mgFlag(building, flag) { return function() { var M = minigameOf(building); return !!(M && M[flag]); }; }
+        function upgradeApiReady() { return !!Game.Upgrade && !!Game.Upgrades; }
+        // minigame loaded with every prop present (and extra(M) truthy, if given)
+        function mgReady(building, props, extra) {
+            return function() {
+                var M = loadedMinigame(building);
+                return !!(M && props.every(function(k) { return M[k]; }) && (!extra || extra(M)));
+            };
+        }
+
         function runUpgradeSetups(forceAll) {
             if (!Game.JNE) Game.JNE = {};
             if (!Game.JNE._upgradeSetups) {
                 Game.JNE._upgradeSetups = [
-                    { id: 'Custom buff types', owned: function() { return true; }, ready: function() { return !!Game.buffType; }, done: function() { return !!Game._jneCustomBuffTypesCreated; }, setup: setupCustomBuffTypes },
-                    { id: 'Sugar frenzy II', owned: function() { return Game.Has('Sugar frenzy II'); }, ready: function() { return !!Game.Upgrades && !!Game.Upgrades['Sugar frenzy']; }, done: function() { var up = Game.Upgrades && Game.Upgrades['Sugar frenzy']; return !!(up && up._sugarFrenzyII); }, setup: setupSugarFrenzyII },
-                    { id: 'Fortune sound selector', owned: function() { return Game.Has('Fortune tolls for you'); }, ready: function() { return !!Game.Upgrades && !!Game.Upgrades['Golden cookie sound selector']; }, done: function() { var up = Game.Upgrades && Game.Upgrades['Golden cookie sound selector']; return !!(up && up._fortuneSoundAdded); }, setup: setupFortuneSoundSelector },
-                    { id: 'Sugar for sugar trading', owned: function() { return Game.Has('Sugar for sugar trading'); }, ready: function() { return !!Game.Upgrade && !!Game.Upgrades; }, done: function() { return !!(Game.Upgrades && Game.Upgrades['Sugar trade']); }, setup: setupSugarForSugarTrading },
-                    { id: 'Wallstreet bets', owned: function() { return Game.Has('Wallstreet bets'); }, ready: function() { var bank = Game.Objects && Game.Objects['Bank']; return !!(bank && bank.minigameLoaded && bank.minigame); }, done: function() { var M = Game.Objects && Game.Objects['Bank'] && Game.Objects['Bank'].minigame; return !!(M && M.getGoodMaxStock && M.getGoodMaxStock._wallstreetBetsHooked); }, setup: setupWallstreetBets },
-                    { id: 'Box of overpriced donuts', owned: function() { return (Game.JNE && Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades && Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades.indexOf('Box of overpriced donuts') !== -1) || Game.Has('Box of overpriced donuts'); }, ready: function() { return !!Game.Upgrade && !!Game.Upgrades; }, done: function() { return !!(Game.Upgrades && Game.Upgrades['Maple frosted donut']); }, setup: setupBoxOfDonuts },
-                    { id: 'Toy box', owned: function() { return Game.Has('Toy box'); }, ready: function() { return !!Game.Upgrades && !!Game.Upgrades['Toy box']; }, done: function() { return false; }, setup: createToyBoxToggle },
-                    { id: 'Pink stuff', owned: function() { return Game.Has('Pink stuff'); }, ready: function() { return !!Game.Upgrades && !!Game.Upgrades['Pink stuff']; }, done: function() { return false; }, setup: createPinkStuffToggle },
-                    { id: 'Magic mushroom drops', owned: function() { return Game.Has('Magic mushroom'); }, ready: function() { return !!Game.Upgrade && !!Game.Upgrades; }, done: function() { return !!Game._magicMushroomDropsHooked; }, setup: setupMagicMushroomDrops },
-                    { id: 'Sugar predictor', owned: function() { return Game.Has('Sugar predictor'); }, ready: function() { return !!Game.registerHook; }, done: function() { return !!Game._sugarPredictorHooked; }, setup: setupSugarPredictor },
-                    { id: 'Lump tooltip enhancements', owned: function() { return Game.Has('Sugar insight') || Game.Has('Sugar predictor'); }, ready: function() { if (!Game.lumpTooltip) return false; if (Game.Has('Sugar predictor')) return !!Game._sugarPredictorHooked || typeof Game.getLumpPredictions === 'function'; return true; }, done: function() { return !!Game._lumpTooltipHooked; }, setup: setupLumpTooltipEnhancements },
-                    { id: 'Big cookie image selector unlock', owned: function() { return Game.Has('Big cookie image selector'); }, ready: function() { return !!Game.Upgrades && !!Game.Upgrades['Cookie image selector']; }, done: function() { var up = Game.Upgrades && Game.Upgrades['Cookie image selector']; return !!(up && up.unlocked); }, setup: unlockBigCookieImageSelector },
-                    { id: 'Garden save hook immediate', owned: function() { return true; }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(farm && farm.minigameLoaded && M && M.save && M.plantsById); }, done: function() { var M = Game.Objects && Game.Objects['Farm'] && Game.Objects['Farm'].minigame; return !!(M && M.save && M.save._heavenlyUpgradesHooked); }, setup: setupGardenSaveHookImmediate },
-                    { id: 'Aerated soil', owned: function() { return Game.Has('Aerated soil'); }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(farm && farm.minigameLoaded && M && M.soils && M.plants && (typeof l === 'function')); }, done: function() { var M = Game.Objects && Game.Objects['Farm'] && Game.Objects['Farm'].minigame; return !!(M && M._aeratedSoilHooked && M.soils && M.soils.aerated); }, setup: setupAeratedSoil },
-                    { id: 'Heavenly plant unlocks', owned: function() { return true; }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(farm && farm.minigameLoaded && M && M.getUnlockedN && M.plants); }, done: function() { var M = Game.Objects && Game.Objects['Farm'] && Game.Objects['Farm'].minigame; return !!(M && M._heavenlyPlantUnlocksHooked); }, setup: setupHeavenlyPlantUnlocks },
-                    { id: 'Garden new plants', owned: function() { return true; }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(M && M.plants && M.plantsById && M.plants['bakerWheat']); }, done: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(M && M._gardenPlantsInjected); }, setup: setupNewPlants },
-                    { id: 'Plant all', owned: function() { return Game.Has('Plant all'); }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(farm && farm.minigameLoaded && M && M.clickTile && M.useTool && M.plantsById); }, done: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(M && M.clickTile && M.clickTile._jnePlantAllHooked); }, setup: setupPlantAll },
-                    { id: 'Soil inspector', owned: function() { return Game.Has('Soil inspector'); }, ready: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(farm && farm.minigameLoaded && M && M.tileTooltip && M.getMuts && M.getTile && M.plants && M.plantsById && M.soilsById && M.plotBoost); }, done: function() { var farm = Game.Objects && Game.Objects['Farm']; var M = farm && farm.minigame; return !!(M && M._soilInspectorHooked); }, setup: setupSoilInspector },
-                    { id: 'Golden cookie predictor overlay', owned: function() { return true; }, ready: function() { var st = Game.shimmerTypes && Game.shimmerTypes['golden']; return !!(Game.registerHook && st && st.popFunc); }, done: function() { return !!Game._goldenCookiePredictorHooked; }, setup: setupGoldenCookiePredictor },
-                    { id: 'Seasonal duration', owned: function() { return true; }, ready: function() { return !!Game.getSeasonDuration; }, done: function() { return !!(Game.getSeasonDuration && Game.getSeasonDuration._heavenlyUpgradesHooked); }, setup: setupSeasonalDuration },
-                    { id: 'Cookie display unit', owned: function() { return true; }, ready: function() { return !!Game.Draw; }, done: function() { return !!(Game.Draw && Game.Draw._jneCookieDisplayHooked); }, setup: setupCookieDisplayUnit },
-                    { id: 'Shiny wrinklers spawn', owned: function() { return true; }, ready: function() { return !!Game.SpawnWrinkler; }, done: function() { return !!(Game.SpawnWrinkler && Game.SpawnWrinkler._jneShinyHooked); }, setup: setupShinyWrinklers },
-                    { id: 'Improved cookie chains', owned: function() { return Game.Has('Improved cookie chains'); }, ready: function() { return true; }, done: function() { return !!Game._improvedChainsHandled; }, setup: function() { /* Handled in JustNaturalExpansion.js */ } },
-                    { id: 'Pantheon spirit effects', owned: function() { return true; }, ready: function() { var temple = Game.Objects && Game.Objects['Temple']; var M = temple && temple.minigame; var st = Game.shimmerTypes && Game.shimmerTypes.golden; return !!(temple && temple.minigameLoaded && M && M.slotGod && st && st.popFunc && st.spawnConditions); }, done: function() { var M = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame; return !!(M && M._spiritEffectsSetup); }, setup: setupPantheonSpiritEffects },
-                    { id: 'Cyclius swatch', owned: function() { return Game.Has('Cyclius swatch'); }, ready: function() { var temple = Game.Objects && Game.Objects['Temple']; var M = temple && temple.minigame; return !!(temple && temple.minigameLoaded && Game.registerHook && M && M.gods && M.gods['ages']); }, done: function() { return !!Game._cycliusSwatchHooked; }, setup: setupCycliusSwatch },
-                    { id: 'Shiny wrinkler spell', owned: function() { return Game.Has('Skitter skatter skrum ahh') || Game.Has('Abra-Ka-Wiggle') || Game.Has('Alakazoodle evil noodle'); }, ready: function() { var tower = Game.Objects && Game.Objects['Wizard tower']; return !!(tower && tower.minigameLoaded && tower.minigame && tower.minigame.castSpell); }, done: function() { var M = Game.Objects && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame; return !!(M && M._shinyWrinklerHooked); }, setup: setupShinyWrinklerSpell },
-                    { id: 'Gilded allure spell', owned: function() { return Game.Has('Gilded allure'); }, ready: function() { var tower = Game.Objects && Game.Objects['Wizard tower']; return !!(tower && tower.minigameLoaded && tower.minigame && tower.minigame.spells && tower.minigame.spellsById && typeof l === 'function' && l('grimoireSpells')); }, done: function() { var M = Game.Objects && Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame; return !!(M && M._gildedAllureHooked); }, setup: setupGildedAllureSpell },
-                    { id: 'Golden stopwatch', owned: function() { return Game.Has('Golden stopwatch'); }, ready: function() { return !!(Game.registerHook && Game.LeftBackground && typeof l === 'function' && l('backgroundLeftCanvas')); }, done: function() { return !!(Game.UpdateSpecial && Game.UpdateSpecial._goldenStopwatchHooked); }, setup: setupGoldenStopwatch }
+                    entry('Custom buff types', always, function() { return !!Game.buffType; }, gameFlag('_jneCustomBuffTypesCreated'), setupCustomBuffTypes),
+                    entry('Sugar frenzy II', has('Sugar frenzy II'), upExists('Sugar frenzy'), upFlag('Sugar frenzy', '_sugarFrenzyII'), setupSugarFrenzyII),
+                    entry('Fortune sound selector', has('Fortune tolls for you'), upExists('Golden cookie sound selector'), upFlag('Golden cookie sound selector', '_fortuneSoundAdded'), setupFortuneSoundSelector),
+                    entry('Sugar for sugar trading', has('Sugar for sugar trading'), upgradeApiReady, upExists('Sugar trade'), setupSugarForSugarTrading),
+                    entry('Reoccuring business', has('Reoccuring business'), upExists('Sugar trade'), upFlag('Sugar trade', '_reoccuringBusiness'), setupReoccuringBusiness),
+                    entry('Wallstreet bets', has('Wallstreet bets'), mgReady('Bank', []), function() { var M = minigameOf('Bank'); return !!(M && M.getGoodMaxStock && M.getGoodMaxStock._wallstreetBetsHooked); }, setupWallstreetBets),
+                    entry('Toy box', has('Toy box'), upExists('Toy box'), never, createToyBoxToggle),
+                    entry('Pink stuff', has('Pink stuff'), upExists('Pink stuff'), never, createPinkStuffToggle),
+                    entry('Magic mushroom drops', has('Magic mushroom'), upgradeApiReady, gameFlag('_magicMushroomDropsHooked'), setupMagicMushroomDrops),
+                    entry('Sugar predictor', has('Sugar predictor'), function() { return !!Game.registerHook; }, gameFlag('_sugarPredictorHooked'), setupSugarPredictor),
+                    entry('Lump tooltip enhancements', function() { return Game.Has('Sugar insight') || Game.Has('Sugar predictor'); }, function() { if (!Game.lumpTooltip) return false; if (Game.Has('Sugar predictor')) return !!Game._sugarPredictorHooked || typeof Game.getLumpPredictions === 'function'; return true; }, gameFlag('_lumpTooltipHooked'), setupLumpTooltipEnhancements),
+                    entry('Big cookie image selector unlock', has('Big cookie image selector'), upExists('Cookie image selector'), upFlag('Cookie image selector', 'unlocked'), unlockBigCookieImageSelector),
+                    entry('Garden save hook immediate', always, mgReady('Farm', ['save', 'plantsById']), function() { var M = minigameOf('Farm'); return !!(M && M.save && M.save._heavenlyUpgradesHooked); }, setupGardenSaveHookImmediate),
+                    entry('Aerated soil', has('Aerated soil'), mgReady('Farm', ['soils', 'plants'], function() { return typeof l === 'function'; }), function() { var M = minigameOf('Farm'); return !!(M && M._aeratedSoilHooked && M.soils && M.soils.aerated); }, setupAeratedSoil),
+                    entry('Heavenly plant unlocks', always, mgReady('Farm', ['getUnlockedN', 'plants']), mgFlag('Farm', '_heavenlyPlantUnlocksHooked'), setupHeavenlyPlantUnlocks),
+                    entry('Garden new plants', always, function() { var M = minigameOf('Farm'); return !!(M && M.plants && M.plantsById && M.plants['bakerWheat']); }, mgFlag('Farm', '_gardenPlantsInjected'), setupNewPlants),
+                    entry('Plant all', has('Plant all'), mgReady('Farm', ['clickTile', 'useTool', 'plantsById']), function() { var M = minigameOf('Farm'); return !!(M && M.clickTile && M.clickTile._jnePlantAllHooked); }, setupPlantAll),
+                    entry('Soil inspector', has('Soil inspector'), mgReady('Farm', ['tileTooltip', 'getMuts', 'getTile', 'plants', 'plantsById', 'soilsById', 'plotBoost']), mgFlag('Farm', '_soilInspectorHooked'), setupSoilInspector),
+                    entry('Golden cookie predictor overlay', always, function() { var st = Game.shimmerTypes && Game.shimmerTypes['golden']; return !!(Game.registerHook && st && st.popFunc); }, gameFlag('_goldenCookiePredictorHooked'), setupGoldenCookiePredictor),
+                    entry('Seasonal duration', always, function() { return !!Game.getSeasonDuration; }, function() { return !!(Game.getSeasonDuration && Game.getSeasonDuration._heavenlyUpgradesHooked); }, setupSeasonalDuration),
+                    entry('Cookie display unit', always, function() { return !!Game.Draw; }, function() { return !!(Game.Draw && Game.Draw._jneCookieDisplayHooked); }, setupCookieDisplayUnit),
+                    entry('Shiny wrinklers spawn', always, function() { return !!Game.SpawnWrinkler; }, function() { return !!(Game.SpawnWrinkler && Game.SpawnWrinkler._jneShinyHooked); }, setupShinyWrinklers),
+                    entry('Improved cookie chains', has('Improved cookie chains'), always, gameFlag('_improvedChainsHandled'), function() { /* Handled in JustNaturalExpansion.js */ }),
+                    entry('Pantheon spirit effects', always, function() { var st = Game.shimmerTypes && Game.shimmerTypes.golden; return !!(st && st.popFunc && st.spawnConditions) && mgReady('Temple', ['slotGod'])(); }, mgFlag('Temple', '_spiritEffectsSetup'), setupPantheonSpiritEffects),
+                    entry('Triple 7s', always, function() { return !!Game.Upgrades['Lucky digit']; }, function() { return !!(Game.Upgrades['Lucky digit'] && Game.Upgrades['Lucky digit'].showIf && Game.Upgrades['Lucky digit'].showIf._jneTriple7s); }, setupTriple7s),
+                    entry('Self promoter', has('Self promoter'), function() { return !!Game.registerHook && !!Game.tooltip; }, gameFlag('_jneSelfPromoter'), setupSelfPromoter),
+                    entry('Cyclius swatch', has('Cyclius swatch'), function() { return !!Game.registerHook && mgReady('Temple', ['gods'], function(M) { return M.gods['ages']; })(); }, gameFlag('_cycliusSwatchHooked'), setupCycliusSwatch),
+                    entry('Shiny wrinkler spell', function() { return jneHasAny(['Skitter skatter skrum ahh', 'Abra-Ka-Wiggle', 'Alakazoodle evil noodle']); }, mgReady('Wizard tower', ['castSpell']), mgFlag('Wizard tower', '_shinyWrinklerHooked'), setupShinyWrinklerSpell),
+                    entry('Gilded allure spell', has('Gilded allure'), mgReady('Wizard tower', ['spells', 'spellsById'], function() { return typeof l === 'function' && l('grimoireSpells'); }), mgFlag('Wizard tower', '_gildedAllureHooked'), setupGildedAllureSpell),
+                    entry('Golden stopwatch', has('Golden stopwatch'), function() { return !!(Game.registerHook && Game.LeftBackground && typeof l === 'function' && l('backgroundLeftCanvas')); }, function() { return !!(Game.UpdateSpecial && Game.UpdateSpecial._goldenStopwatchHooked); }, setupGoldenStopwatch)
                 ];
             }
             var entries = Game.JNE._upgradeSetups;
@@ -87,7 +190,7 @@
                 // Toggles only recreate when forceAll=true (during save loads)
                 var isToggle = (e.id === 'Toy box' || e.id === 'Pink stuff');
                 if (!e) continue;
-                // If ran but done() is now false, the setup was externally undone (e.g. donuts deleted by toggle), allow re-run
+                // If ran but done() is now false, the setup was externally undone (e.g. deleted by toggle), allow re-run
                 if (e.ran && (!e.done || e.done())) continue;
                 if (e.ran) e.ran = false;
                 try {
@@ -132,6 +235,8 @@
                 [['All is well', 'Six bells'], setupTimedGoldenCookies],
                 [['Weakest link', 'The next weakest link', 'No more weak links'], setupWeakestLink],
                 [['Turtles all the way down'], setupBuildingPriceModifications],
+                [['Better fortune typist'], setupBetterFortuneTypist],
+                [['Unfortunate cookies'], setupUnfortunateCookies],
                 [['Cockroaches', 'Infestation', 'The prize at the bottom of the box', 'Double box prize', 'Mail in sweepstake winner'], setupWrinklerPopSpawn],
                 [['Regifting'], setupRegifting],
                 [['Distilled essence of retripled luck'], setupRetripledLuck],
@@ -139,7 +244,14 @@
                 [['Fish tank', 'Sunken treasure', 'Aquaculturist', 'Hatchery effect'], setupFishShimmers],
                 [['Erasable pens'], setupErasablePens],
                 [['Frenziered elders', 'Godzamok\'s Headstart', 'Creative tax evasion'], setupBuffModifiers],
-                [['Mega clicks', 'Lucky mega clicks', 'Extreme mega clicks'], setupMegaClicks]
+                [['Critical feedback mass'], setupCriticalFeedbackMass],
+                [['Dark chocolate milk'], setupDarkChocolateMilk],
+                [['Magical hourglass'], setupMagicalHourglass],
+                [['Sweet refunds'], setupSweetRefunds],
+                [['The legend of Krumblor'], setupKrumblorSlot],
+                [['Mega clicks', 'Lucky mega clicks', 'Extreme mega clicks'], setupMegaClicks],
+                [['Idle clicks'], setupIdleClickers],
+                [['Clicklers'], setupBrinklers]
             ];
             // Skip all owned setup functions in Born Again mode (upgrades remain owned but have no effect)
             if (Game.ascensionMode != 1) {
@@ -153,7 +265,9 @@
                 var now = jneEvery('_jneBingoCenterSlotsLast', 60000); ///60000
                 if (now && Game.OnAscend !== 1 && Game.Has('Bingo center/Research facility') && Game.Objects['Grandma']) {
                     var grandmas = Game.Objects['Grandma'].amount;
-                    if (grandmas > 0 && Math.random() < Math.sqrt(grandmas * 500) / 2000000) { //square root scaling for diminishing returns
+                    var slotsChance = Math.sqrt(grandmas * 500) / 2000000; //square root scaling for diminishing returns
+                    if (Game.Has('When the sun goes down') && Game.elderWrath > 0) slotsChance *= 2;
+                    if (grandmas > 0 && Math.random() < slotsChance) {
                         Game.JNE.bingoJackpotWins = (Game.JNE.bingoJackpotWins || 0) + 1;
                         if (!Game.JNE.ascensionSpecialJackpots) Game.JNE.ascensionSpecialJackpots = 0;
                         var bingoSlotsIcon = (Game.Upgrades && Game.Upgrades['Bingo center slots'] && Game.Upgrades['Bingo center slots'].icon) ? Game.Upgrades['Bingo center slots'].icon : [31, 12];
@@ -233,11 +347,10 @@
                 }
             }
             if (Game.Upgrades && Game.Upgrades['The checkbox']) {
-                var now = jneEvery('_jneCheckboxLastRoll', 3600000);//3600000
+                var now = jneEvery('_jneCheckboxLastRoll', 3600000);
                 if (now && Game.Upgrades['The checkbox'].bought && Math.random() < 0.01)
                     {
-                        //ok so it does do something but how disappointed are you in what it does?
-                        Game.Earn(1);
+                        Game.Earn(Game.Has('Improved checkboxes') ? 1000 : 1);
                     }
             }
 
@@ -246,16 +359,20 @@
             }
         }
 
+        var PREDICTOR_TYPE_GATES = {meaty: 'Sugar predictor', bifurcated: 'Sugar predictor II', caramelized: 'Sugar predictor III', golden: 'Sugar predictor IV'};
+        function predictorTypeOwned(key) {
+            return !!Game.Has(PREDICTOR_TYPE_GATES[key]);
+        }
+
         function setupLumpTooltipEnhancements() {
             if (!Game.lumpTooltip || Game._lumpTooltipHooked || (!Game.Has('Sugar insight') && !Game.Has('Sugar predictor'))) return;
             if (Game.Has('Sugar predictor') && !Game._sugarPredictorHooked && typeof Game.getLumpPredictions !== 'function') return;
 
-            if (!Game._jneOriginalLumpTooltip) Game._jneOriginalLumpTooltip = Game.lumpTooltip;
-            Game.lumpTooltip = function() {
+            hookOnce(Game, 'lumpTooltip', '_jneLumpTip', function(orig) { return function() {
                 var typeIcons = [[29, 14], [29, 15], [29, 16], [29, 17], [29, 27]];
                 var typeNames = ['Normal', 'Bifurcated', 'Golden', 'Meaty', 'Caramelized'];
                 var keys = ['bifurcated', 'golden', 'meaty', 'caramelized'];
-                var str = Game._jneOriginalLumpTooltip.call(this);
+                var str = orig.call(this);
                 var helpStart = str.indexOf('&bull;');
                 if (helpStart !== -1) {
                     var helpEnd = str.indexOf('</div>', helpStart);
@@ -288,15 +405,8 @@
                     return str;
                 }
 
-                var current = {
-                    grandmas: Game.Objects['Grandma'].amount,
-                    rigidel: Game.jneDetectRigidelSlot(),
-                    rigidelActive: Game.jneDetectRigidelActive(),
-                    dragonsCurve: Game.hasAura('Dragon\'s Curve') ? 1 : 0,
-                    realityBending: Game.hasAura('Reality Bending') ? 1 : 0,
-                    supremeIntellect: Game.hasAura('Supreme Intellect') ? 1 : 0,
-                    wrath: Game.jneNormalizeElderWrathForPredictor()
-                };
+                var current = lumpAuraState();
+                current.wrath = Game.jneNormalizeElderWrathForPredictor();
 
                 var currentType = Game.predictLumpTypeWithState(Game.lumpT, current.grandmas, current.rigidel, current.rigidelActive, current.dragonsCurve, current.realityBending, current.wrath, current.supremeIntellect);
                 var icon = typeIcons[currentType];
@@ -335,6 +445,7 @@
                 }
 
                 for (var i = 0; i < 4; i++) {
+                    if (!predictorTypeOwned(keys[i])) continue;
                     var res = pred[keys[i]];
                     icon = typeIcons[i + 1];
 
@@ -362,7 +473,7 @@
                 }
 
                 return str;
-            };
+            }; });
             Game._lumpTooltipHooked = true;
         }
 
@@ -398,6 +509,7 @@
             createUpgrades();
             if (Game.registerHook && !Game._jneUpgradeSetupsCheckHooked) {
                 Game.registerHook('check', runUpgradeSetups, 'JNE upgrade setups');
+                Game.registerHook('check', function() { reconcileOwnedFeatures(); }, 'JNE owned features');
                 Game._jneUpgradeSetupsCheckHooked = true;
             }
             if (Game.registerHook && !Game._jneSeedsLabelHooked) {
@@ -405,7 +517,7 @@
                 Game._jneSeedsLabelHooked = true;
             }
             // Create ALL conditional upgrades NOW before any load can happen
-            // so donuts, toggle upgrades, etc. exist when save data is loaded
+            // so box contents, toggle upgrades, etc. exist when save data is loaded
             runUpgradeSetups(true);  // forceAll=true to skip ownership checks
 
             setupGameEffModifiers();
@@ -429,7 +541,7 @@
             if (!window._jneSeedUnlockHooked) {
                 var checkCount = 0;
                 var checkUnlocks = function() {
-                    var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+                    var M = minigameOf('Farm');
                     if (!M || !M.plants) {
                         return;
                     }
@@ -448,16 +560,15 @@
                     // Also hook M.init to rebuild when garden is opened
                     if (checkCount === 0 && M.init && !M._jneInitHookedForRebuild) {
                         M._jneInitHookedForRebuild = true;
-                        if (!M._jneOriginalInitForRebuild) M._jneOriginalInitForRebuild = M.init;
-                        M.init = function(div) {
-                            var M = Game.Objects['Farm'].minigame;
-                            var result = M._jneOriginalInitForRebuild.call(this, div);
+                        hookOnce(M, 'init', '_jneSoilInit', function(orig) { return function(div) {
+                            var M = minigameOf('Farm');
+                            var result = orig.call(this, div);
                             // after origInit so l('gardenSoils') is defined
                             if (Game.Has('Aerated soil') && M.soils) {
                                 setupAeratedSoil();
                             }
                             return result;
-                        };
+                        }; });
                     }
 
                     checkCount++;
@@ -494,6 +605,12 @@
                 Game.sugarFrenzyLastUse = 0;
             };
 
+            var resetReoccuringBusinessState = function() {
+                if (!Game.Has || !Game.Has('Reoccuring business')) return;
+                Game.sugarTradePrice = 1;
+                Game.sugarTradeLastUse = 0;
+            };
+
             var invalidateSugarLumpPredictorCache = function() {
                 if (typeof Game.calculateLumpPredictions !== 'function') return;
                 Game._lumpGameStatesLumpT = null;
@@ -503,14 +620,20 @@
                 Game._lumpPredictionPending = false;
             };
 
+            // a reset wipes the garden and temple, so a held block from before it must not be applied afterwards
+            Game.registerHook('reset', function() {
+                if (Game.JNE) { Game.JNE._pendingGarden = null; Game.JNE._pendingPantheon = null; }
+            }, 'JNE held minigame blocks');
+
             Game.registerHook('reset', function(hard) {
                 if (hard) return;
                 invalidateSugarLumpPredictorCache();
                 resetSugarFrenzyIIState();
+                resetReoccuringBusinessState();
                 ensureSugarTradeAvailable();
                 // Reset Morroween slot time and Slogreth on ascension
-                if (Game.Objects['Temple'] && Game.Objects['Temple'].minigame) {
-                    var M = Game.Objects['Temple'].minigame;
+                if (minigameOf('Temple')) {
+                    var M = minigameOf('Temple');
                     M._procrastinationSlotTime = null;
                     M._selfishnessClickCount = 0;
                 }
@@ -568,15 +691,14 @@
             Game._jneOverheadItemsSetup = true;
             if (!Game._achievementWinCallbacks) Game._achievementWinCallbacks = [];
             if (!Game._achievementWinExtended) {
-                if (!Game._jneOriginalWin) Game._jneOriginalWin = Game.Win;
-                Game.Win = function(what) {
+                hookOnce(Game, 'Win', '_jneWin', function(orig) { return function(what) {
                     var wasWon = false;
                     var achievement = null;
                     if (typeof what === 'string' && Game.Achievements[what]) {
                         achievement = Game.Achievements[what];
                         wasWon = achievement.won === 1;
                     }
-                    var result = Game._jneOriginalWin.apply(this, arguments);
+                    var result = orig.apply(this, arguments);
                     if (achievement && !wasWon && achievement.won === 1) {
                         for (var i = 0; i < Game._achievementWinCallbacks.length; i++) {
                             try {
@@ -588,7 +710,7 @@
                     }
 
                     return result;
-                };
+                }; });
 
                 // Mark as extended to prevent multiple extensions
                 Game._achievementWinExtended = true;
@@ -627,16 +749,60 @@
 
             if (Game.buffTypesByName && !Game.buffTypesByName['jam filling']) {
                 new Game.buffType('jam filling', function(time, pow) {
-                    return { name: 'Jam filling', desc: 'Cookie production x' + pow + ' for ' + Game.sayTime(time * Game.fps, -1) + '!', icon: [19, 8], multCpS: pow, time: time * Game.fps };
+                    return { name: 'Jam filling', desc: 'Cookie production x' + pow + ' for ' + Game.sayTime(time * Game.fps, -1) + '!', icon: JNE.icon(17, 18, 'custom'), multCpS: pow, time: time * Game.fps };
                 });
             }
 
             Game._jneCustomBuffTypesCreated = true;
         }
 
+        // Vanilla resets permanent slots to five, so slot VI is re-added here
+        var PERMANENT_SLOT_NAMES = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V', 'Permanent upgrade slot VI'];
+        function ensurePermanentSlots() {
+            var slots = Game.permanentUpgrades;
+            if (!slots) return;
+            while (slots.length < PERMANENT_SLOT_NAMES.length) slots.push(-1);
+        }
+        // Vanilla's picker draws its left crate from the numerals sheet, which has no VI: slot VI gets the custom icon there.
+        // Re-checked each tick, so a reassigned Game.AssignPermanentSlot is wrapped too.
+        function ensurePermanentPicker() {
+            var assign = Game.AssignPermanentSlot;
+            if (!assign || assign._jneSlotVI) return;
+            var wrapped = function(slot) {
+                var result = assign.apply(this, arguments);
+                var host = slot >= 5 ? l('promptContentPickPermaUpgrade') : null;
+                var crate = host && host.querySelector('.crate.upgrade.enabled');
+                if (crate) {
+                    var vi = JNE.icon(21, 27, 'custom');
+                    crate.style.backgroundImage = 'url(' + vi[2] + ')';
+                    crate.style.backgroundPosition = (-vi[0] * 48) + 'px ' + (-vi[1] * 48) + 'px';
+                }
+                return result;
+            };
+            wrapped._jneSlotVI = true;
+            Game.AssignPermanentSlot = wrapped;
+        }
+        function setupPermanentSlotUpgrade(upgrade, slot) {
+            ensurePermanentPicker();
+            if (!Game._jnePermanentSlotHook && Game.registerHook) {
+                Game._jnePermanentSlotHook = true;
+                Game.registerHook('check', function() { ensurePermanentSlots(); ensurePermanentPicker(); }, 'JNE permanent slot VI');
+            }
+            upgrade.iconFunction = function() { ensurePermanentSlots(); var id = Game.permanentUpgrades[slot]; return id === -1 || id === undefined ? JNE.icon(21, 27, 'custom') : Game.UpgradesById[id].icon; };
+            upgrade.activateFunction = function() { ensurePermanentSlots(); Game.AssignPermanentSlot(slot); };
+            upgrade.descFunc = function(context) {
+                ensurePermanentSlots();
+                var id = Game.permanentUpgrades[slot];
+                var click = context == 'stats' ? '' : '<br><b>' + loc('Click to activate.') + '</b>';
+                if (id === undefined || id === -1) return this.desc + click;
+                var up = Game.UpgradesById[id];
+                return '<div style="text-align:center;">' + loc('Current:') + ' ' + tinyIcon(up.icon) + ' <b>' + up.dname + '</b><div class="line"></div></div>' + this.ddesc + click;
+            };
+        }
+
         function setupErasablePens() {
             if (!Game.Has('Erasable pens') || !Game.Upgrades || !Game.AssignPermanentSlot) return;
-            var slotNames = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V'];
+            var slotNames = PERMANENT_SLOT_NAMES;
             for (var i = 0; i < slotNames.length; i++) {
                 var upgrade = Game.Upgrades[slotNames[i]];
                 if (upgrade && !upgrade._erasablePensModified) {
@@ -645,7 +811,7 @@
                     upgrade.activateFunction = function() {
                         var savedOnAscend = Game.OnAscend;
                         try {
-                            if (Game.OnAscend !== 1) Game.OnAscend = 1;
+                            if (Game.Has('Erasable pens') && Game.OnAscend !== 1) Game.OnAscend = 1;
                             if (this._jneOriginalActivateFunction && typeof this._jneOriginalActivateFunction === 'function') {
                                 this._jneOriginalActivateFunction.call(this);
                             } else if (Game.AssignPermanentSlot) {
@@ -667,7 +833,7 @@
         var erasablePensHook = function() {
             if (Game.Has('Erasable pens')) {
                 setTimeout(function() {
-                    var slotNames = ['Permanent upgrade slot I', 'Permanent upgrade slot II', 'Permanent upgrade slot III', 'Permanent upgrade slot IV', 'Permanent upgrade slot V'];
+                    var slotNames = PERMANENT_SLOT_NAMES;
                     var allCrates = document.querySelectorAll('div.crate.upgrade.heavenly');
                     for (var i = 0; i < slotNames.length; i++) {
                         var upgrade = Game.Upgrades[slotNames[i]];
@@ -697,43 +863,30 @@
         }
 
         var origDescs = {};
+        var DESC_FIELDS = ['baseDesc', 'ddesc', 'desc'];
         function updateSeasonDescs() {
-            var h = 24 + (Game.Has('Seasonal hours') ? 6 : 0) + (Game.Has('Seasonal overtime') ? 6 : 0) + (Game.Has('Seasonal time off') ? 6 : 0) + (Game.Has('Seasonal retirement') ? 6 : 0);
-            ['Festive biscuit', 'Ghostly biscuit', 'Lovesick biscuit', 'Fool\'s biscuit', 'Bunny biscuit', 'Lunar biscuit', 'Cornucopia biscuit'].forEach(function(n) {
+            var h = 24 + seasonExtraHours();
+            SEASON_BISCUITS.forEach(function(n) {
                 var u = Game.Upgrades[n];
-                if (u) {
-                    if (!origDescs[n]) {
-                        var src = (typeof u.baseDesc === 'string' && u.baseDesc.indexOf('24') !== -1) ? u.baseDesc :
-                            ((typeof u.ddesc === 'string' && u.ddesc.indexOf('24') !== -1) ? u.ddesc :
-                            ((typeof u.desc === 'string' && u.desc.indexOf('24') !== -1) ? u.desc : null));
-                        if (src) origDescs[n] = src;
-                    }
-                    if (origDescs[n]) {
-                        var d = origDescs[n].replace('24', h);
-                        if (typeof u.baseDesc === 'string') u.baseDesc = d;
-                        if (typeof u.ddesc === 'string') u.ddesc = d;
-                        if (typeof u.desc === 'string') u.desc = d;
-                    }
-                }
+                if (!u) return;
+                if (!origDescs[n]) origDescs[n] = DESC_FIELDS.map(function(f) { return u[f]; }).find(function(t) { return typeof t === 'string' && t.indexOf('24') !== -1; });
+                if (!origDescs[n]) return;
+                var d = origDescs[n].replace('24', h);
+                DESC_FIELDS.forEach(function(f) { if (typeof u[f] === 'string') u[f] = d; });
             });
         }
 
         function setupSeasonalDuration() {
             if (Game.getSeasonDuration && !Game.getSeasonDuration._heavenlyUpgradesHooked) {
-                if (!Game._jneOriginalGetSeasonDuration) Game._jneOriginalGetSeasonDuration = Game.getSeasonDuration;
-                Game.getSeasonDuration = function() {
-                    var raw = Game._jneOriginalGetSeasonDuration.apply(this, arguments);
+                hookOnce(Game, 'getSeasonDuration', '_jneSeasonDur', function(orig) { return function() {
+                    var raw = orig.apply(this, arguments);
                     var baseDuration = Number(raw);
                     if (!isFinite(baseDuration) || baseDuration <= 0) return raw;
-                    var extraHours = 0;
-                    if (Game.Has('Seasonal hours')) extraHours += 6;
-                    if (Game.Has('Seasonal overtime')) extraHours += 6;
-                    if (Game.Has('Seasonal time off')) extraHours += 6;
-                    if (Game.Has('Seasonal retirement')) extraHours += 6;
+                    var extraHours = seasonExtraHours();
                     var fps = Game.fps || 30;
                     updateSeasonDescs();
                     return baseDuration + (fps * 60 * 60 * extraHours);
-                };
+                }; });
                 Game.getSeasonDuration._heavenlyUpgradesHooked = true;
                 setTimeout(updateSeasonDescs, 500);
             }
@@ -750,10 +903,8 @@
                 };
             }
 
-            if (!Game._jneOriginalModifyBuildingPriceHU) Game._jneOriginalModifyBuildingPriceHU = Game.modifyBuildingPrice;
-
-            Game.modifyBuildingPrice = function(building, price) {
-                var modifiedPrice = Game._jneOriginalModifyBuildingPriceHU.call(this, building, price);
+            hookOnce(Game, 'modifyBuildingPrice', '_jneBldgPrice', function(orig) { return function(building, price) {
+                var modifiedPrice = orig.call(this, building, price);
 
                 // Apply Turtles discount (level-based max 25%)
                 if (Game.Has('Turtles all the way down') && building && building.level !== undefined) {
@@ -763,21 +914,53 @@
                 }
 
                 return modifiedPrice;
-            };
+            }; });
             Game._buildingPriceModificationsHooked = true;
+        }
+
+        // Wraps the vanilla price and efficiency functions and scales the 7% by 1.15 (8.05%).
+        function setupBetterFortuneTypist() {
+            if (Game._betterFortuneTypistHooked) return;
+            Game._betterFortuneTypistHooked = true;
+            var FORTUNE_BASE = 0.07, TYPIST_SCALE = 1.15;
+            var fortuneOwned = function(building) {
+                return !!(building && building.fortune && Game.Has('Better fortune typist') && Game.Has(building.fortune.name));
+            };
+
+            hookOnce(Game, 'modifyBuildingPrice', '_jneTypistPrice', function(orig) { return function(building, price) {
+                var modifiedPrice = orig.call(this, building, price);
+                if (fortuneOwned(building)) modifiedPrice *= (1 - FORTUNE_BASE * TYPIST_SCALE) / (1 - FORTUNE_BASE);
+                return modifiedPrice;
+            }; });
+
+            hookOnce(Game, 'GetTieredCpsMult', '_jneTypistCps', function(orig) { return function(me) {
+                var mult = orig ? orig.call(this, me) : 1;
+                if (fortuneOwned(me)) mult *= (1 + FORTUNE_BASE * TYPIST_SCALE) / (1 + FORTUNE_BASE);
+                return mult;
+            }; });
+
+            // tooltips: the vanilla first sentence reads "<b>7%</b> more efficient and <b>7%</b> cheaper"
+            for (var i = 1; i <= 20; i++) {
+                var up = Game.Upgrades['Fortune #' + ('00' + i).slice(-3)];
+                if (!up || up._jneTypistDesc) continue;
+                up._jneTypistDesc = true;
+                up.descFunc = function() {
+                    var pct = Game.Has('Better fortune typist') ? Math.round(FORTUNE_BASE * 100 * TYPIST_SCALE) : Math.round(FORTUNE_BASE * 100);
+                    return (this.ddesc || this.desc).replace(/<b>7%<\/b>/g, '<b>' + pct + '%</b>');
+                };
+            }
         }
 
         function setupCookieDisplayUnit() {
             if (!Game.Draw) return;
             if (Game.Draw._jneCookieDisplayHooked) return;
-            if (!Game._jneOriginalDrawCookieDisplay) Game._jneOriginalDrawCookieDisplay = Game.Draw;
-            Game.Draw = function() {
+            hookOnce(Game, 'Draw', '_jneCookieDraw', function(orig) { return function() {
                 //  don't draw if game isn't ready
                 if (!Game.ready) return;
 
                 try {
                     // may throw if minigame not loaded yet
-                    var result = Game._jneOriginalDrawCookieDisplay.apply(this, arguments);
+                    var result = orig.apply(this, arguments);
 
                     // Only apply our modifications if vanilla draw succeeded
                     try {
@@ -807,7 +990,7 @@
                     // Vanilla draw failed (likely minigame.draw not ready) - skip this frame silently
                     return;
                 }
-            };
+            }; });
             Game.Draw._jneCookieDisplayHooked = true;
         }
 
@@ -829,11 +1012,14 @@
                     if (Game.Has('Self employed realtor')) val *= 0.9;
                 } else if (what === 'itemDrops') {
                     if (Game.Has('Peaking under the tree')) val *= 1.1;
+                } else if (what === 'reindeerFreq') {
+                    if (gpocHas('Unfortunate #664')) val *= 1.0666;
                 } else if (what === 'goldenCookieFreq' || what === 'wrathCookieFreq') {
+                    if (what === 'wrathCookieFreq' && gpocHas('Unfortunate #661')) val *= 1.0666;
                     if (Game.hasBuff('Gilded allure')) val *= 1.3;
                     if (Game.hasBuff('Midas curse')) val /= 4;
                     if (Game.hasBuff('Feedback loop')) val *= 1.1;
-                    var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+                    var M = minigameOf('Temple');
                     if (M && M.gods['selfishness']) {
                         var godLevel = Game.hasGod('selfishness');
                         if (godLevel) {
@@ -842,7 +1028,7 @@
                         }
                     }
                 } else if (what === 'cps') {
-                    var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+                    var M = minigameOf('Temple');
                     if (M && M.gods) {
                         if (M.gods['procrastination']) {
                             var godLevel = Game.hasGod('procrastination');
@@ -879,8 +1065,8 @@
                 // Skip effect in Born Again mode
                 if (Game.ascensionMode == 1) return cps;
                 var mult = 1;
-                if (Game.Has('Divine uninspiration') && Game.Objects['Temple'] && Game.Objects['Temple'].minigame && Game.Objects['Temple'].minigame.slot) {
-                    var s = Game.Objects['Temple'].minigame.slot;
+                if (Game.Has('Divine uninspiration') && minigameOf('Temple') && minigameOf('Temple').slot) {
+                    var s = minigameOf('Temple').slot;
                     mult *= 1 + (s[2] === -1 ? 0.01 : 0) + (s[1] === -1 ? 0.02 : 0) + (s[0] === -1 ? 0.03 : 0);
                 }
                 if (Game.Has('Improved sugar crystal cookies')) {
@@ -890,23 +1076,342 @@
                     for (var i in Game.Objects) if (Game.Objects[i].level >= 20) mult += 0.01;
                 }
                 if (Game.lumps > 100) {
-                    var cap = Game.Has('Sugar baking VI') ? 150 : Game.Has('Sugar baking V') ? 140 : Game.Has('Sugar baking IV') ? 130 : Game.Has('Sugar baking III') ? 120 : Game.Has('Sugar baking II') ? 110 : 0;
+                    var cap = sugarBakingCap();
                     if (cap > 0) mult *= (1 + (Math.min(Game.lumps, cap) - 100) * 0.01);
                 }
                 if (Game.Has('Stacks on stacks on stacks') && Game.goldenClicksLocal) {
                     mult *= 1 + (Game.goldenClicksLocal * 0.0005);
                 }
+                if (gpocHas('Unfortunate #663')) mult *= 1 + vanillaShadowWon() / 100;
                 return cps * mult;
             }, 'Centralized CPS modifiers');
             cpsModifiersRegistered = true;
             Game._jneCpsModifiersHooked = true;
         }
 
+        // Brinkler bursts use brinklerbits.png (GitHub, then jsDelivr); same 8-frame 100x200 layout as vanilla
+        function setupBrinklerBits() {
+            if (Game._jneBrinklerBitsHooked || !Game.UpdateWrinklers || !Game.particlesDraw) return;
+            var expr = "me.type==1?'shinyWrinklerBits.png':'wrinklerBits.png'";
+            var upd = Game.UpdateWrinklers.toString();
+            var sizeCheck = "if (me.pic=='wrinklerBits.png' || me.pic=='shinyWrinklerBits.png') {w=100;h=200;}";
+            var pd = Game.particlesDraw.toString();
+            if (upd.split(expr).length !== 3 || pd.split(sizeCheck).length !== 2) return;
+            var BITS = { primary: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/brinklerbits.png', fallback: 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/brinklerbits.png' };
+            var bitsUrl = BITS.primary;
+            var probe = new Image();
+            probe.onerror = function() { bitsUrl = BITS.fallback; };
+            probe.src = BITS.primary;
+            window.jneBrinklerBits = function() { return bitsUrl; };
+            window.jneIsBrinklerBits = function(s) { return s === BITS.primary || s === BITS.fallback; };
+            // vanilla's inRect lives inside main.js's closure, so the copy gets its own (same maths)
+            var jneInRect = function(x, y, rect) {
+                var dx = x + Math.sin(-rect.r) * (-(rect.h / 2 - rect.o)), dy = y + Math.cos(-rect.r) * (-(rect.h / 2 - rect.o));
+                var h1 = Math.sqrt(dx * dx + dy * dy);
+                var newA = Math.atan2(dy, dx) - rect.r;
+                var x2 = Math.cos(newA) * h1, y2 = Math.sin(newA) * h1;
+                return x2 > -0.5 * rect.w && x2 < 0.5 * rect.w && y2 > -0.5 * rect.h && y2 < 0.5 * rect.h;
+            };
+            Game.UpdateWrinklers = (0, eval)('(function(inRect){return ' + upd.split(expr).join('(me.type==2?window.jneBrinklerBits():' + expr + ')') + ';})')(jneInRect);
+            Game.particlesDraw = (0, eval)('(' + pd.replace(sizeCheck, "if (me.pic=='wrinklerBits.png' || me.pic=='shinyWrinklerBits.png' || window.jneIsBrinklerBits(me.pic)) {w=100;h=200;}") + ')');
+            Game._jneBrinklerBitsHooked = true;
+        }
+
+        function setupBrinklers() {
+            setupBrinklerBits();
+            if (!Game.DrawWrinklers || Game._jneBrinklerDrawHooked) return;
+            var marker = "else if (Game.season=='christmas') pic=Game.WINKLERS?'winterWinkler.png':'winterWrinkler.png';";
+            var drawStr = Game.DrawWrinklers.toString();
+            if (drawStr.indexOf(marker) < 0) return;
+            Game._jneBrinklerDrawHooked = true;
+            var brinklers = function() { return Game.wrinklers.filter(function(w) { return w.phase == 2 && w.type == 2; }); };
+            // vanilla load pools every feeder's store and spreads it evenly, brinklers included; put the saved brinkler total back
+            function splitLoadedBrinklerStores() {
+                var saved = Game.JNE._pendingBrinkStore;
+                Game.JNE._pendingBrinkStore = null;
+                if (typeof saved !== 'number' || !(saved >= 0)) return;
+                var feeders = Game.wrinklers.filter(function(w) { return w && w.phase == 2 && (w.type == 0 || w.type == 2); });
+                var brink = feeders.filter(function(w) { return w.type == 2; });
+                var normal = feeders.filter(function(w) { return w.type == 0; });
+                if (!brink.length) return;
+                var pool = feeders.reduce(function(t, w) { return t + w.sucked; }, 0);
+                var brinkTotal = Math.min(saved, pool);
+                brink.forEach(function(w) { w.sucked = brinkTotal / brink.length; });
+                normal.forEach(function(w) { w.sucked = normal.length ? (pool - brinkTotal) / normal.length : 0; });
+            }
+            // vanilla sums every feeder into cpsSucked, so take the brinklers' share back out
+            Game.registerHook('cps', function(cps) {
+                var feeding = Game.wrinklers.filter(function(w) { return w.phase == 2; });
+                if (feeding.length) Game.cpsSucked *= 1 - brinklers().length / feeding.length;
+                return cps;
+            }, 'JNE brinkler wither');
+            // wraps mouseCps: vanilla overwrites the click after the hooks while Cursed finger is active; full click kept for the feed
+            var full = 0, share = 0, mouseCps = Game.mouseCps;
+            Game.mouseCps = function() {
+                full = mouseCps.apply(this, arguments);
+                share = Math.min(1, 0.025 * (Game.Has('The hunger grows') ? 2 : 1) * brinklers().length * Game.eff('wrinklerEat') * (1 + 0.2 * Game.auraMult('Dragon Guts')));
+                return full * (1 - share);
+            };
+            Game.registerHook('click', function() {
+                var feed = brinklers();
+                feed.forEach(function(w) { w.sucked += full * share / feed.length; });
+            }, 'JNE brinkler feed');
+            // vanilla adds CpS to every feeder inside UpdateGrandmapocalypse; put brinklers' stores back as they were.
+            // Subtracting in the logic hook drifted whenever a buff changed CpS between the add and that hook.
+            hookOnce(Game, 'UpdateGrandmapocalypse', '_jneBrinklerAdd', function(orig) { return function() {
+                var held = [];
+                (Game.wrinklers || []).forEach(function(w) { if (w && w.type == 2) held.push([w, w.sucked]); });
+                var result = orig.apply(this, arguments);
+                held.forEach(function(h) { if (h[0].phase == 2) h[0].sucked = h[1]; });
+                return result;
+            }; });
+            Game.registerHook('logic', function() {
+                var active = Game.wrinklers.filter(function(w) { return w.phase > 0; });
+                active.forEach(function(w) {
+                    if (w.type != 2) return;
+                    // vanilla only heals types 0 and 1
+                    if (w.hp < Game.wrinklerHP) w.hp += 0.04;
+                });
+                // the pending count is a target, so a second load can't convert more
+                var pending = Game.JNE._pendingBrinklers;
+                if (!pending) return;
+                var have = active.filter(function(w) { return w.type == 2; }).length;
+                var converted = 0;
+                active.forEach(function(w) { if (have < pending && w.type == 0) { w.type = 2; have++; converted++; Game.recalculateGains = 1; } });
+                if (have >= pending) {
+                    Game.JNE._pendingBrinklers = 0;
+                    if (converted) splitLoadedBrinklerStores();
+                    else Game.JNE._pendingBrinkStore = null;
+                }
+            }, 'JNE brinkler restore');
+            Game.registerHook('reset', function() { Game.JNE._pendingBrinklers = 0; Game.JNE._pendingBrinkStore = null; }, 'JNE brinkler reset');
+            // GitHub first, jsDelivr if it fails; binkler art shows when Game.WINKLERS is on; xmas art in Christmas season
+            var art = {};
+            ['brinkler.png', 'binkler.png', 'xmasbrinkler.png', 'xmasbinkler.png'].forEach(function(f) {
+                var probe = new Image();
+                probe.onerror = function() { art[f] = 'https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/' + f; };
+                probe.src = art[f] = 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/' + f;
+            });
+            window.jneBrinklerUrl = function() { return art[Game.season == 'christmas' ? (Game.WINKLERS ? 'xmasbinkler.png' : 'xmasbrinkler.png') : (Game.WINKLERS ? 'binkler.png' : 'brinkler.png')]; };
+            Game.DrawWrinklers = (0, eval)('(' + drawStr.replace(marker, marker + "\nif(me.type==2)pic=window.jneBrinklerUrl();") + ')');
+        }
+
+        function setupIdleClickers() {
+            if (Game._jneIdleClickersHooked) return;
+            Game._jneIdleClickersHooked = true;
+            var dropMs = 200;
+            addCss("#jneIdleBar{position:absolute;left:0px;top:0px;width:50px;height:8px;transform-origin:0px 0px;transform:translate(6px,61px) rotate(-90deg);z-index:100000}#jneIdleBarFill{position:absolute;left:0px;top:0px;bottom:0px;width:0px;pointer-events:none;background:url(https://cdn.jsdelivr.net/gh/dfsw/Cookies@main/assets/clickmeter.png)}#jneIdleBarHit{position:absolute;left:0px;top:0px;right:0px;bottom:0px}");
+            var tip = Game.getTooltip('<div style="padding:8px;width:250px;font-size:11px;text-align:center;">Idle clicks refill slowly over time.<div class="line"></div>Each big cookie click drains your meter but your clicking power is increased the higher the meter is.</div>');
+            l('sectionLeft').insertAdjacentHTML('beforeend', '<div id="jneIdleBar" class="smallFramed meterContainer"><div id="jneIdleBarFill"></div><div id="jneIdleBarHit" ' + tip + '></div></div>');
+            var idle = Game.JNE.idleBar = Game.JNE.idleBar || { fill: 0 };
+            var fillL = l('jneIdleBarFill'), barL = l('jneIdleBar');
+            // 1.0x when empty, 1.2x at 50%, 2.0x when full; no boost below 3% (one drop) so the click that drains the last of it gets nothing.
+            var exp = Math.log(5) / Math.log(2);
+            var betterMult = function() { return Game.Has('Better idle clicking') ? 1.1 : 1; };
+            var owned = function() { return Game.Has('Idle clicks'); };
+            var boostOf = function(f) { return !owned() || f < 0.03 ? 1 : 1 + betterMult() * Math.pow(f, exp); };
+            Game.registerHook('cookiesPerClick', function(c) { return c * boostOf(idle.fill); }, 'JNE idle clickers boost');
+            Game.registerHook('click', function() { if (owned()) idle.fill = Math.max(0, idle.fill - 0.03); }, 'JNE idle clickers drain');
+            Game.registerHook('reset', function() { idle.fill = 0; idle.shown = 0; }, 'JNE idle clickers reset');
+            // vanilla only recalculates click power on gain changes, so refresh it before each press to use the current bar
+            l('bigCookie').addEventListener('mousedown', function() { Game.computedMouseCps = Game.mouseCps(); });
+            Game.registerHook('draw', function() {
+                var now = Date.now();
+                // not owned (a loaded save without it): no bar or meter, and it restarts empty if bought again
+                if (!owned()) {
+                    idle.fill = 0; idle.shown = 0; idle.t = now;
+                    if (barL.style.display !== 'none') barL.style.display = 'none';
+                    return;
+                }
+                if (barL.style.display === 'none') barL.style.display = '';
+                var dt = idle.t ? now - idle.t : 0;
+                idle.t = now;
+                if (idle.shown === undefined) idle.shown = idle.fill;
+                idle.fill = Math.min(1, idle.fill + betterMult() * Math.max(0.002, Math.sqrt(idle.fill)) * dt / 450000);
+                // drops animate at 3% per dropMs but never trail the real meter by more than one drop; refills show at once
+                idle.shown = Math.min(idle.shown, idle.fill + 0.03);
+                idle.shown = idle.shown > idle.fill ? Math.max(idle.fill, idle.shown - 0.03 * dt / dropMs) : idle.fill;
+                fillL.style.width = (idle.shown * 100) + '%';
+                fillL.style.backgroundPosition = (-Game.realT * 0.5) + 'px 0px';
+            }, 'JNE idle clickers draw');
+        }
+
+        function setupCriticalFeedbackMass() {
+            if (Game._jneCriticalFeedbackHooked || !Game.JNE || !Game.JNE.addMagicCpSModifier) return;
+            Game._jneCriticalFeedbackHooked = true;
+            Game.JNE.addMagicCpSModifier(function(what, mult) {
+                var b = Game.Objects[what];
+                if (!b || !Game.Has('Critical feedback mass')) return mult;
+                return mult * (1 + 0.001 * Math.floor(b.amount / 10));
+            });
+        }
+
+        var DARK_MILK_NAMES = window.JNEData.vanillaShadowAchievements || [];
+        function vanillaShadowWon() {
+            return DARK_MILK_NAMES.filter(function(name) { var a = Game.Achievements[name]; return a && a.won; }).length;
+        }
+        function darkMilkBonus() { return Game.Has('Dark chocolate milk') ? vanillaShadowWon() / 25 : 0; }
+        function setupDarkChocolateMilk() {
+            if (Game._jneDarkMilkHooked) return;
+            Game._jneDarkMilkHooked = true;
+            var base = Game.milkProgress || 0;
+            Object.defineProperty(Game, 'milkProgress', {
+                configurable: true,
+                enumerable: true,
+                get: function() { return base + darkMilkBonus(); },
+                set: function(v) { base = v; }
+            });
+        }
+
+        // One shared <style> tag for mod CSS, so each setup appends rules instead of creating its own tag
+        function addCss(rules) {
+            var tag = document.getElementById('jneHeavenlyCss');
+            if (!tag) { tag = document.createElement('style'); tag.id = 'jneHeavenlyCss'; document.head.appendChild(tag); }
+            tag.textContent += rules;
+        }
+
+        function setupSweetRefunds() {
+            if (Game._jneSweetRefundsHooked) return;
+            Game._jneSweetRefundsHooked = true;
+            addCss('.productSell{width:13px}.productSell:after{right:-2px}.productSell:before{content:"\\a0"}.productSell:after{bottom:-2px;transform:rotate(180deg)}');
+            var lumps = function(n) { return '<b>' + LBeautify(n).b + ' sugar lump' + (n == 1 ? '' : 's') + '</b>'; };
+            Object.values(Game.ObjectsById).forEach(function(M) {
+                if (!l('productLevel' + M.id)) return;
+                M.sellTooltip = function() { return '<div style="width:200px;padding:8px;text-align:center;">Sell a level of <b>' + M.dname + '</b> for ' + lumps(Math.floor(M.level / 2)) + '.</div>'; };
+                l('productLevel' + M.id).insertAdjacentHTML('afterend', '<div id="productSell' + M.id + '" class="productButton productLevel productSell lumpsOnly" ' + Game.getDynamicTooltip('Game.ObjectsById[' + M.id + '].sellTooltip', 'this') + '></div>');
+                AddEvent(l('productSell' + M.id), 'click', function() {
+                    if (!Game.Has('Sweet refunds') || M.level <= 1) return;
+                    var n = Math.floor(M.level / 2);
+                    Game.promptConfirmFunc = function() {
+                        M.level--;
+                        Game.lumps += n;
+                        if (M.minigame && M.minigame.onLevel) M.minigame.onLevel(M.level);
+                        Game.recalculateGains = 1;
+                        M.refresh();
+                    };
+                    Game.Prompt('<id SellLevel><div class="icon" style="background:url(' + Game.resPath + 'img/icons.png?v=' + Game.version + ');margin:0px auto;display:block;background-position:' + (-29 * 48) + 'px ' + (-14 * 48) + 'px;"></div><div class="block">Do you want to level down your ' + M.plural + ' for a refund of ' + lumps(n) + '?</div>', [['Yes', 'Game.promptConfirmFunc();Game.promptConfirmFunc=0;Game.ClosePrompt();'], 'No']);
+                });
+                hookOnce(M, 'rebuild', '_jneSweetRefunds', function(orig) { return function() {
+                    var r = orig.apply(this, arguments);
+                    l('productSell' + M.id).style.display = Game.Has('Sweet refunds') && M.level > 1 ? '' : 'none';
+                    return r;
+                }; });
+                M.rebuild();
+            });
+            // a loaded save without the upgrade hides the buttons without waiting for a rebuild
+            Game.registerHook('check', function() {
+                var has = Game.Has('Sweet refunds');
+                Object.values(Game.ObjectsById).forEach(function(M) {
+                    var el = l('productSell' + M.id), want = has && M.level > 1 ? '' : 'none';
+                    if (el && el.style.display !== want) el.style.display = want;
+                });
+            }, 'JNE sweet refunds visibility');
+        }
+
+        function dragonSlot3() { return Game.JNE.dragonSlot3 || (Game.JNE.dragonSlot3 = { unlocked: 0, aura: 0 }); }
+        function krumblorActive() { return !!(dragonSlot3().unlocked && Game.dragonLevel >= 27 && Game.Has('The legend of Krumblor')); }
+
+        // The legend of Krumblor: a third dragon aura slot, kept in mod state. Vanilla effects read auras through hasAura/auraMult, so wrapping those covers them.
+        function setupKrumblorSlot() {
+            if (Game._jneKrumblorHooked) return;
+            Game._jneKrumblorHooked = true;
+            var slotAura = function() { return krumblorActive() ? dragonSlot3().aura : 0; };
+            var haveEach = function(n) { return Object.values(Game.Objects).every(function(b) { return b.amount >= n; }); };
+            Game.registerHook('reset', function() { Object.assign(dragonSlot3(), { unlocked: 0, aura: 0 }); }, 'Krumblor slot');
+
+            hookOnce(Game, 'hasAura', '_jneKrumblor', function(orig) { return function(what) {
+                return orig.call(this, what) || (slotAura() > 0 && Game.dragonAuras[slotAura()].name === what);
+            }; });
+            hookOnce(Game, 'auraMult', '_jneKrumblor', function(orig) { return function(what) {
+                var n = orig.call(this, what), name = slotAura() && Game.dragonAuras[slotAura()].name;
+                if (name === what) n += 1;
+                if (name === 'Reality Bending' && Game.dragonLevel >= Game.dragonAurasBN[what].id + 4) n += 0.1;
+                return n;
+            }; });
+
+            hookOnce(Game, 'ToggleSpecialMenu', '_jneKrumblor', function(orig) { return function(on) {
+                orig.apply(this, arguments);
+                if (!on || Game.specialTab !== 'dragon' || Game.dragonLevel < 27 || !Game.Has('The legend of Krumblor')) return;
+                var aura = Game.dragonAuras[dragonSlot3().aura];
+                if (!dragonSlot3().unlocked) Array.prototype.forEach.call(l('specialPopup').querySelectorAll('div'), function(d) { if (!d.children.length && /fully trained/.test(d.textContent)) d.remove(); });
+                l('specialPopup').insertAdjacentHTML('beforeend', dragonSlot3().unlocked ?
+                    '<div class="crate enabled" style="opacity:1;position:absolute;right:142px;top:-58px;' + writeIcon(aura.pic) + '" ' + Game.clickStr + '="PlaySound(\'snd/tick.mp3\');Game.SelectDragonAura(2);" ' + Game.getTooltip(
+                        '<div style="margin:8px;min-width:300px;text-align:center;"><h4>' + aura.dname + '</h4><div class="line"></div>' + aura.desc + '</div>', 'top') + '></div>' :
+                    '<div class="line"></div><div class="optionBox" style="margin-bottom:0px;"><a style="line-height:80%;" class="option framed large title" ' + Game.clickStr + '="Game.JNE.unlockDragonSlot3();">' +
+                        '<div style="display:table-cell;vertical-align:middle;">Train tertiary aura<br><small>Lets you use three dragon auras simultaneously</small></div>' +
+                        '<div style="display:table-cell;vertical-align:middle;padding:4px 12px;">|</div>' +
+                        '<div style="display:table-cell;vertical-align:middle;font-size:65%;">sacrifice <div' + (haveEach(1000) ? '' : ' style="color:#777;"') + '>1000 of every building</div></div></a></div>');
+            }; });
+
+            Game.JNE.unlockDragonSlot3 = function() {
+                if (!haveEach(1000)) return;
+                Game.promptConfirmFunc = function() {
+                    PlaySound('snd/shimmerClick.mp3');
+                    Object.values(Game.Objects).forEach(function(b) { b.sacrifice(1000); });
+                    dragonSlot3().unlocked = 1;
+                    Game.recalculateGains = 1;
+                    Game.ToggleSpecialMenu(1);
+                };
+                Game.Prompt('<id TrainTertiaryAura><div class="block">Do you want to sacrifice <b>1000 of every building</b> to unlock a third dragon aura slot?</div>', [['Yes', 'Game.promptConfirmFunc();Game.promptConfirmFunc=0;Game.ClosePrompt();'], 'No']);
+            };
+
+            hookOnce(Game, 'SelectDragonAura', '_jneKrumblor', function(orig) { return function(slot, update) {
+                var i, str = '', highestBuilding = 0;
+                if (slot !== 2) {
+                    orig.apply(this, arguments);
+                    var taken = slotAura();
+                    if (taken) Game.promptL.querySelectorAll('.crate').forEach(function(c) {
+                        if (c.getAttribute(Game.clickStr).indexOf('SetDragonAura(' + taken + ',') !== -1) c.remove();
+                    });
+                    return;
+                }
+                if (!update) Game.SelectingDragonAura = dragonSlot3().aura;
+                for (i in Game.dragonAuras) {
+                    if (Game.dragonLevel >= parseInt(i) + 4 && (i == 0 || (i != Game.dragonAura && i != Game.dragonAura2))) {
+                        str += '<div class="crate enabled' + (i == Game.SelectingDragonAura ? ' highlighted' : '') + '" style="opacity:1;float:none;display:inline-block;' + writeIcon(Game.dragonAuras[i].pic) + '" ' + Game.clickStr + '="PlaySound(\'snd/tick.mp3\');Game.SetDragonAura(' + i + ',2);" onMouseOut="Game.DescribeDragonAura(' + Game.SelectingDragonAura + ');" onMouseOver="Game.DescribeDragonAura(' + i + ');"></div>';
+                    }
+                }
+                for (i in Game.Objects) if (Game.Objects[i].amount > 0) highestBuilding = Game.Objects[i];
+                Game.Prompt('<id PickDragonAura><h3>Set your dragon\'s tertiary aura</h3><div class="line"></div><div id="dragonAuraInfo" style="min-height:80px;"></div><div style="text-align:center;">' + str + '</div><div class="line"></div>' +
+                    '<div style="text-align:center;margin-bottom:8px;">' + (highestBuilding == 0 ? loc("Switching your aura is <b>free</b> because you own no buildings.") : loc("The cost of switching your aura is <b>%1</b>.<br>This will affect your CpS!", loc("%1 " + highestBuilding.bsingle, LBeautify(1)))) + '</div>',
+                    [[loc("Confirm"), 'Game.JNE.dragonSlot3.aura=Game.SelectingDragonAura;' + (highestBuilding == 0 || dragonSlot3().aura == Game.SelectingDragonAura ? '' : 'Game.ObjectsById[' + highestBuilding.id + '].sacrifice(1);') + 'Game.recalculateGains=1;Game.ToggleSpecialMenu(1);Game.ClosePrompt();'], loc("Cancel")], 0, 'widePrompt');
+                Game.DescribeDragonAura(Game.SelectingDragonAura);
+            }; });
+        }
+
+        // Magical hourglass: magic meter tooltip shows time to full (snapshot on hover)
+        function setupMagicalHourglass() {
+            var M = minigameOf('Wizard tower');
+            if (!M || !M.init) return;
+            var attach = function() {
+                var bar = l('grimoireBar'), over = bar && bar.lastChild;
+                if (!over || over._jneHourglass) return;
+                var prev = over.onmouseover;
+                over._jneHourglass = true;
+                over.onmouseover = function() {
+                    if (prev) prev.call(this);
+                    if (!Game.Has('Magical hourglass')) return;
+                    if (M.magic >= M.magicM) return; // full: vanilla tooltip stays untouched
+                    // JNE's regen hook owns the real rate (buffs, Unlimited free refills, Wizardly accomplishments)
+                    var secs = Game.JNE && Game.JNE.grimoireRefillSeconds && Game.JNE.grimoireRefillSeconds();
+                    if (!secs) return;
+                    var text = 'Magic full in ' + Game.sayTime(secs * Game.fps, -1);
+                    Game.tooltip.dynamic = 0;
+                    Game.tooltip.draw(this, escape(unescape(Game.tooltip.text).replace(/<\/div>$/, '<div class="line"></div>' + text + '</div>')), Game.tooltip.origin);
+                };
+            };
+            hookOnce(M, 'init', '_jneHourglass', function(orig) { return function() {
+                var r = orig.apply(this, arguments);
+                attach();
+                return r;
+            }; });
+            attach();
+        }
+
         function setupBuffModifiers() {
             if (!Game.gainBuff || Game._jneBuffModifiersHooked) return;
 
-            if (!Game._jneOriginalGainBuffHU) Game._jneOriginalGainBuffHU = Game.gainBuff;
-            Game.gainBuff = function(type, time, arg1, arg2, arg3) {
+            hookOnce(Game, 'gainBuff', '_jneBuffMods', function(orig) { return function(type, time, arg1, arg2, arg3) {
                 var alreadyApplying = !!Game._jneApplyingBuffModifiers;
                 if (!alreadyApplying) Game._jneApplyingBuffModifiers = true;
                 try {
@@ -922,16 +1427,23 @@
                         if (type === 'devastation' && Game.Has && Game.Has("Godzamok's Headstart")) {
                             time = Math.ceil(time * 1.1);
                         }
+
+                        if (type === 'click frenzy' && Game.Has && Game.Has('Runaway clickers')) {
+                            time = time * 1.1;
+                        }
+                        if (type === 'building buff' && Game.Has && Game.Has('We can build up')) {
+                            time = time * 1.1;
+                        }
                         // Creative tax evasion - loan interest buffs last 10% less long
                         if (isLoanInterest && Game.Has && Game.Has('Creative tax evasion')) {
                             time = time * 0.9;
                         }
                     }
-                    return Game._jneOriginalGainBuffHU.call(this, type, time, arg1, arg2, arg3);
+                    return orig.call(this, type, time, arg1, arg2, arg3);
                 } finally {
                     if (!alreadyApplying) Game._jneApplyingBuffModifiers = false;
                 }
-            };
+            }; });
             Game._jneBuffModifiersHooked = true;
         }
 
@@ -955,11 +1467,17 @@
 
                             var clickAmount = Game.computedMouseCps || 0;
                             var multiplier = Game.Has('Extreme mega clicks') ? 14 : 9;
+                            var isEpic = Game.Has('Epic clicks') && jneIndependentRandom() < 0.01;
+                            if (isEpic) multiplier *= 100;
                             var bonusAmount = clickAmount * multiplier;
                             var totalAmount = clickAmount * (multiplier + 1);
                             Game.Earn(bonusAmount);
                             if (!(window.modSettings && window.modSettings.megaClickPopups === false)) {
-                                Game.Popup('<span style="font-size:80%">Mega Click Bonus!<br>+' + Beautify(totalAmount, 1) + '</span>', Game.mouseX, Game.mouseY);
+                                var rainbow = ['#ff5c5c', '#ffb347', '#ffe066', '#7cfc00', '#4fc3f7', '#b388ff'];
+                                var epicLine = 'Epic Click Bonus!'.split('').map(function(ch, i) {
+                                    return '<span style="color:' + rainbow[i % rainbow.length] + '">' + ch + '</span>';
+                                }).join('');
+                                Game.Popup('<span style="font-size:80%">' + (isEpic ? epicLine : 'Mega Click Bonus!') + '<br>+' + Beautify(totalAmount, 1) + '</span>', Game.mouseX, Game.mouseY);
                             }
                         }
                     }
@@ -985,7 +1503,7 @@
                         var hasShiny = false;
                         if (Game.wrinklers) {
                             for (var i = 0; i < Game.wrinklers.length; i++) {
-                                if (Game.wrinklers[i] && Game.wrinklers[i].type === 1 && Game.wrinklers[i].phase > 0) {
+                                if (Game.wrinklers[i] && Game.wrinklers[i].type == 1 && Game.wrinklers[i].phase > 0) {
                                     hasShiny = true;
                                     break;
                                 }
@@ -996,6 +1514,7 @@
                     var p = base * mult;
                     if (Math.random() < p) me.type = 1;
                 }
+                if (me.type === 0 && Game.Has('Clicklers') && Math.random() < (Game.Has('An interesting species') ? 0.2 : 0.1)) me.type = 2;
                 return me;
             };
             Game.SpawnWrinkler._jneShinyHooked = true;
@@ -1005,10 +1524,10 @@
             if (Game._wrinklerPopSpawnHooked || !Game.UpdateGrandmapocalypse) return;
             Game._wrinklerPopSpawnHooked = true;
             Game._jneJamFillingHandled = true;
-            if (!Game._jneOriginalUpdateGrandmapocalypse) Game._jneOriginalUpdateGrandmapocalypse = Game.UpdateGrandmapocalypse;
-            Game.UpdateGrandmapocalypse = function() {
+            hookOnce(Game, 'UpdateGrandmapocalypse', '_jneGrandmaUpdate', function(orig) { return function() {
                 var oldCount = Game.wrinklersPopped || 0;
-                var result = Game._jneOriginalUpdateGrandmapocalypse.apply(this, arguments);
+                var alive = (Game.wrinklers || []).filter(function(w) { return w && w.phase > 0; });
+                var result = orig.apply(this, arguments);
                 var newCount = Game.wrinklersPopped || 0;
                 if (newCount > oldCount) {
                     var popped = newCount - oldCount;
@@ -1025,8 +1544,10 @@
                         var jamChance = Game.Has('Mail in sweepstake winner') ? 0.03 : Game.Has('Double box prize') ? 0.02 : Game.Has('The prize at the bottom of the box') ? 0.01 : 0;
                         if (jamChance > 0 && !Game._jneCustomBuffTypesCreated) setupCustomBuffTypes();
                         if (jamChance > 0 && Game.buffTypesByName && Game.buffTypesByName['jam filling']) {
-                            for (var j = 0; j < popped; j++) {
-                                if (Math.random() < jamChance) {
+                            var pops = alive.filter(function(w) { return w.phase === 0; });
+                            for (var j = 0; j < pops.length; j++) {
+                                var chance = Math.min(1, jamChance * (pops[j].type == 1 && Game.Has('Glittery jam') ? 6.66 : pops[j].type === 2 ? 2 : 1));
+                                if (Math.random() < chance) {
                                     var buff = Game.buffs && Game.buffs['Jam filling'];
                                     if (buff) {
                                         var currentTime = buff.time / Game.fps;
@@ -1034,7 +1555,7 @@
                                     } else {
                                         Game.gainBuff('jam filling', 6, 66);
                                     }
-                                    if (Game.Notify) Game.Notify('Jam filling!', 'Cookie production x66 for 6 seconds!', [19, 8]);
+                                    if (Game.Notify) Game.Notify('Jam filling!', 'Cookie production x66 for 6 seconds!', JNE.icon(17, 18, 'custom'));
                                     break;
                                 }
                             }
@@ -1042,15 +1563,47 @@
                     }
                 }
                 return result;
-            };
+            }; });
+        }
+
+        // heralds + 10 points, capped at 100 (vanilla applies 1 + 0.01 * heralds)
+        function selfPromoterBoost() {
+            var h = Game.heralds;
+            return (1 + 0.01 * Math.min(100, h + 10)) / (1 + 0.01 * h);
+        }
+        function setupSelfPromoter() {
+            if (!Game.registerHook || !Game.tooltip || Game._jneSelfPromoter || !Game.Has('Self promoter')) return;
+            Game._jneSelfPromoter = true;
+            Game.registerHook('cps', function(cps) {
+                if (Game.ascensionMode == 1 || !Game.Has('Self promoter') || !Game.Has('Heralds')) return cps;
+                return cps * selfPromoterBoost();
+            });
+            hookOnce(Game.tooltip, 'draw', '_jneSelfPromoterTip', function(orig) { return function(from, text, origin) {
+                if (from === l('heralds') && Game.Has('Self promoter') && Game.Has('Heralds')) {
+                    var base = text;
+                    text = function() {
+                        var str = typeof base === 'function' ? base() : base;
+                        return String(str).replace(/\+\d+% cookies per second/, '+' + Math.min(100, Game.heralds + 10) + '% cookies per second');
+                    };
+                }
+                return orig.call(this, from, text, origin);
+            }; });
+        }
+
+        function setupTriple7s() {
+            ['Lucky digit', 'Lucky number', 'Lucky payout'].forEach(function(name) {
+                var up = Game.Upgrades[name];
+                if (up) hookOnce(up, 'showIf', '_jneTriple7s', function(orig) { return function() {
+                    return !!Game.Has('Triple 7s') || orig.call(this);
+                }; });
+            });
         }
 
         function setupCycliusSwatch() {
             if (!Game.registerHook || Game._cycliusSwatchHooked) return;
             if (!Game.Has('Cyclius swatch')) return;
-            var temple = Game.Objects['Temple'];
-            if (!temple || !temple.minigameLoaded || !temple.minigame) return;
-            var M = temple.minigame;
+            var M = loadedMinigame('Temple');
+            if (!M) return;
             if (!M || !M.gods || !M.gods['ages']) return;
             var cyclius = M.gods['ages'];
             if (!cyclius._originalDescs) {
@@ -1062,7 +1615,7 @@
             }
             var update = function() {
                 if (!Game.Has('Cyclius swatch')) return;
-                var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+                var M = minigameOf('Temple');
                 if (!M || !M.gods || !M.gods['ages']) return;
                 var cyclius = M.gods['ages'];
                 if (!cyclius._originalDescs) return;
@@ -1097,13 +1650,11 @@
         }
 
         function setupPantheonSaveLoadHooks() {
-            var temple = Game.Objects['Temple'];
-            if (!temple || !temple.minigameLoaded || !temple.minigame) return;
-            var M = temple.minigame;
+            var M = loadedMinigame('Temple');
+            if (!M) return;
             if (!M || !M.save || M.save._heavenlyUpgradesHooked) return;
-            if (!M._jneOriginalSaveTemple) M._jneOriginalSaveTemple = M.save;
-            M.save = function() {
-                var M = Game.Objects['Temple'].minigame;
+            hookOnce(M, 'save', '_jneSaveTemple', function(orig) { return function() {
+                var M = minigameOf('Temple');
                 var customGodIds = [];
                 if (M.gods && M.gods['procrastination'] && M.gods['procrastination'].id !== undefined) customGodIds.push(M.gods['procrastination'].id);
                 if (M.gods && M.gods['selfishness'] && M.gods['selfishness'].id !== undefined) customGodIds.push(M.gods['selfishness'].id);
@@ -1116,18 +1667,18 @@
                         }
                     }
                 }
-                var result = M._jneOriginalSaveTemple.apply(this, arguments);
+                var result = orig.apply(this, arguments);
                 for (var i = 0; i < savedSlots.length; i++) {
                     if (savedSlots[i] !== undefined) M.slot[i] = savedSlots[i];
                 }
                 return result;
-            };
+            }; });
             M.save._heavenlyUpgradesHooked = true;
         }
 
         function addNewPantheonSpirits() {
-            if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) return;
-            var M = Game.Objects['Temple'].minigame;
+            if (!Game.Objects['Temple'] || !minigameOf('Temple')) return;
+            var M = minigameOf('Temple');
 
             if (M._pantheonSpiritsCheckInterval) {
                 clearInterval(M._pantheonSpiritsCheckInterval);
@@ -1207,13 +1758,12 @@
             if (!M._spiritEffectsSetup && (M.gods['procrastination'] || M.gods['selfishness'])) {setupPantheonSpiritEffects(); M._spiritEffectsSetup = true;}
 
             if (!M.godTooltip._hooked) {
-                if (!M._jneOriginalGodTooltip) M._jneOriginalGodTooltip = M.godTooltip;
-                M.godTooltip = function(id) {
-                    var M = Game.Objects['Temple'].minigame;
+                hookOnce(M, 'godTooltip', '_jneGodTip', function(orig) { return function(id) {
+                    var M = minigameOf('Temple');
                     return function() {
                         var me = M.godsById[id];
                         if (me && me.icon && me.icon[2]) {
-                            var result = M._jneOriginalGodTooltip(id)();
+                            var result = orig.call(M, id)();
                             var searchStr = '<div class="icon" style="float:left;margin-left:-8px;margin-top:-8px;background-position:' + (-me.icon[0]*48) + 'px ' + (-me.icon[1]*48) + 'px;">';
                             result = result.replace(
                                 searchStr,
@@ -1221,18 +1771,17 @@
                             );
                             return result;
                         }
-                        return M._jneOriginalGodTooltip(id)();
+                        return orig.call(M, id)();
                     };
-                };
+                }; });
                 M.godTooltip._hooked = true;
             }
 
             if (!M.slotTooltip._hooked) {
-                if (!M._jneOriginalSlotTooltip) M._jneOriginalSlotTooltip = M.slotTooltip;
-                M.slotTooltip = function(id) {
-                    var M = Game.Objects['Temple'].minigame;
+                hookOnce(M, 'slotTooltip', '_jneSlotTip', function(orig) { return function(id) {
+                    var M = minigameOf('Temple');
                     return function() {
-                        var result = M._jneOriginalSlotTooltip(id)();
+                        var result = orig.call(M, id)();
                         if (M.slot[id] != -1) {
                             var me = M.godsById[M.slot[id]];
                             if (me && me.icon && me.icon[2]) {
@@ -1244,69 +1793,107 @@
                         }
                         return result;
                     };
-                };
+                }; });
                 M.slotTooltip._hooked = true;
+            }
+            // a save loaded before the temple finished loading is applied now that the gods exist
+            applyPendingPantheon();
+        }
+
+        // Features that install once (UI, slots, soil) follow ownership; effects that check Game.Has() while running need nothing.
+        function reconcileOwnedFeatures() {
+            var T = minigameOf('Temple');
+            if (T && T.gods && T.slot) {
+                ['procrastination', 'selfishness'].forEach(function(k) {
+                    var god = T.gods[k];
+                    if (!god || god.id === undefined || !god.upgrade) return;
+                    var owned = !!(Game.Upgrades[god.upgrade] && Game.Upgrades[god.upgrade].bought);
+                    var el = l('templeGod' + god.id);
+                    if (!owned && god.slot !== -1 && god.slot !== undefined && T.slotGod) {
+                        T.slotGod(god, -1);
+                        var ph = l('templeGodPlaceholder' + god.id);
+                        if (el && ph && ph.parentNode && el.parentNode !== ph.parentNode) ph.parentNode.insertBefore(el, ph);
+                        Game.recalculateGains = true;
+                    }
+                    var want = owned ? '' : 'none';
+                    if (el && el.style && el.style.display !== want) el.style.display = want;
+                });
+            }
+            var F = minigameOf('Farm');
+            if (F && F.soils && F.soils.aerated) {
+                var aerated = F.soils.aerated, ownedSoil = !!Game.Has('Aerated soil');
+                if (aerated._jneReq === undefined) aerated._jneReq = aerated.req;
+                var wantReq = ownedSoil ? aerated._jneReq : 1e308;
+                if (aerated.req !== wantReq) {
+                    aerated.req = wantReq;
+                    if (F.buildPanel && l('gardenSoils')) F.buildPanel();
+                }
+                if (!ownedSoil && F.soil === aerated.id) F.soil = 0;
             }
         }
 
         function applySlotGodHook(M) {
-            if (M.slotGod && !M.slotGod._hooked) {
-                if (!M._jneOriginalSlotGod) M._jneOriginalSlotGod = M.slotGod;
-                M.slotGod = function(god, slot) {
-                    var M = Game.Objects['Temple'].minigame;
-                    if (!god) return M._jneOriginalSlotGod.apply(this, arguments);
-                    var prev = god.slot;
-                    var result = M._jneOriginalSlotGod.apply(this, arguments);
+            hookOnce(M, 'slotGod', '_jneSlotGodHook', function(orig) { return function(god, slot) {
+                var M = minigameOf('Temple');
+                if (!god) return orig.apply(this, arguments);
+                var prev = god.slot;
+                var result = orig.apply(this, arguments);
 
-                    var proc = M.gods['procrastination'], self = M.gods['selfishness'];
+                var proc = M.gods['procrastination'], self = M.gods['selfishness'];
 
-                    if (slot !== prev) {
+                if (slot !== prev) {
+                    Game.recalculateGains = true;
+                }
+
+                if (proc && god.id === proc.id) {
+                    var oldTime = M._procrastinationSlotTime;
+                    var newTime = M._procrastinationSlotTime;
+                    var isRestoring = Game.JNE && Game.JNE._isRestoringData;
+
+                    // Only reset timer when moving between slots or unslotting, not during load
+                    if (slot === -1) {
+                        // Unslotting
+                        newTime = null;
+                    } else if (prev !== -1 && prev !== slot) {
+                        // Moving from one slot to another
+                        newTime = Date.now();
+                    } else if (prev === -1 && !isRestoring) {
+                        // First time being slotted (not from save load)
+                        newTime = Date.now();
+                    }
+
+                    if (newTime !== oldTime) {
+                        M._procrastinationSlotTime = newTime;
                         Game.recalculateGains = true;
                     }
-
-                    if (proc && god.id === proc.id) {
-                        var oldTime = M._procrastinationSlotTime;
-                        var newTime = M._procrastinationSlotTime;
-                        var isRestoring = Game.JNE && Game.JNE._isRestoringData;
-
-                        // Only reset timer when moving between slots or unslotting, not during load
-                        if (slot === -1) {
-                            // Unslotting
-                            newTime = null;
-                        } else if (prev !== -1 && prev !== slot) {
-                            // Moving from one slot to another
-                            newTime = Date.now();
-                        } else if (prev === -1 && !isRestoring) {
-                            // First time being slotted (not from save load)
-                            newTime = Date.now();
-                        }
-
-                        if (newTime !== oldTime) {
-                            M._procrastinationSlotTime = newTime;
-                            Game.recalculateGains = true;
-                        }
+                }
+                if (self && god.id === self.id) {
+                    if (slot === -1 && prev !== -1) {
+                        for (var i in Game.buffs) if (Game.buffs[i] && Game.buffs[i].aura === 1) Game.buffs[i].time = 0;
+                        M._selfishnessClickCount = 0;
+                        Game.recalculateGains = true;
+                    } else if (slot !== -1 && prev !== -1 && prev !== slot) {
+                        for (var i in Game.buffs) if (Game.buffs[i] && Game.buffs[i].aura === 1) Game.buffs[i].time = 0;
+                        M._selfishnessClickCount = 0;
+                    } else if (slot !== -1 && prev === -1) {
+                        M._selfishnessClickCount = 0;
                     }
-                    if (self && god.id === self.id) {
-                        if (slot === -1 && prev !== -1) {
-                            for (var i in Game.buffs) if (Game.buffs[i] && Game.buffs[i].aura === 1) Game.buffs[i].time = 0;
-                            M._selfishnessClickCount = 0;
-                            Game.recalculateGains = true;
-                        } else if (slot !== -1 && prev !== -1 && prev !== slot) {
-                            for (var i in Game.buffs) if (Game.buffs[i] && Game.buffs[i].aura === 1) Game.buffs[i].time = 0;
-                            M._selfishnessClickCount = 0;
-                        } else if (slot !== -1 && prev === -1) {
-                            M._selfishnessClickCount = 0;
-                        }
-                    }
-                    return result;
-                };
-                M.slotGod._hooked = true;
-            }
+                }
+                return result;
+            }; });
+        }
+
+        function hookSugarPredictorSlot(M) {
+            hookOnce(M, 'slotGod', '_jneSugarPredSlot', function(orig) { return function() {
+                var result = orig.apply(this, arguments);
+                Game.calculateLumpPredictions();
+                return result;
+            }; });
         }
 
         function setupPantheonSpiritEffects() {
-            if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) return;
-            var M = Game.Objects['Temple'].minigame;
+            if (!Game.Objects['Temple'] || !minigameOf('Temple')) return;
+            var M = minigameOf('Temple');
             if (M._spiritEffectsSetup) return;
 
             M._procrastinationSlotTime = M._procrastinationSlotTime || null;
@@ -1320,10 +1907,9 @@
 
             var st = Game.shimmerTypes && Game.shimmerTypes.golden;
             if (st && !st._selfishnessSpawnConditionsHooked) {
-                if (!st._jneOriginalSpawnConditions) st._jneOriginalSpawnConditions = st.spawnConditions;
-                st.spawnConditions = function() {
+                hookOnce(st, 'spawnConditions', '_jneSpawnCond', function(orig) { return function() {
                     var st = Game.shimmerTypes && Game.shimmerTypes.golden;
-                    if (!st._jneOriginalSpawnConditions || !st._jneOriginalSpawnConditions()) return false;
+                    if (!orig || !orig.call(st)) return false;
                     if (M.gods && M.gods['selfishness'] && Game.hasGod('selfishness')) {
                         var godLevel = Game.hasGod('selfishness');
                         if (godLevel) {
@@ -1332,13 +1918,13 @@
                         }
                     }
                     return true;
-                };
+                }; });
                 st._selfishnessSpawnConditionsHooked = true;
             }
 
             if (Game.registerHook && !Game._jneProcrastinationRecalcHooked) {
                 Game.registerHook('check', function() {
-                    var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
+                    var M = minigameOf('Temple');
                     if (!M || !M.gods || !M.gods['procrastination']) return;
                     if (!Game.hasGod('procrastination')) return;
                     if (!M._procrastinationSlotTime) {
@@ -1352,13 +1938,14 @@
                 Game._jneProcrastinationRecalcHooked = true;
             }
 
-            if (M.slotGod && M.slotGod._hooked && st && st._hooked && st._selfishnessSpawnConditionsHooked) M._spiritEffectsSetup = true;
+            if (hookedWith(M, 'slotGod', '_jneSlotGodHook') && st && st._hooked && st._selfishnessSpawnConditionsHooked) M._spiritEffectsSetup = true;
         }
 
         function setupRegifting() {
             if (!Game.registerHook || Game._regiftingHooked) return;
             Game._regiftingHooked = true;
             Game.registerHook('reset', function(hard) {
+                if (!Game.Has('Regifting')) return;
                 // season drops only carry over on normal ascensions
                 if (Game.ascensionMode != 0) return;
                 if (hard) return;
@@ -1425,6 +2012,14 @@
             choose._jneCookieReductionHooked = true;
         }
 
+        function fishClip(me, edge) {
+            if (edge > 0) me.l.style.clipPath = me.direction === 1 ? 'inset(0px 0px 0px ' + edge + 'px)' : 'inset(0px ' + edge + 'px 0px 0px)';
+        }
+        function fishTime(seconds) {
+            var t = Math.ceil(Game.fps * seconds);
+            return Game.Has('Aquaculturist') ? Math.ceil(t * 0.75) : t;
+        }
+
         function setupFishShimmers() {
             if (Game._fishShimmersSetup) return;
             Game._fishShimmersSetup = true;
@@ -1475,11 +2070,11 @@
 
                         if (Game._fishClipBounds) {
                             var clipRight = Math.max(0, (initialX + 48) - Game._fishClipBounds.right);
-                            if (clipRight > 0) me.l.style.clipPath = (me.direction === 1 ? 'inset(0px 0px 0px ' + clipRight + 'px)' : 'inset(0px ' + clipRight + 'px 0px 0px)');
+                            fishClip(me, clipRight);
                         }
 
                         me.life = Game.fps * 8;
-                        me.swimSpeed = 125;
+                        me.swimSpeed = Game.Has('Shiny scales') ? 150 : 125;
                         me.baseY = me.y;
                         for (var i = 1; i <= 2; i++) {
                             me['swimAmp' + i] = Math.random() * 10 + (i === 1 ? 10 : 5);
@@ -1507,7 +2102,7 @@
                         me.l.style.transform = 'translate(' + xOffset + 'px,' + actualY + 'px) rotate(' + (Math.sin(me.life * 0.1) * 5) + 'deg) scaleX(' + (me.direction === 1 ? -1 : 1) + ')';
                         if (Game._fishClipBounds) {
                             var clipRight = Math.max(0, (xOffset + 48) - Game._fishClipBounds.right);
-                            if (clipRight > 0) me.l.style.clipPath = clipRight > 0 ? (me.direction === 1 ? 'inset(0px 0px 0px ' + clipRight + 'px)' : 'inset(0px ' + clipRight + 'px 0px 0px)') : 'none';
+                            fishClip(me, clipRight);
                             if ((me.direction === 1 && xOffset > Game._fishClipBounds.right + 48) || (me.direction === -1 && xOffset < Game._fishClipBounds.left - 48)) {
                                 this.missFunc(me); me.die(); return;
                             }
@@ -1544,7 +2139,7 @@
                         }
 
                         var val = Game.cookiesPs * 60;
-                        var moni = Math.max(25, val);
+                        var moni = Math.max(25, val) * (Game.Has('Shiny scales') ? 1.3 : 1);
                         Game.Earn(moni);
                         Game.Popup('<div style="font-size:80%;">' + Beautify(moni) + '</div>', Game.mouseX, Game.mouseY);
 
@@ -1558,14 +2153,8 @@
                         return Game.Has('Fish tank') && Game.prefs.milk != 0;
                     },
                     spawnsOnTimer: true,
-                    getMinTime: function(me) {
-                        var baseTime = Math.ceil(Game.fps * 180);
-                        return Game.Has('Aquaculturist') ? Math.ceil(baseTime * 0.75) : baseTime;
-                    },
-                    getMaxTime: function(me) {
-                        var baseTime = Math.ceil(Game.fps * 600);
-                        return Game.Has('Aquaculturist') ? Math.ceil(baseTime * 0.75) : baseTime;
-                    },
+                    getMinTime: function(me) { return fishTime(180); },
+                    getMaxTime: function(me) { return fishTime(600); },
                     n: 0,
                     time: 0,
                     spawned: 0
@@ -1614,18 +2203,16 @@
         }
 
         function setupWallstreetBets() {
-            var bank = Game.Objects['Bank'];
-            if (!bank || !bank.minigameLoaded || !bank.minigame) return;
-            var M = bank.minigame;
+            var M = loadedMinigame('Bank');
+            if (!M) return;
             if (!M.getGoodMaxStock || M.getGoodMaxStock._wallstreetBetsHooked) return;
 
-            if (!M._jneOriginalGetGoodMaxStock) M._jneOriginalGetGoodMaxStock = M.getGoodMaxStock;
-            M.getGoodMaxStock = function(id) {
-                var M = Game.Objects['Bank'].minigame;
-                var max = M._jneOriginalGetGoodMaxStock.call(this, id);
-                if (Game.Has('Wallstreet bets')) max *= 1.5;
+            hookOnce(M, 'getGoodMaxStock', '_jneGoodMax', function(orig) { return function(id) {
+                var M = minigameOf('Bank');
+                var max = orig.call(this, id);
+                if (Game.Has('Wallstreet bets')) max *= 1.25;
                 return max;
-            };
+            }; });
             M.getGoodMaxStock._wallstreetBetsHooked = true;
         }
 
@@ -1695,26 +2282,30 @@
                     next.setHours(next.getHours() + 1);
                     next.setMinutes(0);
                 }
+                var target = next.getTime();
                 Game._jneTimedGoldenCookiesTimeoutId = setTimeout(function() {
-                    fn();
+                    fn(target);
                     scheduleHalfHour(fn);
                 }, next - now);
             }
 
-            function checkAndSpawn() {
+            // background tabs throttle timers: only spawn if the timer fires within a minute of its scheduled time
+            function checkAndSpawn(target) {
+                if (Date.now() - target > 60000) return;
                 var now = new Date();
                 var minutes = now.getMinutes();
                 var minuteStamp = Math.floor(now.getTime() / 60000);
+                var onAscendScreen = Game.OnAscend || Game.AscendTimer > 0;
                 if (minutes === 0 && Game.Has('All is well')) {
                     if (Game._jneTimedGoldenCookiesLastMinuteStamp.top !== minuteStamp) {
                         Game._jneTimedGoldenCookiesLastMinuteStamp.top = minuteStamp;
-                        new Game.shimmer('golden', {noWrath: true});
+                        if (!onAscendScreen) new Game.shimmer('golden', {noWrath: true});
                     }
                 }
                 if (minutes === 30 && Game.Has('Six bells')) {
                     if (Game._jneTimedGoldenCookiesLastMinuteStamp.bottom !== minuteStamp) {
                         Game._jneTimedGoldenCookiesLastMinuteStamp.bottom = minuteStamp;
-                        new Game.shimmer('golden', {noWrath: true});
+                        if (!onAscendScreen) new Game.shimmer('golden', {noWrath: true});
                     }
                 }
             }
@@ -1722,14 +2313,49 @@
             scheduleHalfHour(checkAndSpawn);
         }
 
+        // Inputs that change lump ripening: grandmas, Rigidel, dragon auras
+        function lumpAuraState() {
+            var g = Game.Objects['Grandma'];
+            return {
+                grandmas: g ? g.amount : 0,
+                rigidel: Game.jneDetectRigidelSlot(),
+                rigidelActive: Game.jneDetectRigidelActive(),
+                dragonsCurve: Game.hasAura('Dragon\'s Curve') ? 1 : 0,
+                realityBending: Game.hasAura('Reality Bending') ? 1 : 0,
+                supremeIntellect: Game.hasAura('Supreme Intellect') ? 1 : 0
+            };
+        }
+
+        function rankedBuildings(cache, upgrades, ownedOnly, mushroomMult) {
+            var assigns = cache.assignments || {};
+            var list = [];
+            for (var i = 0; i < Game.ObjectsById.length; i++) {
+                var b = Game.ObjectsById[i];
+                if (!(b && b.amount > 0)) continue;
+                var cps = (b.storedTotalCps || 0) * (Game.globalCpsMult || 1);
+                for (var k in assigns) {
+                    if (assigns[k].buildingName !== b.name) continue;
+                    for (var u = 0; u < upgrades.length; u++) {
+                        if (upgrades[u].name === k && (!ownedOnly || Game.Has(k))) {
+                            cps /= upgrades[u].mult;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                if (mushroomMult && cache.magicMushroomAssignment === b.name) cps /= (1 + mushroomMult);
+                list.push({ name: b.name, cps: cps });
+            }
+            return list.sort(function(a, b) { return a.cps - b.cps; });
+        }
+
         function setupWeakestLink() {
             if (Game._jneWeakestLinkHooked) return;
 
             if (!Game._weakestLinkCache) Game._weakestLinkCache = { assignments: {}, lastRecalc: 0 };
 
-            if (!Game._jneOriginalMagicCpSWeakestLink) Game._jneOriginalMagicCpSWeakestLink = Game.magicCpS;
-            Game.magicCpS = function(what) {
-                var mult = Game._jneOriginalMagicCpSWeakestLink(what);
+            if (!Game.JNE || !Game.JNE.addMagicCpSModifier) return;
+            Game.JNE.addMagicCpSModifier(function(what, mult) {
                 var upgrades = Game._jneWeakestLinkUpgrades;
 
                 // Weakest Link logic
@@ -1737,30 +2363,7 @@
                 if (owned.length > 0) {
                     var cache = Game._weakestLinkCache;
                     if (!cache.assignments['Weakest link'] || (Date.now() - cache.lastRecalc) > 1000) {
-                        var oldAssignments = {};
-                        for (var k in cache.assignments) oldAssignments[k] = cache.assignments[k];
-
-                        var buildings = [];
-                        for (var i = 0; i < Game.ObjectsById.length; i++) {
-                            var b = Game.ObjectsById[i];
-                            if (b && b.amount > 0) {
-                                var cps = (b.storedTotalCps || 0) * (Game.globalCpsMult || 1);
-                                for (var k in oldAssignments) {
-                                    if (oldAssignments[k].buildingName === b.name) {
-                                        for (var u = 0; u < upgrades.length; u++) {
-                                            if (upgrades[u].name === k) {
-                                                cps /= upgrades[u].mult;
-                                                break;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                                buildings.push({ name: b.name, cps: cps });
-                            }
-                        }
-
-                        buildings.sort(function(a, b) { return a.cps - b.cps; });
+                        var buildings = rankedBuildings(cache, upgrades, false);
                         cache.assignments = {};
                         var used = [];
                         owned.sort(function(a, b) { return a.rank - b.rank; });
@@ -1796,40 +2399,12 @@
                 }
 
                 // Magic Mushroom logic
-                var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+                var M = minigameOf('Farm');
                 if (M && M.effs && M.effs.magicMushroomMult > 0 && M.freeze === 0) {
                     var cache = Game._weakestLinkCache;
 
                     if (!cache.magicMushroomAssignment || (Date.now() - cache.lastRecalc) > 1000) {
-                        var buildings = [];
-
-                        for (var i = 0; i < Game.ObjectsById.length; i++) {
-                            var b = Game.ObjectsById[i];
-                            if (b && b.amount > 0) {
-                                var cps = (b.storedTotalCps || 0) * (Game.globalCpsMult || 1);
-
-                                if (cache.assignments) {
-                                    for (var k in cache.assignments) {
-                                        if (cache.assignments[k].buildingName === b.name) {
-                                            for (var u = 0; u < Game._jneWeakestLinkUpgrades.length; u++) {
-                                                if (Game._jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
-                                                    cps /= Game._jneWeakestLinkUpgrades[u].mult;
-                                                    break;
-                                                }
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (cache.magicMushroomAssignment === b.name) {
-                                    cps /= (1 + M.effs.magicMushroomMult);
-                                }
-
-                                buildings.push({ name: b.name, cps: cps });
-                            }
-                        }
-                        buildings.sort(function(a, b) { return a.cps - b.cps; });
+                        var buildings = rankedBuildings(cache, Game._jneWeakestLinkUpgrades, true, M.effs.magicMushroomMult);
 
                         if (buildings.length > 0) {
                             cache.magicMushroomAssignment = buildings[0].name;
@@ -1842,7 +2417,7 @@
                 }
 
                 return mult;
-            };
+            });
             Game._jneWeakestLinkHooked = true;
         }
 
@@ -1853,17 +2428,19 @@
             if (!M || !M.clickTile || !M.useTool) return;
             if (M.clickTile._jnePlantAllHooked) return; // Already hooked (check actual function, not flag)
             M._plantAllHooked = true;
-            if (!M._jneOriginalClickTile) M._jneOriginalClickTile = M.clickTile;
-            M.clickTile = function(x, y) {
-                var M = Game.Objects['Farm'].minigame;
+            hookOnce(M, 'clickTile', '_jneClickTile', function(orig) { return function(x, y) {
+                var M = minigameOf('Farm');
                 if (Game.Has('Plant all') && Game.keys[16] && Game.keys[17] && M.seedSelected >= 0) {
                     var seedId = M.seedSelected;
                     var seed = M.plantsById[seedId];
-                    if (!seed || !M.canPlant(seed)) return M._jneOriginalClickTile.call(M, x, y);
+                    if (!seed || !M.canPlant(seed)) return orig.call(M, x, y);
                     var planted = M.useTool(seedId, x, y);
                     M.toCompute = true;
+                    // Side by Side: a click in column 0 plants only the clicked row
+                    var rowOnly = Game.Has('Side by side') && x === 0;
                     if (planted) {
                         for (var yy = 0; yy < 6; yy++) {
+                            if (rowOnly && yy !== y) continue;
                             for (var xx = 0; xx < 6; xx++) {
                                 if ((xx === x && yy === y) || !M.isTileUnlocked(xx, yy)) continue;
                                 var tile = M.getTile(xx, yy);
@@ -1875,14 +2452,14 @@
                     }
                     return;
                 }
-                return M._jneOriginalClickTile.call(M, x, y);
-            };
+                return orig.call(M, x, y);
+            }; });
             M.clickTile._jnePlantAllHooked = true;
         }
 
         function setupSoilInspector() {
             if (!Game.Objects['Farm'] || !Game.Objects['Farm'].minigameLoaded) return;
-            var M = Game.Objects['Farm'].minigame;
+            var M = minigameOf('Farm');
             if (!M || M._soilInspectorHooked) return;
             M._soilInspectorHooked = true;
 
@@ -1891,7 +2468,7 @@
             }
 
             M._jneGetPlantGrowthChances = function getPlantGrowthChances(x, y) {
-                var M = Game.Objects['Farm'].minigame;
+                var M = minigameOf('Farm');
                 if (!M || !M.getMuts || !M.getTile || !M.plants || !M.plantsById || !M.soilsById || !M.plotBoost) return null;
                 var n = {}, nm = {}, k, t, p, r = [], probs = {}, dirs = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
                 for (k in M.plants) { n[k] = 0; nm[k] = 0; }
@@ -1923,7 +2500,7 @@
             }
 
             M.tileTooltip = function(x, y) {
-                var M = Game.Objects['Farm'].minigame;
+                var M = minigameOf('Farm');
                 var originalTooltip = M.originalTileTooltip(x, y);
 
                 if (Game.Has('Soil inspector') &&
@@ -1934,7 +2511,8 @@
                         if (originalHtml && originalHtml.includes('Empty tile')) {
                             var chances = M._jneGetPlantGrowthChances(x, y);
                             if (chances && chances.length > 0) {
-                                var body = chances.map(function(p){return '<div>'+p.name+': <b>'+p.chance.toFixed(1)+'%</b></div>';}).join('');
+                                var dp = Game.Has('Improved soil inspector') ? 3 : 1;
+                                var body = chances.map(function(p){return '<div>'+p.name+': <b>'+p.chance.toFixed(dp)+'%</b></div>';}).join('');
                                 var block = '<div class="line"></div><div style="margin-top: 8px; font-size: 11px;"><div style="margin-bottom: 4px; font-weight: bold;">Natural growth chances (per tick)</div>'+body+'</div>';
                                 originalHtml = originalHtml.replace('</div>', block + '</div>');
                             }
@@ -1948,15 +2526,13 @@
         }
 
         function setupGardenSaveHookImmediate() {
-            var farm = Game.Objects['Farm'];
-            if (!farm || !farm.minigameLoaded || !farm.minigame) return;
-            var M = farm.minigame;
+            var M = loadedMinigame('Farm');
+            if (!M) return;
             if (!M || !M.save || M.save._heavenlyUpgradesHooked) return;
 
             // Default state - load() will restore from save data
-            if (!M._jneOriginalSaveFarm) M._jneOriginalSaveFarm = M.save;
-            M.save = function() {
-                var M = Game.Objects['Farm'].minigame;
+            hookOnce(M, 'save', '_jneSaveFarm', function(orig) { return function() {
+                var M = minigameOf('Farm');
                 var savedPlants = [], savedSoil = M.soil, isAerated = M.soils && M.soils.aerated && M.soil === M.soils.aerated.id;
                 if (M.plot) {
                     var plotH = M.h || M.plot.length, plotW = M.w || (M.plot[0] && M.plot[0].length || 0);
@@ -1975,37 +2551,32 @@
                     }
                 }
                 if (isAerated) M.soil = 0;
-                var result = M._jneOriginalSaveFarm.apply(this, arguments);
+                var result = orig.apply(this, arguments);
                 savedPlants.forEach(function(p) { if (M.plot[p.y] && M.plot[p.y][p.x]) M.plot[p.y][p.x] = p.tile; });
                 if (isAerated) M.soil = savedSoil;
                 return result;
-            };
+            }; });
             M.save._heavenlyUpgradesHooked = true;
         }
 
         function setupAeratedSoil() {
-            var farm = Game.Objects['Farm'];
-            if (!farm || !farm.minigameLoaded || !farm.minigame) return;
-            var M = farm.minigame;
+            var M = loadedMinigame('Farm');
+            if (!M) return;
 
             M._isAeratedSelected = function() {
-                var m = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+                var m = minigameOf('Farm');
                 return !!(m && m.soilsById && m.soilsById[m.soil] && m.soilsById[m.soil].key === 'aerated');
             };
-            if (!M._aeratedSoilLoadHooked && M.load) {
-                M._aeratedSoilLoadHooked = true;
-                if (!M._jneOriginalLoad) M._jneOriginalLoad = M.load;
-                M.load = function(str) {
-                    var M = Game.Objects['Farm'].minigame;
-                    M._jneOriginalLoad.call(this, str);
-                    var savedData = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
-                    var savedSoil = savedData && savedData.garden && savedData.garden.soil;
-                    if (savedSoil !== undefined && Game.Has('Aerated soil') && M.soils.aerated && M.soilsById[savedSoil]) {
-                        M.soil = savedSoil;
-                        if (M.buildPanel && l('gardenSoils')) M.buildPanel();
-                    }
-                };
-            }
+            hookOnce(M, 'load', '_jneAeratedLoad', function(orig) { return function(str) {
+                var M = minigameOf('Farm');
+                orig.call(this, str);
+                var savedData = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
+                var savedSoil = savedData && savedData.garden && savedData.garden.soil;
+                if (savedSoil !== undefined && Game.Has('Aerated soil') && M.soils.aerated && M.soilsById[savedSoil]) {
+                    M.soil = savedSoil;
+                    if (M.buildPanel && l('gardenSoils')) M.buildPanel();
+                }
+            }; });
             if (Game.Has('Aerated soil')) {
                 // Create soil object - garden does not need to be open for this
                 if (!M.soils.aerated) {
@@ -2058,10 +2629,9 @@
             if (Game.Has('Aerated soil') && l('gardenSoils')) {
                 if (M.soilTooltip && !M._aeratedSoilTooltipHooked) {
                     M._aeratedSoilTooltipHooked = true;
-                    if (!M._jneOriginalSoilTooltip) M._jneOriginalSoilTooltip = M.soilTooltip;
-                    M.soilTooltip = function(id) {
-                        var M = Game.Objects['Farm'].minigame;
-                        var tooltipFunc = M._jneOriginalSoilTooltip.call(this, id);
+                    hookOnce(M, 'soilTooltip', '_jneSoilTip', function(orig) { return function(id) {
+                        var M = minigameOf('Farm');
+                        var tooltipFunc = orig.call(this, id);
                         var me = M.soilsById[id];
 
                         if (me && me.key === 'aerated' && me.customIcon && me.customIconSheet) {
@@ -2082,16 +2652,15 @@
                             };
                         }
                         return tooltipFunc;
-                    };
+                    }; });
                 }
 
                 if (M.buildPanel) M.buildPanel();
             }
             if (Game.Has('Aerated soil') && !M._aeratedSoilHooked) {
                 M._aeratedSoilHooked = true;
-                if (!M._originalLogic) M._originalLogic = M.logic;
-                M.logic = function() {
-                    var M = Game.Objects['Farm'].minigame;
+                hookOnce(M, 'logic', '_jneAeratedLogic', function(orig) { return function() {
+                    var M = minigameOf('Farm');
                     var isAerated = M._isAeratedSelected() && !M.freeze && Date.now() >= M.nextStep;
                     if (isAerated) {
                         if (!M._fracAge) M._fracAge = {};
@@ -2106,18 +2675,17 @@
                             M._fracAge[k] %= 1;
                         }
                         for (var i in M.plants) { M.plants[i]._at = M.plants[i].ageTick; M.plants[i]._atr = M.plants[i].ageTickR; M.plants[i].ageTick = 0; M.plants[i].ageTickR = 0; }
-                        try { M._originalLogic.call(this); }
+                        try { orig.call(this); }
                         finally { for (var i in M.plants) { M.plants[i].ageTick = M.plants[i]._at; M.plants[i].ageTickR = M.plants[i]._atr; } }
                     } else {
-                        M._originalLogic.call(this);
+                        orig.call(this);
                     }
-                };
+                }; });
 
                 // Hook draw to fix dying transparency
-                if (!M._originalDraw) M._originalDraw = M.draw;
-                M.draw = function() {
-                    var M = Game.Objects['Farm'].minigame;
-                    M._originalDraw.call(this);
+                hookOnce(M, 'draw', '_jneAeratedDraw', function(orig) { return function() {
+                    var M = minigameOf('Farm');
+                    orig.call(this);
                     if (M._isAeratedSelected() && M._fracAge) {
                         for (var y = 0; y < 6; y++) for (var x = 0; x < 6; x++) {
                             var tile = M.plot[y][x];
@@ -2133,7 +2701,7 @@
                             }
                         }
                     }
-                };
+                }; });
             }
         }
 
@@ -2159,7 +2727,7 @@
         }
 
         function setupHeavenlyPlantUnlocks() {
-            var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+            var M = minigameOf('Farm');
             if (!M || !M.getUnlockedN || M._heavenlyPlantUnlocksHooked) return;
             M._heavenlyPlantUnlocksHooked = true;
             M.getUnlockedN = function() {
@@ -2201,6 +2769,7 @@
 
             if (M._gardenPlantsInjected) {
                 setupPlantHooks(M);
+                applyPendingGarden();
                 return;
             }
 
@@ -2250,7 +2819,7 @@
                                 Game.upgradesToRebuild = 1;
 
                                 if (Game && Game.UpdateMenu) {
-                                    Game.UpdateMenu();
+                                    try { Game.UpdateMenu(); } catch (e) { console.error('[Heavenly Upgrades] Menu refresh skipped:', e && e.message); }
                                 }
 
                                 var cookieIcons = {
@@ -2423,12 +2992,12 @@
 
             if (M.reset && !M._resetHooked) {
                 M._resetHooked = true;
-                if (!M._jneOriginalReset) M._jneOriginalReset = M.reset;
-                M.reset = function(hard) {
-                    var M = Game.Objects['Farm'].minigame;
+                hookOnce(M, 'reset', '_jneGardenReset', function(orig) { return function(hard) {
+                    var M = minigameOf('Farm');
+                    if (hard && Game.JNE) Game.JNE._pendingGarden = null;
                     // Clear the flag so custom plants get re-injected after reset
                     M._gardenPlantsInjected = false;
-                    M._jneOriginalReset.call(this, hard);
+                    orig.call(this, hard);
                     // Re-inject plants immediately after reset
                     if (M.plants && M.plantsById && !M.plants['sparklingSugarCane']) {
                         setupNewPlants();
@@ -2436,94 +3005,48 @@
                     // Re-apply Plant all hook after reset (vanilla reset replaces clickTile)
                     M._plantAllHooked = false;
                     setupPlantAll();
-                };
+                }; });
             }
 
-            if (M.load && !M._loadHooked) {
-                M._loadHooked = true;
-                if (!M._jneOriginalLoad) M._jneOriginalLoad = M.load;
-                M.load = function(str) {
-                    var M = Game.Objects['Farm'].minigame;
-                    // plants must exist before decoding saved garden data
-                    if (!M.plants || !M.plantsById || !M.plants['sparklingSugarCane']) {
-                        M._gardenPlantsInjected = false;
-                        setupNewPlants();
-                    }
-
-                    M._jneOriginalLoad.call(this, str);
-
-                    // Restore custom seed unlock states from save data
-                    var _huSave = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
-                    if (_huSave && _huSave.garden && _huSave.garden.modSeedsUnlocked) {
-                        for (var _k in _huSave.garden.modSeedsUnlocked) {
-                            if (M.plants && M.plants[_k]) {
-                                M.plants[_k].unlocked = _huSave.garden.modSeedsUnlocked[_k];
-                            }
-                        }
-                    }
-
-                    // Load may replace minigame methods/state; force hook rebind pass.
-                    M._iconFixSetup = false;
-                    setupPlantHooks(M);
-
-                    // Re-apply Plant all hook after load (vanilla load replaces clickTile)
-                    M._plantAllHooked = false;
-                    setupPlantAll();
-
-                    // apply effects right after loading a save
-                    if (M.computeEffs) M.computeEffs();
-                    if (M.buildPlot) M.buildPlot();
-                    if (M.buildPanel) M.buildPanel();
-                };
-                M.load._jneLoadWrapper = true;
-            } else if (M.load && M._loadHooked) {
-                // our wrapper would have _jneLoadWrapper
-                if (!M.load._jneLoadWrapper) {
-                    M._loadHooked = false;
-                    if (!M._jneOriginalLoad) M._jneOriginalLoad = M.load;
-                    M.load = function(str) {
-                        var M = Game.Objects['Farm'].minigame;
-                        // plants must exist before decoding saved garden data
-                        if (!M.plants || !M.plantsById || !M.plants['sparklingSugarCane']) {
-                            M._gardenPlantsInjected = false;
-                            setupNewPlants();
-                        }
-
-                        M._jneOriginalLoad.call(this, str);
-
-                        // Re-apply saved custom plant unlock states (same reason as first-hook branch).
-                        var _huSave = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
-                        if (_huSave && _huSave.garden && _huSave.garden.modSeedsUnlocked) {
-                            for (var _k in _huSave.garden.modSeedsUnlocked) {
-                                if (M.plants && M.plants[_k]) {
-                                    M.plants[_k].unlocked = _huSave.garden.modSeedsUnlocked[_k];
-                                }
-                            }
-                        }
-
-                        // Load may replace minigame methods/state; force hook rebind pass.
-                        M._iconFixSetup = false;
-                        setupPlantHooks(M);
-
-                        // Re-apply Plant all hook after load (vanilla load replaces clickTile)
-                        M._plantAllHooked = false;
-                        setupPlantAll();
-
-                        // apply effects right after loading a save
-                        if (M.computeEffs) M.computeEffs();
-                        if (M.buildPlot) M.buildPlot();
-                        if (M.buildPanel) M.buildPanel();
-                    };
-                    M.load._jneLoadWrapper = true;
+            hookOnce(M, 'load', '_jneGardenLoad', function(orig) { return function(str) {
+                var M = minigameOf('Farm');
+                // plants must exist before decoding saved garden data
+                if (!M.plants || !M.plantsById || !M.plants['sparklingSugarCane']) {
+                    M._gardenPlantsInjected = false;
+                    setupNewPlants();
                 }
-            }
 
+                orig.call(this, str);
+
+                // Restore custom seed unlock states from save data
+                var _huSave = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
+                var _seeds = (Game.JNE && Game.JNE._pendingGarden && Game.JNE._pendingGarden.modSeedsUnlocked) || (_huSave && _huSave.garden && _huSave.garden.modSeedsUnlocked);
+                if (_seeds) {
+                    for (var _k in _seeds) {
+                        if (M.plants && M.plants[_k]) {
+                            M.plants[_k].unlocked = _seeds[_k];
+                        }
+                    }
+                }
+
+                // Load may replace minigame methods/state; force hook rebind pass.
+                M._iconFixSetup = false;
+                setupPlantHooks(M);
+
+                // Re-apply Plant all hook after load (vanilla load replaces clickTile)
+                M._plantAllHooked = false;
+                setupPlantAll();
+
+                // apply effects right after loading a save
+                if (M.computeEffs) M.computeEffs();
+                if (M.buildPlot) M.buildPlot();
+                if (M.buildPanel) M.buildPanel();
+            }; });
             if (M.init && !M._initSwapped) {
                 M._initSwapped = true;
-                if (!M._jneOriginalInitSwapped) M._jneOriginalInitSwapped = M.init;
-                M.init = function(div) {
-                    var M = Game.Objects['Farm'].minigame;
-                    M._jneOriginalInitSwapped.call(this, div);
+                hookOnce(M, 'init', '_jneGardenInit', function(orig) { return function(div) {
+                    var M = minigameOf('Farm');
+                    orig.call(this, div);
                     if (M.plants && M.plantsById && !M.plants['sparklingSugarCane']) {
                         // DO NOT set _gardenPlantsInjected = false - it destroys our plants during save load
                         setupNewPlants();
@@ -2533,8 +3056,10 @@
                         M._iconFixSetup = false;
                         setupPlantHooks(M);
                     }
-                };
+                }; });
             }
+            // a save loaded before the farm finished loading is applied now that the plants exist
+            applyPendingGarden();
         }
 
         function setupPlantHooks(M) {
@@ -2556,18 +3081,7 @@
                 if (!document.getElementById('customGardenPlantsCSS')) {
                     var style = document.createElement('style');
                     style.id = 'customGardenPlantsCSS';
-                    var css = '';
-
-                    for (var i = 0; i < 34; i++) {
-                        css += '#gardenSeedIcon-' + i + ' { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    }
-
-                    css += '.gardenSeedIcon[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '.gardenTileIcon[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '#gardenCursor[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '.gardenSeedIcon[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    css += '.gardenTileIcon[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    css += '#gardenCursor[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
+                    var css = plantBaseCSS(customSheet, vanillaSheet);
 
                     style.textContent = css;
                     document.head.appendChild(style);
@@ -2578,19 +3092,10 @@
                     if (!style) return;
                     var customSheet = getSpriteSheet('custom');
                     var vanillaSheet = (Game.resPath || 'https://orteil.dashnet.org/cookieclicker/') + 'img/gardenPlants.png?v=' + (Game.version || '1');
-                    var css = '';
-                    for (var i = 0; i < 34; i++) {
-                        css += '#gardenSeedIcon-' + i + ' { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    }
-                    css += '.gardenSeedIcon[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '.gardenTileIcon[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '#gardenCursor[data-custom-plant="true"] { background-image: url(\'' + customSheet + '\') !important; }\n';
-                    css += '.gardenSeedIcon[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    css += '.gardenTileIcon[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
-                    css += '#gardenCursor[data-vanilla-plant="true"] { background-image: url(\'' + vanillaSheet + '\') !important; }\n';
+                    var css = plantBaseCSS(customSheet, vanillaSheet);
                     for (var key in M.plants) {
                         var me = M.plants[key];
-                        if (me && (key === 'sparklingSugarCane' || key === 'krazyKudzu' || key === 'magicMushroom') && me.id !== undefined) {
+                        if (me && isModPlant(key) && me.id !== undefined) {
                             css += '.gardenSeedIcon#gardenSeedIcon-' + me.id + ' { background-image: url(\'' + customSheet + '\') !important; }\n';
                         }
                     }
@@ -2610,7 +3115,7 @@
                 function markCustomSeeds() {
                     for (var key in M.plants) {
                         var me = M.plants[key];
-                        if (me && (key === 'sparklingSugarCane' || key === 'krazyKudzu' || key === 'magicMushroom')) {
+                        if (me && isModPlant(key)) {
                             if (me.id !== undefined) {
                                 var el = l('gardenSeedIcon-' + me.id);
                                 if (el) {
@@ -2624,7 +3129,7 @@
 
                 function fixPlantIcon(el, plantIcon, stage, plantKey) {
                     if (!el || !el.style || !plantKey) return;
-                    if (plantKey !== 'sparklingSugarCane' && plantKey !== 'krazyKudzu' && plantKey !== 'magicMushroom') return;
+                    if (!isModPlant(plantKey)) return;
                     if (!M.plants || !M.plants[plantKey]) return;
                     if (plantIcon !== 34 && plantIcon !== 35 && plantIcon !== 36) return;
                     if (!iconMap[plantIcon]) return;
@@ -2639,376 +3144,227 @@
                     if (el.style.display === 'none') el.style.display = 'block';
                 }
 
-                function getPlantStage(age, mature) {
-                    if (age >= mature) return 4;
-                    if (age >= mature * 0.666) return 3;
-                    if (age >= mature * 0.333) return 2;
-                    return 1;
-                }
-
                 M._addCustomPlantCSSRules = addCustomPlantCSSRules;
                 M._markVanillaSeeds = markVanillaSeeds;
                 M._markCustomSeeds = markCustomSeeds;
                 M._fixPlantIcon = fixPlantIcon;
-                M._jneGetPlantStage = getPlantStage;
+                M._jneGetPlantStage = plantStage;
                 M._jneIconMap = iconMap;
                 M._jneCustomSheet = customSheet;
 
-                if (M.draw && !M._drawHookedForIcons) {
-                    M._drawHookedForIcons = true;
-                    if (!M._jneOriginalDrawForIcons) M._jneOriginalDrawForIcons = M.draw;
-                    M.draw = function() {
-                        var M = Game.Objects['Farm'].minigame;
-                        M._jneOriginalDrawForIcons.call(this);
-                        var cur = M.cursorL || l('gardenCursor');
-                        if (!cur || cur.id !== 'gardenCursor') return;
-                        var customKeys = { sparklingSugarCane: 1, krazyKudzu: 1, magicMushroom: 1 };
-                        if (!M.cursor || M.seedSelected < 0) {
-                            cur.removeAttribute('data-custom-plant');
-                            cur.setAttribute('data-vanilla-plant', 'true');
-                            cur.style.removeProperty('background');
-                            return;
-                        }
-                        var seed = M.plantsById[M.seedSelected];
-                        var isCustomSeed = !!(seed && seed.key && customKeys[seed.key] && seed.icon >= 34 && seed.icon <= 36);
-                        if (isCustomSeed) {
-                            M._fixPlantIcon(cur, seed.icon, 0, seed.key);
-                        } else {
-                            cur.removeAttribute('data-custom-plant');
-                            cur.setAttribute('data-vanilla-plant', 'true');
-                            cur.style.removeProperty('background');
-                            var icon = [0, seed.icon];
-                            cur.style.backgroundPosition = (-icon[0] * 48) + 'px ' + (-icon[1] * 48) + 'px';
-                        }
-                    };
-                }
+                hookOnce(M, 'draw', '_jneIconDraw', function(orig) { return function() {
+                    var M = minigameOf('Farm');
+                    orig.call(this);
+                    var cur = M.cursorL || l('gardenCursor');
+                    if (!cur || cur.id !== 'gardenCursor') return;
+                    var customKeys = { sparklingSugarCane: 1, krazyKudzu: 1, magicMushroom: 1 };
+                    if (!M.cursor || M.seedSelected < 0) {
+                        cur.removeAttribute('data-custom-plant');
+                        cur.setAttribute('data-vanilla-plant', 'true');
+                        cur.style.removeProperty('background');
+                        return;
+                    }
+                    var seed = M.plantsById[M.seedSelected];
+                    var isCustomSeed = !!(seed && seed.key && customKeys[seed.key] && seed.icon >= 34 && seed.icon <= 36);
+                    if (isCustomSeed) {
+                        M._fixPlantIcon(cur, seed.icon, 0, seed.key);
+                    } else {
+                        cur.removeAttribute('data-custom-plant');
+                        cur.setAttribute('data-vanilla-plant', 'true');
+                        cur.style.removeProperty('background');
+                        var icon = [0, seed.icon];
+                        cur.style.backgroundPosition = (-icon[0] * 48) + 'px ' + (-icon[1] * 48) + 'px';
+                    }
+                }; });
 
-                if (M.buildPanel && !M.buildPanel._jneCustomPlantWrapped) {
-                    if (!M._jneOriginalBuildPanelForCustomPlant) M._jneOriginalBuildPanelForCustomPlant = M.buildPanel;
-                    M.buildPanel = function() {
-                        var M = Game.Objects['Farm'].minigame;
-                        M._jneOriginalBuildPanelForCustomPlant.call(this);
-                        M._addCustomPlantCSSRules();
-                        M._markVanillaSeeds();
-                        M._markCustomSeeds();
+                hookOnce(M, 'buildPanel', '_jnePlantPanel', function(orig) { return function() {
+                    var M = minigameOf('Farm');
+                    orig.call(this);
+                    M._addCustomPlantCSSRules();
+                    M._markVanillaSeeds();
+                    M._markCustomSeeds();
 
-                        for (var i in M.plants) {
-                            var me = M.plants[i];
-                            if (me && me.key && (me.key === 'sparklingSugarCane' || me.key === 'krazyKudzu' || me.key === 'magicMushroom')) {
-                                if (me.icon && (me.icon === 34 || me.icon === 35 || me.icon === 36)) {
-                                    var el = l('gardenSeedIcon-' + me.id);
-                                    if (el) {
-                                        M._fixPlantIcon(el, me.icon, 0, me.key);
-                                    }
+                    for (var i in M.plants) {
+                        var me = M.plants[i];
+                        if (me && isModPlant(me.key)) {
+                            if (me.icon >= 34 && me.icon <= 36) {
+                                var el = l('gardenSeedIcon-' + me.id);
+                                if (el) {
+                                    M._fixPlantIcon(el, me.icon, 0, me.key);
                                 }
                             }
                         }
-                    };
-                    M.buildPanel._jneCustomPlantWrapped = true;
-                }
-
-                if (M.buildPlot && !M._buildPlotHookedForData) {
-                    M._buildPlotHookedForData = true;
-                    if (!M._jneOriginalBuildPlotForData) M._jneOriginalBuildPlotForData = M.buildPlot;
-                    M.buildPlot = function() {
-                        var M = Game.Objects['Farm'].minigame;
-                        M._jneOriginalBuildPlotForData.call(this);
-                        for (var y = 0; y < 6; y++) {
-                            for (var x = 0; x < 6; x++) {
-                                var tile = M.plot[y][x];
-                                var el = l('gardenTileIcon-' + x + '-' + y);
-                                if (el && tile && tile[0] > 0) {
-                                    var me = M.plantsById[tile[0] - 1];
-                                    if (me && me.key && (me.key === 'sparklingSugarCane' || me.key === 'krazyKudzu' || me.key === 'magicMushroom')) {
-                                        el.setAttribute('data-custom-plant', 'true');
-                                        el.removeAttribute('data-vanilla-plant');
-                                        M._fixPlantIcon(el, me.icon, M._jneGetPlantStage(tile[1], me.mature), me.key);
-                                    } else {
-                                        el.setAttribute('data-vanilla-plant', 'true');
-                                        el.removeAttribute('data-custom-plant');
-                                    }
-                                }
-                            }
-                        }
-                    };
-                }
-                if (M.seedTooltip && !M.seedTooltip._jneCustomPlantWrapped) {
-                    if (!M._jneOriginalSeedTooltip) M._jneOriginalSeedTooltip = M.seedTooltip;
-                    M.seedTooltip = function(id) {
-                        var M = Game.Objects['Farm'].minigame;
-                        var iconMap = M._jneIconMap, customSheet = M._jneCustomSheet;
-                        var func = M._jneOriginalSeedTooltip.call(this, id);
-                        if (typeof func === 'function') {
-                            return function() {
-                                var result = func();
-                                var me = M.plantsById[id];
-                                if (me && me.key && (me.key === 'sparklingSugarCane' || me.key === 'krazyKudzu' || me.key === 'magicMushroom')) {
-                                    if (me.icon && (me.icon === 34 || me.icon === 35 || me.icon === 36) && iconMap[me.icon] && result) {
-                                        var map = iconMap[me.icon];
-                                        var iconY = -me.icon * 48;
-                                        result = result.replace(/background:url\(([^)]+gardenPlants\.png[^)]*)\)/g, function(match, url) {
-                                            var nextPos = result.indexOf('background-position:', result.indexOf(match));
-                                            if (nextPos !== -1) {
-                                                var posMatch = result.substring(nextPos).match(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/);
-                                                if (posMatch && parseInt(posMatch[2]) === iconY) {
-                                                    return 'background:url(\'' + customSheet + '\')';
-                                                }
-                                            }
-                                            return match;
-                                        });
-                                        result = result.replace(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/g, function(match, x, y) {
-                                            if (parseInt(y) === iconY) {
-                                                var newX = map.baseX - ((parseInt(x) / -48) * 48);
-                                                return 'background-position:' + newX + 'px ' + map.baseY + 'px';
-                                            }
-                                            return match;
-                                        });
-                                    }
-                                }
-                                return result;
-                            };
-                        }
-                        return func;
-                    };
-                    M.seedTooltip._jneCustomPlantWrapped = true;
-                }
-
-                if (M.tileTooltip && !M.tileTooltip._jneCustomPlantWrapped) {
-                    if (!M._jneOriginalTileTooltip) M._jneOriginalTileTooltip = M.tileTooltip;
-                    M.tileTooltip = function(x, y) {
-                        var M = Game.Objects['Farm'].minigame;
-                        var iconMap = M._jneIconMap, customSheet = M._jneCustomSheet;
-                        var func = M._jneOriginalTileTooltip.call(this, x, y);
-                        if (typeof func === 'function') {
-                            return function() {
-                                var result = func();
-                                var tile = M.plot[y][x];
-                                if (tile && tile[0] > 0) {
-                                    var me = M.plantsById[tile[0] - 1];
-                                    if (me && me.key && (me.key === 'sparklingSugarCane' || me.key === 'krazyKudzu' || me.key === 'magicMushroom')) {
-                                        if (me.icon && (me.icon === 34 || me.icon === 35 || me.icon === 36) && iconMap[me.icon] && result) {
-                                            var map = iconMap[me.icon];
-                                            var iconY = -me.icon * 48;
-                                            result = result.replace(/background:url\(([^)]+gardenPlants\.png[^)]*)\)/g, function(match, url) {
-                                                var nextPos = result.indexOf('background-position:', result.indexOf(match));
-                                                if (nextPos !== -1) {
-                                                    var posMatch = result.substring(nextPos).match(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/);
-                                                    if (posMatch && parseInt(posMatch[2]) === iconY) {
-                                                        return 'background:url(\'' + customSheet + '\')';
-                                                    }
-                                                }
-                                                return match;
-                                            });
-                                            result = result.replace(/background-position:\s*(-?\d+)\s*px\s+(-?\d+)\s*px/g, function(match, x, y) {
-                                                if (parseInt(y) === iconY) {
-                                                    var tooltipStage = parseInt(x) / -48;
-                                                    var newX = map.baseX - (tooltipStage * 48);
-                                                    return 'background-position:' + newX + 'px ' + map.baseY + 'px';
-                                                }
-                                                return match;
-                                            });
-                                        }
-                                    }
-                                }
-                                return result;
-                            };
-                        }
-                        return func;
-                    };
-                    M.tileTooltip._jneCustomPlantWrapped = true;
-                }
-
-                if (M.toolTooltip && !M.toolTooltip._jneCustomPlantWrapped) {
-                    if (!M._jneOriginalToolTooltip) M._jneOriginalToolTooltip = M.toolTooltip;
-                    M.toolTooltip = function(id) {
-                        var M = Game.Objects['Farm'].minigame;
-                        var func = M._jneOriginalToolTooltip.call(this, id);
-                        if (typeof func === 'function') {
-                            return function() {
-                                var result = func();
-
-                                var tool = M.toolsById && M.toolsById[id];
-                                var hasGardenInfoAnchor = !!(result && result.indexOf('Combined effects of all your plants:') !== -1);
-                                var isGardenInfoTool = !!(tool && tool.name && tool.name.indexOf('Garden information') !== -1);
-                                if (result && (isGardenInfoTool || hasGardenInfoAnchor)) {
-                                    var customInfo = '';
-
-                                    if (M.effs && M.effs.magicMushroomMult > 0 && M.freeze === 0) {
-                                        var mult = M.effs.magicMushroomMult;
-
-                                        if (!Game._weakestLinkCache) Game._weakestLinkCache = { assignments: {}, lastRecalc: 0 };
-                                        var cache = Game._weakestLinkCache;
-
-                                        var buildings = [];
-                                        for (var i = 0; i < Game.ObjectsById.length; i++) {
-                                            var b = Game.ObjectsById[i];
-                                            if (b && b.amount > 0) {
-                                                var cps = (b.storedTotalCps || 0) * (Game.globalCpsMult || 1);
-
-                                                if (cache.assignments) {
-                                                    for (var k in cache.assignments) {
-                                                        if (cache.assignments[k].buildingName === b.name) {
-                                                            for (var u = 0; u < Game._jneWeakestLinkUpgrades.length; u++) {
-                                                                if (Game._jneWeakestLinkUpgrades[u].name === k && Game.Has(k)) {
-                                                                    cps /= Game._jneWeakestLinkUpgrades[u].mult;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-
-                                                if (cache.magicMushroomAssignment === b.name) {
-                                                    cps /= (1 + M.effs.magicMushroomMult);
-                                                }
-
-                                                buildings.push({ name: b.name, cps: cps });
-                                            }
-                                        }
-                                        buildings.sort(function(a, b) { return a.cps - b.cps; });
-
-                                        var boostedBuilding = buildings.length > 0 ? buildings[0].name : null;
-                                        var multPercent = Math.round(mult * 100);
-
-                                        if (boostedBuilding && Game.Objects[boostedBuilding]) {
-                                            customInfo += '<div style="font-size:10px;margin-left:64px;"><b>&bull; ' + Game.Objects[boostedBuilding].single + ' CpS </b><span class="green">+' + multPercent + '%</span></div>';
-                                        }
-                                    }
-
-                                    var totalMult = 0;
-                                    var soilMult = M.soilsById[M.soil].effMult;
-
-                                    for (var y = 0; y < 6; y++) {
-                                        for (var x = 0; x < 6; x++) {
-                                            var tile = M.plot[y][x];
-                                            if (tile && tile[0] > 0) {
-                                                var plant = M.plantsById[tile[0] - 1];
-                                                if (plant && plant.key === 'sparklingSugarCane') {
-                                                    var stage = 0;
-                                                    if (tile[1] >= plant.mature) stage = 4;
-                                                    else if (tile[1] >= plant.mature * 0.666) stage = 3;
-                                                    else if (tile[1] >= plant.mature * 0.333) stage = 2;
-                                                    else stage = 1;
-
-                                                    var mult = soilMult;
-                                                    if (stage == 1) mult *= 0.1;
-                                                    else if (stage == 2) mult *= 0.25;
-                                                    else if (stage == 3) mult *= 0.5;
-                                                    else mult *= 1;
-
-                                                    mult *= M.plotBoost[y][x][1];
-                                                    totalMult += mult;
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (totalMult > 0) {
-                                        var actualChance = totalMult * 0.01;
-                                        var chancePercent = (actualChance * 100).toFixed(2);
-                                        customInfo += '<div style="font-size:10px;margin-left:64px;"><b>&bull; sugar lump doubling</b><span class="green"> +' + chancePercent + '%</span></div>';
-                                    }
-
-                                    if (customInfo) {
-                                        // Keep this insertion idempotent across repeated wrappers/redraws.
-                                        result = result.replace(/<!-- JNE_GARDEN_INFO_START -->[\s\S]*?<!-- JNE_GARDEN_INFO_END -->/g, '');
-                                        customInfo = '<!-- JNE_GARDEN_INFO_START -->' + customInfo + '<!-- JNE_GARDEN_INFO_END -->';
-                                        result = result.replace(
-                                            /(<div>Combined effects of all your plants:<\/div>)/,
-                                            '$1' + customInfo
-                                        );
-                                    }
-                                }
-
-                                return result;
-                            };
-                        }
-                        return func;
-                    };
-                    M.toolTooltip._jneCustomPlantWrapped = true;
-                }
-            }
-
-            if (M.getMuts && !M.getMuts._jneNewPlantMutsWrapped) {
-                if (!M._jneOriginalGetMuts) M._jneOriginalGetMuts = M.getMuts;
-                M.getMuts = function(neighs, neighsM) {
-                    var M = Game.Objects['Farm'].minigame;
-                    var muts = M._jneOriginalGetMuts.call(this, neighs, neighsM);
-
-                    if (Game.Has('Sparkling sugar cane')) {
-                        if (neighsM['bakeberry'] >= 1 && neighsM['thumbcorn'] >= 1) muts.push(['sparklingSugarCane', 0.01]);
                     }
+                }; });
 
-                    if (Game.Has('Krazy kudzu')) {
-                        if (neighsM['meddleweed'] >= 1 && neighsM['greenRot'] >= 1) muts.push(['krazyKudzu', 0.02]);
-                        if (neighsM['meddleweed'] >= 1 && neighsM['clover'] >= 1) muts.push(['krazyKudzu', 0.005]);
-                        if (neighsM['krazyKudzu'] >= 1 && neighs['krazyKudzu'] < 2) muts.push(['krazyKudzu', 0.25]);
-                        else if (neighsM['krazyKudzu'] >= 2 && neighs['krazyKudzu'] < 4) muts.push(['krazyKudzu', 0.30]);
-                        else if (neighsM['krazyKudzu'] >= 4) muts.push(['krazyKudzu', 0.30]);
-                    }
-
-                    if (Game.Has('Magic mushroom')) {
-                        if (neighsM['ichorpuff'] >= 1 && neighsM['doughshroom'] >= 1) muts.push(['magicMushroom', 0.003]);
-                    }
-
-                    return muts;
-                };
-                M.getMuts._jneNewPlantMutsWrapped = true;
-            }
-
-            if (M.computeEffs && !M.computeEffs._jneNewPlantEffsWrapped) {
-                if (!M._jneOriginalComputeEffs) M._jneOriginalComputeEffs = M.computeEffs;
-                M.computeEffs = function() {
-                    var M = Game.Objects['Farm'].minigame;
-                    M._jneOriginalComputeEffs.call(this);
-
-                    var soilMult = M.soilsById[M.soil].effMult;
-                    var magicMushroomMult = 0;
-
+                hookOnce(M, 'buildPlot', '_jnePlantPlot', function(orig) { return function() {
+                    var M = minigameOf('Farm');
+                    orig.call(this);
                     for (var y = 0; y < 6; y++) {
                         for (var x = 0; x < 6; x++) {
                             var tile = M.plot[y][x];
-                            if (tile[0] > 0) {
+                            var el = l('gardenTileIcon-' + x + '-' + y);
+                            if (el && tile && tile[0] > 0) {
                                 var me = M.plantsById[tile[0] - 1];
-                                var name = me.key;
-                                var stage = 0;
-                                if (tile[1] >= me.mature) stage = 4;
-                                else if (tile[1] >= me.mature * 0.666) stage = 3;
-                                else if (tile[1] >= me.mature * 0.333) stage = 2;
-                                else stage = 1;
-
-                                var mult = soilMult;
-                                if (stage == 1) mult *= 0.1;
-                                else if (stage == 2) mult *= 0.25;
-                                else if (stage == 3) mult *= 0.5;
-                                else mult *= 1;
-
-                                mult *= M.plotBoost[y][x][1];
-
-                                if (name == 'sparklingSugarCane') {
-                                    M.effs.cps *= 1 - 0.02 * mult;
-                                }
-                                else if (name == 'krazyKudzu') {
-                                    M.effs.goldenCookieFreq *= 1 - 0.01 * mult;
-                                    if (M.effs.wrathCookieFreq !== undefined) M.effs.wrathCookieFreq *= 1 - 0.01 * mult;
-                                }
-                                else if (name == 'magicMushroom') {
-                                    M.effs.goldenCookieFreq *= 1 - 0.01 * mult;
-                                    if (M.effs.wrathCookieFreq !== undefined) M.effs.wrathCookieFreq *= 1 - 0.01 * mult;
-                                    magicMushroomMult += mult;
+                                if (me && isModPlant(me.key)) {
+                                    el.setAttribute('data-custom-plant', 'true');
+                                    el.removeAttribute('data-vanilla-plant');
+                                    M._fixPlantIcon(el, me.icon, M._jneGetPlantStage(tile[1], me.mature), me.key);
+                                } else {
+                                    el.setAttribute('data-vanilla-plant', 'true');
+                                    el.removeAttribute('data-custom-plant');
                                 }
                             }
                         }
                     }
+                }; });
+                hookOnce(M, 'seedTooltip', '_jnePlantSeedTip', function(orig) { return function(id) {
+                    var M = minigameOf('Farm');
+                    var iconMap = M._jneIconMap, customSheet = M._jneCustomSheet;
+                    var func = orig.call(this, id);
+                    if (typeof func === 'function') {
+                        return function() {
+                            var result = func();
+                            return swapCustomPlantIcon(result, M.plantsById[id], iconMap, customSheet);
+                        };
+                    }
+                    return func;
+                }; });
 
-                    if (!M.effs.buildingBoosts) M.effs.buildingBoosts = {};
-                    M.effs.magicMushroomMult = magicMushroomMult;
+                hookOnce(M, 'tileTooltip', '_jnePlantTileTip', function(orig) { return function(x, y) {
+                    var M = minigameOf('Farm');
+                    var iconMap = M._jneIconMap, customSheet = M._jneCustomSheet;
+                    var func = orig.call(this, x, y);
+                    if (typeof func === 'function') {
+                        return function() {
+                            var result = func();
+                            var tile = M.plot[y][x];
+                            return swapCustomPlantIcon(result, tile && tile[0] > 0 && M.plantsById[tile[0] - 1], iconMap, customSheet);
+                        };
+                    }
+                    return func;
+                }; });
 
-                    Game.recalculateGains = 1;
-                };
-                M.computeEffs._jneNewPlantEffsWrapped = true;
+                hookOnce(M, 'toolTooltip', '_jnePlantToolTip', function(orig) { return function(id) {
+                    var M = minigameOf('Farm');
+                    var func = orig.call(this, id);
+                    if (typeof func === 'function') {
+                        return function() {
+                            var result = func();
+
+                            var tool = M.toolsById && M.toolsById[id];
+                            var hasGardenInfoAnchor = !!(result && result.indexOf('Combined effects of all your plants:') !== -1);
+                            var isGardenInfoTool = !!(tool && tool.name && tool.name.indexOf('Garden information') !== -1);
+                            if (result && (isGardenInfoTool || hasGardenInfoAnchor)) {
+                                var customInfo = '';
+
+                                if (M.effs && M.effs.magicMushroomMult > 0 && M.freeze === 0) {
+                                    var mult = M.effs.magicMushroomMult;
+
+                                    if (!Game._weakestLinkCache) Game._weakestLinkCache = { assignments: {}, lastRecalc: 0 };
+                                    var cache = Game._weakestLinkCache;
+
+                                    var buildings = rankedBuildings(cache, Game._jneWeakestLinkUpgrades, true, M.effs.magicMushroomMult);
+
+                                    var boostedBuilding = buildings.length > 0 ? buildings[0].name : null;
+                                    var multPercent = Math.round(mult * 100);
+
+                                    if (boostedBuilding && Game.Objects[boostedBuilding]) {
+                                        customInfo += '<div style="font-size:10px;margin-left:64px;"><b>&bull; ' + Game.Objects[boostedBuilding].single + ' CpS </b><span class="green">+' + multPercent + '%</span></div>';
+                                    }
+                                }
+
+                                var totalMult = sugarCaneTotalMult(M);
+
+                                if (totalMult > 0) {
+                                    var actualChance = totalMult * 0.01;
+                                    var chancePercent = (actualChance * 100).toFixed(2);
+                                    customInfo += '<div style="font-size:10px;margin-left:64px;"><b>&bull; sugar lump doubling</b><span class="green"> +' + chancePercent + '%</span></div>';
+                                }
+
+                                if (customInfo) {
+                                    // Keep this insertion idempotent across repeated wrappers/redraws.
+                                    result = result.replace(/<!-- JNE_GARDEN_INFO_START -->[\s\S]*?<!-- JNE_GARDEN_INFO_END -->/g, '');
+                                    customInfo = '<!-- JNE_GARDEN_INFO_START -->' + customInfo + '<!-- JNE_GARDEN_INFO_END -->';
+                                    result = result.replace(
+                                        /(<div>Combined effects of all your plants:<\/div>)/,
+                                        '$1' + customInfo
+                                    );
+                                }
+                            }
+
+                            return result;
+                        };
+                    }
+                    return func;
+                }; });
             }
+
+            hookOnce(M, 'getMuts', '_jneNewPlantMuts', function(orig) { return function(neighs, neighsM) {
+                var M = minigameOf('Farm');
+                var muts = orig.call(this, neighs, neighsM);
+
+                if (Game.Has('Sparkling sugar cane')) {
+                    if (neighsM['bakeberry'] >= 1 && neighsM['thumbcorn'] >= 1) muts.push(['sparklingSugarCane', 0.01]);
+                }
+
+                if (Game.Has('Krazy kudzu')) {
+                    if (neighsM['meddleweed'] >= 1 && neighsM['greenRot'] >= 1) muts.push(['krazyKudzu', 0.02]);
+                    if (neighsM['meddleweed'] >= 1 && neighsM['clover'] >= 1) muts.push(['krazyKudzu', 0.005]);
+                    if (neighsM['krazyKudzu'] >= 1 && neighs['krazyKudzu'] < 2) muts.push(['krazyKudzu', 0.25]);
+                    else if (neighsM['krazyKudzu'] >= 2 && neighs['krazyKudzu'] < 4) muts.push(['krazyKudzu', 0.30]);
+                    else if (neighsM['krazyKudzu'] >= 4) muts.push(['krazyKudzu', 0.30]);
+                }
+
+                if (Game.Has('Magic mushroom')) {
+                    if (neighsM['ichorpuff'] >= 1 && neighsM['doughshroom'] >= 1) muts.push(['magicMushroom', 0.003]);
+                }
+
+                if (gpocHas('Unfortunate #665')) muts.forEach(function(m) { m[1] *= 1.03; });
+
+                return muts;
+            }; });
+
+            hookOnce(M, 'getCost', '_jneGardenCost', function(orig) { return function(me) {
+                var cost = orig.call(this, me);
+                return gpocHas('Unfortunate #665') ? cost * 0.97 : cost;
+            }; });
+
+            hookOnce(M, 'computeEffs', '_jneNewPlantEffs', function(orig) { return function() {
+                var M = minigameOf('Farm');
+                orig.call(this);
+
+                var magicMushroomMult = 0;
+
+                for (var y = 0; y < 6; y++) {
+                    for (var x = 0; x < 6; x++) {
+                        var tile = M.plot[y][x];
+                        if (tile[0] > 0) {
+                            var me = M.plantsById[tile[0] - 1];
+                            var name = me.key;
+                            var mult = plantMult(M, x, y, me, tile);
+
+                            if (name == 'sparklingSugarCane') {
+                                M.effs.cps *= 1 - 0.02 * mult;
+                            }
+                            else if (name == 'krazyKudzu') {
+                                M.effs.goldenCookieFreq *= 1 - 0.01 * mult;
+                                if (M.effs.wrathCookieFreq !== undefined) M.effs.wrathCookieFreq *= 1 - 0.01 * mult;
+                            }
+                            else if (name == 'magicMushroom') {
+                                M.effs.goldenCookieFreq *= 1 - 0.01 * mult;
+                                if (M.effs.wrathCookieFreq !== undefined) M.effs.wrathCookieFreq *= 1 - 0.01 * mult;
+                                magicMushroomMult += mult;
+                            }
+                        }
+                    }
+                }
+
+                if (!M.effs.buildingBoosts) M.effs.buildingBoosts = {};
+                M.effs.magicMushroomMult = magicMushroomMult;
+
+                Game.recalculateGains = 1;
+            }; });
 
             if (M.freeze !== undefined && !M._newPlantFreezeHooked) {
                 M._newPlantFreezeHooked = true;
@@ -3042,38 +3398,10 @@
 
             if (Game.harvestLumps && !Game._sugarCaneHooked) {
                 Game._sugarCaneHooked = true;
-                if (!Game._jneOriginalHarvestLumpsForSugarCane) Game._jneOriginalHarvestLumpsForSugarCane = Game.harvestLumps;
-                Game.harvestLumps = function(amount, silent) {
-                    var orig = Game._jneOriginalHarvestLumpsForSugarCane;
-                    var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
+                hookOnce(Game, 'harvestLumps', '_jneHarvestLumps', function(orig) { return function(amount, silent) {
+                    var M = minigameOf('Farm');
                     if (M && M.plants && M.plants['sparklingSugarCane'] && M.plot) {
-                        var totalMult = 0;
-                        var soilMult = M.soilsById[M.soil].effMult;
-
-                        for (var y = 0; y < 6; y++) {
-                            for (var x = 0; x < 6; x++) {
-                                var tile = M.plot[y][x];
-                                if (tile && tile[0] > 0) {
-                                    var plant = M.plantsById[tile[0] - 1];
-                                    if (plant && plant.key === 'sparklingSugarCane') {
-                                        var stage = 0;
-                                        if (tile[1] >= plant.mature) stage = 4;
-                                        else if (tile[1] >= plant.mature * 0.666) stage = 3;
-                                        else if (tile[1] >= plant.mature * 0.333) stage = 2;
-                                        else stage = 1;
-
-                                        var mult = soilMult;
-                                        if (stage == 1) mult *= 0.1;
-                                        else if (stage == 2) mult *= 0.25;
-                                        else if (stage == 3) mult *= 0.5;
-                                        else mult *= 1;
-
-                                        mult *= M.plotBoost[y][x][1];
-                                        totalMult += mult;
-                                    }
-                                }
-                            }
-                        }
+                        var totalMult = sugarCaneTotalMult(M);
 
                         if (totalMult > 0) {
                             var chance = totalMult * 0.01;
@@ -3086,14 +3414,14 @@
                         }
                     }
                     return orig.call(this, amount, silent);
-                };
+                }; });
             }
 
 
         }
 
-        if (Game.Objects['Farm'] && Game.Objects['Farm'].minigame) {
-            var M = Game.Objects['Farm'].minigame;
+        if (minigameOf('Farm')) {
+            var M = minigameOf('Farm');
             if (M && M.plants && M.plants['sparklingSugarCane']) {
                 setupPlantHooks(M);
             }
@@ -3108,21 +3436,24 @@
                     [10, 18],
                     'Farm',
                     'Farms',
-                    'A fairly unappealing biscuit made from leftover droppings from your farm. Taste aside, they are heavily subsidized by the government.'
+                    'A fairly unappealing biscuit made from leftover droppings from your farm. Taste aside, they are heavily subsidized by the government.',
+                    10500.062
                 ],
                 [
                     'Astronaut cookie',
                     [21, 16],
                     'Shipment',
                     'Shipments',
-                    'Space-age technology, which in all honesty is really just dehydration. Lies in cookie form sold to gullible children who were told they could grow up to be anything.'
+                    'Space-age technology, which in all honesty is really just dehydration. Lies in cookie form sold to gullible children who were told they could grow up to be anything.',
+                    10500.063
                 ],
                 [
                     'The chemist cookie',
                     [24, 17],
                     'Alchemy lab',
                     'Alchemy labs',
-                    'Legend holds this cookie was created by a pharmacist mixing expired compounds together and selling them to uninsured patients in the hope it might do some good. Tastes like cough syrup, but good for the profit margins.'
+                    'Legend holds this cookie was created by a pharmacist mixing expired compounds together and selling them to uninsured patients in the hope it might do some good. Tastes like cough syrup, but good for the profit margins.',
+                    10500.064
                 ]
             ];
 
@@ -3138,6 +3469,7 @@
                     Game.last.power = 0;
                     Game.last.lasting = true;
                     Game.last._heavenlyUpgrade = true;
+                    Game.last.order = u[5];
                     Game.last.priceFunc = function(cost) { return function() { return cost * Game.cookiesPs * 60; }; }(Game.last.basePrice);
                     Game.last.buyFunction = function() {
                         this.unlocked = 1;
@@ -3150,23 +3482,21 @@
 
             if (!Game._magicMushroomDropsHooked) {
                 Game._magicMushroomDropsHooked = true;
-                if (!Game._jneOriginalGetTieredCpsMult) Game._jneOriginalGetTieredCpsMult = Game.GetTieredCpsMult;
-                Game.GetTieredCpsMult = function(me) {
-                    var prev = Game._jneOriginalGetTieredCpsMult;
+                hookOnce(Game, 'GetTieredCpsMult', '_jneTieredCps', function(orig) { return function(me) {
+                    var prev = orig;
                     if (!me || !me.name) return prev ? prev(me) : 1;
                     var mult = prev ? prev(me) : 1;
                     if ((me.name === 'Farm' && Game.Has('Hearty farm biscuit')) ||
                         (me.name === 'Shipment' && Game.Has('Astronaut cookie')) ||
                         (me.name === 'Alchemy lab' && Game.Has('The chemist cookie'))) mult *= 2;
                     return mult;
-                };
+                }; });
             }
         }
 
         function setupShinyWrinklerSpell() {
-            var tower = Game.Objects['Wizard tower'];
-            if (!tower || !tower.minigameLoaded || !tower.minigame) return;
-            var M = tower.minigame;
+            var M = loadedMinigame('Wizard tower');
+            if (!M) return;
             if (!M || !M.castSpell) return;
 
             if (M.castSpell._shinyWrinklerWrapped) { M._shinyWrinklerHooked = true; return; }
@@ -3192,7 +3522,7 @@
                             if (found) return;
                             for (var i in Game.wrinklers) {
                                 var w = Game.wrinklers[i];
-                                if (w && w.phase > 0 && !before.has(w) && w.type === 0) {
+                                if (w && w.phase > 0 && !before.has(w) && w.type == 0) {
                                     w.type = 1;
                                     found = true;
                                     if (upgrade && Game.Notify) Game.Notify(upgrade.name, 'A shiny wrinkler has been summoned!', upgrade.icon || [0, 0]);
@@ -3213,9 +3543,8 @@
         }
 
         function setupGildedAllureSpell() {
-            var tower = Game.Objects['Wizard tower'];
-            if (!tower || !tower.minigameLoaded || !tower.minigame) return;
-            var M = tower.minigame;
+            var M = loadedMinigame('Wizard tower');
+            if (!M) return;
             if (!M || !M.spells || !M.spellsById) return;
 
             // GFD/FortuneCookie patches, even if player doesn't have the upgrade yet so predictions work once they buy it
@@ -3257,10 +3586,9 @@
 
             if (M.spellTooltip && !M._gildedAllureTooltipHooked) {
                 M._gildedAllureTooltipHooked = true;
-                if (!M._jneOriginalSpellTooltip) M._jneOriginalSpellTooltip = M.spellTooltip;
-                M.spellTooltip = function(id) {
-                    var M = Game.Objects['Wizard tower'].minigame;
-                    var tooltipFunc = M._jneOriginalSpellTooltip.call(this, id);
+                hookOnce(M, 'spellTooltip', '_jneSpellTip', function(orig) { return function(id) {
+                    var M = minigameOf('Wizard tower');
+                    var tooltipFunc = orig.call(this, id);
                     var spell = M.spellsById[id];
 
                     if (spell && spell.name === loc("Gilded Allure") && spell.customIconSheet) {
@@ -3280,7 +3608,7 @@
                         };
                     }
                     return tooltipFunc;
-                };
+                }; });
             }
 
             // patches for other mods: spell predictions, fortune cookie, Clairvoyance (planner is standalone, no issues)
@@ -3290,10 +3618,9 @@
                 if (FortuneCookie._gildedAllurePatched) return;
                 FortuneCookie._gildedAllurePatched = true;
 
-                if (!FortuneCookie._jneOriginalSpellForecast) FortuneCookie._jneOriginalSpellForecast = FortuneCookie.spellForecast;
-                FortuneCookie.spellForecast = function(spell) {
-                    var M = Game.Objects['Wizard tower'] && Game.Objects['Wizard tower'].minigame;
-                    if (!M) return FortuneCookie._jneOriginalSpellForecast.apply(this, arguments);
+                hookOnce(FortuneCookie, 'spellForecast', '_jneSpellForecast', function(orig) { return function(spell) {
+                    var M = minigameOf('Wizard tower');
+                    if (!M) return orig.apply(this, arguments);
 
                     if (spell && spell.name === "Gambler's Fever Dream") {
                         var originalSpellsById = M.spellsById;
@@ -3309,14 +3636,14 @@
                         M.spells = filteredSpells;
 
                         try {
-                            return FortuneCookie._jneOriginalSpellForecast.apply(this, arguments);
+                            return orig.apply(this, arguments);
                         } finally {
                             M.spellsById = originalSpellsById;
                             M.spells = originalSpells;
                         }
                     }
-                    return FortuneCookie._jneOriginalSpellForecast.apply(this, arguments);
-                };
+                    return orig.apply(this, arguments);
+                }; });
             };
 
             var patchGFDSpell = function() {
@@ -3335,13 +3662,11 @@
 
                 gfd._gildedAllurePatched = true;
 
-                if (!gfd._jneOriginalWin) gfd._jneOriginalWin = gfd.win;
-
-                gfd.win = function() {
-                    var M = Game.Objects['Wizard tower'].minigame;
+                hookOnce(gfd, 'win', '_jneGfdWin', function(orig) { return function() {
+                    var M = minigameOf('Wizard tower');
                     // Only filter if gilded allure actually exists in the spell list
                     if (!M.spells['gilded allure']) {
-                        return gfd._jneOriginalWin.apply(this, arguments);
+                        return orig.apply(this, arguments);
                     }
 
                     var originalSpells = M.spells;
@@ -3355,11 +3680,11 @@
                     M.spells = filteredSpells;
 
                     try {
-                        return gfd._jneOriginalWin.apply(this, arguments);
+                        return orig.apply(this, arguments);
                     } finally {
                         M.spells = originalSpells;
                     }
-                };
+                }; });
             };
 
             patchGFDSpell();
@@ -3695,8 +4020,71 @@
             };
         };
 
+        function setupReoccuringBusiness() {
+            if (!Game.Has('Reoccuring business')) return;
+            var button = Game.Upgrades['Sugar trade'];
+            if (!button || button._reoccuringBusiness) return;
+            button._reoccuringBusiness = true;
+            if (!Game.sugarTradeLastUse) Game.sugarTradeLastUse = 0;
+            if (!Game.sugarTradePrice) Game.sugarTradePrice = 1;
+
+            var cooldown = 24 * 60 * 60 * 1000;
+            var baseDesc = 'Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>.<br>May be used <b>once every 24 hours</b>. Each use in an ascension increases the cost by <b>one additional sugar lump</b>.';
+
+            button.desc = baseDesc;
+            Object.defineProperty(button, 'ddesc', {
+                get: function() {
+                    var timeSinceLastUse = Date.now() - (Game.sugarTradeLastUse || 0);
+                    if (timeSinceLastUse < cooldown) {
+                        var timeStr = Game.sayTime(Math.ceil((cooldown - timeSinceLastUse) / 1000 * Game.fps), -1);
+                        return '<div style="text-align:center;margin-bottom:8px;"><b>Cooldown remaining: ' + timeStr + '</b></div><div class="line"></div>' + baseDesc;
+                    }
+                    return baseDesc;
+                },
+                configurable: true
+            });
+            Object.defineProperty(button, 'priceLumps', {
+                get: function() { return Game.sugarTradePrice || 1; },
+                configurable: true
+            });
+
+            button.canBuyFunc = function() {
+                var price = Game.sugarTradePrice || 1;
+                if (Game.lumps < price || this.bought) return false;
+                return Date.now() - (Game.sugarTradeLastUse || 0) >= cooldown;
+            };
+
+            button.clickFunction = function() {
+                var price = Game.sugarTradePrice || 1;
+                if (Game.lumps < price || this.bought) return;
+                if (Date.now() - (Game.sugarTradeLastUse || 0) < cooldown) return;
+
+                var priceText = price + ' sugar lump' + (price !== 1 ? 's' : '');
+                Game.Prompt('<id SugarTradePrompt><h3>Activate the sugar trade?</h3><div class="block">' +
+                    'Spend ' + priceText + ' to summon a golden cookie.</div>', [
+                    ['Activate', 'Game.ClosePrompt();if(Game.lumps>=' + price + '){Game.lumps-=' + price + ';Game.sugarTradeLastUse=Date.now();Game.sugarTradePrice=' + (price + 1) + ';new Game.shimmer("golden");Game.Notify("Sugar trade","Summoned a golden cookie.",[21,17]);Game.storeToRefresh=1;Game.upgradesToRebuild=1;}'],
+                    'Cancel'
+                ]);
+            };
+
+            button.displayFuncWhenOwned = function() {
+                var timeSinceLastUse = Date.now() - (Game.sugarTradeLastUse || 0);
+                if (timeSinceLastUse < cooldown) {
+                    var timeStr = Game.sayTime(Math.ceil((cooldown - timeSinceLastUse) / 1000 * Game.fps), -1);
+                    return '<div style="text-align:center;">Cooldown remaining:<br><b>' + timeStr + '</b></div>';
+                }
+                return '<div style="text-align:center;">Click to summon!</div>';
+            };
+
+            button.timerDisplay = function() {
+                var timeSinceLastUse = Date.now() - (Game.sugarTradeLastUse || 0);
+                if (Game.sugarTradeLastUse === 0 || timeSinceLastUse >= cooldown) return -1;
+                return timeSinceLastUse / cooldown;
+            };
+        }
+
         Game.jneDetectRigidelSlot = function() {
-            if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) return 0;
+            if (!Game.Objects['Temple'] || !minigameOf('Temple')) return 0;
             if (Game.hasGod && typeof Game.hasGod === 'function') {
                 try {
                     var slot = Game.hasGod('order');
@@ -3707,7 +4095,7 @@
         };
 
         Game.jneDetectRigidelActive = function() {
-            if (!Game.Objects['Temple'] || !Game.Objects['Temple'].minigame) return 0;
+            if (!Game.Objects['Temple'] || !minigameOf('Temple')) return 0;
             var slot = Game.jneDetectRigidelSlot();
             if (slot === 0) return 0; // Rigidel cannot be active when not slotted
             return (Game.BuildingsOwned % 10 === 0) ? 1 : 0;
@@ -3730,16 +4118,8 @@
             if (Game._sugarPredictorDebug === undefined) Game._sugarPredictorDebug = false;
 
             // pantheon slots change
-            var PM = Game.Objects && Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
-            if (PM && PM.slotGod && !PM._sugarPredictorSlotHooked) {
-                var origSlotGod = PM.slotGod;
-                PM.slotGod = function() {
-                    var result = origSlotGod.apply(this, arguments);
-                    Game.calculateLumpPredictions();
-                    return result;
-                };
-                PM._sugarPredictorSlotHooked = true;
-            }
+            var PM = minigameOf('Temple');
+            if (PM) hookSugarPredictorSlot(PM);
 
             if (!Game.getLumpPredictorUpgradeSig) {
                 Game.getLumpPredictorUpgradeSig = function() {
@@ -3865,14 +4245,7 @@
 
             Game.findBestStatesForAllLumpTypes = function(startTime) {
                 var t = (typeof startTime === 'number') ? startTime : Game.lumpT;
-                var current = {
-                    grandmas: Game.Objects['Grandma'].amount,
-                    rigidel: Game.jneDetectRigidelSlot(),
-                    rigidelActive: Game.jneDetectRigidelActive(),
-                    dragonsCurve: Game.hasAura('Dragon\'s Curve') ? 1 : 0,
-                    realityBending: Game.hasAura('Reality Bending') ? 1 : 0,
-                    supremeIntellect: Game.hasAura('Supreme Intellect') ? 1 : 0
-                };
+                var current = lumpAuraState();
 
                 var buildingsMod = Game.BuildingsOwned % 10;
                 var buildingsAdjustCost = Math.min(buildingsMod, 10 - buildingsMod);
@@ -4121,19 +4494,10 @@
                 Game.registerHook('logic', function() {
                     if (!Game.Has('Sugar predictor')) return;
 
-                    var currentWrath = Game.jneNormalizeElderWrathForPredictor();
-
-                    var state = {
-                        lumpT: Game.lumpT,
-                        grandmas: Game.Objects['Grandma'] ? Game.Objects['Grandma'].amount : 0,
-                        rigidel: Game.jneDetectRigidelSlot(),
-                        rigidelActive: Game.jneDetectRigidelActive(),
-                        dragonsCurve: Game.hasAura('Dragon\'s Curve') ? 1 : 0,
-                        realityBending: Game.hasAura('Reality Bending') ? 1 : 0,
-                        supremeIntellect: Game.hasAura('Supreme Intellect') ? 1 : 0,
-                        wrath: currentWrath,
-                        upgradeSig: Game.getLumpPredictorUpgradeSig ? Game.getLumpPredictorUpgradeSig() : ''
-                    };
+                    var state = lumpAuraState();
+                    state.lumpT = Game.lumpT;
+                    state.wrath = Game.jneNormalizeElderWrathForPredictor();
+                    state.upgradeSig = Game.getLumpPredictorUpgradeSig ? Game.getLumpPredictorUpgradeSig() : '';
 
                     var last = Game._lastLumpPredictionState;
                     var lumpTChanged = !last || last.lumpT !== state.lumpT;
@@ -4161,6 +4525,93 @@
                     Game.calculateLumpPredictions(true);
                 }
             }, 100);
+        }
+
+        var UNFORTUNE_BUILDING_QUIPS = [
+            'Idle hands are the devil\'s playthings.',
+            'Your grandma is looking for you...',
+            'What you sow, you reap.',
+            'Dig deep enough and something digs back.',
+            'The wheels of the machines turn in the night producing something horrid.',
+            'Grandma always pays her debts.',
+            'There are no gods down here in the dark.',
+            'Witchcraft and sorcery won\'t help you anymore.',
+            'What\'s in the box!?',
+            'The ancient dark sciences awaken.',
+            'Not every door should be opened. Not every door asks.',
+            'The regrets of the past will come rushing back when you least expect them.',
+            'The crushing pressure of the entire universe weighs deeply on you.',
+            'Every light casts a shadow and the shadows are growing.',
+            'The odds were never in your favor.',
+            'Look closer, no my dear closer still.',
+            'Technology gives evil reach across the vastness of cyberspace.',
+            'An idle universe grows teeth and other much worse things.',
+            'Think too hard and the thoughts start thinking back.',
+            'There are plenty of you to go around but they all want to be the only one.'
+        ];
+        var UNFORTUNE_PERKS = [
+            ['wrath cookies appear <b>6.66%</b> more often.', 'Wrath is primal, wrath is ancient, embrace it and all that comes with it.'],
+            ['your clicks are <b>6.66%</b> more powerful.', 'Work will set you free.'],
+            ['gain <b>+1% CpS</b> for each vanilla shadow achievement you own.', 'The shadows pay a modest dividend to those who keep them company.'],
+            ['reindeer, lanterns, and turkeys appear <b>6.66%</b> more often.', 'The herd moves faster when something is chasing it.'],
+            ['plants mutate <b>3%</b> more often and cost <b>3%</b> less.', 'Something is wrong with the soil, something unspeakable lives down there.']
+        ];
+        var unfortunates = [];
+        function unfortName(n) { return 'Unfortunate #' + ('00' + n).slice(-3); }
+        function createUnfortunates() {
+            var tier = 1e48;
+            unfortunates = UNFORTUNE_BUILDING_QUIPS.map(function(q, i) { return [i + 1, q, Game.ObjectsById[i]]; })
+                .concat(UNFORTUNE_PERKS.map(function(p, i) { return [661 + i, p[1], null, p[0]]; }))
+                .map(function(d, i) {
+                    var name = unfortName(d[0]), up = Game.Upgrades[name], b = d[2];
+                    if (!up) {
+                        var desc = 'During the Grandmapocalypse, ' + (b ? 'your ' + b.plural + ' are <b>15%</b> more efficient.' : d[3]) + '<q>' + d[1] + '</q>';
+                        up = new Game.Upgrade(name, desc, tier * (b ? b.basePrice : 1e8), JNE.icon(i, 28, 'custom'));
+                        up.ddesc = desc;
+                        up._heavenlyUpgrade = true;
+                    }
+                    up._quip = d[1];
+                    up.order = 19100.651 + i * 0.001;
+                    return up;
+                });
+        }
+
+        // Only a natural ticker rollover has TickerAge <= 0, so clicking the news can't force one. AddToLog runs right after the line is picked.
+        function setupUnfortunateCookies() {
+            if (Game._jneUnfortunateHooked) return;
+            Game._jneUnfortunateHooked = true;
+            var natural, picked;
+            addCss('.unfortunate{color:#d84848;cursor:pointer}.unfortunate:hover{color:#e85a5a;text-shadow:0px 0px 4px #d84848 !important}');
+
+            Game.registerHook('ticker', function() { picked = 0; natural = Game.TickerAge <= 0 && Game.T > Game.fps * 10; }, 'Unfortunate cookies');
+            hookOnce(Game, 'AddToLog', '_jneUnfortunate', function(orig) { return function(what) {
+                if (natural && what === Game.Ticker) {
+                    natural = 0;
+                    var left = unfortunates.filter(function(u) { return !u.unlocked && !u.bought; });
+                    if (left.length && gpocHas('Unfortunate cookies') && Game.windowW >= Game.tickerTooNarrow && Math.random() < 0.02) {
+                        var ic = Game.Upgrades['Unfortunate cookies'].icon;
+                        picked = choose(left);
+                        what = Game.Ticker = '<span class="unfortunate"><div class="icon" style="vertical-align:middle;display:inline-block;background-image:url(' + ic[2] + ');background-position:' + (-ic[0] * 48) + 'px ' + (-ic[1] * 48) + 'px;transform:scale(0.5);margin:-16px;position:relative;left:-4px;top:-2px;"></div>' + picked.name.slice(picked.name.indexOf('#')) + ' : ' + picked._quip + '</span>';
+                        Game.TickerEffect = 0;
+                        if (Game.Has('Fortune tolls for you') && Game.playFortuneChime) Game.playFortuneChime();
+                    }
+                }
+                return orig.call(this, what);
+            }; });
+            AddEvent(Game.tickerL, 'click', function(e) {
+                if (!picked || !e.target.closest('.unfortunate')) return;
+                PlaySound('snd/fortune.mp3', 1);
+                Game.SparkleAt(Game.mouseX, Game.mouseY);
+                Game.Notify(picked.dname, "You've unlocked a new upgrade.", picked.icon);
+                picked.unlock();
+                picked = 0;
+            });
+
+            hookOnce(Game, 'GetTieredCpsMult', '_jneUnfortunateCps', function(orig) { return function(me) {
+                var mult = orig.apply(this, arguments);
+                return me && gpocHas(unfortName(me.id + 1)) ? mult * 1.15 : mult;
+            }; });
+            Game.registerHook('cookiesPerClick', function(c) { return gpocHas('Unfortunate #662') ? c * 1.0666 : c; }, 'Unfortunate clicks');
         }
 
         function setupFortuneTolls() {
@@ -4383,6 +4834,31 @@
             return Game._jneStopwatchImg;
         }
 
+        // One stopwatch bar row (shimmer or buff); returns the refs the draw hook updates
+        function timerRow(parent, o) {
+            var row = document.createElement('div');
+            row.style.cssText = o.rowCss;
+            var label = document.createElement('span');
+            label.style.cssText = o.labelCss;
+            label.textContent = o.label;
+            row.appendChild(label);
+            var minBar = null;
+            if (o.minBar) {
+                minBar = document.createElement('span');
+                minBar.style.cssText = 'display:inline-block;height:10px;background:#292828;';
+                if (o.minBar === 'round') minBar.style.borderTopRightRadius = minBar.style.borderBottomRightRadius = '10px';
+                row.appendChild(minBar);
+            }
+            var bar = document.createElement('span');
+            bar.style.cssText = 'display:inline-block;height:10px;background:' + o.color + ';border-top-right-radius:10px;border-bottom-right-radius:10px;';
+            row.appendChild(bar);
+            var time = document.createElement('span');
+            time.style.cssText = o.timeCss;
+            row.appendChild(time);
+            parent.appendChild(row);
+            return { minBar: minBar, bar: bar, time: time };
+        }
+
         function setupGoldenStopwatch() {
             if (!Game.registerHook || Game._goldenStopwatchHooked) return;
             if (!Game.Has('Golden stopwatch')) return;
@@ -4453,11 +4929,10 @@
             };
             Game.DrawSpecial._goldenStopwatchHooked = true;
 
-            if (!Game._jneOriginalToggleSpecialMenu) Game._jneOriginalToggleSpecialMenu = Game.ToggleSpecialMenu;
-            Game.ToggleSpecialMenu = function(on) {
+            hookOnce(Game, 'ToggleSpecialMenu', '_jneSpecialMenu', function(orig) { return function(on) {
                 // Skip stopwatch menu in Born Again mode
                 if (on && Game.specialTab === 'stopwatch' && Game.ascensionMode == 1) {
-                    return Game._jneOriginalToggleSpecialMenu.apply(this, arguments);
+                    return orig.apply(this, arguments);
                 }
                 if (on && Game.specialTab === 'stopwatch') {
                     swState.shimmerSig = ''; swState.buffSig = '';
@@ -4466,9 +4941,9 @@
                     l('specialPopup').className = 'framed prompt onScreen';
                     return;
                 }
-                return Game._jneOriginalToggleSpecialMenu.apply(this, arguments);
-            };
-            Game.ToggleSpecialMenu._goldenStopwatchHooked = true;
+                return orig.apply(this, arguments);
+            }; });
+            if (Game.ToggleSpecialMenu) Game.ToggleSpecialMenu._goldenStopwatchHooked = true;
 
             Game.registerHook('draw', function() {
                 if (Game.ascensionMode == 1) return;
@@ -4492,21 +4967,7 @@
                         swState.shimmerSig = sig;
                         for (var i = 0; i < visible.length; i++) {
                             var k = visible[i], st = Game.shimmerTypes[k];
-                            var row = document.createElement('div');
-                            row.style.cssText = 'height:12px;margin:0 10px;position:relative;';
-                            var label = document.createElement('span');
-                            label.style.cssText = 'display:inline-block;text-align:right;width:117px;margin-right:5px;';
-                            label.textContent = 'Next ' + k;
-                            var minBar = document.createElement('span');
-                            minBar.style.cssText = 'display:inline-block;height:10px;background:#292828;';
-                            if (st.minTime === st.maxTime) minBar.style.borderTopRightRadius = minBar.style.borderBottomRightRadius = '10px';
-                            var bar = document.createElement('span');
-                            bar.style.cssText = 'display:inline-block;height:10px;background:' + (colors[k] || colors.default) + ';border-top-right-radius:10px;border-bottom-right-radius:10px;';
-                            var time = document.createElement('span');
-                            time.style.cssText = 'margin-left:5px;';
-                            row.appendChild(label); row.appendChild(minBar); row.appendChild(bar); row.appendChild(time);
-                            sc.appendChild(row);
-                            swState.shimmerRows[k] = { minBar: minBar, bar: bar, time: time };
+                            swState.shimmerRows[k] = timerRow(sc, { rowCss: 'height:12px;margin:0 10px;position:relative;', labelCss: 'display:inline-block;text-align:right;width:117px;margin-right:5px;', label: 'Next ' + k, color: (colors[k] || colors.default), timeCss: 'margin-left:5px;', minBar: st.minTime === st.maxTime ? 'round' : true });
                         }
                     }
                 }
@@ -4547,18 +5008,7 @@
                             }
                             for (var i = 0; i < buffKeys.length; i++) {
                                 var key = buffKeys[i], bf = Game.buffs[key];
-                                var row = document.createElement('div');
-                                row.style.cssText = 'height:14px;margin:0 10px;position:relative;white-space:nowrap;';
-                                var label = document.createElement('span');
-                                label.style.cssText = 'display:inline-block;text-align:right;width:117px;margin-right:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;line-height:14px;';
-                                label.textContent = bf.name;
-                                var bar = document.createElement('span');
-                                bar.style.cssText = 'display:inline-block;height:10px;background:' + (colors[bf.name] || colors.default) + ';border-top-right-radius:10px;border-bottom-right-radius:10px;';
-                                var time = document.createElement('span');
-                                time.style.cssText = 'margin-left:5px;white-space:nowrap;';
-                                row.appendChild(label); row.appendChild(bar); row.appendChild(time);
-                                bc.appendChild(row);
-                                swState.buffRows[key] = { bar: bar, time: time };
+                                swState.buffRows[key] = timerRow(bc, { rowCss: 'height:14px;margin:0 10px;position:relative;white-space:nowrap;', labelCss: 'display:inline-block;text-align:right;width:117px;margin-right:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;line-height:14px;', label: bf.name, color: (colors[bf.name] || colors.default), timeCss: 'margin-left:5px;white-space:nowrap;' });
                             }
                         }
                     }
@@ -4685,13 +5135,13 @@
 
             // load() will restore from save data
             if (Game.cookieImageType === undefined) Game.cookieImageType = 0;
-            if (!Game.CookiesByChoice) Game.CookiesByChoice = {0: {name: 'Perfect cookie', icon: [0, 3], pic: 'perfectCookie.png'}, 1: {name: 'Imperfect cookie', icon: [9, 3], pic: 'imperfectCookie.png'}, 2: {name: 'Snickerdoodle', icon: [29, 10], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/snickerdoodle.png'}, 3: {name: 'Chocolate Cookie', icon: [10, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/chocolate.png'}, 4: {name: 'Oatmeal Raisin Cookie', icon: [6, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/oatmeal.png'}, 5: {name: 'Thumbprint Cookie', icon: [25, 32], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sugarjam.png'}, 6: {name: 'Oreo Cookie', icon: [16, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/oreo.png'}, 7: {name: 'Heart Cookie', icon: [20, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/heartcookie.png'}, 8: {name: 'Pixel Cookie', icon: [20, 33], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/pixel.png'}, 9: {name: 'Eaten Cookie', icon: [22, 16], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/eaten.png'}, 10: {name: 'Gingerbread Cookie', icon: [18, 4], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/gingerbread.png'}, 11: {name: 'Smiley Cookie', icon: [24, 18], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/smiley.png'}, 12: {name: 'Jam Cookie', icon: [26, 33], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/jamcookie.png'}, 13: {name: 'Red Velvet Cookie', icon: [15, 5], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/velvet.png'}, 14: {name: 'Sugar Cookie', icon: [2, 4], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sugar.png'}, 15: {name: 'Macaron', icon: [22, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/macaron.png'}, 16: {name: 'Sprinkle Cookie', icon: [21, 14], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sprinkle.png'}, 17: {name: 'Winter Biscuit', icon: [13, 10], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/snow.png'}};
+            if (!Game.CookiesByChoice) Game.CookiesByChoice = {0: {name: 'Perfect cookie', icon: [5, 3], pic: 'perfectCookie.png'}, 1: {name: 'Imperfect cookie', icon: [9, 3], pic: 'imperfectCookie.png'}, 2: {name: 'Snickerdoodle', icon: [29, 10], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/snickerdoodle.png'}, 3: {name: 'Chocolate Cookie', icon: [10, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/chocolate.png'}, 4: {name: 'Oatmeal Raisin Cookie', icon: [6, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/oatmeal.png'}, 5: {name: 'Thumbprint Cookie', icon: [25, 32], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sugarjam.png'}, 6: {name: 'Oreo Cookie', icon: [16, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/oreo.png'}, 7: {name: 'Heart Cookie', icon: [20, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/heartcookie.png'}, 8: {name: 'Pixel Cookie', icon: [20, 33], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/pixel.png'}, 9: {name: 'Eaten Cookie', icon: [22, 16], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/eaten.png'}, 10: {name: 'Gingerbread Cookie', icon: [18, 4], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/gingerbread.png'}, 11: {name: 'Smiley Cookie', icon: [24, 18], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/smiley.png'}, 12: {name: 'Jam Cookie', icon: [26, 33], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/jamcookie.png'}, 13: {name: 'Red Velvet Cookie', icon: [15, 5], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/velvet.png'}, 14: {name: 'Sugar Cookie', icon: [2, 4], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sugar.png'}, 15: {name: 'Macaron', icon: [22, 3], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/macaron.png'}, 16: {name: 'Sprinkle Cookie', icon: [21, 14], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/sprinkle.png'}, 17: {name: 'Winter Biscuit', icon: [13, 10], pic: 'https://cdn.jsdelivr.net/gh/dfsw/Just-Natural-Expansion@main/assets/CookieImg/snow.png'}, 18: {name: 'The Actual Cookie', icon: [10, 0], pic: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/CookieImg/theactualcookie.png'}, 19: {name: 'Heart Eyes Cookie', icon: [30, 12], pic: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/CookieImg/hearteyes.png'}, 20: {name: 'Laughing Cookie', icon: [28, 34], pic: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/CookieImg/laughing.png'}, 21: {name: 'Sun Cookie', icon: JNE.icon(14, 12, 'custom'), pic: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/CookieImg/sun.png'}, 22: {name: 'Moon Cookie', icon: JNE.icon(9, 12, 'custom'), pic: 'https://raw.githubusercontent.com/dfsw/Cookies/main/assets/CookieImg/moon.png'}};
             new Game.Upgrade('Cookie image selector', 'Lets you pick which cookie image to display.', 0, [5, 3]);
             Game.last.pool = 'toggle';
             Game.last.order = 51002;
             Game.last.ddesc = 'Lets you pick which cookie image to display.';
             Game.last.descFunc = function() { var choice = this.choicesFunction()[Game.cookieImageType] || this.choicesFunction()[0]; return '<div style="text-align:center;">'+loc("Current:")+' '+tinyIcon(choice.icon)+' <b>'+choice.name+'</b></div><div class="line"></div>'+this.ddesc; };
-            Game.last.choicesFunction = function() { var choices = []; for (var i in Game.CookiesByChoice) { choices[i] = {name: Game.CookiesByChoice[i].name, icon: Game.CookiesByChoice[i].icon, order: parseInt(i)}; } if (choices[Game.cookieImageType]) choices[Game.cookieImageType].selected = 1; return choices; };
+            Game.last.choicesFunction = function() { var choices = []; for (var i in Game.CookiesByChoice) { if (i >= 18 && !Game.Has('Even more cookies of unusual size')) continue; choices[i] = {name: Game.CookiesByChoice[i].name, icon: Game.CookiesByChoice[i].icon, order: parseInt(i)}; } if (choices[Game.cookieImageType]) choices[Game.cookieImageType].selected = 1; return choices; };
             Game.last.choicesPick = function(id) { Game.cookieImageType = id; if (Game.Loader && Game.Loader.Replace) { if (id !== 0 && Game.CookiesByChoice[id]) { Game.Loader.Replace('perfectCookie.png', Game.CookiesByChoice[id].pic); } else { Game.Loader.Replace('perfectCookie.png', 'perfectCookie.png'); } } };
             if (Game.Has('Big cookie image selector')) Game.Unlock('Cookie image selector');
         }
@@ -4700,79 +5150,107 @@
             if (Game.Has('Big cookie image selector') && Game.Upgrades['Cookie image selector']) { Game.Unlock('Cookie image selector'); Game.storeToRefresh = 1; }
         }
 
-        function setupBoxOfDonuts() {
-            var basePrice = Math.pow(10, 75);
-            var donuts = [
-                {name: 'Maple frosted donut', desc: 'Popular both inside of Canada and outside, a delicious treat covered in sweet maple syrup flavored frosting, taste more like autumn than pumpkin spice.', icon: JNE.icon(6, 25, 'custom')},
-                {name: 'Boston creme donut', desc: 'A donut filled with vanilla custard and topped with chocolate glaze. Named after the city, not the cream.', icon: JNE.icon(5, 25, 'custom')},
-                {name: 'Strawberry jelly donut', desc: 'A donut filled with sweet strawberry jelly. Watch out for dripping jelly on your pants!', icon: [27, 28]},
-                {name: 'Chocolate frosted donut', desc: 'A donut topped with rich chocolate frosting. Simple, yet satisfying.', icon: JNE.icon(4, 25, 'custom')},
-                {name: 'Donut holes', desc: 'The holes from donuts fried and served warm, donuts aren\'t actually made by punching a hole out, but these are so delicious you won\'t actually care.', icon: [30, 3]},
-                {name: 'Chocolate filled donut', desc: 'A donut filled with rich chocolate cream. Double the chocolate, double the fun.', icon: JNE.icon(10, 25, 'custom')},
-                {name: 'Powdered sugar jelly donut', desc: 'A jelly donut dusted with powdered sugar. The powder gets everywhere, but it\'s totally worth it even if you look like a messy cocaine addict.', icon: JNE.icon(9, 25, 'custom')},
-                {name: 'Plain glazed donut', desc: 'Absolutely gooey with sugar glaze. You won\'t even mind the sticky fingers.', icon: [28, 28]},
-                {name: 'Blueberry jelly filled donut', desc: 'A donut filled with sweet blueberry jelly. Blue colored sugar counts as a fruit right?', icon: JNE.icon(3, 25, 'custom')},
-                {name: 'Pink frosted donut', desc: 'A donut topped with pink frosting. Perfect for special occasions or just because.', icon: [30, 32]},
-                {name: 'Chocolate sprinkle donut', desc: 'A chocolate frosted donut covered in colorful sprinkles. The sprinkles add texture and joy.', icon: JNE.icon(8, 25, 'custom')},
-                {name: 'Bear claw', desc: 'A sweet pastry shaped like a bear\'s claw, filled with almond paste and topped with sliced almonds.', icon: [23, 36]},
-                {name: 'Chocolate eclair', desc: 'An elongated pastry filled with cream and topped with chocolate. Elegant, delicious, and French in origin just like this game.', icon: JNE.icon(7, 25, 'custom')}
+        function getBoxes() {
+            return [
+                { box: 'Box of overpriced donuts', items: [
+                    {name: 'Maple frosted donut', order: 10500.032, desc: 'Popular both inside of Canada and outside, a delicious treat covered in sweet maple syrup flavored frosting, taste more like autumn than pumpkin spice.', icon: JNE.icon(6, 25, 'custom')},
+                    {name: 'Boston creme donut', order: 10500.033, desc: 'A donut filled with vanilla custard and topped with chocolate glaze. Named after the city, not the cream.', icon: JNE.icon(5, 25, 'custom')},
+                    {name: 'Strawberry jelly donut', order: 10500.034, desc: 'A donut filled with sweet strawberry jelly. Watch out for dripping jelly on your pants!', icon: [27, 28]},
+                    {name: 'Chocolate frosted donut', order: 10500.035, desc: 'A donut topped with rich chocolate frosting. Simple, yet satisfying.', icon: JNE.icon(4, 25, 'custom')},
+                    {name: 'Donut holes', order: 10500.036, desc: 'The holes from donuts fried and served warm, donuts aren\'t actually made by punching a hole out, but these are so delicious you won\'t actually care.', icon: [30, 3]},
+                    {name: 'Chocolate filled donut', order: 10500.037, desc: 'A donut filled with rich chocolate cream. Double the chocolate, double the fun.', icon: JNE.icon(10, 25, 'custom')},
+                    {name: 'Powdered sugar jelly donut', order: 10500.038, desc: 'A jelly donut dusted with powdered sugar. The powder gets everywhere, but it\'s totally worth it even if you look like a messy cocaine addict.', icon: JNE.icon(9, 25, 'custom')},
+                    {name: 'Plain glazed donut', order: 10500.039, desc: 'Absolutely gooey with sugar glaze. You won\'t even mind the sticky fingers.', icon: [28, 28]},
+                    {name: 'Blueberry jelly filled donut', order: 10500.04, desc: 'A donut filled with sweet blueberry jelly. Blue colored sugar counts as a fruit right?', icon: JNE.icon(3, 25, 'custom')},
+                    {name: 'Pink frosted donut', order: 10500.041, desc: 'A donut topped with pink frosting. Perfect for special occasions or just because.', icon: [30, 32]},
+                    {name: 'Chocolate sprinkle donut', order: 10500.042, desc: 'A chocolate frosted donut covered in colorful sprinkles. The sprinkles add texture and joy.', icon: JNE.icon(8, 25, 'custom')},
+                    {name: 'Bear claw', order: 10500.043, desc: 'A sweet pastry shaped like a bear\'s claw, filled with almond paste and topped with sliced almonds.', icon: [23, 36]},
+                    {name: 'Chocolate eclair', order: 10500.044, desc: 'An elongated pastry filled with cream and topped with chocolate. Elegant, delicious, and French in origin just like this game.', icon: JNE.icon(7, 25, 'custom')}
+                ]},
+                { box: 'Box of wholesome pies', items: [
+                    {name: 'Dutch apple pie', order: 10500.045, desc: 'As American as questionable healthcare.', icon: JNE.icon(0, 18, 'custom')},
+                    {name: 'Pumpkin pie', order: 10500.046, desc: 'May or may not contain pumpkin.', icon: JNE.icon(1, 18, 'custom')},
+                    {name: 'Cherry pie', order: 10500.047, desc: 'Sweet, gooey, and diabetes inducing.', icon: JNE.icon(2, 18, 'custom')},
+                    {name: 'Tart lemon pie', order: 10500.048, desc: 'When life gives you lemons, add an unreasonable amount of sugar.', icon: JNE.icon(3, 18, 'custom')},
+                    {name: 'Key lime pie', order: 10500.049, desc: 'Florida’s second most dangerous export.', icon: JNE.icon(4, 18, 'custom')},
+                    {name: 'Chocolate pie', order: 10500.05, desc: 'Pie only because it’s made inside a pie crust.', icon: JNE.icon(5, 18, 'custom')},
+                    {name: 'Blueberry pie', order: 10500.051, desc: 'The snozzberries taste like snozzberries.', icon: JNE.icon(6, 18, 'custom')},
+                    {name: 'Coconut pie', order: 10500.052, desc: 'A little slice of heaven, no wait that was about pizza.', icon: JNE.icon(7, 18, 'custom')},
+                    {name: 'Pecan pie', order: 10500.053, desc: 'Sugar held together by the occasional nut.', icon: JNE.icon(8, 18, 'custom')},
+                    {name: 'Snickers pie', order: 10500.054, desc: 'Satisfies until the lawsuit arrives.', icon: JNE.icon(9, 18, 'custom')}
+                ]},
+                { box: 'Box of nostalgia cookies', items: [
+                    {name: 'Midnight Malt Cookies', order: 10500.055, desc: 'A dark chocolate malt cookie with a past as bitter as its coffee. She walked into the bakery at midnight, all sugar and trouble. I knew she was bad news, but for two bits, I’d crumble.', icon: JNE.icon(10, 2, 'custom')},
+                    {name: 'Atomic Malted Milk Cookies', order: 10500.056, desc: 'America’s favorite nuclear-powered snack! Now with 30% more atoms! Perfect for the whole family, from Junior to the family dog. Remember, a glowing child is a growing child!', icon: JNE.icon(10, 3, 'custom')},
+                    {name: 'Groovy Honey Grahams', order: 10500.057, desc: 'Made with organic honey, whole grains, and absolutely no preservatives, man. Best enjoyed with good vibrations, free love, and a healthy distrust of anyone over thirty. Peace, love, and crumbles.', icon: JNE.icon(10, 4, 'custom')},
+                    {name: 'Harvest Gold Butter Cookies', order: 10500.058, desc: 'Rich, buttery, and available in three fashionable shades of brown. Pairs beautifully with your avocado-green refrigerator, wood-paneled kitchen, and the lingering smell of shag carpeting. Some things never go out of style, thankfully most of these did.', icon: JNE.icon(10, 5, 'custom')},
+                    {name: 'Electric Raspberry Sandwiches', order: 10500.059, desc: 'Two totally tubular cookies sandwiching a radical raspberry creme filling. Best enjoyed with a pocket full of quarters, a fresh mixtape, and a high score nobody believes you actually earned. Batteries not included.', icon: JNE.icon(10, 6, 'custom')},
+                    {name: 'Saturday Morning Sugar Bombs', order: 10500.06, desc: 'Part of a balanced breakfast when served with a bowl of cereal, a glass of orange juice, and absolutely no parental supervision. Collect all six artificial colors!', icon: JNE.icon(10, 7, 'custom')},
+                    {name: 'Chrome Chip Cookies', order: 10500.061, desc: 'Now with shiny 3D chips, animated sprinkles, and a free MIDI soundtrack! Best viewed at 800×600 resolution. Please allow 3 to 5 minutes for your cookie to finish loading. Under construction since 2001.', icon: JNE.icon(10, 8, 'custom')}
+                ]}
             ];
-
-            // Inline icon values to prevent reference corruption issues
-            // calc() keeps every number under 1000: vanilla BeautifyAll turns -1296px into -1,296px, which is invalid CSS
-            var boxIcon = '<div class="icon tinyIcon" style="vertical-align:middle;display:inline-block;background-position:calc(-27 * 48px) calc(-29 * 48px);transform:scale(0.5);margin:-16px;"></div>';
-            var sourceText = '<div style="font-size:80%;text-align:center;">From ' + boxIcon + ' Box of overpriced donuts</div>' +
-                            '<div style="height:2px;"></div>' +
-                            '<div style="font-size:80%;text-align:center;margin-top:2px;">Part of <span style="margin: 0 4px;">' + tinyIcon(MOD_ICON) + '</span> ' + SIMPLE_MOD_NAME + '</div>' +
-                            '<div class="line"></div>';
-
-            for (var i = 0; i < donuts.length; i++) {
-                var price = basePrice * Math.pow(2.5, i);
-
-                if (!Game.Upgrades[donuts[i].name]) {
-                    var prodDesc = 'Cookie production multiplier <b>+3%</b>.<q>' + donuts[i].desc + '</q>';
-                    var upgrade = new Game.Upgrade(donuts[i].name, prodDesc, price, donuts[i].icon);
-
-                    upgrade.power = 3;
-                    upgrade.pool = 'cookie';
-                    upgrade._heavenlyUpgrade = true; // Mark as our upgrade for save/load
-                    upgrade.ddesc = prodDesc;
-                    upgrade.bought = 0; // Default state - load() will set from save data
-
-                    upgrade.ddesc = sourceText + upgrade.ddesc;
-                    upgrade.desc = sourceText + upgrade.desc;
-
-                    if (Game.cookieUpgrades && Game.cookieUpgrades.indexOf(upgrade) === -1) {
-                        Game.cookieUpgrades.push(upgrade);
-                    }
-                    if (Game.UpgradesByPool) {
-                        if (!Game.UpgradesByPool['cookie']) Game.UpgradesByPool['cookie'] = [];
-                        if (Game.UpgradesByPool['cookie'].indexOf(upgrade) === -1) {
-                            Game.UpgradesByPool['cookie'].push(upgrade);
-                        }
-                    }
-                }
-                if (Game.UnlockAt) {
-                    var _exists = false;
-                    for (var _j = 0; _j < Game.UnlockAt.length; _j++) {
-                        if (Game.UnlockAt[_j] && Game.UnlockAt[_j].name === donuts[i].name) { _exists = true; break; }
-                    }
-                    if (!_exists) {
-                        Game.UnlockAt.push({cookies: price / 20, name: donuts[i].name, require: 'Box of overpriced donuts'});
-                    }
-                }
+        }
+        function boxOf(name) {
+            if (/^Unfortunate #/.test(name)) return 'Unfortunate cookies';
+            var boxes = getBoxes();
+            for (var i = 0; i < boxes.length; i++) {
+                for (var j = 0; j < boxes[i].items.length; j++) if (boxes[i].items[j].name === name) return boxes[i].box;
             }
+            return null;
+        }
+        // up.unlockAt is left unset: vanilla's tooltip would add its own "From" line plus a divider.
+        function boxSourceText(box) {
+            var ic = Game.Upgrades[box] ? Game.Upgrades[box].icon : [0, 0];
+            var boxIcon = '<div class="icon tinyIcon" style="' + (ic[2] ? 'background-image:url(' + ic[2] + ');' : '') + 'vertical-align:middle;display:inline-block;background-position:calc(-' + ic[0] + ' * 48px) calc(-' + ic[1] + ' * 48px);transform:scale(0.5);margin:-16px;"></div>';
+            return '<div style="font-size:80%;text-align:center;">From ' + boxIcon + ' ' + box + '</div>' +
+                '<div style="height:2px;"></div>' +
+                '<div style="font-size:80%;text-align:center;margin-top:2px;">Part of <span style="margin: 0 4px;">' + tinyIcon(MOD_ICON) + '</span> ' + SIMPLE_MOD_NAME + '</div>' +
+                '<div class="line"></div>';
+        }
 
-            // Restore bought states from the incoming save data after creation
-            var savedData = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
-            if (savedData && savedData.boughtUpgrades && Array.isArray(savedData.boughtUpgrades)) {
-                for (var k = 0; k < donuts.length; k++) {
-                    var dname2 = donuts[k].name;
-                    if (Game.Upgrades[dname2] && !Game.Upgrades[dname2].bought && savedData.boughtUpgrades.indexOf(dname2) !== -1) {
-                        Game.Upgrades[dname2].bought = 1;
-                    }
-                }
-            }
+        // Like vanilla's NewUpgradeCookie: always created, unlocked through Game.UnlockAt once the box is owned.
+        function createBoxContents() {
+            var n = 0;
+            getBoxes().forEach(function(b) {
+                var source = boxSourceText(b.box);
+                b.items.forEach(function(it) {
+                    var price = Math.pow(10, 75) * Math.pow(2.5, n++);
+                    if (Game.Upgrades[it.name]) return;
+                    var desc = source + 'Cookie production multiplier <b>+3%</b>.<q>' + it.desc + '</q>';
+                    var up = new Game.Upgrade(it.name, desc, price, it.icon);
+                    up.ddesc = desc;
+                    up.order = it.order;
+                    up.power = 3;
+                    up.pool = 'cookie';
+                    up._heavenlyUpgrade = true;
+                    if (Game.cookieUpgrades) Game.cookieUpgrades.push(up);
+                    if (Game.UpgradesByPool) (Game.UpgradesByPool['cookie'] = Game.UpgradesByPool['cookie'] || []).push(up);
+                    if (Game.UnlockAt) Game.UnlockAt.push({cookies: price / 20, name: it.name, require: b.box});
+                });
+            });
+        }
+
+        // Same rule as vanilla's 5 second UnlockAt pass, run right after a load so nothing waits on the tick.
+        function syncBoxContents() {
+            getBoxes().forEach(function(b) {
+                var owned = !!Game.Has(b.box);
+                b.items.forEach(function(it) {
+                    var up = Game.Upgrades[it.name];
+                    if (!up) return;
+                    if (up.bought || (owned && Game.cookiesEarned >= up.basePrice / 20)) Game.Unlock(it.name);
+                    else up.unlocked = 0;
+                });
+            });
+        }
+
+        function unlockUnfortunates(saveData) {
+            currentRunNames(saveData, saveData.unfortunate || []).forEach(function(n) { Game.Unlock(n); });
+        }
+
+        // Box contents only last one run, so a save from an earlier run must not restore them.
+        function currentRunNames(saveData, names) {
+            if (saveData.boxRun === undefined || saveData.boxRun === Game.resets) return names;
+            return names.filter(function(n) { return !boxOf(n); });
         }
 
         function addHeavenlySourceText(upgrade) {
@@ -4815,9 +5293,9 @@
                 upgrade.price = upgradeInfo.price;
                 upgrade.basePrice = upgradeInfo.price;
 
-                if (upgradeInfo.posX !== undefined && upgradeInfo.posY !== undefined) {
-                    upgrade.posX = upgradeInfo.posX;
-                    upgrade.posY = upgradeInfo.posY;
+                if (upgradeInfo.pos) {
+                    upgrade.posX = upgradeInfo.pos[0];
+                    upgrade.posY = upgradeInfo.pos[1];
                     upgrade.x = undefined;
                     upgrade.y = undefined;
                 } else if (upgradeInfo.x !== undefined && upgradeInfo.y !== undefined) {
@@ -4849,9 +5327,11 @@
                 };
                 upgrade.priceLumps = 0;
                 upgrade.vanilla = 0;
-                upgrade.order = upgrade.order || (1050 + (upgrade.id / 1000));
+                upgrade.order = upgradeInfo.order || upgrade.order || (1050 + (upgrade.id / 1000));
                 if (upgradeInfo.seasonPriceMult !== undefined) upgrade.seasonPriceMult = upgradeInfo.seasonPriceMult;
                 if (upgradeInfo.descFunc) upgrade.descFunc = upgradeInfo.descFunc;
+                if (upgradeInfo.permanentSlot !== undefined) setupPermanentSlotUpgrade(upgrade, upgradeInfo.permanentSlot);
+                if (upgradeInfo.orderAfter) upgrade.order = Game.Upgrades[upgradeInfo.orderAfter].order + 0.000001;
                 if (upgradeInfo.showIf) upgrade.showIf = upgradeInfo.showIf;
 
                 if (upgrade.pseudoCookie && Array.isArray(Game.cookieUpgrades) && Game.cookieUpgrades.indexOf(upgrade) === -1) Game.cookieUpgrades.push(upgrade);
@@ -4967,262 +5447,204 @@
             }
         }
 
+        // A parent only links at creation time if it already exists, so forward references lose their tree line.
+        // Re-link every require once all upgrades exist (idempotent).
+        function linkHeavenlyParents() {
+            (Game.PrestigeUpgrades || []).forEach(function(u) {
+                if (!u || !u._heavenlyUpgrade || !u.require || !u.require.length) return;
+                if (!u.parents) u.parents = [];
+                u.require.forEach(function(name) {
+                    var req = Game.Upgrades[name];
+                    if (!req) return;
+                    if (!req.children) req.children = [];
+                    if (req.children.indexOf(u) === -1) req.children.push(u);
+                    if (u.parents.indexOf(req) === -1) u.parents.push(req);
+                });
+            });
+        }
+
         function createUpgrades() {
             var parentUpgrade = createHeavenlyUpgrade({
-                name: 'Just natural expansion heavenly upgrades',
-                desc: 'Cookie production multiplier <b>+5%</b>. Also unlocks the Just Natural Expansion heavenly upgrade tree.',
+                name: 'Just natural expansion heavenly upgrades', order: 1050, price: 20e15, icon: [15, 7], pos: [-20, 2188], power: 5, showIf: function() { return Game.Has('Unshackled You'); },
                 ddesc: 'Cookie production multiplier <b>+5%</b>. Also unlocks the Just Natural Expansion heavenly upgrade tree.<q>Now available in the afterlife. You know what also made it to the afterlife? Runaway inflation, so that\'s just swell.</q>',
-                price: 20e15,
-                icon: [15, 7],
-                posX: -2222,
-                posY: -748,
-                require: [],
-                power: 5,
-                showIf: function() { return Game.Has('Unshackled You'); }
+                require: ['Unshackled You']
             });
 
             createHeavenlyUpgrade({
-                name: 'Wallstreet bets',
-                desc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.',
-                ddesc: '<b>+50% base</b> warehouse space for all goods in the Stock Market minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
-                price: 15e15,
-                icon: JNE.icon(9, 13, 'custom'),
-                posX: -1987,
-                posY: -688,
+                name: 'Wallstreet bets', order: 1050.045, price: 15e15, icon: JNE.icon(9, 13, 'custom'), pos: [127, 2238],
+                ddesc: '<b>+25% base</b> warehouse space for all goods in the Stock Market minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
                 require: ['Just natural expansion heavenly upgrades']
             });
 
             createHeavenlyUpgrade({
-                name: 'Cyclius swatch',
-                desc: 'Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.',
+                name: 'Cyclius swatch', order: 1050.046, price: 20e15, icon: JNE.icon(19, 24, 'custom'), pos: [285, 2414],
                 ddesc: 'Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.<q>You mean all this time we just needed to buy him a cheap watch?</q>',
-                price: 20e15,
-                icon: JNE.icon(19, 24, 'custom'),
-                posX: -1773,
-                posY: -454,
                 require: ['Wallstreet bets']
             });
 
             var morrowenUpgrade = createHeavenlyUpgrade({
-                name: 'Morrowen, Spirit of Procrastination',
-                desc: 'Adds a new god to the Pantheon.',
+                name: 'Morrowen, Spirit of Procrastination', order: 1050.047, price: 35e15, icon: JNE.icon(21, 20, 'custom'), pos: [460, 2446],
                 ddesc: 'Adds a new god to the Pantheon.<q>You should probably be studying right now instead of playing idle games.</q>',
-                price: 35e15,
-                icon: JNE.icon(21, 20, 'custom'),
-                posX: -1566,
-                posY: -358,
                 require: ['Cyclius swatch']
             });
             var solgrethUpgrade = createHeavenlyUpgrade({
-                name: 'Solgreth, Spirit of Selfishness',
-                desc: 'Adds a new god to the Pantheon.',
+                name: 'Solgreth, Spirit of Selfishness', order: 1050.048, price: 35e15, icon: JNE.icon(20, 20, 'custom'), pos: [393, 2542],
                 ddesc: 'Adds a new god to the Pantheon.<q>If that\'s a veiled criticism of me, I won\'t hear it and I won\'t respond to it.</q>',
-                price: 35e15,
-                icon: JNE.icon(20, 20, 'custom'),
-                posX: -1725,
-                posY: -232,
                 require: ['Cyclius swatch']
             });
             [morrowenUpgrade, solgrethUpgrade].forEach(function(upgrade) {
-                if (upgrade && !upgrade._jnePantheonBuyHooked) {
-                    upgrade._jnePantheonBuyHooked = true;
-                    upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
-                    upgrade.buyFunction = function() { if (this._jneOriginalBuyFunction) this._jneOriginalBuyFunction.call(this); addNewPantheonSpirits(); };
-                }
+                if (upgrade) onBuy(upgrade, '_jnePantheonBuy', addNewPantheonSpirits);
             });
 
             createHeavenlyUpgrade({
-                name: 'Divine uninspiration',
-                desc: 'CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.',
+                name: 'Divine uninspiration', order: 1050.058, price: 400e15, icon: [0, 8], pos: [584, 2574],
                 ddesc: 'CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.<q>Finally, a reward for not having my life figured out. Honestly, why didn\'t we think of this sooner?</q>',
-                price: 400e15,
-                icon: [0, 8],
-                posX: -1536,
-                posY: -172,
                 require: ['Solgreth, Spirit of Selfishness', 'Morrowen, Spirit of Procrastination']
             });
 
             createHeavenlyUpgrade({
-                name: 'Soil inspector',
-                desc: 'The tooltip for an empty soil spot will <b>reveal the odds</b> of each plant growing there.',
+                name: 'Past lives', order: 1050.059, price: 6e17, icon: JNE.icon(15, 18, 'custom'), pos: [796, 2596],
+                ddesc: 'Downline keeps <b>10%</b> of its Fractal Prestige boost when you ascend.<q>I think I may have been a CEO in a past life, or perhaps a Roman centurion.</q>',
+                require: ['Divine uninspiration']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Faster hypothetical testing scenarios', order: 1050.06, price: 3e19, icon: JNE.icon(19, 20, 'custom'), pos: [890, 2718],
+                ddesc: 'Reduce your Clone Escape scenario cooldown time by <b>10%</b>.<q>Of course all of this remains entirely and absolutely hypothetical, in the event containment was lost on a real clone it would be a huge scandal.</q>',
+                require: ['Past lives']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Soil inspector', order: 1050.049, price: 20e15, icon: [3, 35, getSpriteSheet('garden')], pos: [690, 2419],
                 ddesc: 'The tooltip for an empty soil spot will <b>reveal the odds</b> of each plant growing there.<q>Modern gardening is more science than voodoo.</q>',
-                price: 20e15,
-                icon: [3, 35, getSpriteSheet('garden')],
-                posX: -1636,
-                posY: -579,
                 require: ['Wallstreet bets']
             });
 
             createHeavenlyUpgrade({
-                name: 'Plant all',
-                desc: 'Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots.',
+                name: 'Plant all', order: 1050.05, price: 25e15, icon: JNE.icon(11, 16, 'custom'), pos: [891, 2388],
                 ddesc: 'Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots. <q>Modern farming tools sure do cut down on the manual labor, next thing you know and we will have robots doing the work for us.</q>',
-                price: 25e15,
-                icon: JNE.icon(11, 16, 'custom'),
-                posX: -1455,
-                posY: -508,
                 require: ['Soil inspector']
             });
 
             var sparklingUpgrade = createHeavenlyUpgrade({
-                name: 'Sparkling sugar cane',
-                desc: 'Adds a new seed to the garden minigame.',
+                name: 'Sparkling sugar cane', order: 1050.0561, price: 85e15, icon: JNE.icon(4, 24, 'custom'), pos: [1325, 2407],
                 ddesc: 'Adds a new seed to the garden minigame. A cross between Bakeberry and Thumbcorn.<q>GMOs are finally paying off, especially when powered by Just Natural Expansion.</q>',
-                price: 85e15,
-                icon: JNE.icon(4, 24, 'custom'),
-                posX: -1246,
-                posY: -567,
-                require: ['Plant all']
+                require: ['Aerated soil']
             });
 
             var kudzuUpgrade = createHeavenlyUpgrade({
-                name: 'Krazy kudzu',
-                desc: 'Adds a new seed to the garden minigame.',
+                name: 'Krazy kudzu', order: 1050.0562, price: 90e15, icon: JNE.icon(9, 24, 'custom'), pos: [1197, 2508],
                 ddesc: 'Adds a new seed to the garden minigame. A cross between Meddleweed and Green rot or less commonly Ordinary Clover.<q>An invasive species that spreads like wildfire. We\'re not sure if introducing this to our garden was a good idea.</q>',
-                price: 90e15,
-                icon: JNE.icon(9, 24, 'custom'),
-                posX: -1271,
-                posY: -461,
-                require: ['Plant all']
+                require: ['Aerated soil']
             });
 
             var mushroomUpgrade = createHeavenlyUpgrade({
-                name: 'Magic mushroom',
-                desc: 'Adds a new seed to the garden minigame.',
+                name: 'Magic mushroom', order: 1050.0563, price: 95e15, icon: JNE.icon(14, 24, 'custom'), pos: [1037, 2544],
                 ddesc: 'Adds a new seed to the garden minigame. A fairly rare cross between Ichor Puff and Doughshroom.<q>Caution: ingesting may alter your perception of reality. Results may vary, only to be taken orally.</q>',
-                price: 95e15,
-                icon: JNE.icon(14, 24, 'custom'),
-                posX: -1170,
-                posY: -235,
-                require: ['Plant all']
+                require: ['Aerated soil']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Side by side', order: 1050.0564, price: 2e17, icon: JNE.icon(17, 12, 'custom'), pos: [1171, 2669],
+                ddesc: 'Plant all and selecting the first plot in the row will plant just that row with the selected plant.<q>Two by two they came marching, thunderous footsteps echoing out in all directions.</q>',
+                require: ['Magic mushroom', 'Krazy kudzu']
             });
 
             [sparklingUpgrade, kudzuUpgrade, mushroomUpgrade].forEach(function(upgrade) {
-                if (upgrade && !upgrade._jneGardenBuyHooked) {
-                    upgrade._jneGardenBuyHooked = true;
-                    upgrade._jneOriginalBuyFunction = upgrade.buyFunction;
-                    upgrade.buyFunction = function() {
-                        if (this._jneOriginalBuyFunction) this._jneOriginalBuyFunction.call(this);
-
-                        var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
-                        if (M && M.buildPanel) {
-                            // Heavenly upgrade bought - inject custom plants if not already present
-                            if (M.plants && !M.plants['sparklingSugarCane']) {
-                                setupNewPlants();
-                            }
-                            M.buildPanel();
-                        }
-                    };
-                }
+                if (upgrade) onBuy(upgrade, '_jneGardenBuy', function() {
+                    var M = minigameOf('Farm');
+                    if (M && M.buildPanel) {
+                        // Heavenly upgrade bought - inject custom plants if not already present
+                        if (M.plants && !M.plants['sparklingSugarCane']) setupNewPlants();
+                        M.buildPanel();
+                    }
+                });
             });
 
             createHeavenlyUpgrade({
-                name: 'Aerated soil',
-                desc: 'Adds a new soil to the garden minigame.',
+                name: 'Aerated soil', order: 1050.056, price: 100e15, icon: JNE.icon(15, 24, 'custom'), pos: [1078, 2222],
                 ddesc: 'Adds a new soil to the garden minigame.<q>It seems like plants like air, have we considered adding more air to the soil?</q>',
-                price: 100e15,
-                icon: JNE.icon(15, 24, 'custom'),
-                posX: -1343,
-                posY: -687,
                 require: ['Plant all']
             });
 
             createHeavenlyUpgrade({
-                name: 'Wizardly accomplishments',
-                desc: 'Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.',
+                name: 'Business plan', order: 1050.057, price: 1.5e17, icon: JNE.icon(13, 16, 'custom'), pos: [1456, 2324],
+                ddesc: 'Adds <b>one</b> downline <b>queue</b> slot. Actions queued while your active slots are full start automatically when a slot opens.<q>We have a plan and it involves synergy and a really big line of credit.</q>',
+                require: ['Aerated soil']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Dream journal', order: 1050.071, price: 2.5e18, icon: JNE.icon(4, 16, 'custom'), pos: [1454, 2057],
+                ddesc: 'Adds on additional <b>one</b> downline <b>queue</b> slot.<q>Dream big.</q>',
+                require: ['Business plan', 'Divine potions', 'Divine reagents']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Improved soil inspector', order: 1050.0565, price: 2.5e17, icon: [3, 35, getSpriteSheet('garden')], pos: [1337, 2590],
+                ddesc: 'Your soil inspector is now even more precise.<q>Do the extra decimal places really make a difference? To some people they do I guess.</q>',
+                require: ['Sparkling sugar cane', 'Krazy kudzu']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Wizardly accomplishments', order: 1050.063, price: 100e15, icon: JNE.icon(16, 15, 'custom'), pos: [675, 2261],
                 ddesc: 'Each level of wizard tower increases <b>magic regeneration</b> slightly up to <b>level 20</b>.<q>Mana enhancing supplements are suspected, drug test are scheduled for next week.</q>',
-                price: 100e15,
-                icon: JNE.icon(16, 15, 'custom'),
-                posX: -1715,
-                posY: -765,
                 require: ['Wallstreet bets']
             });
 
             createHeavenlyUpgrade({
-                name: 'Gilded allure',
-                desc: 'Adds a new spell to the Grimoire minigame.',
+                name: 'Gilded allure', order: 1050.064, price: 150e15, icon: JNE.icon(20, 19, 'custom'), pos: [883, 2219],
                 ddesc: 'Adds a new spell to the Grimoire minigame.<q>Our scholars discovered a new spell but it took a really long time to write down since everyone who cast it was immediately hit in the head by flying objects.</q>',
-                price: 150e15,
-                icon: JNE.icon(20, 19, 'custom'),
-                posX: -1543,
-                posY: -753,
                 require: ['Wizardly accomplishments']
             });
 
             createHeavenlyUpgrade({
-                name: 'Erasable pens',
-                desc: 'Edit <b>permanent upgrade slots</b> between ascensions.',
+                name: 'Magical hourglass', order: 1050.065, price: 2.3e17, icon: JNE.icon(18, 17, 'custom'), pos: [903, 2051],
+                ddesc: 'Shows the time until your mana is full inside of the mana tooltip for Grimoire.<q>A wizard is never late, Frodo Baggins. Nor is he early. He arrives precisely when he means to.</q>',
+                require: ['Gilded allure']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Erasable pens', order: 1050.001, price: 2.5e16, icon: JNE.icon(12, 15, 'custom'), pos: [16, 2339],
                 ddesc: 'Edit <b>permanent upgrade slots</b> between ascensions.<q>Nothing wrong with a little tweaking.</q>',
-                price: 5e15,
-                icon: JNE.icon(12, 15, 'custom'),
-                posX: -2116,
-                posY: -579,
                 require: ['Just natural expansion heavenly upgrades']
             });
 
             createHeavenlyUpgrade({
-                name: 'Self employed realtor',
-                desc: 'Buildings are <b>10%</b> cheaper.',
+                name: 'Self employed realtor', order: 1050.073, price: 35e15, icon: JNE.icon(10, 14, 'custom'), pos: [148, 2434],
                 ddesc: 'Buildings are <b>10%</b> cheaper.<q>Cut out the middlemen by becoming the middleman.</q>',
-                price: 35e15,
-                icon: JNE.icon(10, 14, 'custom'),
-                posX: -1934,
-                posY: -492,
                 require: ['Erasable pens']
             });
 
             createHeavenlyUpgrade({
-                name: 'Wholesale discount club',
-                desc: 'Upgrades are <b>10%</b> cheaper.',
+                name: 'Wholesale discount club', order: 1050.072, price: 30e15, icon: [16, 7], pos: [19, 2502],
                 ddesc: 'Upgrades are <b>10%</b> cheaper.<q>Costco membership fee not included.</q>',
-                price: 30e15,
-                icon: [16, 7],
-                posX: -2127,
-                posY: -395,
                 require: ['Erasable pens']
             });
 
             createHeavenlyUpgrade({
-                name: 'Turtles all the way down',
-                desc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.',
+                name: 'Turtles all the way down', order: 1050.074, price: 250e15, icon: JNE.icon(12, 17, 'custom'), pos: [78, 2660],
                 ddesc: 'Buildings are <b>1%</b> cheaper per building level up to <b>level 25</b>.<q>Okay yes I understand, but then what is the turtle sitting on?</q>',
-                price: 250e15,
-                icon: JNE.icon(12, 17, 'custom'),
-                posX: -2054,
-                posY: -194,
                 require: ['Self employed realtor', 'Wholesale discount club']
             });
 
             createHeavenlyUpgrade({
-                name: 'Improved sugar crystal cookies',
-                desc: 'You gain <b>1% CpS</b> for each building <b>level 15</b> or higher.',
+                name: 'Improved sugar crystal cookies', order: 1050.087, price: 250000e15, icon: [10, 25], pos: [200, 2791],
                 ddesc: 'You gain <b>1% CpS</b> for each building <b>level 15</b> or higher.<q>There is room for improvement in everything.</q>',
-                price: 250000e15,
-                icon: [10, 25],
-                posX: -1942,
-                posY: -39,
                 require: ['Turtles all the way down']
             });
 
             createHeavenlyUpgrade({
-                name: 'Gilded sugar crystal cookies',
-                desc: 'You gain <b>1% CpS</b> for each building <b>level 20</b> or higher.',
+                name: 'Gilded sugar crystal cookies', order: 1050.088, price: 500000e15, icon: [10, 14], pos: [256, 2954],
                 ddesc: 'You gain <b>1% CpS</b> for each building <b>level 20</b> or higher.<q>Look, I\'m going to level with you here, we put some gold flakes in them, they don\'t taste any different but the influencers go crazy for them.</q>',
-                price: 500000e15,
-                icon: [10, 14],
-                posX: -1934,
-                posY: 118,
                 require: ['Improved sugar crystal cookies']
             });
 
             createHeavenlyUpgrade({
-                name: 'Weakest link',
-                desc: 'Your <b>least productive</b> building is <b>16x</b> more powerful.',
+                name: 'Weakest link', order: 1050.077,
                 ddesc: 'Your <b>least productive</b> building is <b>16x</b> more powerful.<q>Zero times sixteen is still zero but it\'s the thought that counts.</q>',
-                price: 35e15,
+                price: 500e15,
                 icon: [0, 33],
-                posX: -2117,
-                posY: -36,
+                pos: [19, 2766],
                 require: ['Turtles all the way down'],
                 descFunc: function() {
                     var cache = Game._weakestLinkCache;
@@ -5233,13 +5655,11 @@
             });
 
             createHeavenlyUpgrade({
-                name: 'The next weakest link',
-                desc: 'Your <b>second least productive</b> building is <b>12x</b> more powerful.',
+                name: 'The next weakest link', order: 1050.078,
                 ddesc: 'Your <b>second least productive</b> building is <b>12x</b> more powerful.',
-                price: 70e15,
+                price: 1000e15,
                 icon: [9, 33],
-                posX: -2111,
-                posY: 125,
+                pos: [53, 2905],
                 require: ['Weakest link'],
                 descFunc: function() {
                     var cache = Game._weakestLinkCache;
@@ -5250,13 +5670,11 @@
             });
 
             createHeavenlyUpgrade({
-                name: 'No more weak links',
-                desc: 'Your <b>third least productive</b> building is <b>8x</b> more powerful.',
+                name: 'No more weak links', order: 1050.079,
                 ddesc: 'Your <b>third least productive</b> building is <b>8x</b> more powerful.',
-                price: 500e15,
+                price: 2000e15,
                 icon: [10, 33],
-                posX: -2110,
-                posY: 298,
+                pos: [106, 3044],
                 require: ['The next weakest link'],
                 descFunc: function() {
                     var cache = Game._weakestLinkCache;
@@ -5267,823 +5685,730 @@
             });
 
             createHeavenlyUpgrade({
-                name: 'Box of overpriced donuts',
-                desc: 'Contains an assortment of overpriced donuts.',
+                name: 'Self promoter', order: 1050.08, price: 4e18, icon: JNE.icon(18, 18, 'custom'), pos: [198, 3154],
+                ddesc: 'Your herald bonus is increased by 10% but still cannot exceed a maximum of 100%.<q>Selfishly shouting your own praises from the rooftop, it kinda works I guess.</q>',
+                require: ['No more weak links']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Box of overpriced donuts', order: 1050.075, price: 250e15, icon: [27, 29], pos: [232, 2586],
                 ddesc: 'Contains an assortment of overpriced donuts.<q>We found a way to make donuts more expensive, it turns out you just need to make them more expensive. We know they aren\'t cookies but they taste so good no one is complaining, except for you, stop complaining.</q>',
-                price: 250e15,
-                icon: [27, 29],
-                posX: -1864,
-                posY: -268,
                 require: ['Self employed realtor', 'Wholesale discount club']
             });
 
             createHeavenlyUpgrade({
-                name: 'Sugar frenzy II',
-                desc: 'Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost one additional sugar lump.',
+                name: 'Box of nostalgia cookies', order: 1050.0155, price: 40e17, icon: JNE.icon(11, 18, 'custom'), pos: [322, 1832],
+                ddesc: 'Contains an assortment of cookies to inspire your memory.<q>There is no flavor sweeter than memories from your youth.</q>',
+                require: ['Peaking under the tree']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar frenzy II', order: 1050.113, price: 100e15, icon: [22, 17], pos: [-129, 2300],
                 ddesc: 'Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Nothing like a good night\'s sleep to get over a killer sugar headache and be ready to hit the ground again. Just remember you aren\'t as young as you use to be.</q>',
-                price: 100e15,
-                icon: [22, 17],
-                posX: -2285,
-                posY: -540,
                 require: ['Just natural expansion heavenly upgrades']
             });
 
             createHeavenlyUpgrade({
-                name: 'Sugar for sugar trading',
-                desc: 'Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>. May be used once per ascension.',
+                name: 'Sugar for sugar trading', order: 1050.114, price: 250e15, icon: [21, 17], pos: [-209, 2468],
                 ddesc: 'Spend a <b>sugar lump</b> to summon a <b>Golden Cookie</b>. May be used once per ascension.<q>Turning sugar into sugar, what a concept!</q>',
-                price: 250e15,
-                icon: [21, 17],
-                posX: -2421,
-                posY: -286,
                 require: ['Sugar frenzy II']
             });
 
             createHeavenlyUpgrade({
-                name: 'Sugar insight',
-                desc: 'Shows what type of sugar lump is currently growing instantly.',
-                ddesc: 'Shows what type of sugar lump is currently growing instantly.<q>It is like sexing a chicken, once you have been doing it long enough you can just tell.</q>',
-                price: 500e15,
-                icon: [29, 16],
-                posX: -2259,
-                posY: -189,
+                name: 'Reoccuring business', order: 1050.116, price: 1e19, icon: JNE.icon(1, 17, 'custom'), pos: [-331, 2527],
+                ddesc: 'Sugar for sugar trading may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Thank you! Come Again!</q>',
+                require: ['Sugar for sugar trading']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar insight', order: 1050.115, price: 500e15, icon: [29, 16], pos: [-93, 2485],
+                ddesc: 'Shows what <b>type</b> of sugar lump is currently growing instantly.<q>It is like sexing a chicken, once you have been doing it long enough you can just tell.</q>',
                 require: ['Sugar frenzy II']
             });
 
             createHeavenlyUpgrade({
-                name: 'Sugar predictor',
-                desc: 'Predict your <b>next sugar lump</b>. Get clear guidance on the simplest changes needed to guarantee each of the 4 specialty lump types.',
-                ddesc: 'Predict your <b>next sugar lump</b>. Get clear guidance on the simplest changes needed to guarantee each of the 4 specialty lump types.<q>Inspired by Choose Your Own Lump (CYOL) and modernized with love and care, we hope you enjoy a new era of choosing the lump you want.</q>',
-                price: 850e15,
-                icon: [19, 7],
-                posX: -2345,
-                posY: -4,
+                name: 'Sugar predictor', order: 1050.123, price: 850e15, icon: JNE.icon(10, 27, 'custom'), pos: [-100, 2658],
+                ddesc: 'Allows you to predict the results of a <b>Meaty</b> lump. Get clear guidance on the simplest changes needed to guarantee one.<q>Inspired by Choose Your Own Lump (CYOL) and modernized with love and care, we hope you enjoy a new era of choosing the lump you want.</q>',
                 require: ['Sugar insight']
             });
 
             createHeavenlyUpgrade({
-                name: 'Sugar baking II',
-                desc: 'Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.',
-                ddesc: 'Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.<q>When your neigherbors come looking to borrow a cup of sugar, you aren\'t home.</q>',
-                price: 300e15,
-                icon: [10, 36],
-                posX: -2526,
-                posY: -83,
-                require: ['Sugar predictor', 'Sugar for sugar trading']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Sugar baking III',
-                desc: 'Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.',
-                ddesc: 'Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.<q>Sugar sugar everywhere but not a drop to eat.</q>',
-                price: 400e15,
-                icon: [10, 35],
-                posX: -2781,
-                posY: -84,
-                require: ['Sugar baking II']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Sugar baking IV',
-                desc: 'Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.',
-                ddesc: 'Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.<q>A Scrouge McDuck level of sugar hoarding.</q>',
-                price: 1e21,
-                icon: [18, 7],
-                posX: -3095,
-                posY: 26,
-                require: ['Sugar baking III']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Sugar baking V',
-                desc: 'Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.',
-                ddesc: 'Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.<q>Sugar (noun): a sweet crystalline substance obtained from various plants, especially sugar cane and sugar beet, consisting essentially of sucrose, and used as a sweetener in food and drink.</q>',
-                price: 5e21,
-                icon: [17, 7],
-                posX: -3373,
-                posY: -80,
-                require: ['Sugar baking IV']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Sugar baking VI',
-                desc: 'Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.',
-                ddesc: 'Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.<q>On the next episode of Hoarders, they\'ll be featuring your sugar lump collection.</q>',
-                price: 25e21,
-                icon: [20, 7],
-                posX: -3559,
-                posY: -305,
-                require: ['Sugar baking V']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Blackfriday special',
-                desc: 'Changing seasons is <b>25%</b> cheaper.',
-                ddesc: 'Changing seasons is <b>25%</b> cheaper.<q>Black Friday use to have actually good deals that made you want to buy things, now its just marking up things to mark them back down, even seasons are cheaper.</q>',
-                price: 10e15,
-                icon: [17, 9],
-                posX: -2001,
-                posY: -886,
-                require: ['Just natural expansion heavenly upgrades'],
-                seasonPriceMult: 0.75
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Peaking under the tree',
-                desc: 'Random drops are <b>10%</b> more common.',
-                ddesc: 'Random drops are <b>10%</b> more common.<q>Ruining Christmas morning surprises since 1988</q>',
-                price: 50e15,
-                icon: [12, 10],
-                posX: -1787,
-                posY: -1038,
-                require: ['Blackfriday special']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Seasonal hours',
-                desc: 'Seasons last <b>6 hours</b> longer.',
-                ddesc: 'Seasons last <b>6 hours</b> longer.',
-                price: 5e15,
-                icon: [14, 10],
-                posX: -1592,
-                posY: -965,
-                require: ['Blackfriday special']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Seasonal overtime',
-                desc: 'Seasons last <b>12 hours</b> longer.',
-                ddesc: 'Seasons last <b>12 hours</b> longer.',
-                price: 8e15,
-                icon: [15, 10],
-                posX: -1550,
-                posY: -1114,
-                require: ['Seasonal hours']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Seasonal time off',
-                desc: 'Seasons last <b>18 hours</b> longer.',
-                ddesc: 'Seasons last <b>18 hours</b> longer.',
-                price: 15e15,
-                icon: [18, 4],
-                posX: -1538,
-                posY: -1253,
-                require: ['Seasonal overtime']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Seasonal retirement',
-                desc: 'Seasons last <b>twice</b> as long.',
-                ddesc: 'Seasons last <b>twice</b> as long.<q>Lets just leave the tree up till March this year.</q>',
-                price: 20e15,
-                icon: [16, 10],
-                posX: -1660,
-                posY: -1392,
-                require: ['Seasonal time off']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Toy box',
-                desc: 'Adds a switch to toggle <b>Toy mode</b> on and off.',
-                ddesc: 'Adds a switch to toggle <b>Toy mode</b> on and off.<q>A virtual KB Toy Store just for you.</q>',
-                price: 350e15,
-                icon: [34, 9],
-                posX: -1638,
-                posY: -1567,
-                require: ['Seasonal retirement']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Regifting',
-                desc: 'Seasonal drops have a <b>30%</b> chance to carry over between ascensions.',
-                ddesc: 'Seasonal drops have a <b>30%</b> chance to carry over between ascensions.<q>Didn\'t I get you this label maker last year?</q>',
-                price: 75e15,
-                icon: [16, 9],
-                posX: -1713,
-                posY: -1212,
-                require: ['Keepsakes']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Cookie calculations',
-                desc: 'Display <b>CpS</b> in minutes, hours, or days.',
-                ddesc: 'Display <b>CpS</b> in minutes, hours, or days.<q>The kittens have been up all night pouring over spreadsheets to bring you these reports</q>',
-                price: 25e15,
-                icon: [11, 10],
-                posX: -1936,
-                posY: -1096,
-                require: ['Blackfriday special']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Annualized returns',
-                desc: 'Display cookie bank in <b>years of CpS</b> and your cookies per click in stats.',
-                ddesc: 'Display cookie bank in <b>years of CpS</b> and your cookies per click in stats.<q>Crunching the big numbers now.</q>',
-                price: 35e15,
-                icon: [31, 8],
-                posX: -1921,
-                posY: -1282,
-                require: ['Cookie calculations']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Fish tank',
-                desc: 'Cookie fish have found their way into your milk.',
-                ddesc: 'Cookie fish have found their way into your milk.<q>Please do not tap the glass.</q>',
-                price: 100e15,
-                icon: [23, 33],
-                posX: -2025,
-                posY: -1395,
-                require: ['Annualized returns']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Sunken treasure',
-                desc: 'You can now collect your milk fish for a small reward.',
-                ddesc: 'You can now collect your milk fish for a small reward.<q>There\'s gold in them there milk.</q>',
-                price: 500e15,
-                icon: JNE.icon(7, 15, 'custom'),
-                posX: -2065,
-                posY: -1544,
-                require: ['Fish tank']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Aquaculturist',
-                desc: 'Fish appear <b>25%</b> more often.',
-                ddesc: 'Fish appear <b>25%</b> more often.<q>With proper care and feeding, your fish population thrives.</q>',
-                price: 2000e15,
-                icon: JNE.icon(1, 25, 'custom'),
-                posX: -2202,
-                posY: -1658,
-                require: ['Sunken treasure']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Hatchery effect',
-                desc: 'Fish have a <b>10%</b> chance to appear in pairs.',
-                ddesc: 'Fish have a <b>10%</b> chance to appear in pairs.<q>Double the fish, double the fun!</q>',
-                icon: JNE.icon(2, 25, 'custom'),
-                posX: -2076,
-                posY: -1766,
-                price: 30000e15,
-                require: ['Aquaculturist']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Big cookie image selector',
-                desc: 'Change the image of the <b>Big Cookie</b>.',
-                icon: [5, 3],
-                price: 750e15,
-                posX: -1832,
-                posY: -1505,
-                require: ['Annualized returns', 'Seasonal retirement', 'Regifting']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Improved cookie chains',
-                desc: 'Cookie chains last longer, especially at higher levels.',
-                ddesc: 'Cookie chains last longer, especially at higher levels.<q>Is this a bug fix with the original forumla or an upgrade? No one can ever be totally sure, what we can be sure of is those pesky one cookie chain long chains are a thing of the past, mostly anyways.</q>',
-                price: 35e15,
-                icon: [3, 5],
-                posX: -2464,
-                posY: -796,
-                require: ['Just natural expansion heavenly upgrades']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Fading payout',
-                desc: '<b>1%</b> chance to auto click a fading golden cookie.',
-                ddesc: '<b>1%</b> chance to auto click a fading golden cookie.<q>Counting sheep is for suckers and fools, in this house we count golden cookies while you drift off to sleep.</q>',
-                price: 250e15,
-                icon: [15, 6],
-                posX: -2734,
-                posY: -853,
-                require: ['Improved cookie chains']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Lucky fading payout',
-                desc: '<b>2%</b> chance to auto click a fading golden cookie.',
-                ddesc: '<b>2%</b> chance to auto click a fading golden cookie.<q>Twice the chance, still less reliable than just clicking the cookie though.</q>',
-                price: 1000e15,
-                icon: JNE.icon(23, 2, 'custom'),
-                posX: -2982,
-                posY: -784,
-                require: ['Fading payout']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Distilled essence of retripled luck',
-                desc: 'Golden Cookies have a <b>2% chance of being doubled.</b>',
-                ddesc: 'Golden Cookies have a <b>2% chance of being doubled.</b>',
-                price: 5000e15,
-                icon: [27, 12],
-                posX: -2795,
-                posY: -668,
-                require: ['Improved cookie chains']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Golden stopwatch',
-                desc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.',
-                ddesc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
-                price: 50000e15,
-                icon: JNE.icon(3, 17, 'custom'),
-                posX: -3104,
-                posY: -557,
-                require: ['Distilled essence of retripled luck', 'Lucky fading payout']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Countdown complications',
-                desc: 'Shows the remaining duration of buffs in your golden stopwatch.',
-                ddesc: 'Shows the remaining duration of buffs in your golden stopwatch.<q>A watch complication is any function beyond telling the hours, minutes, and seconds, adding mechanical complexity like chronographs or a buff countdown timer.</q>',
-                price: 35000e15,
-                icon: JNE.icon(16, 24, 'custom'),
-                posX: -2964,
-                posY: -450,
-                require: ['Golden stopwatch']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Golden cookie predictor',
-                desc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.',
-                ddesc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.<q>They told us we were mad to try but who is laughing now?</q>',
-                price: 500000e15,
-                icon: JNE.icon(16, 13, 'custom'),
-                posX: -3077,
-                posY: -189,
-                require: ['Golden stopwatch']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Tweaked golden cookie predictor',
-                desc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.',
-                ddesc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.<q>Who are we kidding anyways, you are going to click the cookie anyway.</q>',
-                price: 500000e16,
-                icon: JNE.icon(17, 13, 'custom'),
-                posX: -3289,
-                posY: -314,
-                require: ['Golden cookie predictor']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Improved golden cookie predictor',
-                desc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.',
-                ddesc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.<q>We improved it by making improvements to the dohicky that makes it work.</q>',
-                price: 500000e17,
-                icon: JNE.icon(15, 13, 'custom'),
-                posX: -3304,
-                posY: -528,
-                require: ['Tweaked golden cookie predictor']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Perfected golden cookie predictor',
-                desc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.',
-                ddesc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
-                price: 800000e17,
-                icon: JNE.icon(14, 13, 'custom'),
-                posX: -3166,
-                posY: -763,
-                require: ['Improved golden cookie predictor']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'All is well',
-                desc: 'A golden cookie spawns at the <b>top</b> of every hour.',
-                ddesc: 'A golden cookie spawns at the <b>top</b> of every hour.<q>Because nothing says \'all is well\' like a cookie appearing right on schedule</q>',
-                price: 1000000e17,
-                icon: JNE.icon(14, 14, 'custom'),
-                posX: -3318,
-                posY: -885,
-                require: ['Perfected golden cookie predictor']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Six bells',
-                desc: 'A golden cookie spawns at the <b>bottom</b> of every hour.',
-                ddesc: 'A golden cookie spawns at the <b>bottom</b> of every hour.<q>Perfect timing for anyone who believes the universe should deliver sugar twice as often.</q>',
-                price: 2000000e17,
-                icon: JNE.icon(17, 17, 'custom'),
-                posX: -3414,
-                posY: -744,
-                require: ['All is well']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Fortune tolls for you',
-                desc: 'Fortune cookies make <b>noise</b> when they appear.',
-                ddesc: 'Fortune cookies make <b>noise</b> when they appear.<q>When destiny arrives, it refuses to do so quietly.</q>',
-                price: 50e15,
-                icon: JNE.icon(23, 20, 'custom'),
-                posX: -2569,
-                posY: -535,
-                require: ['Improved cookie chains']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Chinese leftovers',
-                desc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.',
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.<q>Everyone knows Chinese leftovers mysteriously multiply in the fridge like they\'re running a shadow franchise.</q>',
-                price: 100e15,
-                icon: JNE.icon(17, 24, 'custom'),
-                posX: -2797,
-                posY: -490,
-                require: ['Fortune tolls for you']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Second day takeout',
-                desc: 'Consumable Fortune Cookies regenerate once every <b>2 days</b>.',
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>2 days</b>.<q>Marinated overnight in pure, unfiltered refrigerator funk and wisdom too I guess.</q>',
-                price: 2500e15,
-                icon: [31, 9],
-                posX: -2837,
-                posY: -280,
-                require: ['Chinese leftovers']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Doordashing every day',
-                desc: 'Consumable Fortune Cookies regenerate once every <b>day</b>.',
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>day</b>.<q>You can practically smell the financial irresponsibility.</q>',
-                price: 50000e15,
-                icon: [28, 30],
-                posX: -2581,
-                posY: -320,
-                require: ['Second day takeout']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Rare game hunter',
-                desc: 'Shiny Wrinklers are <b>25%</b> more common.',
-                ddesc: 'Shiny Wrinklers are <b>25%</b> more common.',
-                price: 10e15,
-                icon: JNE.icon(21, 13, 'custom'),
-                posX: -2245,
-                posY: -952,
-                require: ['Just natural expansion heavenly upgrades']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Hellish hunger',
-                desc: 'Wrinklers suck <b>10%</b> more.',
-                ddesc: 'Wrinklers suck <b>10%</b> more.',
-                price: 15e15,
-                icon: JNE.icon(21, 16, 'custom'),
-                posX: -2506,
-                posY: -1096,
-                require: ['Rare game hunter']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Ravenous leeches',
-                desc: 'Wrinklers suck <b>20%</b> more.',
-                ddesc: 'Wrinklers suck <b>20%</b> more.<q>Sluuuurrrp.</q>',
-                price: 15e15,
-                icon: JNE.icon(21, 17, 'custom'),
-                posX: -2647,
-                posY: -1157,
-                require: ['Hellish hunger']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Unlocked gates of hell',
-                desc: 'Wrinklers spawn <b>10%</b> faster.',
-                ddesc: 'Wrinklers spawn <b>10%</b> faster.',
-                price: 20e15,
-                icon: JNE.icon(21, 19, 'custom'),
-                posX: -2406,
-                posY: -1202,
-                require: ['Rare game hunter']
-            });
-            createHeavenlyUpgrade({
-                name: 'Wide open door of hell',
-                desc: 'Wrinklers spawn <b>20%</b> faster.',
-                ddesc: 'Wrinklers spawn <b>20%</b> faster.',
-                price: 20e15,
-                icon: JNE.icon(22, 19, 'custom'),
-                posX: -2489,
-                posY: -1324,
-                require: ['Unlocked gates of hell']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Indigenous tracker',
-                desc: 'Shiny Wrinklers are <b>50%</b> more common.',
-                ddesc: 'Shiny Wrinklers are <b>50%</b> more common.',
-                price: 25e15,
-                icon: JNE.icon(21, 14, 'custom'),
-                posX: -2684,
-                posY: -1334,
-                require: ['Ravenous leeches', 'Wide open door of hell']
-            });
-            createHeavenlyUpgrade({
-                name: 'Species bounceback',
-                desc: 'Shiny Wrinklers are <b>twice</b> as common.',
-                ddesc: 'Shiny Wrinklers are <b>twice</b> as common.<q>Good news, shiny wrinklers have been removed from the critically endangered list, bad news if you keep popping them they will end up right back on it.</q>',
-                price: 250e15,
-                icon: JNE.icon(21, 15, 'custom'),
-                posX: -2846,
-                posY: -1451,
-                require: ['Indigenous tracker']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'The prize at the bottom of the box',
-                desc: 'Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.',
-                ddesc: 'Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Just like old cereal boxes, dig through enough weird, crunchy horrors and eventually you\'ll find something shiny and powerful.</q>',
-                price: 80e15,
-                icon: [20, 9],
-                posX: -2489,
-                posY: -933,
-                require: ['Rare game hunter']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Double box prize',
-                desc: 'Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.',
-                ddesc: 'Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Turns out the real prize wasn\'t a decoder ring.</q>',
-                price: 150e15,
-                icon: [33, 3],
-                posX: -2705,
-                posY: -992,
-                require: ['The prize at the bottom of the box']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Mail in sweepstake winner',
-                desc: 'Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.',
-                ddesc: 'Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>As powerful as mail away x-ray specs.</q>',
-                price: 250e15,
-                icon: [34, 8],
-                posX: -2925,
-                posY: -1247,
-                require: ['Double box prize']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Unlucky luckier',
-                desc: 'Lucky Golden Cookies are <b>5%</b> less common.',
-                ddesc: 'Lucky Golden Cookies are <b>5%</b> less common.<q>Lucky cookies are good but not that good.</q>',
-                price: 500e15,
-                icon: JNE.icon(23, 17, 'custom'),
-                posX: -3160,
-                posY: -1038,
-                require: ['Mail in sweepstake winner', 'Fading payout']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Even more unlucky luckier',
-                desc: 'Lucky Golden Cookies are <b>10%</b> less common.',
-                ddesc: 'Lucky Golden Cookies are <b>10%</b> less common.<q>Your younger self would be so disappointed to learn you wanted to get less lucky cookies.</q>',
-                price: 8000e15,
-                icon: JNE.icon(23, 15, 'custom'),
-                posX: -3469,
-                posY: -1015,
-                require: ['Unlucky luckier']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Positive feedback loop',
-                desc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.',
-                ddesc: 'After earning an achievement golden cookies appear <b>10%</b> more often for an hour.<q>Scientists call it \'operant conditioning\'. You call it \'Ooh, another shiny widget to click on.\'</q>',
-                price: 5000000e17,
-                icon: JNE.icon(22, 17, 'custom'),
-                posX: -3577,
-                posY: -849,
-                require: ['Six bells', 'Even more unlucky luckier']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Stacks on stacks on stacks',
-                desc: 'Each golden cookie clicked this ascension increases <b>CpS</b> by <b>0.05%</b>.',
-                ddesc: 'Each golden cookie clicked this ascension increases <b>CpS</b> by <b>0.05%</b>.<q>If you stack cookies high enough, they eventually start generating their own gravitational field. Useful!</q>',
-                price: 1000e21,
-                icon: [12, 36],
-                posX: -3651,
-                posY: -595,
-                require: ['Positive feedback loop', 'Sugar baking VI']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Skitter skatter skrum ahh',
-                desc: 'Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.',
-                ddesc: 'Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.<q>oooooh it sparkles!</q>',
-                price: 25e15,
-                icon: [28, 11],
-                posX: -2116,
-                posY: -1139,
-                require: ['Rare game hunter']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Abra-Ka-Wiggle',
-                desc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
-                ddesc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
-                price: 250e15,
-                icon: JNE.icon(5, 16, 'custom'),
-                posX: -2258,
-                posY: -1406,
-                require: ['Skitter skatter skrum ahh']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Alakazoodle evil noodle',
-                desc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.',
-                ddesc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.<q>I think I missed this day at Hogwarts.</q>',
-                price: 750e15,
-                icon: JNE.icon(14, 16, 'custom'),
-                posX: -2448,
-                posY: -1653,
-                require: ['Abra-Ka-Wiggle']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Cockroaches',
-                desc: 'Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.',
-                ddesc: 'Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.<q>You know what they say, if you see one cockroach there are a thousand more just out of sight.</q>',
-                price: 50000e15,
-                icon: [15, 12],
-                posX: -2423,
-                posY: -1838,
-                require: ['Alakazoodle evil noodle']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Infestation',
-                desc: 'Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.',
-                ddesc: 'Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.<q>Some say Wrinklers are the only thing that will survive a nuclear apocalypse, I disagree I don\'t think nuclear weapons can nurt Nokia phones either.</q>',
-                price: 250000e15,
-                icon: [15, 12],
-                posX: -2328,
-                posY: -1990,
-                require: ['Cockroaches']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Slimy pheromones',
-                desc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.',
-                ddesc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.<q>Here we find a rare shiny wrinkler, its skin catching the light in a way its species has no right to. Naturally, this peculiarity attracts the rest, who approach like scientists inspecting a colleague who has made a questionable life choice.</q>',
-                price: 5000e15,
-                icon: JNE.icon(18, 26, 'custom'),
-                posX: -2609,
-                posY: -1505,
-                require: ['Alakazoodle evil noodle', 'Species bounceback']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Bingo center slots',
-                desc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade your grandmas can now play the slots. The more grandmas you own the more plays they make. Jackpots are rare but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!',
-                ddesc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade, your grandmas can now play the slots. The more grandmas you own, the more pulls they make. Jackpots are rare, but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!<q>They just love sitting there all day feeding quarters into the machines. Despite the zombie-like appearance, it actually keeps them more docile.</q>',
-                price: 75e19,
-                icon: JNE.icon(18, 24, 'custom'),
-                posX: -2440,
-                posY: -1461,
-                require: ['Slimy pheromones']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Pink stuff',
-                desc: 'Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).',
-                ddesc: 'Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).<q>O M G SO CUTEEEEEEE!!!</q>',
-                price: 800e15,
-                icon: JNE.icon(22, 20, 'custom'),
-                posX: -2977,
-                posY: -1563,
-                require: ['Mail in sweepstake winner', 'Alakazoodle evil noodle']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Frenziered elders',
-                desc: 'Your elder frenzies last <b>25%</b> longer.',
-                ddesc: 'Your elder frenzies last <b>25%</b> longer. <q>The elders are really getting out of control, perhaps we should cut back on their sugar intake?</q>',
-                price: 1500e17,
-                icon: [2, 9],
-                posX: -3197,
-                posY: -1635,
-                require: ['Pink stuff']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'Creative tax evasion',
-                desc: 'Negative loan effects are shorter.',
-                ddesc: 'Negative loan effects are shorter.<q>Reducing downside exposure through aggressive imagination and creative bookkeeping.</q>',
-                price: 75e15,
-                icon: [34, 12],
-                posX: -1874,
-                posY: -820,
-                require: ['Wallstreet bets']
-            });
-
-            createHeavenlyUpgrade({
-                name: 'The checkbox',
-                desc: 'This upgrade doesn\'t do anything.',
-                ddesc: 'This upgrade doesn\'t do anything.<q>Or does it...? Nope, it doesn\'t... really for sure, believe me. Well maybe I lied, maybe it does. Does it really matter in the end?</q>',
-                price: 500e15,
-                icon: JNE.icon(22, 24, 'custom'),
-                posX: -2340,
-                posY: 164,
+                name: 'Sugar predictor II', order: 1050.124, price: 6.545e19, icon: JNE.icon(11, 27, 'custom'), pos: [-105, 2801],
+                ddesc: 'Adds the ability to predict <b>Bifurcated</b> lumps to your sugar predictor.<q>Okay that\'s a little better but still a pretty annoying nerf.</q>',
                 require: ['Sugar predictor']
             });
 
             createHeavenlyUpgrade({
-                name: 'Water cooled processors',
-                desc: 'Terminal minigame cooldown is reduced by 1 hour.',
+                name: 'Sugar predictor III', order: 1050.125, price: 5.03965e21, icon: JNE.icon(12, 27, 'custom'), pos: [-110, 2959],
+                ddesc: 'Adds the ability to predict <b>Caramelized</b> lumps to your sugar predictor.<q>Now we are getting somewhere, I can do something with this.</q>',
+                require: ['Sugar predictor II']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar predictor IV', order: 1050.126, price: 3.8805305e23, icon: JNE.icon(13, 27, 'custom'), pos: [-113, 3117],
+                ddesc: 'Adds the ability to predict <b>Golden</b> lumps to your sugar predictor.<q>Ahhh yessssssss, that\'s the one I have been waiting for, sweet sweet release from the torture.</q>',
+                require: ['Sugar predictor III']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar baking II', order: 1050.117, price: 300e15, icon: [10, 36], pos: [-264, 2661],
+                ddesc: 'Each unspent sugar lump (up to <b>110</b>) gives <b>+1% CpS</b>.<q>When your neighbors come looking to borrow a cup of sugar, you aren\'t home.</q>',
+                require: ['Sugar for sugar trading']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar baking III', order: 1050.118, price: 400e15, icon: [10, 35], pos: [-503, 2640],
+                ddesc: 'Each unspent sugar lump (up to <b>120</b>) gives <b>+1% CpS</b>.<q>Sugar sugar everywhere but not a drop to eat.</q>',
+                require: ['Sugar baking II']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar baking IV', order: 1050.119, price: 1e21, icon: [18, 7], pos: [-744, 2592],
+                ddesc: 'Each unspent sugar lump (up to <b>130</b>) gives <b>+1% CpS</b>.<q>A Scrooge McDuck level of sugar hoarding.</q>',
+                require: ['Sugar baking III']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar baking V', order: 1050.12, price: 5e21, icon: [17, 7], pos: [-1011, 2644],
+                ddesc: 'Each unspent sugar lump (up to <b>140</b>) gives <b>+1% CpS</b>.<q>Sugar (noun): a sweet crystalline substance obtained from various plants, especially sugar cane and sugar beet, consisting essentially of sucrose, and used as a sweetener in food and drink.</q>',
+                require: ['Sugar baking IV']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Even sweeter', order: 1050.122, price: 2.5e23, icon: JNE.icon(20, 15, 'custom'), pos: [-1287, 2778],
+                ddesc: '<b>Free sugar lump</b> outcomes from golden cookies are <b>50%</b> more common.<q>So sweet it hurts my teeth.</q>',
+                require: ['Sugar baking V']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sugar baking VI', order: 1050.121, price: 25e21, icon: [20, 7], pos: [-1242, 2488],
+                ddesc: 'Each unspent sugar lump (up to <b>150</b>) gives <b>+1% CpS</b>.<q>On the next episode of Hoarders, they\'ll be featuring your sugar lump collection.</q>',
+                require: ['Sugar baking V']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sweet refunds', order: 1050.13, price: 10e23, icon: JNE.icon(15, 12, 'custom'), pos: [-1393, 2591],
+                ddesc: 'Downgrade your building levels and get <b>50%</b> sugar back, you may not downgrade past level 1.<q>Here\'s some sugar, sorry it\'s not in packets.</q>',
+                require: ['Sugar baking VI']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Blackfriday special', order: 1050.002, price: 10e15, icon: [17, 9], pos: [197, 2053], seasonPriceMult: 0.75,
+                ddesc: 'Changing seasons is <b>25%</b> cheaper.<q>Black Friday use to have actually good deals that made you want to buy things, now its just marking up things to mark them back down, even seasons are cheaper.</q>',
+                require: ['Just natural expansion heavenly upgrades']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Peaking under the tree', order: 1050.015, price: 50e15, icon: [12, 10], pos: [281, 1950],
+                ddesc: 'Random drops are <b>10%</b> more common.<q>Ruining Christmas morning surprises since 1988</q>',
+                require: ['Blackfriday special']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Seasonal hours', order: 1050.003, price: 5e15, icon: [14, 10], pos: [338, 2123],
+                ddesc: 'Seasons last <b>6 hours</b> longer.',
+                require: ['Blackfriday special']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Seasonal overtime', order: 1050.004, price: 8e15, icon: [15, 10], pos: [549, 2014],
+                ddesc: 'Seasons last <b>12 hours</b> longer.',
+                require: ['Seasonal hours']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Seasonal time off', order: 1050.005, price: 15e15, icon: [18, 4], pos: [573, 1858],
+                ddesc: 'Seasons last <b>18 hours</b> longer.',
+                require: ['Seasonal overtime']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Seasonal retirement', order: 1050.006, price: 20e15, icon: [16, 10], pos: [487, 1726],
+                ddesc: 'Seasons last <b>twice</b> as long.<q>Lets just leave the tree up till March this year.</q>',
+                require: ['Seasonal time off']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Toy box', order: 1050.007, price: 350e15, icon: [34, 9], pos: [674, 1667],
+                ddesc: 'Adds a switch to toggle <b>Toy mode</b> on and off.<q>A virtual KB Toy Store just for you.</q>',
+                require: ['Seasonal retirement']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Regifting', order: 1050.016, price: 75e15, icon: [16, 9], pos: [459, 1916],
+                ddesc: 'Seasonal drops have a <b>30%</b> chance to carry over between ascensions.<q>Didn\'t I get you this label maker last year?</q>',
+                require: ['Peaking under the tree']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Cookie calculations', order: 1050.008, price: 25e15, icon: [11, 10], pos: [138, 1907],
+                ddesc: 'Display <b>CpS</b> in minutes, hours, or days.<q>The kittens have been up all night pouring over spreadsheets to bring you these reports</q>',
+                require: ['Blackfriday special']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Annualized returns', order: 1050.009, price: 35e15, icon: [31, 8], pos: [194, 1759],
+                ddesc: 'Display cookie bank in <b>years of CpS</b> and your cookies per click in stats.<q>Crunching the big numbers now.</q>',
+                require: ['Cookie calculations']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Fish tank', order: 1050.01, price: 100e15, icon: [23, 33], pos: [275, 1532],
+                ddesc: 'Cookie fish have found their way into your milk.<q>Please do not tap the glass.</q>',
+                require: ['Annualized returns']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Sunken treasure', order: 1050.011, price: 500e15, icon: JNE.icon(7, 15, 'custom'), pos: [337, 1378],
+                ddesc: 'You can now collect your milk fish for a small reward.<q>There\'s gold in them there milk.</q>',
+                require: ['Fish tank']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Aquaculturist', order: 1050.012, price: 2000e15, icon: JNE.icon(1, 25, 'custom'), pos: [485, 1303],
+                ddesc: 'Fish appear <b>25%</b> more often.<q>With proper care and feeding, your fish population thrives.</q>',
+                require: ['Sunken treasure']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Hatchery effect', order: 1050.013, price: 30000e15, icon: JNE.icon(2, 25, 'custom'), pos: [645, 1345],
+                ddesc: 'Fish have a <b>10%</b> chance to appear in pairs.<q>Double the fish, double the fun!</q>',
+                require: ['Aquaculturist']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Shiny scales', order: 1050.014, price: 4.5e20, icon: JNE.icon(30, 14, 'main'), pos: [738, 1483],
+                ddesc: 'Your cookie fish are worth <b>30%</b> more but also swim <b>20%</b> faster.<q>Look at that little guy go!</q>',
+                require: ['Hatchery effect']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Big cookie image selector', order: 1050.017, icon: [5, 3], price: 750e15, pos: [334, 1686],
+                desc: 'Change the image of the <b>Big Cookie</b>.<q>Like a fresh coat of paint on the walls this should liven the place up a bit.</q>',
+                require: ['Annualized returns', 'Seasonal retirement', 'Regifting']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Even more cookies of unusual size', order: 1050.018, price: 7.5e19, icon: JNE.icon(10, 1, 'custom'), pos: [504, 1513],
+                ddesc: 'Adds <b>5</b> additional cookie options to your big cookie image selector.<q>C.O.U.S? I don\'t think they exist.</q>',
+                require: ['Big cookie image selector']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Improved cookie chains', order: 1050.089, price: 35e15, icon: [3, 5], pos: [-173, 2156],
+                ddesc: 'Cookie chains last longer, especially at higher levels.<q>Is this a bug fix with the original formula or an upgrade? No one can ever be totally sure, what we can be sure of is those pesky one cookie chain long chains are a thing of the past, mostly anyways.</q>',
+                require: ['Just natural expansion heavenly upgrades']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Fading payout', order: 1050.092, price: 250e15, icon: JNE.icon(23, 16, 'custom'), pos: [-486, 2049],
+                ddesc: 'You have a <b>1%</b> chance to auto click a fading golden cookie.<q>Counting sheep is for suckers and fools, in this house we count golden cookies while you drift off to sleep.</q>',
+                require: ['Improved cookie chains']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Triple 7s', order: 1050.093, price: 3.8e17, icon: JNE.icon(4, 13, 'custom'), pos: [-658, 1827],
+                ddesc: 'Lucky digit, Lucky number, and Lucky payout are <b>unlocked</b> even if the conditions have not been met.<q>Helpful if you forgot to do these earlier, useless if you were on top of things already though.</q>',
+                require: ['Fading payout']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Lucky fading payout', order: 1050.099, price: 1000e15, icon: JNE.icon(22, 16, 'custom'), pos: [-708, 2066],
+                ddesc: 'You have a <b>2%</b> chance to auto click a fading golden cookie.<q>Twice the chance, still less reliable than just clicking the cookie though.</q>',
+                require: ['Fading payout']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Distilled essence of retripled luck', order: 1050.103, price: 5000e15, icon: [27, 12], pos: [-573, 2194],
+                ddesc: 'Golden Cookies have a <b>2% chance of being doubled.</b><q>That wasn\'t the type of triple you were hoping for.</q>',
+                require: ['Improved cookie chains']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Golden stopwatch', order: 1050.104, price: 50000e15, icon: JNE.icon(3, 17, 'custom'), pos: [-754, 2195],
+                ddesc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
+                require: ['Distilled essence of retripled luck', 'Lucky fading payout']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Countdown complications', order: 1050.105, price: 35000e15, icon: JNE.icon(16, 24, 'custom'), pos: [-698, 2388],
+                ddesc: 'Shows the remaining duration of buffs in your golden stopwatch.<q>A watch complication is any function beyond telling the hours, minutes, and seconds, adding mechanical complexity like chronographs or a buff countdown timer.</q>',
+                require: ['Golden stopwatch']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Golden cookie predictor', order: 1050.106, price: 500000e15, icon: JNE.icon(16, 13, 'custom'), pos: [-845, 2329],
+                ddesc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.<q>They told us we were mad to try but who is laughing now?</q>',
+                require: ['Golden stopwatch']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Tweaked golden cookie predictor', order: 1050.107, price: 500000e16, icon: JNE.icon(17, 13, 'custom'), pos: [-977, 2458],
+                ddesc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.<q>Who are we kidding anyways, you are going to click the cookie anyway.</q>',
+                require: ['Golden cookie predictor']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Improved golden cookie predictor', order: 1050.108, price: 500000e17, icon: JNE.icon(15, 13, 'custom'), pos: [-1006, 2286],
+                ddesc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.<q>We improved it by making improvements to the doohickey that makes it work.</q>',
+                require: ['Tweaked golden cookie predictor']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Perfected golden cookie predictor', order: 1050.109, price: 800000e17, icon: JNE.icon(14, 13, 'custom'), pos: [-946, 2125],
+                ddesc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
+                require: ['Improved golden cookie predictor']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'All is well', order: 1050.11, price: 1000000e17, icon: JNE.icon(14, 14, 'custom'), pos: [-1100, 2061],
+                ddesc: 'A golden cookie spawns at the <b>top</b> of every hour.<q>Because nothing says "all is well" like a cookie appearing right on schedule</q>',
+                require: ['Perfected golden cookie predictor']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Six bells', order: 1050.111, price: 2000000e17, icon: JNE.icon(17, 17, 'custom'), pos: [-1214, 2174],
+                ddesc: 'A golden cookie spawns at the <b>bottom</b> of every hour.<q>Perfect timing for anyone who believes the universe should deliver sugar twice as often.</q>',
+                require: ['All is well']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Fortune tolls for you', order: 1050.09, price: 50e15, icon: JNE.icon(23, 20, 'custom'), pos: [-300, 2307],
+                ddesc: 'Fortune cookies make <b>noise</b> when they appear.<q>When destiny arrives, it refuses to do so quietly.</q>',
+                require: ['Improved cookie chains']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Better fortune typist', order: 1050.102, price: 1e18, icon: JNE.icon(9, 14, 'custom'), pos: [-393, 2407],
+                ddesc: 'Building specific fortune cookies are <b>15%</b> more powerful.<q>We brought in a new set of typist and they started writing better fortunes as soon as they found out what happened to the old set.</q>',
+                require: ['Fortune tolls for you']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Chinese leftovers', order: 1050.091, price: 100e15, icon: JNE.icon(17, 24, 'custom'), pos: [-439, 2278],
+                ddesc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.<q>Everyone knows Chinese leftovers mysteriously multiply in the fridge like they\'re running a shadow franchise.</q>',
+                require: ['Fortune tolls for you']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Second day takeout', order: 1050.1, price: 2500e15, icon: [31, 9], pos: [-528, 2388],
+                ddesc: 'Consumable Fortune Cookies regenerate once every <b>2 days</b>.<q>Marinated overnight in pure, unfiltered refrigerator funk and wisdom too I guess.</q>',
+                require: ['Chinese leftovers']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Doordashing every day', order: 1050.101, price: 50000e15, icon: [28, 30], pos: [-472, 2517],
+                ddesc: 'Consumable Fortune Cookies regenerate once every <b>day</b>.<q>You can practically smell the financial irresponsibility.</q>',
+                require: ['Second day takeout']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Rare game hunter', order: 1050.019, price: 10e15, icon: JNE.icon(24, 12, 'main'), pos: [-58, 2038],
+                ddesc: 'Shiny Wrinklers are <b>25%</b> more common.',
+                require: ['Just natural expansion heavenly upgrades']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Hellish hunger', order: 1050.02, price: 15e15, icon: JNE.icon(21, 16, 'custom'), pos: [-212, 1935],
+                ddesc: 'Wrinklers suck <b>10%</b> more.',
+                require: ['Rare game hunter']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Ravenous leeches', order: 1050.021, price: 15e15, icon: JNE.icon(21, 17, 'custom'), pos: [-329, 1835],
+                ddesc: 'Wrinklers suck <b>20%</b> more.<q>Sluuuurrrp.</q>',
+                require: ['Hellish hunger']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unlocked gates of hell', order: 1050.022, price: 20e15, icon: JNE.icon(17, 27, 'custom'), pos: [-114, 1885],
+                ddesc: 'Wrinklers spawn <b>10%</b> faster.',
+                require: ['Rare game hunter']
+            });
+            createHeavenlyUpgrade({
+                name: 'Wide open door of hell', order: 1050.023, price: 20e15, icon: JNE.icon(17, 27, 'custom'), pos: [-175, 1704],
+                ddesc: 'Wrinklers spawn <b>20%</b> faster.<q>Are you trying to air condition the whole damned underworld?</q>',
+                require: ['Unlocked gates of hell']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Indigenous tracker', order: 1050.024, price: 100e15, icon: JNE.icon(24, 12, 'main'), pos: [-346, 1690],
+                ddesc: 'Shiny Wrinklers are <b>50%</b> more common.',
+                require: ['Ravenous leeches', 'Wide open door of hell']
+            });
+            createHeavenlyUpgrade({
+                name: 'Species bounceback', order: 1050.025, price: 250e15, icon: JNE.icon(19, 27, 'custom'), pos: [-466, 1607],
+                ddesc: 'Shiny Wrinklers are <b>twice</b> as common.<q>Good news, shiny wrinklers have been removed from the critically endangered list, bad news if you keep popping them they will end up right back on it.</q>',
+                require: ['Indigenous tracker']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'The prize at the bottom of the box', order: 1050.037, price: 80e15, icon: [20, 9], pos: [-254, 2024],
+                ddesc: 'Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Just like old cereal boxes, dig through enough weird, crunchy horrors and eventually you\'ll find something shiny and powerful.</q>',
+                require: ['Rare game hunter']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Double box prize', order: 1050.038, price: 150e15, icon: [33, 3], pos: [-549, 1786],
+                ddesc: 'Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Turns out the real prize wasn\'t a decoder ring.</q>',
+                require: ['The prize at the bottom of the box']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Mail in sweepstake winner', order: 1050.039, price: 250e15, icon: [34, 8], pos: [-763, 1517],
+                ddesc: 'Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>As powerful as mail away x-ray specs.</q>',
+                require: ['Double box prize']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Glittery jam', order: 1050.044, price: 2.5e19, icon: JNE.icon(16, 18, 'custom'), pos: [-967, 1429],
+                ddesc: 'Shiny wrinklers have a <b>6.66x greater</b> chance of providing their Jam Filling buff when popped.<q>There is glitter in this jam. Fabulous…</q>',
+                require: ['Mail in sweepstake winner']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Box of wholesome pies', order: 1050.04, price: 40e17, icon: JNE.icon(10, 18, 'custom'), pos: [-989, 1581],
+                ddesc: 'Contains an assortment of delicious pie slices.<q>So good no one will know they aren\'t even cookies.</q>',
+                require: ['Mail in sweepstake winner']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unlucky luckier', order: 1050.094, price: 500e15, icon: JNE.icon(23, 17, 'custom'), pos: [-820, 1839],
+                ddesc: 'Lucky Golden Cookies are <b>5%</b> less common.<q>Lucky cookies are good but not that good.</q>',
+                require: ['Mail in sweepstake winner', 'Fading payout']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unfortunate cookies', order: 1050.098, price: 7.5e19, icon: JNE.icon(16, 16, 'custom'), pos: [-968, 1732],
+                ddesc: 'The news ticker may occasionally have <b>unfortunes</b> during the <b>Grandmapocalypse</b>, which may be clicked to unlock upgrades.<q>Jason figured it out? Jason? This is a real low point. Yeah, this one hurts. Ow.</q>',
+                require: ['Unlucky luckier']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Even more unlucky luckier', order: 1050.095, price: 8000e15, icon: JNE.icon(23, 15, 'custom'), pos: [-1091, 1841],
+                ddesc: 'Lucky Golden Cookies are <b>10%</b> less common.<q>Your younger self would be so disappointed to learn you wanted to get less lucky cookies.</q>',
+                require: ['Unlucky luckier']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Positive feedback loop', order: 1050.112, price: 5000000e17, icon: JNE.icon(22, 17, 'custom'), pos: [-1303, 2010],
+                ddesc: 'After <b>earning</b> an achievement <b>golden cookies</b> appear <b>10%</b> more often for an hour.<q>Scientists call it "operant conditioning". You call it "Ooh, another shiny widget to click on."</q>',
+                require: ['Six bells', 'Even more unlucky luckier']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Critical feedback mass', order: 1050.129, price: 7.5e23, icon: JNE.icon(14, 12, 'custom'), pos: [-1475, 1974],
+                ddesc: 'Your buildings boosts their own output by <b>0.1%</b> for every <b>10</b> of that building you own.<q>Orteil claimed it couldn\'t be done and was broken but eh ok maybe this is broken I guess we will see.</q>',
+                require: ['Positive feedback loop']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Stacks on stacks on stacks', order: 1050.131, price: 1000e21, icon: [12, 36], pos: [-1366, 2274],
+                ddesc: 'Each golden cookie clicked this ascension increases <b>CpS</b> by <b>0.05%</b>.<q>If you stack cookies high enough, they eventually start generating their own gravitational field. Useful!</q>',
+                require: ['Positive feedback loop', 'Sugar baking VI']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Runaway clickers', order: 1050.132, price: 1e25, icon: JNE.icon(9, 1, 'custom'), pos: [-1471, 2435],
+                ddesc: 'Your click frenzies last <b>10%</b> longer.<q>You know I put a lot of effort into writing these flavor text so they are fun and whimsical with a special flair of puns and nostalgia, but it is pretty exhausting.</q>',
+                require: ['Stacks on stacks on stacks']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'We can build up', order: 1050.133, price: 1e25, icon: JNE.icon(11, 33, 'main'), pos: [-1555, 2285],
+                ddesc: 'Your building specials last <b>10%</b> longer.<q>When you are out of space just go up.</q>',
+                require: ['Stacks on stacks on stacks']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unique buildings', order: 1050.135, price: 1e27, icon: JNE.icon(18, 33, 'main'), pos: [-1655, 2427],
+                ddesc: 'Getting a building special for a building you already have a building special active on is slightly less likely.<q>Yes of course I want a building special, duh. No no no, not that one though, damnit.</q>',
+                require: ['Runaway clickers', 'We can build up']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Dark chocolate milk', order: 1050.136, price: 1e28, icon: JNE.icon(2, 8, 'main'), pos: [-1595, 2727],
+                ddesc: 'Vanilla shadow achievements now grant milk.<q>So dark the light doesnt even shine through anymore.</q>',
+                require: ['Unique buildings', 'Sweet refunds', 'Even sweeter']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Into the shadowy deep', order: 1050.137, price: 2.5e28, icon: JNE.icon(15, 15, 'custom'), pos: [-1765, 2855],
+                ddesc: 'Adds <span style="text-decoration:underline;text-decoration-color:#f66;"><b style="color:#f66;">6 extremely difficult</b></span> and slightly unfair shadow achievements to the game.<q>You want more damn content? Take this content and shove it where the sun don\'t shine.</q>',
+                require: ['Dark chocolate milk']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Skitter skatter skrum ahh', order: 1050.026, price: 25e15, icon: [28, 11], pos: [-5, 1883],
+                ddesc: 'Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.<q>oooooh it sparkles!</q>',
+                require: ['Rare game hunter']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Abra-Ka-Wiggle', order: 1050.027, price: 250e15, icon: JNE.icon(5, 16, 'custom'), pos: [-52, 1610],
+                ddesc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
+                require: ['Skitter skatter skrum ahh']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Alakazoodle evil noodle', order: 1050.028, price: 750e15, icon: JNE.icon(14, 16, 'custom'), pos: [-278, 1393],
+                ddesc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.<q>I think I missed this day at Hogwarts.</q>',
+                require: ['Abra-Ka-Wiggle']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Cockroaches', order: 1050.03, price: 50000e15, icon: [15, 12], pos: [-291, 1216],
+                ddesc: 'Popping a wrinkler has a <b>1%</b> chance to summon another wrinkler immediately.<q>You know what they say, if you see one cockroach there are a thousand more just out of sight.</q>',
+                require: ['Alakazoodle evil noodle']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Infestation', order: 1050.031, price: 250000e15, icon: [15, 12], pos: [-144, 1346],
+                ddesc: 'Popping a wrinkler has a <b>2%</b> chance to summon another wrinkler immediately.<q>Some say Wrinklers are the only thing that will survive a nuclear apocalypse, I disagree, I don\'t think nuclear weapons can hurt Nokia phones either.</q>',
+                require: ['Cockroaches']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Clicklers', order: 1050.032, price: 6.66e21, icon: JNE.icon(14, 27, 'custom'), pos: [-146, 1164],
+                ddesc: 'A fairly uncommon subspecies of wrinkler, the <b>Clicklers</b>, consume only cookies that come from <b>clicking</b> the Big Cookie. This genetic variation changed their appearance and gives them a higher chance of <b>Jam Filling</b> when burst.<q>You\'re an interesting species. An interesting mix. You\'re capable of such beautiful dreams, and such horrible nightmares. You feel so lost, so cut off, so alone, only you\'re not. See, in all our searching, the only thing we\'ve found that makes the emptiness bearable, is each other.</q>',
+                require: ['Infestation']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'The hunger grows', order: 1050.033, price: 6.66e23, icon: JNE.icon(15, 27, 'custom'), pos: [-12, 1306],
+                ddesc: 'Clicklers\' appetite is <b>twice</b> as strong.<q>We cannot get out. We cannot get out... The end comes, and then drums, drums in the deep... they are coming.</q>',
+                require: ['Clicklers']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'An interesting species', order: 1050.034, price: 6.66e25, icon: JNE.icon(16, 27, 'custom'), pos: [-2, 1128],
+                ddesc: 'Clicklers are <b>twice</b> as common.<q>You know, Burke, I don\'t know which species is worse. You don\'t see them screwing each other over for a goddamn percentage.</q>',
+                require: ['The hunger grows']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Slimy pheromones', order: 1050.029, price: 5000e15, icon: JNE.icon(18, 26, 'custom'), pos: [-265, 1583],
+                ddesc: 'If you have a shiny wrinkler on your cookie, you are <b>3x</b> as likely to attract another.<q>Here we find a rare shiny wrinkler, its skin catching the light in a way its species has no right to. Naturally, this peculiarity attracts the rest, who approach like scientists inspecting a colleague who has made a questionable life choice.</q>',
+                require: ['Alakazoodle evil noodle', 'Species bounceback']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Bingo center slots', order: 1050.035, price: 75e19, icon: JNE.icon(18, 24, 'custom'), pos: [-424, 1457],
+                ddesc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade, your grandmas can now play the slots. The more grandmas you own, the more pulls they make. Jackpots are rare, but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!<q>They just love sitting there all day feeding quarters into the machines. Despite the zombie-like appearance, it actually keeps them more docile.</q>',
+                require: ['Slimy pheromones']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'When the sun goes down', order: 1050.036, price: 1.1e21, icon: JNE.icon(20, 27, 'custom'), pos: [-580, 1509],
+                ddesc: 'Your grandmas are twice as lucky playing slots during the Grandmapocalypse.<q>Things really get crazy at night in the bingo halls.</q>',
+                require: ['Bingo center slots']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Pink stuff', order: 1050.041, price: 800e15, icon: JNE.icon(22, 20, 'custom'), pos: [-533, 1295],
+                ddesc: 'Adds a switch to toggle on <b>Winklers</b> (note: <b>not</b> Wrinklers).<q>O M G SO CUTEEEEEEE!!!</q>',
+                require: ['Mail in sweepstake winner', 'Alakazoodle evil noodle']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Frenziered elders', order: 1050.042, price: 1500e17, icon: [2, 9], pos: [-751, 1243],
+                ddesc: 'Your elder frenzies last <b>25%</b> longer. <q>The elders are really getting out of control, perhaps we should cut back on their sugar intake?</q>',
+                require: ['Pink stuff']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Pact with the devil', order: 1050.043, price: 9.9e21, icon: JNE.icon(29, 6, 'main'), pos: [-941, 1267],
+                ddesc: 'The chances of an Elder Frenzy being found in a wrath cookie increases the more wrinklers you currently have on your cookie.<q>Golden fiddle not included.</q>',
+                require: ['Frenziered elders']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Creative tax evasion', order: 1050.062, price: 75e15, icon: [34, 12], pos: [552, 2152],
+                ddesc: 'Negative loan effects are shorter.<q>Reducing downside exposure through aggressive imagination and creative bookkeeping.</q>',
+                require: ['Wallstreet bets']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'The checkbox', order: 1050.127, price: 500e15, icon: JNE.icon(22, 24, 'custom'), pos: [-240, 2805],
+                ddesc: 'This upgrade doesn\'t do anything.<q>Or does it...? Nope, it doesn\'t... really for sure, believe me. Well maybe I lied, maybe it does. Does it really matter in the end?</q>',
+                require: ['Sugar predictor']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Improved checkboxes', order: 1050.128, price: 500e18, icon: JNE.icon(22, 24, 'custom'), pos: [-379, 2924],
+                ddesc: 'Your checkbox is <b>1000x</b> more powerful!<q>Still doesn\'t do anything... or does it!?</q>',
+                require: ['The checkbox']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'The legend of Krumblor', order: 1050.134, price: 777e24, icon: JNE.icon(6, 17, 'custom'), pos: [-737, 2883],
+                ddesc: 'Adds a <b>third aura slot</b> to Krumblor that can be unlocked by sacrificing <b>1000</b> of every building.<q>This feels like a very bad idea for so many reasons.</q>',
+                require: ['Improved checkboxes']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Water cooled processors', order: 1050.066, price: 250e15, icon: JNE.icon(21, 24, 'custom'), pos: [1057, 2100],
                 ddesc: 'Terminal minigame cooldown is reduced by 1 hour.<q>Water and delicate electronics together at last, what\'s the worst that can happen?</q>',
-                price: 250e15,
-                icon: JNE.icon(21, 24, 'custom'),
-                posX: -1371,
-                posY: -870,
                 require: ['Gilded allure', 'Aerated soil']
             });
 
             createHeavenlyUpgrade({
-                name: 'Overclocked GPUs',
-                desc: 'Terminal minigame has one extra slot.',
-                ddesc: 'Terminal minigame has one extra slot.<q>Triple the price for 3.5% more power, now with flashing LEDs.</q>',
-                price: 500e15,
-                icon: JNE.icon(20, 24, 'custom'),
-                posX: -1368,
-                posY: -1027,
+                name: 'Command S', order: 1050.067, price: 3.8e17, icon: JNE.icon(8, 16, 'custom'), pos: [1089, 1948],
+                ddesc: 'Adds the <b>Save Loadout</b> program to the terminal minigame allowing you to save and more importantly restore an entire execution queue.<q>Remember to backup your save.</q>',
                 require: ['Water cooled processors']
             });
 
             createHeavenlyUpgrade({
-                name: 'Mega clicks',
-                desc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.',
+                name: 'Overclocked GPUs', order: 1050.068, price: 500e15, icon: JNE.icon(20, 24, 'custom'), pos: [1216, 2071],
+                ddesc: 'Terminal minigame has one extra slot.<q>Triple the price for 3.5% more power, now with flashing LEDs.</q>',
+                require: ['Water cooled processors']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Divine potions', order: 1050.069, price: 7.5e17, icon: JNE.icon(2, 27, 'custom'), pos: [1328, 1952],
+                ddesc: 'Your ready to use potions have a <b>10%</b> chance of being preserved through an ascension.<q>Mana from the heavens indeed!</q>',
+                require: ['Overclocked GPUs']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Divine reagents', order: 1050.07, price: 7.5e17, icon: JNE.icon(14, 12, 'custom'), pos: [1330, 2190],
+                ddesc: 'Your stored reagents have a <b>10%</b> chance of being preserved through an ascension.<q>There are always reagents in the banana stand.</q>',
+                require: ['Overclocked GPUs']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Mega clicks', order: 1050.081, price: 50e19, icon: JNE.icon(9, 7, 'custom'), pos: [341, 2695],
                 ddesc: '<b>1%</b> of cookie clicks are mega clicks and are <b>10x</b> more powerful than regular old clicks.<q>MEGA CLICK!!!!</q>',
-                price: 50e19,
-                icon: JNE.icon(9, 7, 'custom'),
-                posX: -1805,
-                posY: -118,
                 require: ['Box of overpriced donuts']
             });
 
             createHeavenlyUpgrade({
-                name: 'Lucky mega clicks',
-                desc: 'Mega clicks are now <b>50%</b> more common.',
-                ddesc: 'Mega clicks are now <b>50%</b> more common.<q>We can\'t believe they found a way to make mega clicks even more awesome either.</q>',
-                price: 500e19,
-                icon: JNE.icon(9, 8, 'custom'),
-                posX: -1719,
-                posY: 17,
+                name: 'Idle clicks', order: 1050.082, price: 5e21, icon: JNE.icon(14, 18, 'custom'), pos: [511, 2727],
+                ddesc: 'Adds an idle click meter which slowly refills over time. The longer you go without clicking the more powerful your clicks become.<q>Sometimes the best way to win is to not click at all.</q>',
                 require: ['Mega clicks']
             });
 
             createHeavenlyUpgrade({
-                name: 'Extreme mega clicks',
-                desc: 'Mega clicks are now <b>50%</b> more powerful.',
+                name: 'Better idle clicking', order: 1050.086, price: 5.25e24, icon: JNE.icon(14, 18, 'custom'), pos: [656, 2810],
+                ddesc: 'Idle clicks recharge <b>10%</b> faster and are <b>10%</b> more powerful.<q>Just because we could doesn\'t mean we have to.</q>',
+                require: ['Idle clicks', 'Epic clicks']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Lucky mega clicks', order: 1050.083, price: 500e19, icon: JNE.icon(9, 8, 'custom'), pos: [380, 2831],
+                ddesc: 'Mega clicks are now <b>50%</b> more common.<q>We can\'t believe they found a way to make mega clicks even more awesome either.</q>',
+                require: ['Mega clicks']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Extreme mega clicks', order: 1050.084, price: 5000e19, icon: JNE.icon(9, 10, 'custom'), pos: [469, 3013],
                 ddesc: 'Mega clicks are now <b>50%</b> more powerful.<q>Extreme power for extreme clicks!</q>',
-                price: 5000e19,
-                icon: JNE.icon(9, 10, 'custom'),
-                posX: -1626,
-                posY: 155,
                 require: ['Lucky mega clicks']
             });
 
             createHeavenlyUpgrade({
-                name: 'Godzamok\'s Headstart',
-                desc: 'Godzamok buffs last <b>10%</b> longer.',
+                name: 'Epic clicks', order: 1050.085, price: 75e22, icon: JNE.icon(9, 0, 'custom'), pos: [632, 2975],
+                ddesc: '<b>1%</b> of your mega clicks are now epic clicks, and epic clicks are <b>100x</b> stronger than mega clicks.<q>These clicks are getting way out of hand, or should I say cursor.</q>',
+                require: ['Extreme mega clicks']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Godzamok\'s Headstart', order: 1050.061, price: 50000e15, icon: [23, 18], pos: [716, 2705],
                 ddesc: 'Godzamok\'s buffs last <b>10%</b> longer.<q>We shouldn\'t be encouraging his destructive behavior, but he is kinda cute.</q>',
-                price: 50000e15,
-                icon: [23, 18],
-                posX: -1418,
-                posY: -25,
                 require: ['Divine uninspiration']
             });
 
             createHeavenlyUpgrade({
-                name: 'Slightly less bitter wrath',
-                desc: 'Ruin cookies are found <b>5%</b> less often in wrath cookies.',
+                name: 'Slightly less bitter wrath', order: 1050.096, price: 50000e15, icon: [10, 29], pos: [-1270, 1773],
                 ddesc: 'Ruin cookies are found <b>5%</b> less often in wrath cookies.<q>The cookies are still ruined, but at least they are a bit less ruined.</q>',
-                price: 50000e15,
-                icon: [10, 29],
-                posX: -3528,
-                posY: -1151,
                 require: ['Even more unlucky luckier']
             });
 
             createHeavenlyUpgrade({
-                name: 'Flavor enhanced wrath',
-                desc: 'Ruin cookies are found <b>10%</b> less often in wrath cookies.',
+                name: 'Flavor enhanced wrath', order: 1050.097, price: 300000e15, icon: [15, 5], pos: [-1124, 1672],
                 ddesc: 'Ruin cookies are found <b>10%</b> less often in wrath cookies.<q>We found a way to improve the flavor of the wrath cookies, it turns out you just need a pinch of essence of evil not the whole tablespoon we had been using.</q>',
-                price: 300000e15,
-                icon: [15, 5],
-                posX: -3372,
-                posY: -1146,
                 require: ['Slightly less bitter wrath']
             });
 
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled sterlicious', orderAfter: 'Unshackled glimmeringue', price: 1e20, icon: JNE.icon(10, 0, 'custom'), pos: [450, 491],
+                ddesc: 'Unshackles <b>Sterlicious</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Sterlicious is a highly reflective metallic element with an unusual affinity for sugars. Its crystalline structure makes it particularly suitable for decorative confectionery, though its tendency to develop a dull appearance when placed beside Championchip has long puzzled metallurgists.</q>',
+                require: ['Unshackled glimmeringue']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled championchip', orderAfter: 'Unshackled sterlicious', price: 2e20, icon: JNE.icon(10, 1, 'custom'), pos: [551, 433],
+                ddesc: 'Unshackles <b>Championchip</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Championchip is a rare, golden-hued metal whose molecular structure closely resembles that of sterlicious. Despite sharing nearly identical physical properties, championchip commands a considerably higher price, a discrepancy generally attributed to its superior atomic number and better publicity.</q>',
+                require: ['Unshackled sterlicious']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled gumshoechew', orderAfter: 'Unshackled championchip', price: 4e20, icon: JNE.icon(10, 2, 'custom'), pos: [663, 489],
+                ddesc: 'Unshackles <b>Gumshoechew</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Gumshoechew is a dark, aromatic material whose popularity peaked during the golden age of private investigation. Its distinctive flavor develops through slow oxidation involving tobacco residue, aged spirits, and trace amounts of municipal corruption. The original formula has proven difficult to reproduce under modern food safety regulations.</q>',
+                require: ['Unshackled championchip']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled atomalt', orderAfter: 'Unshackled gumshoechew', price: 8e20, icon: JNE.icon(10, 3, 'custom'), pos: [788, 495],
+                ddesc: 'Unshackles <b>Atomalt</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>First synthesized during the postwar technological boom, atomalt was heralded as the beginning of a new age of scientific confectionery. Its unusual crystalline structure allows it to retain heat indefinitely while producing a pleasant, malty sweetness. Early advertisements promised that every household would soon possess its own atomalt reactor, a prediction that proved somewhat optimistic.</q>',
+                require: ['Unshackled gumshoechew']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled groovium', orderAfter: 'Unshackled atomalt', price: 16e20, icon: JNE.icon(10, 4, 'custom'), pos: [904, 448],
+                ddesc: 'Unshackles <b>Groovium</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Groovium is an unstable compound composed almost entirely of free radicals, which show little interest in forming conventional molecular bonds. Its muted pastel hues and sweet, earthy aroma made it popular among countercultural communities, where its tendency to spread spontaneously was celebrated as a triumph of collective consciousness rather than a containment problem.</q>',
+                require: ['Unshackled atomalt']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled retroffee', orderAfter: 'Unshackled groovium', price: 32e20, icon: JNE.icon(10, 5, 'custom'), pos: [991, 358],
+                ddesc: 'Unshackles <b>Retroffee</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Developed during the 1970s as a practical alternative to the more experimental materials of the preceding decade, retroffee is a warm, brownish compound with a mild coffee aroma. Its remarkable stability and complete absence of unexpected properties made it particularly popular among manufacturers seeking to reassure an increasingly exhausted public.</q>',
+                require: ['Unshackled groovium']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled synthberry', orderAfter: 'Unshackled retroffee', price: 64e20, icon: JNE.icon(10, 6, 'custom'), pos: [1033, 240],
+                ddesc: 'Unshackles <b>Synthberry</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Advances in polymer chemistry during the 1980s made it possible to reproduce nearly any natural flavor without involving the original fruit. Synthberry was among the more successful results, finding applications in both confectionery and early personal computers, although prolonged exposure occasionally caused the latter to develop a preference for fantasy literature.</q>',
+                require: ['Unshackled retroffee']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled neonblast', orderAfter: 'Unshackled synthberry', price: 128e20, icon: JNE.icon(10, 7, 'custom'), pos: [1024, 115],
+                ddesc: 'Unshackles <b>Neonblast</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Neonblast is an intensely colored compound capable of producing hundreds of artificial flavors, none of which correspond to any known fruit. Its popularity surged during the 1990s, when manufacturers discovered that children consistently preferred substances with increasingly improbable colors, particularly those capable of permanently staining household furnishings.</q>',
+                require: ['Unshackled synthberry']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled cybercandy', orderAfter: 'Unshackled neonblast', price: 256e20, icon: JNE.icon(10, 8, 'custom'), pos: [963, 6],
+                ddesc: 'Unshackles <b>Cybercandy</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Cybercandy is a metallic, highly reflective compound whose molecular structure can be manipulated using inexpensive consumer electronics. Its discovery allowed virtually anyone to produce elaborate confectionery designs without specialized training. The resulting explosion of creativity was accompanied by a corresponding decline in aesthetic standards.</q>',
+                require: ['Unshackled neonblast']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled magmallow', orderAfter: 'Unshackled cybercandy', price: 512e20, icon: JNE.icon(10, 9, 'custom'), pos: [864, -70],
+                ddesc: 'Unshackles <b>Magmallow</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Magmallow is a viscous, reddish substance whose melting point varies considerably depending on whether it is being heated or cooled. This peculiar property gives it the consistency of a freshly toasted marshmallow while retaining enough internal heat to illuminate its surroundings. Its applications in confectionery and emergency lighting are still being explored.</q>',
+                require: ['Unshackled cybercandy']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Unshackled blazium', orderAfter: 'Unshackled magmallow', price: 1024e20, icon: JNE.icon(10, 10, 'custom'), pos: [742, -98],
+                ddesc: 'Unshackles <b>Blazium</b> building upgrades, making their discounts and efficiency bonuses stronger.<q>Blazium is an extraordinarily rare compound whose deep violet crystals contain a high concentration of naturally occurring sugars and aromatic esters. Its distinctive flavor develops only when exposed to open flame, at which point it begins to burn indefinitely without losing mass. Attempts to reproduce this property artificially have yielded several promising results and considerably fewer laboratories.</q>',
+                require: ['Unshackled magmallow']
+            });
+
+            createHeavenlyUpgrade({
+                name: 'Permanent upgrade slot VI', orderAfter: 'Permanent upgrade slot V', price: 1e21, icon: JNE.icon(21, 27, 'custom'), permanentSlot: 5, pos: [613, 142],
+                ddesc: 'Placing an upgrade in this slot will make its effects <b>permanent</b> across all playthroughs.<q>Now available in the model 6.</q>',
+                require: ['Permanent upgrade slot V']
+            });
+            linkHeavenlyParents();
+            createBoxContents();
+            createUnfortunates();
             return parentUpgrade;
         }
 
         // ===== SAVE/LOAD SYSTEM =====
-        var DONUT_NAMES = window.JNEData.donutUpgradeNames;
-
         function getHeavenlyUpgradeNames() {
             if (!Game || !Game.Upgrades) {
                 return [];
@@ -6094,9 +6419,7 @@
             // Find upgrades marked as ours, or toggle upgrades we create, or known heavenly upgrades
             for (var name in Game.Upgrades) {
                 var upgrade = Game.Upgrades[name];
-                // Exclude donuts from heavenly upgrades save data - they are cookie upgrades
-                var isDonut = DONUT_NAMES.indexOf(name) !== -1;
-                if (upgrade && !isDonut && (upgrade._heavenlyUpgrade ||
+                if (upgrade && (upgrade._heavenlyUpgrade ||
                     name === 'Toy mode [on]' || name === 'Toy mode [off]' ||
                     name === 'Pink stuff [on]' || name === 'Pink stuff [off]' ||
                     name === 'Sugar trade' ||
@@ -6139,6 +6462,112 @@
             return upgradeNames;
         }
 
+        // Temple loaded and both mod gods injected (they arrive on a later check tick than the temple itself)
+        function modGodsReady(M) {
+            return !!(M && M.slot && M.gods && M.godsById && ['procrastination', 'selfishness'].every(function(k) { return M.gods[k] && M.gods[k].id !== undefined; }));
+        }
+
+        function collectPantheon(saveData) {
+            var M = loadedMinigame('Temple');
+            if (M && modGodsReady(M) && !Game.JNE._pendingPantheon) {
+                if (Array.isArray(M.slot)) {
+                    saveData.pantheon.slots = [];
+                    var customGodKeys = ['procrastination', 'selfishness'];
+                    for (var i = 0; i < M.slot.length; i++) {
+                        var godId = M.slot[i];
+                        if (godId !== undefined && godId !== -1 && M.godsById[godId] && M.godsById[godId].key) {
+                            var godKey = M.godsById[godId].key;
+                            if (customGodKeys.indexOf(godKey) !== -1) {
+                                saveData.pantheon.slots[i] = godKey;
+                            } else {
+                                saveData.pantheon.slots[i] = -1; // Not our god, don't save
+                            }
+                        } else {
+                            saveData.pantheon.slots[i] = -1;
+                        }
+                    }
+                }
+                if (M._procrastinationSlotTime !== undefined && M._procrastinationSlotTime !== null) {
+                    saveData.pantheon.procrastinationSlotTime = M._procrastinationSlotTime;
+                }
+                if (M._selfishnessClickCount !== undefined) {
+                    saveData.pantheon.selfishnessClickCount = M._selfishnessClickCount || 0;
+                }
+            } else {
+                // temple not loaded, gods not injected, or block not applied yet: keep the last known block
+                var held = Game.JNE._pendingPantheon || (Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.pantheon);
+                if (held) saveData.pantheon = JSON.parse(JSON.stringify(held));
+            }
+        }
+
+        // Farm loaded and the three mod plants injected (they arrive on a later check tick than the farm itself)
+        function modPlantsReady(M) {
+            return !!(M && M.plants && M.plantsById && M.plot && MOD_PLANT_KEYS.every(function(k) { return M.plants[k] && M.plants[k].id !== undefined; }));
+        }
+
+        function collectGarden(saveData) {
+            var M = loadedMinigame('Farm');
+            var held = Game.JNE._pendingGarden || (Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.garden);
+            if (M && modPlantsReady(M) && !Game.JNE._pendingGarden) {
+                saveData.garden.soil = M.soil || 0;
+                var modPlants = [];
+                var plotH = M.h || M.plot.length, plotW = M.w || (M.plot[0] && M.plot[0].length || 0);
+                for (var y = 0; y < plotH; y++) {
+                    if (!M.plot[y]) continue;
+                    for (var x = 0; x < plotW; x++) {
+                        var tile = M.plot[y][x];
+                        if (tile && tile[0] > 0) {
+                            var plant = M.plantsById[tile[0] - 1];
+                            if (plant && plant.key && isModPlant(plant.key)) {
+                                modPlants.push({x: x, y: y, plantKey: plant.key, age: tile[1] || 0});
+                            }
+                        }
+                    }
+                }
+                saveData.garden.modPlants = modPlants;
+                saveData.garden.modSeedsUnlocked = {};
+                MOD_PLANT_KEYS.forEach(function(k) { saveData.garden.modSeedsUnlocked[k] = M.plants[k].unlocked || 0; });
+            } else if (held) {
+                // farm not loaded, plants not injected, or block not applied yet: keep the last known block
+                saveData.garden = JSON.parse(JSON.stringify(held));
+                if (M && !Game.JNE._pendingGarden) saveData.garden.soil = M.soil || 0;
+            }
+        }
+
+        function collectBuffs(saveData) {
+            // Save custom buffs
+            if (Game.buffs) {
+                var customBuffTypes = ['feedback loop', 'jam filling', 'gilded allure', 'midas curse'];
+                for (var i in Game.buffs) {
+                    var buff = Game.buffs[i];
+                    if (buff && buff.type && buff.type.name && customBuffTypes.indexOf(buff.type.name) !== -1) {
+                        var timeRemaining = buff.time ? (buff.time / Game.fps) : 0;
+                        var power = buff.power || 1;
+                        saveData.buffs.push({
+                            type: buff.type.name,
+                            time: timeRemaining,
+                            power: power
+                        });
+                    }
+                }
+            }
+        }
+
+        function collectFarmDrops(saveData) {
+            // Save farm drop cookies state
+            saveData.farmDropCookies = {};
+            var farmDropNames = ['Hearty farm biscuit', 'Astronaut cookie', 'The chemist cookie'];
+            farmDropNames.forEach(function(name) {
+                var upgrade = Game.Upgrades[name];
+                if (upgrade) {
+                    saveData.farmDropCookies[name] = {
+                        unlocked: upgrade.unlocked || 0,
+                        bought: upgrade.bought || 0
+                    };
+                }
+            });
+        }
+
         function getSaveData() {
             //Don't save while we're restoring data - prevents corruption
             if (Game.JNE._isRestoringData) {
@@ -6149,132 +6578,35 @@
                 // Save data collection started
                 if (!Game.JNE) Game.JNE = {};
 
-                var saveData = {
-                    version: MOD_HU_VERSION,
-                    boughtUpgrades: [],
-                    pantheon: {},
-                    garden: {},
-                    buffs: [],
-                    switches: {},
-                    settings: {},
-                    timers: {},
-                    stats: {},
-                    bigCookieImage: 0
-                };
+                var saveData = { version: MOD_HU_VERSION, boughtUpgrades: [], boxRun: Game.resets, pantheon: {}, garden: {}, buffs: [], switches: {}, settings: {}, timers: {}, stats: {}, bigCookieImage: 0 };
 
                 var upgradeNames = getHeavenlyUpgradeNames();
 
                 upgradeNames.forEach(function(name) {
                     // Skip toggle upgrades - they're saved in switches section only
-                    if (name === 'Toy mode [on]' || name === 'Toy mode [off]' ||
-                        name === 'Pink stuff [on]' || name === 'Pink stuff [off]') {
-                        return;
-                    }
+                    if (TOGGLE_NAMES.indexOf(name) !== -1) return;
 
                     var upgrade = Game.Upgrades[name];
                     if (upgrade && upgrade.bought) {
                         saveData.boughtUpgrades.push(name);
                     }
                 });
-
-                // If a donut doesnt exist in Game.Upgrades (transient deletion during a reload),
-                // fall back to heavenlyUpgradesSavedData which was populated from the incoming save
-                // by setHeavenlyUpgradesSave before any deletions happened.
-                var _savedHU = Game.JNE.heavenlyUpgradesSavedData;
-                DONUT_NAMES.forEach(function(name) {
-                    var upgrade = Game.Upgrades[name];
-                    if (upgrade && upgrade.bought) {
-                        saveData.boughtUpgrades.push(name);
-                    } else if (!upgrade && _savedHU && Array.isArray(_savedHU.boughtUpgrades) &&
-                            _savedHU.boughtUpgrades.indexOf(name) !== -1) {
-                        saveData.boughtUpgrades.push(name);
-                    }
+                // keep names this build does not define so a save never drops them
+                (Game.JNE._huUnknownOwned || []).forEach(function(n) {
+                    if (!Game.Upgrades[n] && saveData.boughtUpgrades.indexOf(n) === -1) saveData.boughtUpgrades.push(n);
                 });
+                if (Game.JNE._huRevoked) saveData.revokedBackup = Game.JNE._huRevoked;
+                saveData.unfortunate = unfortunates.filter(function(u) { return u.unlocked; }).map(function(u) { return u.name; });
 
-                var temple = Game.Objects['Temple'];
-                if (temple && temple.minigameLoaded && temple.minigame) {
-                    var M = temple.minigame;
-                    if (M.slot && Array.isArray(M.slot) && M.godsById && M.gods) {
-                        saveData.pantheon.slots = [];
-                        var customGodKeys = ['procrastination', 'selfishness'];
-                        for (var i = 0; i < M.slot.length; i++) {
-                            var godId = M.slot[i];
-                            if (godId !== undefined && godId !== -1 && M.godsById[godId] && M.godsById[godId].key) {
-                                var godKey = M.godsById[godId].key;
-                                if (customGodKeys.indexOf(godKey) !== -1) {
-                                    saveData.pantheon.slots[i] = godKey;
-                                } else {
-                                    saveData.pantheon.slots[i] = -1; // Not our god, don't save
-                                }
-                            } else {
-                                saveData.pantheon.slots[i] = -1;
-                            }
-                        }
-                    }
-                    if (M._procrastinationSlotTime !== undefined && M._procrastinationSlotTime !== null) {
-                        saveData.pantheon.procrastinationSlotTime = M._procrastinationSlotTime;
-                    }
-                    if (M._selfishnessClickCount !== undefined) {
-                        saveData.pantheon.selfishnessClickCount = M._selfishnessClickCount || 0;
-                    }
-                } else {
-                    // Temple not loaded, skipping pantheon save
-                }
-
-                // Save garden data
-                var farm = Game.Objects['Farm'];
-                if (farm && farm.minigameLoaded && farm.minigame) {
-                    var M = farm.minigame;
-                    saveData.garden.soil = M.soil || 0;
-                    var modPlants = [];
-                    if (M.plants && M.plot && M.plantsById) {
-                        var plotH = M.h || M.plot.length, plotW = M.w || (M.plot[0] && M.plot[0].length || 0);
-                        for (var y = 0; y < plotH; y++) {
-                            if (!M.plot[y]) continue;
-                            for (var x = 0; x < plotW; x++) {
-                                var tile = M.plot[y][x];
-                                if (tile && tile[0] > 0) {
-                                    var plant = M.plantsById[tile[0] - 1];
-                                    if (plant && plant.key && isModPlant(plant.key)) {
-                                        modPlants.push({x: x, y: y, plantKey: plant.key, age: tile[1] || 0});
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    saveData.garden.modPlants = modPlants;
-                    saveData.garden.modSeedsUnlocked = {};
-                    if (M.plants) {
-                        if (M.plants['sparklingSugarCane']) saveData.garden.modSeedsUnlocked['sparklingSugarCane'] = M.plants['sparklingSugarCane'].unlocked || 0;
-                        if (M.plants['krazyKudzu']) saveData.garden.modSeedsUnlocked['krazyKudzu'] = M.plants['krazyKudzu'].unlocked || 0;
-                        if (M.plants['magicMushroom']) saveData.garden.modSeedsUnlocked['magicMushroom'] = M.plants['magicMushroom'].unlocked || 0;
-                    }
-                } else {
-                    // Farm not loaded yet: hold the last garden block until it can be applied
-                    var _prevGarden = Game.JNE.heavenlyUpgradesSavedData && Game.JNE.heavenlyUpgradesSavedData.garden;
-                    if (_prevGarden) saveData.garden = JSON.parse(JSON.stringify(_prevGarden));
-                }
-
-                // Save custom buffs
-                if (Game.buffs) {
-                    var customBuffTypes = ['feedback loop', 'jam filling', 'gilded allure', 'midas curse'];
-                    for (var i in Game.buffs) {
-                        var buff = Game.buffs[i];
-                        if (buff && buff.type && buff.type.name && customBuffTypes.indexOf(buff.type.name) !== -1) {
-                            var timeRemaining = buff.time ? (buff.time / Game.fps) : 0;
-                            var power = buff.power || 1;
-                            saveData.buffs.push({
-                                type: buff.type.name,
-                                time: timeRemaining,
-                                power: power
-                            });
-                        }
-                    }
-                }
+                collectPantheon(saveData);
+                collectGarden(saveData);
+                collectBuffs(saveData);
 
                 // Save switches
                 saveData.switches.sugarFrenzyLastUse = Game.sugarFrenzyLastUse || 0;
                 saveData.switches.sugarFrenzyPrice = Game.sugarFrenzyPrice || 1;
+                saveData.switches.sugarTradeLastUse = Game.sugarTradeLastUse || 0;
+                saveData.switches.sugarTradePrice = Game.sugarTradePrice || 1;
                 if (Game.fortuneChimeType !== undefined) {
                     saveData.switches.fortuneChimeType = Game.fortuneChimeType;
                 }
@@ -6297,20 +6629,12 @@
                 saveData.stats.bingoJackpotWins = Game.JNE.bingoJackpotWins || 0;
                 saveData.stats.ascensionSpecialJackpots = Game.JNE.ascensionSpecialJackpots || 0;
 
-                // Save farm drop cookies state
-                saveData.farmDropCookies = {};
-                var farmDropNames = ['Hearty farm biscuit', 'Astronaut cookie', 'The chemist cookie'];
-                farmDropNames.forEach(function(name) {
-                    var upgrade = Game.Upgrades[name];
-                    if (upgrade) {
-                        saveData.farmDropCookies[name] = {
-                            unlocked: upgrade.unlocked || 0,
-                            bought: upgrade.bought || 0
-                        };
-                    }
-                });
+                collectFarmDrops(saveData);
 
                 saveData.bigCookieImage = Game.cookieImageType || 0;
+                saveData.dragonSlot3 = Object.assign({}, dragonSlot3());
+                saveData.brinklers = (Game.wrinklers || []).filter(function(w) { return w && w.phase > 0 && w.type === 2; }).length;
+                saveData.brinklerStore = (Game.wrinklers || []).reduce(function(t, w) { return w && w.phase > 0 && w.type === 2 ? t + w.sucked : t; }, 0);
 
             // Cache this as last valid save data
             if (!Game.JNE) Game.JNE = {};
@@ -6374,98 +6698,206 @@
         }
 
         // Load function - apply save data and restore all states
-        function load(saveData) {
-            if (!saveData || typeof saveData !== 'object') {
-                return;
-            }
-            // no version + boughtUpgrades + upgrades = empty placeholder, ignore it (pre-0.6.7 `upgrades` part: safe to remove after June 2027)
-            if (!saveData.version && !saveData.boughtUpgrades && !saveData.upgrades) {
-                return;
+        // Slotted mod gods and timers apply once the temple is loaded and the mod gods injected; until then the block is held.
+        function applyPendingPantheon() {
+            var p = Game.JNE && Game.JNE._pendingPantheon;
+            var M = loadedMinigame('Temple');
+            if (!p || !modGodsReady(M)) return false;
+            M._procrastinationSlotTime = null;
+            M._selfishnessClickCount = 0;
+
+            if (p.slots) {
+                for (var i = 0; i < Math.min(p.slots.length, M.slot.length); i++) {
+                    var savedSlot = p.slots[i];
+                    if (!savedSlot || savedSlot === -1) continue;
+
+                    var god = null;
+                    if (typeof savedSlot === 'string' && M.gods[savedSlot]) {
+                        god = M.gods[savedSlot];
+                    } else if (typeof savedSlot === 'number' && M.godsById[savedSlot]) {
+                        god = M.godsById[savedSlot];
+                    }
+
+                    if (!god) continue;
+                    if (M.slot[i] !== -1) continue;
+
+                    if (god.upgrade && (!Game.Upgrades[god.upgrade] || !Game.Upgrades[god.upgrade].bought)) continue;
+
+                    // Use M.slotGod to ensure hooks are called during load
+                    M.slotGod(god, i);
+
+                    var godDiv = l('templeGod' + god.id);
+                    var slotDiv = l('templeSlot' + i);
+                    if (godDiv && slotDiv && godDiv.parentNode !== slotDiv) {
+                        slotDiv.appendChild(godDiv);
+                    }
+                    if (godDiv) godDiv.style.display = '';
+                }
+
+                Game.recalculateGains = true;
+                if (M.draw) M.draw();
             }
 
-            // upgrades must exist before we restore them
-            createUpgrades();
+            if (p.procrastinationSlotTime) M._procrastinationSlotTime = p.procrastinationSlotTime;
+            if (p.selfishnessClickCount !== undefined) M._selfishnessClickCount = p.selfishnessClickCount || 0;
+            Game.JNE._pendingPantheon = null; // cleared once the data is in, so a failure above is retried
 
-            //Check for duplicate loads before any state modifications
+            // Reapply hooks since they get overwritten during load
+            applySlotGodHook(M);
+
+            if (Game.Has('Sugar predictor')) hookSugarPredictorSlot(M);
+            return true;
+        }
+
+        function restorePantheon(saveData) {
             if (!Game.JNE) Game.JNE = {};
+            Game.JNE._pendingPantheon = null;
+            if (!saveData.pantheon) return;
+            Game.JNE._pendingPantheon = JSON.parse(JSON.stringify(saveData.pantheon));
+            applyPendingPantheon();
+        }
 
-            // prevent auto-saves during restoration
-            Game.JNE._isRestoringData = true;
-            if (Game.JNE._lastLoadData && Game.JNE._lastLoadTime &&
-                Game.JNE._lastLoadTime > Date.now() - 1000) { // Within 1 second
-                // But still preserve fortune chime type if it was set in this save
-                if (saveData.switches && saveData.switches.fortuneChimeType !== undefined) {
-                    Game.fortuneChimeType = saveData.switches.fortuneChimeType;
+        // Seeds and planted mod plants apply once the farm is loaded and the mod plants injected; until then the block is held.
+        function applyPendingGarden() {
+            var g = Game.JNE && Game.JNE._pendingGarden;
+            var M = loadedMinigame('Farm');
+            if (!g || !modPlantsReady(M)) return false;
+            if (g.modSeedsUnlocked) {
+                for (var key in g.modSeedsUnlocked) {
+                    if (g.modSeedsUnlocked.hasOwnProperty(key) && M.plants[key]) M.plants[key].unlocked = g.modSeedsUnlocked[key];
                 }
-                //Clear flag before returning or saves will be blocked forever
-                Game.JNE._isRestoringData = false;
-                return;
             }
+            if (g.modPlants && g.modPlants.length > 0) {
+                for (var j = 0; j < g.modPlants.length; j++) {
+                    var p = g.modPlants[j];
+                    var plant = M.plants[p.plantKey];
+                    if (plant && plant.id !== undefined) {
+                        var tile = M.plot[p.y] && M.plot[p.y][p.x];
+                        if (tile) {
+                            var currentPlantId = tile[0];
+                            var isEmptyTile = currentPlantId === 0;
+                            var hasCustomPlant = false;
+                            var isMeddleweed = false;
+                            if (currentPlantId > 0 && M.plantsById && M.plantsById[currentPlantId - 1]) {
+                                var currentPlant = M.plantsById[currentPlantId - 1];
+                                hasCustomPlant = isModPlant(currentPlant.key);
 
-            try {
-            // Track this load to prevent duplicates
-            Game.JNE._lastLoadData = JSON.stringify(saveData);
-            Game.JNE._lastLoadTime = Date.now();
-
-            // migration for save bug: preserve upgrades bought in memory but missing from save
-            var ownedUpgradeNames = (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades)) ? saveData.boughtUpgrades :
-                ((saveData.h && Array.isArray(saveData.h)) ? saveData.h : null);
-            if (ownedUpgradeNames) {
-                var saveBoughtSet = {};
-                for (var i = 0; i < ownedUpgradeNames.length; i++) {
-                    saveBoughtSet[ownedUpgradeNames[i]] = true;
-                }
-                // memory may have more bought than the save
-                var memoryBoughtCount = 0;
-                var memoryNotInSave = [];
-                for (var name in Game.Upgrades) {
-                    var upgrade = Game.Upgrades[name];
-                    if (upgrade && upgrade._heavenlyUpgrade && upgrade.bought && !saveBoughtSet[name]) {
-                        memoryNotInSave.push(name);
-                        memoryBoughtCount++;
-                    }
-                }
-                // If memory has upgrades not in save, add them to save data (migration from buggy saves)
-                if (memoryBoughtCount > 0) {
-                    if (!saveData.boughtUpgrades) saveData.boughtUpgrades = [];
-                    for (var i = 0; i < memoryNotInSave.length; i++) {
-                        saveData.boughtUpgrades.push(memoryNotInSave[i]);
+                                if (currentPlant.key === 'meddleweed') isMeddleweed = true;
+                            }
+                            if (isEmptyTile || hasCustomPlant || isMeddleweed) {
+                                tile[0] = plant.id + 1;
+                                if (p.age !== undefined) tile[1] = p.age;
+                            }
+                        }
                     }
                 }
             }
+            Game.JNE._pendingGarden = null; // cleared once the data is in, so a failure above is retried
+            if (M.computeEffs) M.computeEffs();
+            if (M.buildPanel) {
+                M.buildPanel();
+                // If garden is already open, we need to rebuild again after a short delay
+                if (l('gardenContent') && l('gardenContent').style.display !== 'none') {
+                    setTimeout(function() {
+                        if (M.buildPanel) {
+                            M.buildPanel();
+                        }
+                    }, 50);
+                }
+            }
+            if (M.buildPlot) M.buildPlot();
+            M.toRebuild = true;
+            if (M.draw) M.draw();
+            return true;
+        }
 
-            // Reset setup function 'ran' flags so vanilla-deleted upgrades/plants can be recreated
+        function restoreGarden(saveData) {
+            if (!Game.JNE) Game.JNE = {};
+            Game.JNE._pendingGarden = null;
+            if (!saveData.garden) return;
+            var M = minigameOf('Farm');
+            if (M && saveData.garden.soil !== undefined) {
+                // validate soil ID (Aerated soil is created later)
+                var savedSoil = saveData.garden.soil;
+                if (M.soilsById && M.soilsById[savedSoil]) {
+                    M.soil = savedSoil;
+                } else {
+                    Game.JNE._deferredGardenSoil = savedSoil;
+                }
+            }
+            Game.JNE._pendingGarden = JSON.parse(JSON.stringify(saveData.garden));
+            applyPendingGarden();
+        }
+
+        function ownedNames(saveData) {
+            return Array.isArray(saveData.boughtUpgrades) ? saveData.boughtUpgrades : (Array.isArray(saveData.h) ? saveData.h : null);
+        }
+
+        // Only the versioned block parsed from the save file (identity-checked, never a snapshot or legacy data) may remove upgrades.
+        function isFileBlock(saveData) {
+            return !!(saveData && saveData === Game.JNE._huFileBlock && saveData.version && Array.isArray(saveData.boughtUpgrades));
+        }
+
+        // Unowns covered heavenly upgrades the save does not list (toggles and Sugar trade come back through switches).
+        function revokeNotInSave(saveData) {
+            var owned = {};
+            currentRunNames(saveData, saveData.boughtUpgrades).forEach(function(n) { owned[n] = true; });
+            var revoked = [];
+            getHeavenlyUpgradeNames().forEach(function(name) {
+                if (TOGGLE_NAMES.indexOf(name) !== -1 || name === 'Sugar trade') return;
+                var up = Game.Upgrades[name];
+                if (!up || !up.bought || owned[name]) return;
+                up.bought = 0;
+                if (Game.CountsAsUpgradeOwned && Game.CountsAsUpgradeOwned(up.pool)) Game.UpgradesOwned--;
+                revoked.push(name);
+            });
+            if (revoked.length) {
+                // kept in the next save so a wrong revoke can always be undone by hand
+                Game.JNE._huRevoked = { at: Date.now(), names: revoked };
+                Game.recalculateGains = 1;
+                Game.upgradesToRebuild = 1;
+                Game.storeToRefresh = 1;
+                console.warn('[Heavenly Upgrades] loaded save does not own:', revoked.join(', '));
+                if (Game.Notify) Game.Notify('Heavenly upgrades updated', revoked.length + ' heavenly upgrade' + (revoked.length === 1 ? '' : 's') + ' not in the loaded save ' + (revoked.length === 1 ? 'was' : 'were') + ' removed.', [10, 0], 8);
+            }
+            return revoked;
+        }
+
+        // migration for save bug: preserve upgrades bought in memory but missing from save
+        function migrateMissingBought(saveData) {
+            var owned = ownedNames(saveData);
+            if (!owned) return;
+            var inSave = {};
+            owned.forEach(function(n) { inSave[n] = true; });
+            var missing = [];
+            for (var name in Game.Upgrades) {
+                var u = Game.Upgrades[name];
+                if (u && u._heavenlyUpgrade && u.bought && !inSave[name]) missing.push(name);
+            }
+            if (!missing.length) return;
+            if (!saveData.boughtUpgrades) saveData.boughtUpgrades = [];
+            missing.forEach(function(n) { saveData.boughtUpgrades.push(n); });
+        }
+
+        var FARM_HOOK_FLAGS = ['_gardenPlantsInjected', '_customPlantCSSAdded', '_aeratedSoilIconHooked', '_aeratedSoilTooltipHooked', '_plantHooksSetup', '_iconFixSetup', '_soilInspectorHooked'];
+        var TOWER_HOOK_FLAGS = ['_gildedAllureHooked', '_gildedAllureTooltipHooked', '_shinyWrinklerHooked'];
+        function clearHookFlags(building, flags) {
+            var M = minigameOf(building);
+            if (M) flags.forEach(function(f) { M[f] = false; });
+        }
+
+        // Reset setup 'ran' flags and minigame hook flags so vanilla-deleted upgrades/plants/spells get recreated
+        function resetSetupFlags() {
             if (Game.JNE._upgradeSetups) {
                 Game.JNE._upgradeSetups.forEach(function(e) {
                     if (e) e.ran = false;
                 });
             }
+            clearHookFlags('Farm', FARM_HOOK_FLAGS);
+            clearHookFlags('Wizard tower', TOWER_HOOK_FLAGS);
+        }
 
-            // Clear garden flags so plants and soil get recreated
-            var farm = Game.Objects && Game.Objects['Farm'];
-            var M = farm && farm.minigame;
-            if (M) {
-                M._gardenPlantsInjected = false;
-                M._customPlantCSSAdded = false;
-                M._aeratedSoilIconHooked = false;
-                M._aeratedSoilTooltipHooked = false;
-                M._aeratedSoilLoadHooked = false;
-                M._plantHooksSetup = false;
-                M._iconFixSetup = false;
-                M._drawHookedForIcons = false;
-                M._buildPlotHookedForData = false;
-                M._soilInspectorHooked = false;
-            }
-
-            // Clear wizard tower flags so gilded allure spell and wizardly accomplishments get recreated on load
-            var tower = Game.Objects && Game.Objects['Wizard tower'];
-            var M = tower && tower.minigame;
-            if (M) {
-                M._gildedAllureHooked = false;
-                M._gildedAllureTooltipHooked = false;
-                M._shinyWrinklerHooked = false;
-            }
-
+        function migrateGodzamokName(saveData) {
             // pre-0.6.7 save format, safe to remove after June 2027: rename "Godzmak's Headstart" (typo) to "Godzamok's Headstart"
             var _oldName = "Godzmak's Headstart";
             var _newName = "Godzamok's Headstart";
@@ -6478,82 +6910,31 @@
                     saveData.boughtUpgrades.push(_newName);
                 }
             }
+        }
 
-            // restore bought states (new array format; legacy h[] fallback is pre-0.6.7, safe to remove after June 2027)
-            var ownedUpgradeNames = (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades)) ? saveData.boughtUpgrades :
-                ((saveData.h && Array.isArray(saveData.h)) ? saveData.h : null); // old compact format
-            if (ownedUpgradeNames) {
-                // Array format - upgrade names only
-                for (var i = 0; i < ownedUpgradeNames.length; i++) {
-                    var upgradeName = ownedUpgradeNames[i];
-                    var upgrade = Game.Upgrades[upgradeName];
-                    if (upgrade) {
-                        upgrade.bought = 1;
-                    }
-                }
-            } else if (saveData.upgrades) {
-                // pre-0.6.7 save format, safe to remove after June 2027
-                if (Array.isArray(saveData.upgrades)) {
-                    // Old array format - upgrade names only
-                    for (var i = 0; i < saveData.upgrades.length; i++) {
-                        var upgrade = Game.Upgrades[saveData.upgrades[i]];
-                        if (upgrade) {
-                            upgrade.bought = 1;
-                        }
-                    }
-                } else {
-                    // Old object format
-                    for (var name in saveData.upgrades) {
-                        var upgrade = Game.Upgrades[name];
-                        var savedData = saveData.upgrades[name];
-                        var boughtState = savedData.bought || 0;
+        function markBought(names) {
+            names.forEach(function(n) {
+                var u = Game.Upgrades[n];
+                if (u) u.bought = 1;
+            });
+        }
 
-                        if (upgrade) {
-                            upgrade.bought = boughtState;
-                            if (upgrade.lasting && savedData.unlocked !== undefined) {
-                                upgrade.unlocked = savedData.unlocked || 0;
-                            }
-                        }
-                    }
-                }
+        // legacy h[] fallback and `upgrades` formats are pre-0.6.7, safe to remove after June 2027
+        function restoreBoughtStates(saveData) {
+            var owned = ownedNames(saveData);
+            if (owned) return markBought(currentRunNames(saveData, owned));
+            if (!saveData.upgrades) return;
+            if (Array.isArray(saveData.upgrades)) return markBought(saveData.upgrades);
+            for (var name in saveData.upgrades) {
+                var upgrade = Game.Upgrades[name];
+                var savedData = saveData.upgrades[name];
+                if (!upgrade) continue;
+                upgrade.bought = savedData.bought || 0;
+                if (upgrade.lasting && savedData.unlocked !== undefined) upgrade.unlocked = savedData.unlocked || 0;
             }
+        }
 
-            // must be before runUpgradeSetups so toggles get correct bought states
-            if (saveData.switches) {
-                if (saveData.switches.toys !== undefined) {
-                    Game.TOYS = saveData.switches.toys || 0;
-                }
-                if (saveData.switches.winklers !== undefined) {
-                    Game.WINKLERS = saveData.switches.winklers || 0;
-                }
-            }
-
-            // must happen AFTER upgrade bought states AND Game.TOYS/WINKLERS are restored
-            runUpgradeSetups(true);  // forceAll=true to recreate everything
-
-            // Add new pantheon spirits (doesn't recreate upgrades)
-            addNewPantheonSpirits();
-
-            // Re-apply donut bought states after setupBoxOfDonuts creates them (legacy `upgrades` part: pre-0.6.7, safe to remove after June 2027)
-            if (saveData.upgrades && !Array.isArray(saveData.upgrades)) {
-                DONUT_NAMES.forEach(function(name) {
-                    if (saveData.upgrades[name] && Game.Upgrades[name]) {
-                        var savedBought = saveData.upgrades[name].bought || 0;
-                        Game.Upgrades[name].bought = savedBought;
-                    }
-                });
-            }
-
-            // Also restore donuts from boughtUpgrades array (new format)
-            if (saveData.boughtUpgrades && Array.isArray(saveData.boughtUpgrades)) {
-                DONUT_NAMES.forEach(function(name) {
-                    if (saveData.boughtUpgrades.indexOf(name) !== -1 && Game.Upgrades[name]) {
-                        Game.Upgrades[name].bought = 1;
-                    }
-                });
-            }
-
-
+        function applySettingsSwitchesTimers(saveData) {
             // Apply settings
             if (saveData.settings && saveData.settings.cpsDisplayUnit) {
                 if (!window.modSettings) window.modSettings = {};
@@ -6567,6 +6948,12 @@
                 }
                 if (saveData.switches.sugarFrenzyPrice !== undefined) {
                     Game.sugarFrenzyPrice = saveData.switches.sugarFrenzyPrice || 1;
+                }
+                if (saveData.switches.sugarTradeLastUse !== undefined) {
+                    Game.sugarTradeLastUse = saveData.switches.sugarTradeLastUse;
+                }
+                if (saveData.switches.sugarTradePrice !== undefined) {
+                    Game.sugarTradePrice = saveData.switches.sugarTradePrice || 1;
                 }
                 if (saveData.switches.fortuneChimeType !== undefined) {
                     Game.fortuneChimeType = saveData.switches.fortuneChimeType;
@@ -6592,30 +6979,18 @@
             if (!Game.JNE.heavenlyUpgradesSavedData) Game.JNE.heavenlyUpgradesSavedData = {};
             Game.JNE._fortuneGCTimer = (saveData.timers && saveData.timers.fortuneGCLastResetTime) ? saveData.timers.fortuneGCLastResetTime : 0;
             Game.JNE._fortuneCPSTimer = (saveData.timers && saveData.timers.fortuneCPSLastResetTime) ? saveData.timers.fortuneCPSLastResetTime : 0;
+        }
 
-            // visual refresh so restored upgrades (donuts, etc.) appear
-            Game.storeToRefresh = 1;
-            Game.upgradesToRebuild = 1;
-
-            updateAllToggleStates();
-
+        function restoreStats(saveData) {
             // Apply stats BEFORE caching so the cached save data reflects restored values
             if (saveData.stats) {
                 if (saveData.stats.cookieFishCaught !== undefined) Game.JNE.cookieFishCaught = saveData.stats.cookieFishCaught || 0;
                 if (saveData.stats.bingoJackpotWins !== undefined) Game.JNE.bingoJackpotWins = saveData.stats.bingoJackpotWins || 0;
                 if (saveData.stats.ascensionSpecialJackpots !== undefined) Game.JNE.ascensionSpecialJackpots = saveData.stats.ascensionSpecialJackpots || 0;
             }
+        }
 
-            // Cache the fully restored state immediately
-            if (Game.JNE) {
-                var restoredData = getSaveData();
-                Game.JNE._lastValidSaveData = restoredData;
-                Game.JNE.heavenlyUpgradesSavedData = restoredData;
-            }
-
-            // farm drops must exist before we restore them
-            setupMagicMushroomDrops();
-
+        function restoreFarmDrops(saveData) {
             // Apply farm drops
             if (saveData.farmDropCookies && Object.keys(saveData.farmDropCookies).length > 0) {
                 for (var cookieName in saveData.farmDropCookies) {
@@ -6634,9 +7009,12 @@
             } else {
                 // No farm drops in save data
             }
+        }
 
+        function restoreBigCookie(saveData) {
             // Apply big cookie image
             if (saveData.bigCookieImage !== undefined) {
+                if (saveData.bigCookieImage >= 18 && !Game.Has('Even more cookies of unusual size')) saveData.bigCookieImage = 0;
                 Game.cookieImageType = saveData.bigCookieImage;
                 if (Game.Loader && Game.Loader.Replace) {
                     if (saveData.bigCookieImage !== 0 && Game.CookiesByChoice && Game.CookiesByChoice[saveData.bigCookieImage]) {
@@ -6646,7 +7024,9 @@
                     }
                 }
             }
+        }
 
+        function restoreBuffs(saveData) {
             // Restore  buffs
             if (saveData.buffs && Array.isArray(saveData.buffs) && Game.gainBuff) {
                 setupCustomBuffTypes();
@@ -6661,135 +7041,107 @@
                     }
                 }
             }
+        }
 
-            if (saveData.pantheon) {
-                var M = Game.Objects['Temple'] && Game.Objects['Temple'].minigame;
-                if (M && M.slot && M.gods && M.godsById) {
-                    // Clear stale pantheon state before restoring from save
-                    M._procrastinationSlotTime = null;
-                    M._selfishnessClickCount = 0;
+        function load(saveData) {
+            if (!saveData || typeof saveData !== 'object') {
+                return;
+            }
+            // no version + boughtUpgrades + upgrades = empty placeholder, ignore it (pre-0.6.7 `upgrades` part: safe to remove after June 2027)
+            if (!saveData.version && !saveData.boughtUpgrades && !saveData.upgrades) {
+                return;
+            }
 
-                    if (saveData.pantheon.slots) {
-                        for (var i = 0; i < Math.min(saveData.pantheon.slots.length, M.slot.length); i++) {
-                            var savedSlot = saveData.pantheon.slots[i];
-                            if (!savedSlot || savedSlot === -1) continue;
+            // upgrades must exist before we restore them
+            createUpgrades();
+            Game.JNE = Game.JNE || {};
+            Game.JNE._pendingBrinklers = saveData.brinklers || 0;
+            Game.JNE._pendingBrinkStore = typeof saveData.brinklerStore === 'number' ? saveData.brinklerStore : null;
 
-                            var god = null;
-                            if (typeof savedSlot === 'string' && M.gods[savedSlot]) {
-                                god = M.gods[savedSlot];
-                            } else if (typeof savedSlot === 'number' && M.godsById[savedSlot]) {
-                                god = M.godsById[savedSlot];
-                            }
+            //Check for duplicate loads before any state modifications
+            if (!Game.JNE) Game.JNE = {};
 
-                            if (!god) continue;
-                            if (M.slot[i] !== -1) continue;
+            // prevent auto-saves during restoration
+            Game.JNE._isRestoringData = true;
+            if (Game.JNE._lastLoadData && Game.JNE._lastLoadTime &&
+                Game.JNE._lastLoadTime > Date.now() - 1000) { // Within 1 second
+                // But still preserve fortune chime type if it was set in this save
+                if (saveData.switches && saveData.switches.fortuneChimeType !== undefined) {
+                    Game.fortuneChimeType = saveData.switches.fortuneChimeType;
+                }
+                //Clear flag before returning or saves will be blocked forever
+                Game.JNE._isRestoringData = false;
+                return;
+            }
 
-                            if (god.upgrade && (!Game.Upgrades[god.upgrade] || !Game.Upgrades[god.upgrade].bought)) continue;
+            try {
+            // Track this load to prevent duplicates
+            if (Game.JNE.idleBar) { Game.JNE.idleBar.fill = 0; Game.JNE.idleBar.shown = 0; }
+            Game.JNE._lastLoadData = JSON.stringify(saveData);
+            Game.JNE._lastLoadTime = Date.now();
 
-                            // Use M.slotGod to ensure hooks are called during load
-                            M.slotGod(god, i);
+            var fromFile = isFileBlock(saveData);
+            if (!fromFile) migrateMissingBought(saveData);
 
-                            var godDiv = l('templeGod' + god.id);
-                            var slotDiv = l('templeSlot' + i);
-                            if (godDiv && slotDiv && godDiv.parentNode !== slotDiv) {
-                                slotDiv.appendChild(godDiv);
-                            }
-                            if (godDiv) godDiv.style.display = '';
-                        }
+            resetSetupFlags();
 
-                        Game.recalculateGains = true;
-                        if (M.draw) M.draw();
-                    }
+            migrateGodzamokName(saveData);
 
-                    // Restore saved data
-                    if (saveData.pantheon.procrastinationSlotTime) M._procrastinationSlotTime = saveData.pantheon.procrastinationSlotTime;
-                    if (saveData.pantheon.selfishnessClickCount !== undefined) M._selfishnessClickCount = saveData.pantheon.selfishnessClickCount || 0;
+            if (fromFile) revokeNotInSave(saveData);
+            restoreBoughtStates(saveData);
+            unlockUnfortunates(saveData);
 
-                    // Reapply hooks since they get overwritten during load
-                    applySlotGodHook(M);
-
-                    // Reapply sugar predictor hook if needed
-                    if (Game.Has('Sugar predictor') && !M._sugarPredictorSlotHooked) {
-                        var origSlotGodForPredictor = M.slotGod;
-                        M.slotGod = function() {
-                            var result = origSlotGodForPredictor.apply(this, arguments);
-                            Game.calculateLumpPredictions();
-                            return result;
-                        };
-                        M._sugarPredictorSlotHooked = true;
-                    }
+            // must be before runUpgradeSetups so toggles get correct bought states
+            if (saveData.switches) {
+                if (saveData.switches.toys !== undefined) {
+                    Game.TOYS = saveData.switches.toys || 0;
+                }
+                if (saveData.switches.winklers !== undefined) {
+                    Game.WINKLERS = saveData.switches.winklers || 0;
                 }
             }
 
-            if (saveData.garden) {
-                var M = Game.Objects['Farm'] && Game.Objects['Farm'].minigame;
-                if (M) {
-                    if (saveData.garden.soil !== undefined) {
-                        // validate soil ID (Aerated soil is created later)
-                        var savedSoil = saveData.garden.soil;
-                        if (M.soilsById && M.soilsById[savedSoil]) {
-                            M.soil = savedSoil;
-                        } else {
-                            // Soil doesn't exist yet - defer restoration
-                            if (!Game.JNE) Game.JNE = {};
-                            Game.JNE._deferredGardenSoil = savedSoil;
-                        }
-                    }
-                    if (saveData.garden.modSeedsUnlocked) {
-                        if (M.plants) {
-                            for (var key in saveData.garden.modSeedsUnlocked) {
-                                if (saveData.garden.modSeedsUnlocked.hasOwnProperty(key)) {
-                                    var plant = M.plants[key];
-                                    if (plant) {
-                                        plant.unlocked = saveData.garden.modSeedsUnlocked[key];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (saveData.garden.modPlants && saveData.garden.modPlants.length > 0) {
-                        var customPlantKeys = ['sparklingSugarCane', 'krazyKudzu', 'magicMushroom'];
-                        for (var j = 0; j < saveData.garden.modPlants.length; j++) {
-                            var p = saveData.garden.modPlants[j];
-                            var plant = M.plants[p.plantKey];
-                            if (plant && plant.id !== undefined) {
-                                var tile = M.plot[p.y] && M.plot[p.y][p.x];
-                                if (tile) {
-                                    var currentPlantId = tile[0];
-                                    var isEmptyTile = currentPlantId === 0;
-                                    var hasCustomPlant = false;
-                                    var isMeddleweed = false;
-                                    if (currentPlantId > 0 && M.plantsById && M.plantsById[currentPlantId - 1]) {
-                                        var currentPlant = M.plantsById[currentPlantId - 1];
-                                        hasCustomPlant = customPlantKeys.indexOf(currentPlant.key) !== -1;
+            // must happen AFTER upgrade bought states AND Game.TOYS/WINKLERS are restored
+            runUpgradeSetups(true);  // forceAll=true to recreate everything
 
-                                        if (currentPlant.key === 'meddleweed') isMeddleweed = true;
-                                    }
-                                    if (isEmptyTile || hasCustomPlant || isMeddleweed) {
-                                        tile[0] = plant.id + 1;
-                                        if (p.age !== undefined) tile[1] = p.age;
-                                    }
-                                }
-                            }
-                        }
-                        if (M.computeEffs) M.computeEffs();
-                    }
-                    if (M.buildPanel) {
-                        M.buildPanel();
-                        // If garden is already open, we need to rebuild again after a short delay
-                        if (l('gardenContent') && l('gardenContent').style.display !== 'none') {
-                            setTimeout(function() {
-                                if (M.buildPanel) {
-                                    M.buildPanel();
-                                }
-                            }, 50);
-                        }
-                    }
-                    if (M.buildPlot) M.buildPlot();
-                    M.toRebuild = true;
-                    if (M.draw) M.draw();
-                }
+            Game.JNE._huUnknownOwned = (ownedNames(saveData) || []).filter(function(n) { return !Game.Upgrades[n] && n !== "Godzmak's Headstart"; });
+
+            // Add new pantheon spirits (doesn't recreate upgrades)
+            addNewPantheonSpirits();
+
+            syncBoxContents();
+
+            applySettingsSwitchesTimers(saveData);
+
+            Game.storeToRefresh = 1;
+            Game.upgradesToRebuild = 1;
+
+            updateAllToggleStates();
+
+            restoreStats(saveData);
+            Object.assign(dragonSlot3(), { unlocked: 0, aura: 0 }, saveData.dragonSlot3);
+
+            // Cache the save that was just loaded (getSaveData() returns the previous snapshot while restoring)
+            if (Game.JNE) {
+                Game.JNE._lastValidSaveData = saveData;
+                Game.JNE.heavenlyUpgradesSavedData = saveData;
             }
+
+            // farm drops must exist before we restore them
+            setupMagicMushroomDrops();
+
+            restoreFarmDrops(saveData);
+
+            restoreBigCookie(saveData);
+
+            restoreBuffs(saveData);
+
+            restorePantheon(saveData);
+
+            restoreGarden(saveData);
+            // applied: later loads of this same object (a settings toggle, a second init pass) only add, never remove
+            if (fromFile) Game.JNE._huFileBlock = null;
+            reconcileOwnedFeatures();
             } catch (err) {
                 console.error('[Heavenly Upgrades] load() encountered an error:', err);
             } finally {
@@ -6797,91 +7149,35 @@
             }
         }
 
-        // Synchronously create and restore donuts AND restore the purchased state of every
-        // heavenly upgrade from heavenlyUpgradesSavedData.
-        // Called by JNE's recreateUpgradesFromSaveOnly() when the HU module is already loaded.
-        // The full load() (pantheon/garden/buffs/etc.) still runs on a deferred timer, but
-        // upgrade ownership is already known from the incoming save, so it is applied here
-        // immediately. This closes a race where a rapid save-load could capture upgrades at
-        // bought=0 during the ~100ms init window and permanently wipe their purchased status.
-        function restoreDonutsNow() {
+        // Called by JNE's recreateUpgradesFromSaveOnly() once the module is initialized. The full load() runs on a
+        // deferred timer, so ownership is applied here at once and a save fired in between cannot capture bought=0.
+        function restoreBoughtNow() {
             var savedData = Game.JNE && Game.JNE.heavenlyUpgradesSavedData;
-            if (!savedData || !Array.isArray(savedData.boughtUpgrades)) return;
+            if (!isInitialized || !savedData || !Array.isArray(savedData.boughtUpgrades)) return;
 
-            // Create donuts if they don't exist yet by running the setup entry.
-            if (Game.JNE._upgradeSetups) {
-                for (var i = 0; i < Game.JNE._upgradeSetups.length; i++) {
-                    var entry = Game.JNE._upgradeSetups[i];
-                    if (entry && entry.id === 'Box of overpriced donuts') {
-                        entry.ran = false;
-                        if (typeof entry.setup === 'function') entry.setup();
-                        entry.ran = true;
-                        break;
-                    }
-                }
-            }
+            if (isFileBlock(savedData)) revokeNotInSave(savedData);
+            var owned = {};
+            currentRunNames(savedData, savedData.boughtUpgrades).forEach(function(n) { owned[n] = true; });
 
-            // Apply the definitive state from the incoming save.
-
-            var boughtSet = savedData.boughtUpgrades;
-            var ownedSet = {};
-            for (var bi = 0; bi < boughtSet.length; bi++) ownedSet[boughtSet[bi]] = true;
-
-            DONUT_NAMES.forEach(function(name) {
+            // toggles and Sugar trade are restored through switches by the deferred load()
+            getHeavenlyUpgradeNames().forEach(function(name) {
+                if (TOGGLE_NAMES.indexOf(name) !== -1 || name === 'Sugar trade') return;
                 var up = Game.Upgrades[name];
                 if (!up) return;
-                up.bought = ownedSet[name] ? 1 : 0;
+                if (owned[name]) up.bought = 1;
+                else if (boxOf(name)) up.bought = 0;
             });
 
-            // Restore the purchased state of every other heavenly upgrade synchronously so it can
-            // never be lost to a save firing before the deferred load() runs. Only upgrades that
-            // already exist are touched (they are created at module init). Toggle upgrades are
-            // managed via switches/updateAllToggleStates and Sugar trade tracks "used" via
-            // switches.sugarTradeBought, so both are left to the deferred load() to set.
-            var huNames = getHeavenlyUpgradeNames();
-            for (var hi = 0; hi < huNames.length; hi++) {
-                var hname = huNames[hi];
-                if (hname === 'Toy mode [on]' || hname === 'Toy mode [off]' ||
-                    hname === 'Pink stuff [on]' || hname === 'Pink stuff [off]' ||
-                    hname === 'Sugar trade') continue;
-                var hup = Game.Upgrades[hname];
-                if (!hup) continue;
-                if (ownedSet[hname]) hup.bought = 1;
-            }
-
-            if (Game.upgradesToRebuild !== undefined) Game.upgradesToRebuild = 1;
-            if (Game.storeToRefresh !== undefined) Game.storeToRefresh = 1;
-        }
-
-        function unlockDonutsAfterReincarnate() {
-            var boxOwned = (Game.JNE && Game.JNE.heavenlyUpgradesSavedData &&
-                            Array.isArray(Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades) &&
-                            Game.JNE.heavenlyUpgradesSavedData.boughtUpgrades.indexOf('Box of overpriced donuts') !== -1) ||
-                          Game.Has('Box of overpriced donuts');
-            if (!boxOwned) return;
-            if (!Game.UnlockAt) return;
-
-            var existing = {};
-            for (var i = 0; i < Game.UnlockAt.length; i++) {
-                if (Game.UnlockAt[i] && Game.UnlockAt[i].name) existing[Game.UnlockAt[i].name] = Game.UnlockAt[i];
-            }
-
-            DONUT_NAMES.forEach(function(name) {
-                var up = Game.Upgrades[name];
-                if (!up) return;
-                if (existing[name]) {
-                    // Entry already exists — just ensure the upgrade references it.
-                    if (!up.unlockAt) up.unlockAt = existing[name];
-                    return;
-                }
-                var entry = {cookies: up.basePrice / 20, name: name, require: 'Box of overpriced donuts'};
-                Game.UnlockAt.push(entry);
-                up.unlockAt = entry;
-            });
+            syncBoxContents();
+            unlockUnfortunates(savedData);
+            Game.upgradesToRebuild = 1;
+            Game.storeToRefresh = 1;
         }
 
         // Expose API
         if (!Game.JNE) Game.JNE = {};
+        Game.JNE.dragonSlot3Active = krumblorActive;
+        Game.JNE.getDragonAura3 = function() { return krumblorActive() ? dragonSlot3().aura : 0; };
         if (!Game.JNE.HeavenlyUpgrades) {
             Game.JNE.HeavenlyUpgrades = {
                 create: createHeavenlyUpgrade,
@@ -6889,15 +7185,20 @@
                 initialized: function() { return isInitialized; },
                 getSaveData: getSaveData,
                 load: load,
-                restoreDonutsNow: restoreDonutsNow,
-                unlockDonutsAfterReincarnate: unlockDonutsAfterReincarnate,
-                setupBuffModifiers: setupBuffModifiers
+                restoreBoughtNow: restoreBoughtNow,
+                setupBuffModifiers: setupBuffModifiers,
+                internals: {
+                    hookOnce: hookOnce, hookedWith: hookedWith, onBuy: onBuy, timerRow: timerRow,
+                    swapCustomPlantIcon: swapCustomPlantIcon, plantStage: plantStage, plantMult: plantMult,
+                    sugarCaneTotalMult: sugarCaneTotalMult, rankedBuildings: rankedBuildings, fishClip: fishClip,
+                    fishTime: fishTime, setupFishShimmers: setupFishShimmers, getBoxes: getBoxes, syncBoxContents: syncBoxContents, lumpAuraState: lumpAuraState, isModPlant: isModPlant,
+                    loadedMinigame: loadedMinigame, minigameOf: minigameOf, plantBaseCSS: plantBaseCSS
+                }
             };
         } else {
             Game.JNE.HeavenlyUpgrades.getSaveData = getSaveData;
             Game.JNE.HeavenlyUpgrades.load = load;
-            Game.JNE.HeavenlyUpgrades.restoreDonutsNow = restoreDonutsNow;
-            Game.JNE.HeavenlyUpgrades.unlockDonutsAfterReincarnate = unlockDonutsAfterReincarnate;
+            Game.JNE.HeavenlyUpgrades.restoreBoughtNow = restoreBoughtNow;
             Game.JNE.HeavenlyUpgrades.setupBuffModifiers = setupBuffModifiers;
         }
 

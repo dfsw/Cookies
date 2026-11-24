@@ -78,6 +78,8 @@
     };
 
     // index based on registry definition order
+    function tertiaryAura() { return Game.JNE && Game.JNE.getDragonAura3 ? Game.JNE.getDragonAura3() : 0; }
+
     function getPuzzleIndex(puzzleId) {
         var index = 0;
         for (var id in cookieAgeData.puzzles.registry) {
@@ -1503,7 +1505,7 @@
 
         if (Game.UpdateMenu) {
             setTimeout(function() {
-                Game.UpdateMenu();
+                try { Game.UpdateMenu(); } catch (e) { console.error('[Cookie Age] Menu refresh skipped:', e && e.message); }
             }, 100);
         }
 
@@ -1729,7 +1731,7 @@
 
         if (Game.UpdateMenu) {
             setTimeout(function() {
-                Game.UpdateMenu();
+                try { Game.UpdateMenu(); } catch (e) { console.error('[Cookie Age] Menu refresh skipped:', e && e.message); }
             }, 50);
         }
 
@@ -3485,7 +3487,7 @@
         if (!tracking) return;
         var currentAura1 = Game.dragonAura || 0;
         var currentAura2 = Game.dragonAura2 || 0;
-        var currentAuras = [currentAura1, currentAura2];
+        var currentAuras = [currentAura1, currentAura2, tertiaryAura()];
         if (tracking.currentStep < tracking.sequence.length) {
             var currentStep = tracking.sequence[tracking.currentStep];
             var stepCompleted = false;
@@ -4828,7 +4830,7 @@
         var tracking = this.getTracking();
         if (tracking.completed) {return;}
 
-        var bothSlotsEmpty = (Game.dragonAura === 0 && Game.dragonAura2 === 0);
+        var bothSlotsEmpty = (Game.dragonAura === 0 && Game.dragonAura2 === 0 && !tertiaryAura());
         if (bothSlotsEmpty) {
             tracking.petCount++;
             if (tracking.petCount >= tracking.requiredPets) {
@@ -6155,7 +6157,7 @@
         var tracking = this.getTracking();
         var currentAura1 = Game.dragonAura || 0;
         var currentAura2 = Game.dragonAura2 || 0;
-        var currentAuras = [currentAura1, currentAura2];
+        var currentAuras = [currentAura1, currentAura2, tertiaryAura()];
 
         if (tracking.currentStep === 0) {
             var hasRadiantAppetite = currentAuras.includes(14);

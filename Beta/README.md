@@ -57,11 +57,30 @@ The mobile version of Cookie Clicker does not support mods at this time.
 
 ## Changelog  
 
+### Version 0.9.0 - Heaven and Hell
+* Added 53 new Heavenly Upgrades bringing the total to 150. There is a lot to discover and hopefully new content for those JNE end game players and some new stuff for mid JNE game people as well. 
+* Some existing heavenly upgrades may have been reordered, repriced, buffed, or nerfed. Hopefully nothing too devasting for anyone (please read Sugar predictor I to IV descriptions), but as always I am open to community feedback. 
+* Added a handful of new achievements to go along with the new heavenly upgrades.
+* Fixed a bug that would prevent the fortune cookie sounds from playing on Steam. 
+* Fixed the order a lot of things (cookies, HUs, etc) show up in the stats menu to be more logical. 
+* Potion Class Rabbit Feet are now called Lucky Charms and may be found on Easter Golden Cookies and by collecing Turkey Wishbones during Thanksgiving.
+* Shift clicking a corner tag in Clone Escape now rotates corner tags in reverse direction, control+shift clicking clears a corner tag. 
+* Spirit of Protection and Ointment of Plenty have had their effects buffed.
+* Tears of Landis potion is now less destructive and Dew of Secrets is a little better. 
+* Other tweaking and balancing of potions. 
+* You may now hold shift when clicking to discard a newly discovered potion instead of using it, but you will not learn the recipe. 
+* Generation 4 Clone Escape puzzles now featuring a new clue type (Which appears in ~35% of decks)! More balanced, more dificulty attuned, more fun, all that stuff too. 
+* Minor bug fixes, improvements, and code cleanup. 
+
+### Version 0.8.6
+* Fix for Thanksgiving cookie display on Steam version, one of these days Orteil will update Steam and these headaches will go away. 
+
 ### Version 0.8.5
 * Clone Escape minigame 5 Free Yous now awards 5 Yous as if you had bought them. 
 * More tweaking to Downline actions, this time mostly bumps in power for under-used actions.
 * The Lunar New Year year will no longer change when one of the effects to remove previous season changes is used. 
-* Expanded Clone Escape Glossary
+* Expanded Clone Escape Glossary.
+* Fixed some CSS layout issues in Clone Escape.
 * Minor bug fixes, improvements, and code cleanup. 
 
 ### Version 0.8.4

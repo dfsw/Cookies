@@ -3,7 +3,7 @@
 (function() {
 'use strict';
 
-const DOWNLINE_VERSION = '1.0.10';
+const DOWNLINE_VERSION = '1.0.11';
 
 var downlineAchievementNames = [
     'Popularity factor',
@@ -57,7 +57,7 @@ var G = {
     releaseMetReferrals: false,
     prestigeBoost: 0,
     tickCount: 0, elapsedSec: 0, speed: 1,
-    activeActions: [], unlocked: {},
+    activeActions: [], queue: [], unlocked: {},
     _supremeIntellectWasActive: false,
     pendingNewPlayers: 0,
     tickerPool: [], prestige: 0,
@@ -501,6 +501,11 @@ DownlineM.init = function(div) {
       text-align: center;
     }
     .downline-active-slots-info .green { color: #6f6; }
+    .downline-queue-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 6px; }
+    .downline-queue-slot {
+      min-width: 0; min-height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 2px; background: rgba(0,0,0,0.25); border: 1px dashed #c9c920; cursor: pointer;
+    }
     .downline-active-chip {
       position: relative;
       flex-shrink: 0;
@@ -770,6 +775,10 @@ DownlineM.init = function(div) {
             <div class="downline-active-slot"></div>
             <div class="downline-active-slot"></div>
           </div>
+          <div class="downline-queue-row" id="downline-queue" style="display:none" data-desc-html="<b>Queue</b> holds actions until an active slot is available. Cost and elgibility is determined when the action begins. Click a queued action to cancel it.">
+            <div class="downline-queue-slot"></div>
+            <div class="downline-queue-slot"></div>
+          </div>
           <p class="downline-active-slots-info" id="downline-active-slots-info" data-desc-html="Available action slots. One slot per additional Fractal Engine level, up to 10 slots."><span id="downline-active-count" class="green">0</span>/<span id="downline-active-max">7</span> slots used</p>
         </div>
       </div>
@@ -979,6 +988,9 @@ DownlineM.init = function(div) {
       var level = fe ? fe.level : 1;
       var max = getMaxSlots(level);
       return hasBoredomEffect('slots_half') ? Math.max(1, Math.ceil(max / 2)) : max;
+    }
+    function queueMax() {
+      return (Game.Has('Business plan') ? 1 : 0) + (Game.Has('Dream journal') ? 1 : 0);
     }
 
     var TYPES = ['dabbler', 'casual', 'habitual', 'devotee', 'fanatic'];
@@ -1832,6 +1844,14 @@ DownlineM.init = function(div) {
         special: 'rebrand',
         headline: '"A new dawn a new day" says Kookie Clicker CEO who was totally not the CEO of Cookie Clicker 5 minutes ago.' }
     ];
+    // Saves store an action as its ACTION_LIST index. Append new actions at the end only; reordering breaks saves.
+    var ACTION_INDEX = {};
+    ACTION_LIST.forEach(function (a, i) { ACTION_INDEX[a.name] = i; });
+    function actionIndexes(names) {
+      return names.map(function (n) { return ACTION_INDEX[n]; }).filter(function (i) { return i !== undefined; });
+    }
+    // v1 saves stored names. Read-only fallback; remove after June 2027 along with the v1 branches in _loadImpl.
+    function actionFromSave(x) { return typeof x === 'number' ? (ACTION_LIST[x] || {}).name : String(x); }
     ACTION_LIST.forEach(function (a) {
       var conds = (a.unlock && a.unlock.conditions) || [];
       var tempConds = (a.unlock && a.unlock.tempConditions) || [];
@@ -2184,7 +2204,7 @@ DownlineM.init = function(div) {
       if (!el) return false;
       if (el.classList.contains('downline-bar')) return false;
       if (el.id === 'downline-release-btn' || el.classList.contains('downline-release-wrap')) return false;
-      if (el.id === 'downline-active-slots-info') return false;
+      if (el.id === 'downline-active-slots-info' || el.id === 'downline-queue') return false;
       if (el.id === 'downline-boredom-wrap' || el.classList.contains('downline-boredom-wrap') || (el.closest && el.closest('#downline-boredom-wrap'))) return false;
       if (el.closest && el.closest('.downline-active-slot')) return el.classList.contains('downline-active-chip');
       return true;
@@ -2237,7 +2257,7 @@ DownlineM.init = function(div) {
         var suffix = noUnique ? ' (locked by boredom)' : (uniqueInUse ? ' (in use)' : '');
         parts.push('<div class="meta" style="color:' + color + '">&#9733; Unique action' + escapeTooltipHtml(suffix) + '</div>');
       }
-      parts.push('<div style="clear:both;"></div><div class="line"></div>');
+      if (el.id !== 'downline-queue') parts.push('<div style="clear:both;"></div><div class="line"></div>');
       var descContent = descHtml || (def && def.desc) || descPlain || '';
       if (descContent) parts.push('<div class="description">' + (descHtml ? descContent : escapeTooltipHtml(descContent)) + '</div>');
       if (def && def.durationSec != null) {
@@ -2299,8 +2319,6 @@ DownlineM.init = function(div) {
         // Only mark as available if slot is empty and within max
         s.classList.toggle('available', isAvailable && !hasChip);
         s.classList.toggle('blocked', isBlocked);
-        var title = isBlocked ? 'Blocked by boredom debuff' : '';
-        if (s.title !== title) s.title = title;
       });
       activeMaxEl.textContent = max;
     }
@@ -2440,7 +2458,34 @@ DownlineM.init = function(div) {
       }
     }
 
+    function renderQueue() {
+      var row = $('downline-queue'), n = queueMax();
+      if (!row) return;
+      row.style.display = n ? '' : 'none';
+      row.querySelectorAll('.downline-queue-slot').forEach(function (slot, i) {
+        slot.style.display = i < n ? '' : 'none';
+        var name = G.queue[i];
+        if (slot._name !== name) {
+          slot._name = name;
+          slot.innerHTML = '';
+          var def = name && ACTIONS[name];
+          if (def) {
+            var chip = document.createElement('span');
+            chip.className = 'downline-active-chip';
+            chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
+            slot.appendChild(chip);
+          }
+        }
+        if (!slot._bound) {
+          slot._bound = true;
+          slot.addEventListener('click', function () { G.queue.splice(i, 1); renderQueue(); });
+        }
+      });
+      if (!row._bound) { row._bound = true; addTooltipListeners(row); }
+    }
+
     function renderActiveSlots() {
+      renderQueue();
       var allSlots = activeList.querySelectorAll('.downline-active-slot');
       var max = getEffectiveMaxSlots();
       for (var i = 0; i < allSlots.length; i++) {
@@ -2457,7 +2502,6 @@ DownlineM.init = function(div) {
               var chip = document.createElement('span');
               chip.className = 'downline-active-chip';
               chip.setAttribute('data-name', state.name);
-              chip.title = state.name;
               chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
               var overlay = document.createElement('span');
               overlay.className = 'downline-active-overlay';
@@ -2494,12 +2538,33 @@ DownlineM.init = function(div) {
           return; // Cooldown active
         }
         G.lastPivotTime = now;
-        G.activeActions.length = 0; renderActiveSlots(); activeCountEl.textContent = 0; return;
+        G.activeActions.length = 0; G.queue.length = 0; renderActiveSlots(); activeCountEl.textContent = 0; return;
       }
       if (def.special === 'rebrand') {
         showRebrandActionPrompt(def.headline); return;
       }
-      if (G.activeActions.length >= getEffectiveMaxSlots()) return;
+      if (G.activeActions.length >= getEffectiveMaxSlots()) {
+        var uniqueBlocked = def.unique && (G.queue.indexOf(name) >= 0 || G.activeActions.some(function (a) { return a.name === name; }));
+        if (queueMax() > G.queue.length && !uniqueBlocked) G.queue.push(name);
+        renderQueue();
+        return;
+      }
+      activateAction(name);
+    }
+
+    // a queued action whose conditions no longer hold when a slot opens is dropped, not started
+    function promoteQueue() {
+      var dropped = false;
+      while (G.queue.length && G.activeActions.length < getEffectiveMaxSlots()) {
+        var name = G.queue.shift(), def = ACTIONS[name];
+        if (!def || !def.isUsable()) { dropped = true; continue; }
+        activateAction(name);
+      }
+      if (dropped) renderQueue();
+    }
+
+    function activateAction(name) {
+      var def = ACTIONS[name];
       if (def.unique && (hasBoredomEffect('no_unique') || G.activeActions.some(function (a) { return a.name === name; }))) return;
 
       if (def.costCps && def.costCps > 0) {
@@ -2514,7 +2579,7 @@ DownlineM.init = function(div) {
       }
 
       var chip = document.createElement('span');
-      chip.className = 'downline-active-chip'; chip.setAttribute('data-name', name); chip.title = name;
+      chip.className = 'downline-active-chip'; chip.setAttribute('data-name', name);
       chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
       var overlay = document.createElement('span'); overlay.className = 'downline-active-overlay'; chip.appendChild(overlay);
       var total = Math.max(getActionDuration(def), 0.001);
@@ -2763,6 +2828,8 @@ DownlineM.init = function(div) {
         tickerWrap.classList.toggle('frozen', G.frozen);
         tickerWrap.classList.toggle('sugar-rush', lumpBoostState.active);
       }
+      var freezeBtnEl = document.getElementById('downline-freeze-btn');
+      if (freezeBtnEl) freezeBtnEl.classList.toggle('on', G.frozen);
 
       activeCountEl.textContent = G.activeActions.length;
 
@@ -2854,6 +2921,7 @@ DownlineM.init = function(div) {
         }
       }
       if (hadExpiration) Game.recalculateGains = 1;
+      promoteQueue();
       renderActiveSlots();
 
       var ref = referralRate();
@@ -3003,16 +3071,18 @@ DownlineM.init = function(div) {
 
     function downlineDoRelease() {
       if (G.frozen) return;
+      var boredomAtRelease = (G.activeBoredomEffects || []).length;
       G.prestigeBoost += getCurrentBoost() * 0.1;
       G.players = { dabbler: 0, casual: 0, habitual: 0, devotee: 0, fanatic: 0 };
       G.hype = 50; G.commitment = 50; G.referrals = 0; G.reputation = BAR_MAX;
       G.boredom = 0; G.lastActions = []; G.activeBoredomEffects = []; G.boredomEffectHour = -1;
       G.releaseMetPlayers = false; G.releaseMetHype = false; G.releaseMetCommitment = false; G.releaseMetReferrals = false;
       G.tickCount = 0; G.elapsedSec = 0;
-      G.activeActions = []; G.unlocked = {}; G.pendingNewPlayers = 0; G.tickerPool = [];
+      G.activeActions = []; G.queue = []; G.unlocked = {}; G.pendingNewPlayers = 0; G.tickerPool = [];
       G.prestige++;
       G.releasesThisAscension = (G.releasesThisAscension || 0) + 1;
       if (typeof DownlineM.onRelease === 'function') DownlineM.onRelease();
+      if (typeof Game !== 'undefined' && Game.JNE && Game.JNE.onDownlineRelease) Game.JNE.onDownlineRelease(boredomAtRelease);
       renderActiveSlots();
       activeCountEl.textContent = 0;
       checkUnlocks(true);
@@ -3024,7 +3094,7 @@ DownlineM.init = function(div) {
       G.boredom = 0; G.lastActions = []; G.activeBoredomEffects = []; G.boredomEffectHour = -1;
       G.releaseMetPlayers = false; G.releaseMetHype = false; G.releaseMetCommitment = false; G.releaseMetReferrals = false;
       G.tickCount = 0; G.elapsedSec = 0;
-      G.activeActions = []; G.unlocked = {}; G.pendingNewPlayers = 0;
+      G.activeActions = []; G.queue = []; G.unlocked = {}; G.pendingNewPlayers = 0;
       renderActiveSlots();
       activeCountEl.textContent = 0;
       G.tickerPool = headline ? [headline] : [];
@@ -3195,14 +3265,14 @@ DownlineM.init = function(div) {
 
     DownlineM._buildSaveDataImpl = function () {
       var data = {
-        v: 1,
+        v: 2,
         players: G.players,
         hype: G.hype,
         commitment: G.commitment,
         referrals: G.referrals,
         reputation: G.reputation,
         boredom: G.boredom,
-        lastActions: G.lastActions.slice(0, LAST_ACTIONS_CAP),
+        lastActions: actionIndexes(G.lastActions.slice(0, LAST_ACTIONS_CAP)),
         activeBoredomEffects: (G.activeBoredomEffects || []).slice(0),
         boredomEffectHour: G.boredomEffectHour,
         releaseMetPlayers: !!G.releaseMetPlayers,
@@ -3212,14 +3282,15 @@ DownlineM.init = function(div) {
         prestigeBoost: G.prestigeBoost || 0,
         prestige: G.prestige || 0,
         releasesThisAscension: G.releasesThisAscension || 0,
-        unlocked: G.unlocked || {},
+        unlocked: actionIndexes(Object.keys(G.unlocked || {}).filter(function (n) { return G.unlocked[n]; })),
         pendingNewPlayers: G.pendingNewPlayers || 0,
         frozen: !!G.frozen,
         lumpSpeedBoostEnd: G.lumpSpeedBoostEnd || 0,
         lastPivotTime: G.lastPivotTime || 0,
         activeActions: G.activeActions.map(function (a) {
-          return { name: a.name, totalSec: a.totalSec, remainSec: a.remainSec };
-        })
+          return { i: ACTION_INDEX[a.name], totalSec: a.totalSec, remainSec: a.remainSec };
+        }),
+        queue: actionIndexes(G.queue)
       };
       var isVisible = 0;
       var fractalEngine = getFractalEngine();
@@ -3290,7 +3361,7 @@ DownlineM.init = function(div) {
       if (typeof data.reputation === 'number') G.reputation = Math.max(0, Math.min(BAR_MAX, data.reputation));
       if (typeof data.boredom === 'number') G.boredom = Math.max(0, Math.min(BOREDOM_MAX, data.boredom));
       if (Array.isArray(data.lastActions)) {
-        G.lastActions = data.lastActions.slice(0, LAST_ACTIONS_CAP).map(function (x) { return String(x); });
+        G.lastActions = data.lastActions.map(actionFromSave).filter(function (n) { return ACTIONS[n]; }).slice(0, LAST_ACTIONS_CAP);
       }
       if (Array.isArray(data.activeBoredomEffects)) {
         G.activeBoredomEffects = data.activeBoredomEffects.filter(function (id) {
@@ -3309,7 +3380,10 @@ DownlineM.init = function(div) {
       if (typeof data.prestige === 'number') G.prestige = Math.max(0, data.prestige);
       else G.prestige = prevPrestige;
       if (typeof data.releasesThisAscension === 'number') G.releasesThisAscension = Math.max(0, data.releasesThisAscension);
-      if (data.unlocked && typeof data.unlocked === 'object') {
+      if (Array.isArray(data.unlocked)) {
+        G.unlocked = {};
+        data.unlocked.forEach(function (x) { var n = actionFromSave(x); if (ACTIONS[n]) G.unlocked[n] = true; });
+      } else if (data.unlocked && typeof data.unlocked === 'object') {
         G.unlocked = data.unlocked;
       }
       if (typeof data.pendingNewPlayers === 'number') G.pendingNewPlayers = Math.max(0, data.pendingNewPlayers);
@@ -3322,19 +3396,21 @@ DownlineM.init = function(div) {
       }
 
       G.activeActions = [];
+      G.queue = Array.isArray(data.queue) ? data.queue.map(actionFromSave).filter(function (n) { return ACTIONS[n]; }).slice(0, 2) : [];
       if (Array.isArray(data.activeActions)) {
         data.activeActions.forEach(function (saved) {
-          if (!saved || typeof saved.name !== 'string') return;
-          var def = ACTIONS[saved.name];
+          if (!saved) return;
+          var name = saved.i !== undefined ? actionFromSave(saved.i) : saved.name;
+          if (typeof name !== 'string') return;
+          var def = ACTIONS[name];
           if (!def) return;
           if (!def.icon || !Array.isArray(def.icon) || def.icon.length < 2) {
-            console.warn('Invalid icon for action:', saved.name, def.icon);
+            console.warn('Invalid icon for action:', name, def.icon);
             return;
           }
           var chip = document.createElement('span');
           chip.className = 'downline-active-chip';
-          chip.setAttribute('data-name', saved.name);
-          chip.title = saved.name;
+          chip.setAttribute('data-name', name);
           chip.appendChild(createIcon(def.icon[0], def.icon[1], def.sheet));
           var overlay = document.createElement('span');
           overlay.className = 'downline-active-overlay';
@@ -3343,7 +3419,7 @@ DownlineM.init = function(div) {
           total = Math.max(total, 0.001);
           var remain = (typeof saved.remainSec === 'number') ? saved.remainSec : total;
           remain = Math.max(0, Math.min(total, remain));
-          var state = { name: saved.name, totalSec: total, remainSec: remain };
+          var state = { name: name, totalSec: total, remainSec: remain };
           var stateIndex = G.activeActions.length;
           chip.setAttribute('data-state-index', stateIndex);
           G.activeActions.push(state);
@@ -3384,12 +3460,12 @@ DownlineM.init = function(div) {
 
     DownlineM._resetImpl = function (hard) {
       // Force hard reset during ascension to wipe all data
-      if (Game.OnAscend || Game.AscendTimer > 0) {
-        hard = true;
-      }
+      var ascending = Game.OnAscend || Game.AscendTimer > 0;
+      if (ascending) hard = true;
       var keepPrestige = !hard;
       var prevPrestige = keepPrestige ? (G.prestige || 0) : 0;
       var prevPrestigeBoost = keepPrestige ? (G.prestigeBoost || 0) : 0;
+      var carriedBoost = ascending && Game.Has('Past lives') ? (G.prestigeBoost || 0) * 0.1 : 0;
       G.players = { dabbler: 0, casual: 0, habitual: 0, devotee: 0, fanatic: 0 };
       G.hype = 50;
       G.commitment = 50;
@@ -3408,7 +3484,7 @@ DownlineM.init = function(div) {
       G.tickCount = 0;
       G.elapsedSec = 0;
       G.speed = 1;
-      G.activeActions = [];
+      G.activeActions = []; G.queue = [];
       G.unlocked = {};
       G.pendingNewPlayers = 0;
       G.tickerPool = [];
@@ -3422,7 +3498,7 @@ DownlineM.init = function(div) {
         G.prestigeBoost = prevPrestigeBoost;
       } else {
         G.prestige = 0;
-        G.prestigeBoost = 0;
+        G.prestigeBoost = carriedBoost;
       }
       if (hard) G.releasesThisAscension = 0;
       clearTickerStripAndPool();

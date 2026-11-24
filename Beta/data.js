@@ -13,10 +13,8 @@ window.JNEData = {
                     var cookiesBaked = Game.cookiesEarned || 0;
                     var shouldUnlock = cookiesBaked >= 2.5e67; // 25 unvigintillion
                     return shouldUnlock;
+                }
                 },
-                effect: function() {
-
-                },},
             // ORDER UPGRADES - Achievement-based upgrades with CPS scaling
             {
                 name: 'Order of the Golden Crumb',
@@ -30,10 +28,8 @@ window.JNEData = {
                     // Unlock when Vanilla Star achievement is won/owned
                     var vanillaStar = Game.Achievements['Vanilla Star'];
                     return vanillaStar && (vanillaStar.won == 1 || vanillaStar.won === true);
+                }
                 },
-                effect: function() {
-
-                },},
             {
                 name: 'Order of the Impossible Batch',
                 desc: 'Golden cookies appear <b>5%</b> more often.<br>Unlocked by owning The Final Challenger achievement.<br>Cost scales with CpS',
@@ -46,10 +42,8 @@ window.JNEData = {
                     // Unlock when The Final Challenger achievement is won/owned
                     var finalChallenger = Game.Achievements['The Final Challenger'];
                     return finalChallenger && (finalChallenger.won == 1 || finalChallenger.won === true);
+                }
                 },
-                effect: function() {
-
-                },},
             {
                 name: 'Order of the Shining Spoon',
                 desc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Combo achievements.<br>Cost scales with CpS',
@@ -67,10 +61,8 @@ window.JNEData = {
                            Game.Achievements['Frenzy frenzy'] && Game.Achievements['Frenzy frenzy'].won &&
                            Game.Achievements['Double Dragon Clicker'] && Game.Achievements['Double Dragon Clicker'].won &&
                            Game.Achievements['Frenzy Marathon'] && Game.Achievements['Frenzy Marathon'].won;
+                }
                 },
-                effect: function() {
-
-                },},
             {
                 name: 'Order of the Cookie Eclipse',
                 desc: 'Golden cookie effects last <b>5%</b> longer.<br>Unlocked by owning all Grandmapocalypse cookie achievements.<br>Cost scales with CpS',
@@ -96,10 +88,8 @@ window.JNEData = {
                            Game.Achievements['Warm-Up Ritual'] && Game.Achievements['Warm-Up Ritual'].won &&
                            Game.Achievements['Deal of the Slightly Damned'] && Game.Achievements['Deal of the Slightly Damned'].won &&
                            Game.Achievements['Baker of the Beast'] && Game.Achievements['Baker of the Beast'].won;
+                }
                 },
-                effect: function() {
-
-                },},
             {
                 name: 'Order of the Enchanted Whisk',
                 desc: 'Frenzy, Click Frenzy, and Elder Frenzy buffs are <b>5%</b> more powerful.<br>Unlocked by owning all Grimoire achievements.<br>Cost scales with CpS',
@@ -119,9 +109,6 @@ window.JNEData = {
                            Game.Achievements['Hogwarts Dropout'] && Game.Achievements['Hogwarts Dropout'].won &&
                            Game.Achievements['Spell Slinger'] && Game.Achievements['Spell Slinger'].won &&
                            Game.Achievements['Sweet Sorcery'] && Game.Achievements['Sweet Sorcery'].won;
-                },
-                effect: function() {
-
                 }
             },
             {
@@ -134,14 +121,11 @@ window.JNEData = {
                 order: 30001.05,
                 unlockCondition: function() {
                     // Unlock when all previous Order upgrades are OWNED/BOUGHT
-                    return Game.Has('Order of the Golden Crumb') && 
+                    return Game.Has('Order of the Golden Crumb') &&
                            Game.Has('Order of the Impossible Batch') &&
-                           Game.Has('Order of the Shining Spoon') && 
+                           Game.Has('Order of the Shining Spoon') &&
                            Game.Has('Order of the Cookie Eclipse') &&
                            Game.Has('Order of the Enchanted Whisk');
-                },
-                effect: function() {
-
                 }
             }
         ],
@@ -249,7 +233,7 @@ window.JNEData = {
             {
                 name: 'Kitten founders',
                 desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
-                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>The original visionaries who started it all, boss.</q>',
+                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>The original visionaries who started it all, even if they are no longer involved, boss.</q>',
                 price: 9e83, // 900 sexvigintillion
                 icon: [16, 10, 'custom'],
                 pool: 'kitten',
@@ -269,7 +253,7 @@ window.JNEData = {
             {
                 name: 'Kitten Senators',
                 desc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.',
-                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Representing the interests of all feline constituents.</q>',
+                ddesc: 'You gain a tiny bit <b>more CpS</b> the more milk you have.<q>Repurresenting the interests of all feline constituents.</q>',
                 price: 9e89, // 900 octovigintillion
                 icon: [18, 14, 'custom'],
                 pool: 'kitten',
@@ -296,10 +280,7 @@ window.JNEData = {
                 icon: [1, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Grandma',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Off-Brand Eyeglasses',
@@ -319,10 +300,7 @@ window.JNEData = {
                 icon: [1, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Grandma',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Plastic Walkers',
@@ -342,10 +320,7 @@ window.JNEData = {
                 icon: [1, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Grandma',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Bulk Discount Hearing Aids',
@@ -365,10 +340,7 @@ window.JNEData = {
                 icon: [1, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Grandma',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Generic Arthritis Medication',
@@ -388,10 +360,7 @@ window.JNEData = {
                 icon: [1, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Grandma',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Wholesale Denture Adhesive',
@@ -421,10 +390,7 @@ window.JNEData = {
                 icon: [2, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Farm',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Free manure from clone factories',
@@ -444,10 +410,7 @@ window.JNEData = {
                 icon: [2, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Farm',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Solar-powered irrigation systems',
@@ -467,10 +430,7 @@ window.JNEData = {
                 icon: [2, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Farm',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Bulk seed purchases',
@@ -490,10 +450,7 @@ window.JNEData = {
                 icon: [2, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Farm',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Robot farm hands',
@@ -513,10 +470,7 @@ window.JNEData = {
                 icon: [2, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Farm',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Vertical farming subsidies',
@@ -546,10 +500,7 @@ window.JNEData = {
                 icon: [3, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Mine',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Punch-card TNT club',
@@ -569,10 +520,7 @@ window.JNEData = {
                 icon: [3, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Mine',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Hand-me-down hardhats',
@@ -592,10 +540,7 @@ window.JNEData = {
                 icon: [3, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Mine',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Lease-back drill rigs',
@@ -615,10 +560,7 @@ window.JNEData = {
                 icon: [3, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Mine',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Ore cartel coupons',
@@ -638,10 +580,7 @@ window.JNEData = {
                 icon: [3, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Mine',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Cave-in insurance kickbacks',
@@ -671,10 +610,7 @@ window.JNEData = {
                 icon: [4, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Factory',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'BOGO rivet bins',
@@ -694,10 +630,7 @@ window.JNEData = {
                 icon: [4, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Factory',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Off-brand gear grease',
@@ -717,10 +650,7 @@ window.JNEData = {
                 icon: [4, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Factory',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Misprint warning labels',
@@ -740,10 +670,7 @@ window.JNEData = {
                 icon: [4, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Factory',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Pallet-jack rebates',
@@ -763,10 +690,7 @@ window.JNEData = {
                 icon: [4, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Factory',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Prefab cookie modules',
@@ -796,10 +720,7 @@ window.JNEData = {
                 icon: [13, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Bank',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Vault door floor-models',
@@ -819,10 +740,7 @@ window.JNEData = {
                 icon: [13, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Bank',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Pen-on-a-chain procurement',
@@ -842,10 +760,7 @@ window.JNEData = {
                 icon: [13, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Bank',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Complimentary complimentary mints',
@@ -865,10 +780,7 @@ window.JNEData = {
                 icon: [13, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Bank',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Fee waiver wavers',
@@ -888,10 +800,7 @@ window.JNEData = {
                 icon: [13, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Bank',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Dough Jones clearance',
@@ -921,10 +830,7 @@ window.JNEData = {
                 icon: [14, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Temple',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Relic replica racks',
@@ -944,10 +850,7 @@ window.JNEData = {
                 icon: [14, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Temple',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Incense refill program',
@@ -967,10 +870,7 @@ window.JNEData = {
                 icon: [14, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Temple',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Chant-o-matic hymn reels',
@@ -990,10 +890,7 @@ window.JNEData = {
                 icon: [14, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Temple',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Pew-per-view sponsorships',
@@ -1013,10 +910,7 @@ window.JNEData = {
                 icon: [14, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Temple',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Sacred site tax amnesty',
@@ -1046,10 +940,7 @@ window.JNEData = {
                 icon: [15, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Wizard tower',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Grimoire remainder sale',
@@ -1069,10 +960,7 @@ window.JNEData = {
                 icon: [15, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Wizard tower',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Robes with "character"',
@@ -1092,10 +980,7 @@ window.JNEData = {
                 icon: [15, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Wizard tower',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Familiar foster program',
@@ -1115,10 +1000,7 @@ window.JNEData = {
                 icon: [15, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Wizard tower',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Council scroll stipends',
@@ -1138,10 +1020,7 @@ window.JNEData = {
                 icon: [15, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Wizard tower',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Broom-sharing scheme',
@@ -1171,10 +1050,7 @@ window.JNEData = {
                 icon: [5, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Shipment',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Container co-op cards',
@@ -1194,10 +1070,7 @@ window.JNEData = {
                 icon: [5, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Shipment',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Reusable launch crates',
@@ -1217,10 +1090,7 @@ window.JNEData = {
                 icon: [5, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Shipment',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Autodocker apprentices',
@@ -1240,10 +1110,7 @@ window.JNEData = {
                 icon: [5, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Shipment',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Route rebate vouchers',
@@ -1263,10 +1130,7 @@ window.JNEData = {
                 icon: [5, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Shipment',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Free-trade cookie ports',
@@ -1296,10 +1160,7 @@ window.JNEData = {
                 icon: [6, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Alchemy lab',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Philosopher\'s pebbles',
@@ -1319,10 +1180,7 @@ window.JNEData = {
                 icon: [6, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Alchemy lab',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Cool-running crucibles',
@@ -1342,10 +1200,7 @@ window.JNEData = {
                 icon: [6, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Alchemy lab',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Batch homunculi permits',
@@ -1365,10 +1220,7 @@ window.JNEData = {
                 icon: [6, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Alchemy lab',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Guild reagent rates',
@@ -1388,10 +1240,7 @@ window.JNEData = {
                 icon: [6, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Alchemy lab',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: '"Mostly lead" gold grants',
@@ -1421,10 +1270,7 @@ window.JNEData = {
                 icon: [7, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Portal',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Anchor warehouse club',
@@ -1444,10 +1290,7 @@ window.JNEData = {
                 icon: [7, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Portal',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Passive rift baffles',
@@ -1467,10 +1310,7 @@ window.JNEData = {
                 icon: [7, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Portal',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Volunteer gatekeepers',
@@ -1490,10 +1330,7 @@ window.JNEData = {
                 icon: [7, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Portal',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Interrealm stipend scrolls',
@@ -1513,10 +1350,7 @@ window.JNEData = {
                 icon: [7, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Portal',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Multiversal enterprise zone',
@@ -1546,10 +1380,7 @@ window.JNEData = {
                 icon: [8, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Time machine',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Depreciated timeline scraps',
@@ -1569,10 +1400,7 @@ window.JNEData = {
                 icon: [8, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Time machine',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Off-season flux valves',
@@ -1592,10 +1420,7 @@ window.JNEData = {
                 icon: [8, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Time machine',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Weekend paradox passes',
@@ -1615,10 +1440,7 @@ window.JNEData = {
                 icon: [8, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Time machine',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Department of When grants',
@@ -1638,10 +1460,7 @@ window.JNEData = {
                 icon: [8, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Time machine',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Antique warranty loopholes',
@@ -1671,10 +1490,7 @@ window.JNEData = {
                 icon: [11, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Antimatter condenser',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Matter swap rebates',
@@ -1694,10 +1510,7 @@ window.JNEData = {
                 icon: [11, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Antimatter condenser',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Low-idle annihilators',
@@ -1717,10 +1530,7 @@ window.JNEData = {
                 icon: [11, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Antimatter condenser',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Grad-lab particle labor',
@@ -1740,10 +1550,7 @@ window.JNEData = {
                 icon: [11, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Antimatter condenser',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Institute endowment match',
@@ -1763,10 +1570,7 @@ window.JNEData = {
                 icon: [11, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Antimatter condenser',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Void-zone incentives',
@@ -1796,10 +1600,7 @@ window.JNEData = {
                 icon: [12, 1, 'custom'], // Matches 800 threshold (index 1)
                 pool: '',
                 building: 'Prism',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Spectral seconds',
@@ -1819,10 +1620,7 @@ window.JNEData = {
                 icon: [12, 3, 'custom'], // Matches 900 threshold (index 3)
                 pool: '',
                 building: 'Prism',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Sleep-mode rainbows',
@@ -1842,10 +1640,7 @@ window.JNEData = {
                 icon: [12, 5, 'custom'], // Matches 1000 threshold (index 5)
                 pool: '',
                 building: 'Prism',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Apprentice refractioneers',
@@ -1865,10 +1660,7 @@ window.JNEData = {
                 icon: [12, 7, 'custom'], // Matches 1100 threshold (index 7)
                 pool: '',
                 building: 'Prism',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Arts-of-Optics grants',
@@ -1888,10 +1680,7 @@ window.JNEData = {
                 icon: [12, 9, 'custom'], // Matches 1200 threshold (index 9)
                 pool: '',
                 building: 'Prism',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Rainbow renewal credits',
@@ -1921,10 +1710,7 @@ window.JNEData = {
                 icon: [17, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'Chancemaker',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Reroll refund policy',
@@ -1944,10 +1730,7 @@ window.JNEData = {
                 icon: [17, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'Chancemaker',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Economy-grade omens',
@@ -1967,10 +1750,7 @@ window.JNEData = {
                 icon: [17, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'Chancemaker',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Volunteer augury nights',
@@ -1990,10 +1770,7 @@ window.JNEData = {
                 icon: [17, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'Chancemaker',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Lottery board matching',
@@ -2013,10 +1790,7 @@ window.JNEData = {
                 icon: [17, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'Chancemaker',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Lucky district waivers',
@@ -2046,10 +1820,7 @@ window.JNEData = {
                 icon: [18, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'Fractal engine',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Self-similar spare parts',
@@ -2069,10 +1840,7 @@ window.JNEData = {
                 icon: [18, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'Fractal engine',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Recursion rebates',
@@ -2092,10 +1860,7 @@ window.JNEData = {
                 icon: [18, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'Fractal engine',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Autogenerator residencies',
@@ -2115,10 +1880,7 @@ window.JNEData = {
                 icon: [18, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'Fractal engine',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Grant-funded proofs',
@@ -2138,10 +1900,7 @@ window.JNEData = {
                 icon: [18, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'Fractal engine',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Infinite-lot variances',
@@ -2171,10 +1930,7 @@ window.JNEData = {
                 icon: [19, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'Javascript console',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Compiler credit program',
@@ -2194,10 +1950,7 @@ window.JNEData = {
                 icon: [19, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'Javascript console',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Idle-friendly runtimes',
@@ -2217,10 +1970,7 @@ window.JNEData = {
                 icon: [19, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'Javascript console',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Peer-review co-ops',
@@ -2240,10 +1990,7 @@ window.JNEData = {
                 icon: [19, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'Javascript console',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Open-source grants',
@@ -2263,10 +2010,7 @@ window.JNEData = {
                 icon: [19, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'Javascript console',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Cloud credit vouchers',
@@ -2296,10 +2040,7 @@ window.JNEData = {
                 icon: [20, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'Idleverse',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Reality consolidation discounts',
@@ -2319,10 +2060,7 @@ window.JNEData = {
                 icon: [20, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'Idleverse',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Cosmic bulk purchasing',
@@ -2342,10 +2080,7 @@ window.JNEData = {
                 icon: [20, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'Idleverse',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Multiverse supplier networks',
@@ -2365,10 +2100,7 @@ window.JNEData = {
                 icon: [20, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'Idleverse',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Dimensional economies of scale',
@@ -2388,10 +2120,7 @@ window.JNEData = {
                 icon: [20, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'Idleverse',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Reality monopoly pricing',
@@ -2421,10 +2150,7 @@ window.JNEData = {
                 icon: [21, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'Cortex baker',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Synaptic wholesale networks',
@@ -2444,10 +2170,7 @@ window.JNEData = {
                 icon: [21, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'Cortex baker',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Cerebral mass production',
@@ -2467,10 +2190,7 @@ window.JNEData = {
                 icon: [21, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'Cortex baker',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Mind monopoly pricing',
@@ -2490,10 +2210,7 @@ window.JNEData = {
                 icon: [21, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'Cortex baker',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Neural economies of scale',
@@ -2513,10 +2230,7 @@ window.JNEData = {
                 icon: [21, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'Cortex baker',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Synaptic supply dominance',
@@ -2546,10 +2260,7 @@ window.JNEData = {
                 icon: [22, 1, 'custom'], // Matches 800 threshold
                 pool: '',
                 building: 'You',
-                threshold: 800,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 800
             },
             {
                 name: 'Replica production lines',
@@ -2569,10 +2280,7 @@ window.JNEData = {
                 icon: [22, 3, 'custom'], // Matches 900 threshold
                 pool: '',
                 building: 'You',
-                threshold: 900,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 900
             },
             {
                 name: 'Mirror manufacturing mastery',
@@ -2592,10 +2300,7 @@ window.JNEData = {
                 icon: [22, 5, 'custom'], // Matches 1000 threshold
                 pool: '',
                 building: 'You',
-                threshold: 1000,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1000
             },
             {
                 name: 'Twin tycoon pricing',
@@ -2615,10 +2320,7 @@ window.JNEData = {
                 icon: [22, 7, 'custom'], // Matches 1100 threshold
                 pool: '',
                 building: 'You',
-                threshold: 1100,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1100
             },
             {
                 name: 'Doppelganger discount networks',
@@ -2638,10 +2340,7 @@ window.JNEData = {
                 icon: [22, 9, 'custom'], // Matches 1200 threshold
                 pool: '',
                 building: 'You',
-                threshold: 1200,
-                effect: function() {
-                    return 1.25; // 25% increase
-                }
+                threshold: 1200
             },
             {
                 name: 'Clone supply dominance',
@@ -2656,7 +2355,7 @@ window.JNEData = {
         ],
         cookie: [
             {
-                name: 'Improved Plain cookies',
+                name: 'Improved Plain cookies', order: 10500.0200,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Advanced data modeling has revealed that fresher butter leads to superior cookie texture and flavor.</q>',
                 price: 5.0e68, // 500 unvigintillion
@@ -2667,7 +2366,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Sugar cookies',
+                name: 'Improved Sugar cookies', order: 10500.0203,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Artificial intelligence has optimized the sugar-to-flour ratio through extensive testing.</q>',
                 price: 1.0e69, // 1 duovigintillion
@@ -2678,7 +2377,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Oatmeal raisin cookies',
+                name: 'Improved Oatmeal raisin cookies', order: 10500.0206,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Spiritual meditation has led to the discovery of the optimal raisin variety for maximum flavor burst.</q>',
                 price: 2.0e69, // 2 duovigintillion
@@ -2689,7 +2388,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Peanut butter cookies',
+                name: 'Improved Peanut butter cookies', order: 10500.0209,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Quantum computing has enabled the development of a new peanut butter processing method for maximum creaminess.</q>',
                 price: 4.0e69, // 4 duovigintillion
@@ -2700,7 +2399,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Coconut cookies',
+                name: 'Improved Coconut cookies', order: 10500.0212,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Machine learning algorithms have discovered the perfect coconut grating technique for optimal texture.</q>',
                 price: 8.0e69, // 8 duovigintillion
@@ -2711,7 +2410,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Macadamia nut cookies',
+                name: 'Improved Macadamia nut cookies', order: 10500.0215,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Genetic analysis has identified the specific Hawaiian macadamia variety with the richest flavor profile.</q>',
                 price: 1.6e70, // 16 duovigintillion
@@ -2722,7 +2421,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Almond cookies',
+                name: 'Improved Almond cookies', order: 10500.0218,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Spectroscopic analysis has shown that California almonds provide the perfect crunch-to-flavor ratio.</q>',
                 price: 3.2e70, // 32 duovigintillion
@@ -2733,7 +2432,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Hazelnut cookies',
+                name: 'Improved Hazelnut cookies', order: 10500.0221,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Chromatography has revealed that Turkish hazelnuts contain the highest concentration of flavor compounds.</q>',
                 price: 6.5e70, // 65 duovigintillion
@@ -2744,7 +2443,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Walnut cookies',
+                name: 'Improved Walnut cookies', order: 10500.0224,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Neural networks have determined that English walnuts provide the optimal balance of crunch and flavor.</q>',
                 price: 1.3e71, // 130 duovigintillion
@@ -2755,7 +2454,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Cashew cookies',
+                name: 'Improved Cashew cookies', order: 10500.0227,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Mass spectrometry has discovered that Brazilian cashews contain unique compounds that enhance buttery smoothness.</q>',
                 price: 2.6e71, // 260 duovigintillion
@@ -2766,7 +2465,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved White chocolate cookies',
+                name: 'Improved White chocolate cookies', order: 10500.0230,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Thermal analysis has revealed that Belgian white chocolate contains the perfect cocoa butter ratio for creaminess.</q>',
                 price: 5.2e71, // 520 duovigintillion
@@ -2777,7 +2476,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Milk chocolate cookies',
+                name: 'Improved Milk chocolate cookies', order: 10500.0233,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Molecular dynamics simulations have developed a Swiss chocolate blend that melts at the perfect temperature.</q>',
                 price: 1.0e72, // 100 trevigintillion
@@ -2788,7 +2487,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Double-chip cookies',
+                name: 'Improved Double-chip cookies', order: 10500.0236,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Statistical modeling has proven that doubling the chocolate chip density maximizes chocolatey goodness.</q>',
                 price: 2.0e72, // 200 trevigintillion
@@ -2799,7 +2498,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved White chocolate macadamia nut cookies',
+                name: 'Improved White chocolate macadamia nut cookies', order: 10500.0239,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Computational chemistry has discovered the perfect ratio of white chocolate to macadamia for maximum flavor synergy.</q>',
                 price: 4.0e72, // 400 trevigintillion
@@ -2810,7 +2509,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved All-chocolate cookies',
+                name: 'Improved All-chocolate cookies', order: 10500.0242,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Biotechnology has developed a revolutionary chocolate dough formula that\'s entirely edible.</q>',
                 price: 8.0e72, // 800 trevigintillion
@@ -2821,7 +2520,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Dark chocolate-coated cookies',
+                name: 'Improved Dark chocolate-coated cookies', order: 10500.0245,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Flavor profiling has identified the optimal 70% cocoa concentration for sophisticated palates.</q>',
                 price: 1.6e73, // 16 trevigintillion
@@ -2832,7 +2531,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved White chocolate-coated cookies',
+                name: 'Improved White chocolate-coated cookies', order: 10500.0248,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Differential scanning calorimetry has revealed the perfect melting temperature for velvety white chocolate coating.</q>',
                 price: 3.2e73, // 32 trevigintillion
@@ -2843,7 +2542,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Eclipse cookies',
+                name: 'Improved Eclipse cookies', order: 10500.0251,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Fluid dynamics modeling has developed a precise chocolate swirling technique that creates mesmerizing eclipse patterns.</q>',
                 price: 6.5e73, // 65 trevigintillion
@@ -2854,7 +2553,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Zebra cookies',
+                name: 'Improved Zebra cookies', order: 10500.0254,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Computer vision has perfected the layering technique for perfectly striped vanilla and chocolate dough.</q>',
                 price: 1.3e74, // 130 trevigintillion
@@ -2865,7 +2564,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Snickerdoodles',
+                name: 'Improved Snickerdoodles', order: 10500.0257,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Sensor fusion has discovered the optimal cinnamon-to-cream-of-tartar ratio for that signature tangy taste.</q>',
                 price: 2.6e74, // 260 trevigintillion
@@ -2876,7 +2575,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Stroopwafels',
+                name: 'Improved Stroopwafels', order: 10500.0260,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Reverse engineering has recreated authentic Dutch caramel syrup for perfect consistency.</q>',
                 price: 5.2e74, // 520 trevigintillion
@@ -2887,7 +2586,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Macaroons',
+                name: 'Improved Macaroons', order: 10500.0263,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Nanotechnology has developed the perfect French almond flour and aged egg white formula.</q>',
                 price: 1.0e75, // 1 quattuorvigintillion
@@ -2898,7 +2597,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Empire biscuits',
+                name: 'Improved Empire biscuits', order: 10500.0266,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>3D printing technology has perfected the Scottish shortbread recipe with royal icing precision.</q>',
                 price: 2.0e75, // 2 quattuorvigintillion
@@ -2909,7 +2608,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Madeleines',
+                name: 'Improved Madeleines', order: 10500.0269,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Gas chromatography has discovered the optimal lemon zest concentration for classic French shell-shaped cakes.</q>',
                 price: 4.0e75, // 4 quattuorvigintillion
@@ -2920,7 +2619,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Palmiers',
+                name: 'Improved Palmiers', order: 10500.0272,
                 desc: 'Cookie production multiplier <b>+2%</b>.',
                 ddesc: 'Cookie production multiplier <b>+2%</b>.<q>Robotics has developed a precise puff pastry folding technique for perfect palm leaf shapes.</q>',
                 price: 1e76, // 10 quattuorvigintillion
@@ -2931,7 +2630,7 @@ window.JNEData = {
                 isBoxUpgrade: true,
             },
             {
-                name: 'Improved Milk chocolate butter biscuit',
+                name: 'Improved Milk chocolate butter biscuit', order: 10500.001,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 750 of everything.<br>It bears the engraving of a fine entrepreneur.</q>',
                 price: 1e69, // 100 duovigintillion
@@ -2941,7 +2640,7 @@ window.JNEData = {
                 require: 'butterBiscuit750'
             },
             {
-                name: 'Improved Dark chocolate butter biscuit',
+                name: 'Improved Dark chocolate butter biscuit', order: 10500.002,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 800 of everything.<br>It is adorned with the image of an experienced cookie tycoon.</q>',
                 price: 1e72, // 100 trevigintillion
@@ -2951,7 +2650,7 @@ window.JNEData = {
                 require: 'butterBiscuit800'
             },
             {
-                name: 'Improved White chocolate butter biscuit',
+                name: 'Improved White chocolate butter biscuit', order: 10500.003,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 850 of everything.<br>The chocolate is chiseled to depict a masterful pastry magnate.</q>',
                 price: 1e75, // 100 quattuorvigintillion
@@ -2961,7 +2660,7 @@ window.JNEData = {
                 require: 'butterBiscuit850'
             },
             {
-                name: 'Improved Ruby chocolate butter biscuit',
+                name: 'Improved Ruby chocolate butter biscuit', order: 10500.004,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 900 of everything.<br>Covered in a rare red chocolate, this biscuit is etched to represent the face of a cookie industrialist gone mad with power.</q>',
                 price: 1e78, // 100 quinvigintillion
@@ -2971,7 +2670,7 @@ window.JNEData = {
                 require: 'butterBiscuit900'
             },
             {
-                name: 'Improved Lavender chocolate butter biscuit',
+                name: 'Improved Lavender chocolate butter biscuit', order: 10500.005,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 950 of everything.<br>This subtly-flavored biscuit represents the accomplishments of decades of top-secret research. The molded design on the chocolate resembles a well-known entrepreneur who gave their all to the ancient path of baking.</q>',
                 price: 1e81, // 100 sexvigintillion
@@ -2981,7 +2680,7 @@ window.JNEData = {
                 require: 'butterBiscuit950'
             },
             {
-                name: 'Improved Synthetic chocolate green honey butter biscuit',
+                name: 'Improved Synthetic chocolate green honey butter biscuit', order: 10500.006,
                 desc: 'Cookie production multiplier <b>+10%</b>.',
                 ddesc: 'Cookie production multiplier <b>+10%</b>.<q>Rewarded for owning 1000 of everything.<br>The recipe for this butter biscuit was once the sole heritage of an ancient mountain monastery. Its flavor is so refined that only a slab of lab-made chocolate specifically engineered to be completely tasteless could complement it.<br>Also it\'s got your face on it.</q>',
                 price: 1e84, // 100 septenvigintillion
@@ -3141,7 +2840,7 @@ window.JNEData = {
                 names: ["Wrinkler annihilator", "Wrinkler eradicator", "Wrinkler extinction event", "Wrinkler apocalypse", "Wrinkler armageddon"],
                 thresholds: [666, 2666, 6666, 16666, 26666],
                 descs: ["Burst <b>666 wrinklers</b> across all ascensions.<q>Pop goes the creepy.</q>", "Burst <b>2,666 wrinklers</b> across all ascensions.<q>That wasn't cream filling.</q>", "Burst <b>6,666 wrinklers</b> across all ascensions.<q>If it wrinkles, you pop it.</q>", "Burst <b>16,666 wrinklers</b> across all ascensions.<q>So much juice. So little remorse.</q>", "Burst <b>26,666 wrinklers</b> across all ascensions.<q>One squish closer to immortality.</q>"],
-                customIcons: [[21, 16, 'custom'], [21, 17, 'custom'], [21, 18, 'custom'], [22, 19, 'custom'], [22, 18, 'custom']],
+                customIcons: [[21, 16, 'custom'], [21, 16, 'custom'], [21, 17, 'custom'], [21, 17, 'custom'], [19, 27, 'custom']],
                 orders: [21000.117, 21000.127, 21000.137, 21000.147, 21000.157]
             },
             goldenWrinkler: {
@@ -3155,7 +2854,7 @@ window.JNEData = {
                 names: ["Rare specimen collector", "Endangered species hunter", "Extinction event architect"],
                 thresholds: [2, 5, 10],
                 descs: ["Burst <b>2 shiny wrinklers</b> across all ascensions.<q>You're a monster, do you know that?</q>", "Burst <b>5 shiny wrinklers</b> across all ascensions.<q>You really have to stop here, there aren\'t many of these left in the world.</q>", "Burst <b>10 shiny wrinklers</b> across all ascensions.<q>People like you are evil, no one will ever see another one of these, you ruined it for everyone.</q>"],
-                customIcons: [[21, 13, 'custom'], [21, 14, 'custom'], [21, 15, 'custom']],
+                customIcons: [[24, 12, 'main'], [19, 27, 'custom'], [19, 27, 'custom']],
                 orders: [35000.272, 35000.282, 35000.292]
             },
             cookieFish: {
@@ -3169,7 +2868,7 @@ window.JNEData = {
                 names: ["Reindeer destroyer", "Reindeer obliterator", "Reindeer extinction event", "Reindeer apocalypse"],
                 thresholds: [500, 1000, 2000, 5000],
                 descs: ["Pop <b>500 reindeer</b> across all ascensions.<q>You are become Claus, destroyer of hooves.</q>", "Pop <b>1,000 reindeer</b> across all ascensions.<q>That one had a red nose…</q>", "Pop <b>2,000 reindeer</b> across all ascensions.<q>Comet, Vixen, Toasted.</q>", "Pop <b>5,000 reindeer</b> across all ascensions.<q>Legends say the sky still smells like cinnamon and regret.</q>"],
-                customIcons: [[19, 17, 'custom'], [19, 16, 'custom'], [19, 15, 'custom'], [19, 14, 'custom']],
+                customIcons: [[19, 14, 'custom'], [19, 14, 'custom'], [19, 15, 'custom'], [19, 15, 'custom']],
                 orders: [22100.124, 22100.134, 22100.144, 22100.154]
             },
             goldenCookies: {
@@ -3290,70 +2989,70 @@ window.JNEData = {
             },
                     hardercorest: {
             names: ["Hardercorest"],
-            thresholds: [3e9], 
+            thresholds: [3e9],
             descs: ["Bake <b>3 billion cookies</b> with no cookie clicks and no upgrades bought in Born Again mode.<q>Do you hate me or yourself after that one?</q>"],
             customIcons: [[13, 6]],
             orders: [30500.102]
         },
                     hardercorester: {
             names: ["Hardercorest-er"],
-            thresholds: [1e9], 
+            thresholds: [1e9],
             descs: ["Bake <b>1 billion cookies</b> with no more than 20 clicks, no more than 20 buildings (no selling), and no more than 20 upgrades in Born Again mode.<q>Bet you thought that wouldn't be as bad as it was eh?</q>"],
             customIcons: [[14, 6]],
             orders: [30500.112]
         },
         allBuildingsLevel10: {
             names: ["Have your sugar and eat it too"],
-            thresholds: [10], 
+            thresholds: [10],
             descs: ["Have every building reach <b>level 10</b>."],
             customIcons: [[26, 27]],
             orders: [400000.143]
         },
         sugarLumps: {
             names: ["Sweet Child of Mine"],
-            thresholds: [100], 
+            thresholds: [100],
             descs: ["Own <b>100 sugar lumps</b> at once."],
             customIcons: [[29, 16]],
             orders: [21100.406]
         },
         seasonSwitches: {
             names: ["Calendar Abuser"],
-            thresholds: [50], 
+            thresholds: [50],
             descs: ["Switch seasons <b>50 times</b> in one ascension.<q>What month even is it?</q>"],
             customIcons: [[16, 6]],
             orders: [21100.416]
         },
         vanillaAchievements: {
             names: ["Vanilla Star"],
-            thresholds: [622], 
+            thresholds: [622],
             descs: ["Own all <b>622 original achievements.</b><q>Wow congratulations 100% achievements! {remaining}</q>"],
             customIcons: [[22, 7]],
             orders: [400000.143]
         },
         botanicalPerfection: {
             names: ["Botanical Perfection", "Duketater Salad"],
-            thresholds: [34, 12], 
+            thresholds: [34, 12],
             descs: ["Have one of every type of plant in the mature stage at once.<q>I have become the plants now, I am the master of the garden, bow before my hoe.</q>", "Harvest <b>12 mature Duketaters</b> simultaneously.<q>Timing your salad is everything otherwise the mayo goes bad and you kill all your friends.</q>"],
             customIcons: [[27, 15], [0, 19, 'gardenPlants']],
             orders: [61515.431, 61515.440]
         },
         soilChanges: {
             names: ["Fifty Shades of Clay"],
-            thresholds: [100], 
+            thresholds: [100],
             descs: ["Change the soil type of your Garden <b>100 times</b> in one ascension.<q>This is not how gardening works.</q>"],
             customIcons: [[3, 34, 'gardenPlants']],
             orders: [61515.433]
         },
         tickerClicks: {
             names: ["News ticker addict"],
-            thresholds: [1000], 
+            thresholds: [1000],
             descs: ["Click on the news ticker <b>1,000 times</b> in one ascension.<q>Hey dummy you are clicking on the wrong thing.</q>"],
             customIcons: [[10, 12, 'custom']],
             orders: [11000.548]
         },
         wrathCookies: {
             names: ["Warm-Up Ritual", "Deal of the Slightly Damned", "Baker of the Beast"],
-            thresholds: [66, 666, 6666], 
+            thresholds: [66, 666, 6666],
             descs: ["Click <b>66 wrath cookies</b> across all ascensions.", "Click <b>666 wrath cookies</b> across all ascensions.", "Click <b>6,666 wrath cookies</b> across all ascensions."],
             customIcons: [[20, 18, 'custom'], [20, 17, 'custom'], [20, 16, 'custom']],
             orders: [19990.605, 19990.615, 19990.625]
@@ -3362,21 +3061,21 @@ window.JNEData = {
             names: ["Second Life, First Click"],
             thresholds: [120 * 1000], // 120 seconds in milliseconds
             descs: ["Click a naturally spawning golden cookie within <b>120 seconds</b> of ascending."],
-            customIcons: [[0, 9, 'custom']],
+            customIcons: [[0, 1, 'custom']],
             orders: [10000.274]
         },
         wrinklerTime: {
             names: ["Wrinkler Rush"],
-            thresholds: [930 * 1000], // 930 seconds (15 minutes 30 seconds) 
+            thresholds: [930 * 1000],
             descs: ["Pop a wrinkler within <b>15 minutes and 30 seconds</b> of ascending.<q>The Grandmatriarchs barely had time to wake up!</q>"],
-            customIcons: [[23, 18, 'custom']],
+            customIcons: [[17, 27, 'custom']],
             orders: [21000.170]
         },
         wrinklerBankDouble: {
             names: ["Wrinkler Windfall"],
             thresholds: [6], // 6x bank value (sextupled)
             descs: ["Sextuple your bank with a single wrinkler pop.<q>Talk about a return on investment!</q>"],
-            customIcons: [[21, 19, 'custom']],
+            customIcons: [[18, 27, 'custom']],
             orders: [21000.169]
         },
         hardcoreNoHeavenly: {
@@ -3475,7 +3174,7 @@ window.JNEData = {
             names: ["Broiler room"],
             thresholds: [100], // 100 stockbrokers
             descs: ["Hire at least <b>100</b> stockbrokers in the Stock Market.<q>And there is no such thing as a no sale call. A sale is made on every call you make. Either you sell the client some stock or he sells you a reason he can't. Either way a sale is made, who's gonna close? You or him?</q>"],
-            customIcons: [[23, 1, 'custom']],
+            customIcons: [[0, 16, 'custom']],
             orders: [61616.358]
         },
         cookieClicks: {
@@ -3532,9 +3231,12 @@ window.JNEData = {
     kittenUpgradeNames: [
         'Kitten unpaid interns', 'Kitten overpaid "temporary" contractors', 'Kitten remote workers', 'Kitten scrum masters', 'Kitten UX designers', 'Kitten janitors', 'Kitten coffee fetchers', 'Kitten personal assistants', 'Kitten vice presidents', 'Kitten board members', 'Kitten founders', 'Kitten Equity Partners', 'Kitten Senators'
     ],
-    donutUpgradeNames: [
-        'Maple frosted donut', 'Boston creme donut', 'Strawberry jelly donut', 'Chocolate frosted donut', 'Donut holes', 'Chocolate filled donut', 'Powdered sugar jelly donut', 'Plain glazed donut', 'Blueberry jelly filled donut', 'Pink frosted donut', 'Chocolate sprinkle donut', 'Bear claw', 'Chocolate eclair'
+    boxUpgradeNames: [
+        'Maple frosted donut', 'Boston creme donut', 'Strawberry jelly donut', 'Chocolate frosted donut', 'Donut holes', 'Chocolate filled donut', 'Powdered sugar jelly donut', 'Plain glazed donut', 'Blueberry jelly filled donut', 'Pink frosted donut', 'Chocolate sprinkle donut', 'Bear claw', 'Chocolate eclair',
+        'Dutch apple pie', 'Pumpkin pie', 'Cherry pie', 'Tart lemon pie', 'Key lime pie', 'Chocolate pie', 'Blueberry pie', 'Coconut pie', 'Pecan pie', 'Snickers pie',
+        'Midnight Malt Cookies', 'Atomic Malted Milk Cookies', 'Groovy Honey Grahams', 'Harvest Gold Butter Cookies', 'Electric Raspberry Sandwiches', 'Saturday Morning Sugar Bombs', 'Chrome Chip Cookies'
     ],
+    vanillaShadowAchievements: ['Speed baking I', 'Speed baking II', 'Speed baking III', 'Just plain lucky', 'God complex', 'Third-party', 'Endless cycle', 'Last Chance to See', 'All-natural cane sugar', 'Four-leaf cookie', 'So much to do so much to see', 'When the cookies ascend just right', 'Gaseous assets', 'Seven horseshoes', 'In her likeness', 'True Neverclick'],
     achievementFlavorText: {
         "Council of Me": "All in favor? Aye, aye, aye. Motion passes unanimously...again.",
         "I, Legion": "We are many; bring plates. HR insists you can't unionize with yourself.",
