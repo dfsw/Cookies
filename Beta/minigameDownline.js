@@ -2514,6 +2514,8 @@ DownlineM.init = function(div) {
           }
         }
         slot.classList.toggle('available', i < max && !state);
+        // with 5 or fewer slots the second grid row is empty, so hide it and let the queue move up
+        slot.style.display = (i < 5 || i < max || state) ? '' : 'none';
         if (state) {
           state._chipEl = slot._chip;
           if (slot._chip && slot._chip.getAttribute('data-state-index') !== String(i)) slot._chip.setAttribute('data-state-index', i);

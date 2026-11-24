@@ -841,14 +841,16 @@
                         for (var j = 0; j < allCrates.length; j++) {
                             var crate = allCrates[j];
                             if ((crate.getAttribute('onmouseover') || '').indexOf('UpgradesById[' + upgrade.id + ']') !== -1 && !crate._erasablePensHandlerAdded) {
-                                crate.addEventListener('click', (function(slot) {
+                                crate.addEventListener('click', (function(slot, slotUpgrade) {
                                     return function(e) {
+                                        // Vanilla owns the ascend screen and the purchase: only an owned slot clicked in-run is ours
+                                        if (!slotUpgrade.bought || Game.OnAscend) return;
                                         e.preventDefault();
                                         e.stopPropagation();
                                         if (Game.AssignPermanentSlot) Game.AssignPermanentSlot(slot);
                                         return false;
                                     };
-                                })(i), true);
+                                })(i, upgrade), true);
                                 crate._erasablePensHandlerAdded = true;
                                 break;
                             }
@@ -1567,23 +1569,35 @@
         }
 
         // heralds + 10 points, capped at 100 (vanilla applies 1 + 0.01 * heralds)
+        function selfPromoterActive() {
+            return Game.ascensionMode != 1 && !!Game.Has('Self promoter') && !!Game.Has('Heralds');
+        }
+        function selfPromoterHeralds() { return Math.round(Math.min(100, Game.heralds + 10) * 100) / 100; }
         function selfPromoterBoost() {
-            var h = Game.heralds;
-            return (1 + 0.01 * Math.min(100, h + 10)) / (1 + 0.01 * h);
+            return (1 + 0.01 * selfPromoterHeralds()) / (1 + 0.01 * Game.heralds);
         }
         function setupSelfPromoter() {
             if (!Game.registerHook || !Game.tooltip || Game._jneSelfPromoter || !Game.Has('Self promoter')) return;
             Game._jneSelfPromoter = true;
             Game.registerHook('cps', function(cps) {
-                if (Game.ascensionMode == 1 || !Game.Has('Self promoter') || !Game.Has('Heralds')) return cps;
-                return cps * selfPromoterBoost();
+                return selfPromoterActive() ? cps * selfPromoterBoost() : cps;
             });
+            // the banner number; skipped while vanilla shows '?' before the first fetch
+            Game.registerHook('logic', function() {
+                var el = l('heraldsAmount');
+                if (!el || !selfPromoterActive() || !/^[\d.]+$/.test(el.textContent)) return;
+                var want = String(Math.floor(selfPromoterHeralds()));
+                if (el.textContent !== want) el.textContent = want;
+            });
+            // base count, then the Self promoter share; the percentage is the boosted total
             hookOnce(Game.tooltip, 'draw', '_jneSelfPromoterTip', function(orig) { return function(from, text, origin) {
-                if (from === l('heralds') && Game.Has('Self promoter') && Game.Has('Heralds')) {
+                if (from === l('heralds') && selfPromoterActive()) {
                     var base = text;
                     text = function() {
-                        var str = typeof base === 'function' ? base() : base;
-                        return String(str).replace(/\+\d+% cookies per second/, '+' + Math.min(100, Game.heralds + 10) + '% cookies per second');
+                        var str = String(typeof base === 'function' ? base() : base);
+                        return str
+                            .replace(/([\d.]+ heralds?<\/b>)/, '$1 (+10 Self promoter)')
+                            .replace(/\+[\d.]+% cookies per second/, '+' + selfPromoterHeralds() + '% cookies per second');
                     };
                 }
                 return orig.call(this, from, text, origin);
@@ -5248,8 +5262,10 @@
         }
 
         // Box contents only last one run, so a save from an earlier run must not restore them.
+        // Game.resets only moves on a prestige gain, so the run start date (reset on every ascension) is checked too
         function currentRunNames(saveData, names) {
-            if (saveData.boxRun === undefined || saveData.boxRun === Game.resets) return names;
+            var sameRun = saveData.boxRun === Game.resets && (saveData.boxStart === undefined || saveData.boxStart === Game.startDate);
+            if (saveData.boxRun === undefined || sameRun) return names;
             return names.filter(function(n) { return !boxOf(n); });
         }
 
@@ -5351,12 +5367,6 @@
                     Game.BuildAscendTree = function(justBought) {
                         if (!Game.PrestigeUpgrades) Game.PrestigeUpgrades = [];
 
-                        var jneParent = Game.Upgrades['Just natural expansion heavenly upgrades'];
-                        var shouldCenterOnJNE = false;
-                        if (jneParent && !jneParent.bought && jneParent.showIf && jneParent.showIf()) {
-                            shouldCenterOnJNE = true;
-                        }
-
                         var iconBackups = {};
 
                         for (var i = 0; i < Game.PrestigeUpgrades.length; i++) {
@@ -5415,19 +5425,6 @@
 
                         var result = Game._jneOriginalBuildAscendTree.apply(this, arguments);
 
-                        if (shouldCenterOnJNE && jneParent && jneParent.posX !== undefined && jneParent.posY !== undefined) {
-                            var targetOffX = -jneParent.posX - 28;
-                            var targetOffY = -jneParent.posY - 28;
-
-                            if (targetOffX > -Game.heavenlyBounds.left) targetOffX = -Game.heavenlyBounds.left;
-                            if (targetOffX < -Game.heavenlyBounds.right) targetOffX = -Game.heavenlyBounds.right;
-                            if (targetOffY > -Game.heavenlyBounds.top) targetOffY = -Game.heavenlyBounds.top;
-                            if (targetOffY < -Game.heavenlyBounds.bottom) targetOffY = -Game.heavenlyBounds.bottom;
-
-                            Game.AscendOffXT = targetOffX;
-                            Game.AscendOffYT = targetOffY;
-                        }
-
                         for (var id in iconBackups) {
                             var upg = Game.UpgradesById && Game.UpgradesById[id];
                             if (upg && upg.icon && Array.isArray(upg.icon) && upg.icon.length === 2 && iconBackups[id].length === 3) {
@@ -5466,30 +5463,30 @@
         function createUpgrades() {
             var parentUpgrade = createHeavenlyUpgrade({
                 name: 'Just natural expansion heavenly upgrades', order: 1050, price: 20e15, icon: [15, 7], pos: [-20, 2188], power: 5, showIf: function() { return Game.Has('Unshackled You'); },
-                ddesc: 'Cookie production multiplier <b>+5%</b>. Also unlocks the Just Natural Expansion heavenly upgrade tree.<q>Now available in the afterlife. You know what also made it to the afterlife? Runaway inflation, so that\'s just swell.</q>',
+                ddesc: 'Cookie production multiplier <b>+5%</b>. Also unlocks the <b>Just Natural Expansion</b> heavenly upgrade tree.<q>Now available in the afterlife. You know what also made it to the afterlife? Runaway inflation, so that\'s just swell.</q>',
                 require: ['Unshackled You']
             });
 
             createHeavenlyUpgrade({
                 name: 'Wallstreet bets', order: 1050.045, price: 15e15, icon: JNE.icon(9, 13, 'custom'), pos: [127, 2238],
-                ddesc: '<b>+25% base</b> warehouse space for all goods in the Stock Market minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
+                ddesc: '<b>+25% base</b> warehouse space for all goods in the <b>Stock Market</b> minigame.<q>A group of very special friends have discovered leverage and options trading, this is surely going to end well for everyone involved.</q>',
                 require: ['Just natural expansion heavenly upgrades']
             });
 
             createHeavenlyUpgrade({
                 name: 'Cyclius swatch', order: 1050.046, price: 20e15, icon: JNE.icon(19, 24, 'custom'), pos: [285, 2414],
-                ddesc: 'Cyclius displays the <b>buff amounts</b> for the current time in the tooltip.<q>You mean all this time we just needed to buy him a cheap watch?</q>',
+                ddesc: '<b>Cyclius</b> displays the <b>buff amounts</b> for the current time in the tooltip.<q>You mean all this time we just needed to buy him a cheap watch?</q>',
                 require: ['Wallstreet bets']
             });
 
             var morrowenUpgrade = createHeavenlyUpgrade({
                 name: 'Morrowen, Spirit of Procrastination', order: 1050.047, price: 35e15, icon: JNE.icon(21, 20, 'custom'), pos: [460, 2446],
-                ddesc: 'Adds a new god to the Pantheon.<q>You should probably be studying right now instead of playing idle games.</q>',
+                ddesc: 'Adds a new god to the <b>Pantheon</b>.<q>You should probably be studying right now instead of playing idle games.</q>',
                 require: ['Cyclius swatch']
             });
             var solgrethUpgrade = createHeavenlyUpgrade({
                 name: 'Solgreth, Spirit of Selfishness', order: 1050.048, price: 35e15, icon: JNE.icon(20, 20, 'custom'), pos: [393, 2542],
-                ddesc: 'Adds a new god to the Pantheon.<q>If that\'s a veiled criticism of me, I won\'t hear it and I won\'t respond to it.</q>',
+                ddesc: 'Adds a new god to the <b>Pantheon</b>.<q>If that\'s a veiled criticism of me, I won\'t hear it and I won\'t respond to it.</q>',
                 require: ['Cyclius swatch']
             });
             [morrowenUpgrade, solgrethUpgrade].forEach(function(upgrade) {
@@ -5498,19 +5495,19 @@
 
             createHeavenlyUpgrade({
                 name: 'Divine uninspiration', order: 1050.058, price: 400e15, icon: [0, 8], pos: [584, 2574],
-                ddesc: 'CpS boost per empty spirit slot in the Pantheon, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.<q>Finally, a reward for not having my life figured out. Honestly, why didn\'t we think of this sooner?</q>',
+                ddesc: 'CpS boost per empty spirit slot in the <b>Pantheon</b>, <b>1%</b> for jade, <b>2%</b> for ruby, <b>3%</b> for diamond.<q>Finally, a reward for not having my life figured out. Honestly, why didn\'t we think of this sooner?</q>',
                 require: ['Solgreth, Spirit of Selfishness', 'Morrowen, Spirit of Procrastination']
             });
 
             createHeavenlyUpgrade({
                 name: 'Past lives', order: 1050.059, price: 6e17, icon: JNE.icon(15, 18, 'custom'), pos: [796, 2596],
-                ddesc: 'Downline keeps <b>10%</b> of its Fractal Prestige boost when you ascend.<q>I think I may have been a CEO in a past life, or perhaps a Roman centurion.</q>',
+                ddesc: '<b>Downline</b> keeps <b>10%</b> of its Fractal Prestige boost when you ascend.<q>I think I may have been a CEO in a past life, or perhaps a Roman centurion.</q>',
                 require: ['Divine uninspiration']
             });
 
             createHeavenlyUpgrade({
                 name: 'Faster hypothetical testing scenarios', order: 1050.06, price: 3e19, icon: JNE.icon(19, 20, 'custom'), pos: [890, 2718],
-                ddesc: 'Reduce your Clone Escape scenario cooldown time by <b>10%</b>.<q>Of course all of this remains entirely and absolutely hypothetical, in the event containment was lost on a real clone it would be a huge scandal.</q>',
+                ddesc: 'Reduce your <b>Clone Escape</b> scenario cooldown time by <b>10%</b>.<q>Of course all of this remains entirely and absolutely hypothetical, in the event containment was lost on a real clone it would be a huge scandal.</q>',
                 require: ['Past lives']
             });
 
@@ -5522,31 +5519,31 @@
 
             createHeavenlyUpgrade({
                 name: 'Plant all', order: 1050.05, price: 25e15, icon: JNE.icon(11, 16, 'custom'), pos: [891, 2388],
-                ddesc: 'Hold <b>control shift</b> when planting a seed to plant that seed in all empty soil spots. <q>Modern farming tools sure do cut down on the manual labor, next thing you know and we will have robots doing the work for us.</q>',
+                ddesc: 'Hold <b>control</b> + <b>shift</b> when planting a seed to plant that seed in all empty soil spots. <q>Modern farming tools sure do cut down on the manual labor, next thing you know and we will have robots doing the work for us.</q>',
                 require: ['Soil inspector']
             });
 
             var sparklingUpgrade = createHeavenlyUpgrade({
                 name: 'Sparkling sugar cane', order: 1050.0561, price: 85e15, icon: JNE.icon(4, 24, 'custom'), pos: [1325, 2407],
-                ddesc: 'Adds a new seed to the garden minigame. A cross between Bakeberry and Thumbcorn.<q>GMOs are finally paying off, especially when powered by Just Natural Expansion.</q>',
+                ddesc: 'Adds a new seed to the <b>garden minigame</b>. A cross between Bakeberry and Thumbcorn.<q>GMOs are finally paying off, especially when powered by Just Natural Expansion.</q>',
                 require: ['Aerated soil']
             });
 
             var kudzuUpgrade = createHeavenlyUpgrade({
                 name: 'Krazy kudzu', order: 1050.0562, price: 90e15, icon: JNE.icon(9, 24, 'custom'), pos: [1197, 2508],
-                ddesc: 'Adds a new seed to the garden minigame. A cross between Meddleweed and Green rot or less commonly Ordinary Clover.<q>An invasive species that spreads like wildfire. We\'re not sure if introducing this to our garden was a good idea.</q>',
+                ddesc: 'Adds a new seed to the <b>garden minigame</b>. A cross between Meddleweed and Green rot or less commonly Ordinary Clover.<q>An invasive species that spreads like wildfire. We\'re not sure if introducing this to our garden was a good idea.</q>',
                 require: ['Aerated soil']
             });
 
             var mushroomUpgrade = createHeavenlyUpgrade({
                 name: 'Magic mushroom', order: 1050.0563, price: 95e15, icon: JNE.icon(14, 24, 'custom'), pos: [1037, 2544],
-                ddesc: 'Adds a new seed to the garden minigame. A fairly rare cross between Ichor Puff and Doughshroom.<q>Caution: ingesting may alter your perception of reality. Results may vary, only to be taken orally.</q>',
+                ddesc: 'Adds a new seed to the <b>garden minigame</b>. A fairly rare cross between Ichor Puff and Doughshroom.<q>Caution: ingesting may alter your perception of reality. Results may vary, only to be taken orally.</q>',
                 require: ['Aerated soil']
             });
 
             createHeavenlyUpgrade({
                 name: 'Side by side', order: 1050.0564, price: 2e17, icon: JNE.icon(17, 12, 'custom'), pos: [1171, 2669],
-                ddesc: 'Plant all and selecting the first plot in the row will plant just that row with the selected plant.<q>Two by two they came marching, thunderous footsteps echoing out in all directions.</q>',
+                ddesc: '<b>Plant all</b> and selecting the first plot in the row will plant just that row with the selected plant.<q>Two by two they came marching, thunderous footsteps echoing out in all directions.</q>',
                 require: ['Magic mushroom', 'Krazy kudzu']
             });
 
@@ -5563,7 +5560,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Aerated soil', order: 1050.056, price: 100e15, icon: JNE.icon(15, 24, 'custom'), pos: [1078, 2222],
-                ddesc: 'Adds a new soil to the garden minigame.<q>It seems like plants like air, have we considered adding more air to the soil?</q>',
+                ddesc: 'Adds a new soil to the <b>garden minigame</b>.<q>It seems like plants like air, have we considered adding more air to the soil?</q>',
                 require: ['Plant all']
             });
 
@@ -5575,13 +5572,13 @@
 
             createHeavenlyUpgrade({
                 name: 'Dream journal', order: 1050.071, price: 2.5e18, icon: JNE.icon(4, 16, 'custom'), pos: [1454, 2057],
-                ddesc: 'Adds on additional <b>one</b> downline <b>queue</b> slot.<q>Dream big.</q>',
+                ddesc: 'Adds an additional <b>one</b> downline <b>queue</b> slot.<q>Dream big.</q>',
                 require: ['Business plan', 'Divine potions', 'Divine reagents']
             });
 
             createHeavenlyUpgrade({
                 name: 'Improved soil inspector', order: 1050.0565, price: 2.5e17, icon: [3, 35, getSpriteSheet('garden')], pos: [1337, 2590],
-                ddesc: 'Your soil inspector is now even more precise.<q>Do the extra decimal places really make a difference? To some people they do I guess.</q>',
+                ddesc: 'Your <b>soil inspector</b> is now even more precise.<q>Do the extra decimal places really make a difference? To some people they do I guess.</q>',
                 require: ['Sparkling sugar cane', 'Krazy kudzu']
             });
 
@@ -5593,13 +5590,13 @@
 
             createHeavenlyUpgrade({
                 name: 'Gilded allure', order: 1050.064, price: 150e15, icon: JNE.icon(20, 19, 'custom'), pos: [883, 2219],
-                ddesc: 'Adds a new spell to the Grimoire minigame.<q>Our scholars discovered a new spell but it took a really long time to write down since everyone who cast it was immediately hit in the head by flying objects.</q>',
+                ddesc: 'Adds a new spell to the <b>Grimoire</b> minigame.<q>Our scholars discovered a new spell but it took a really long time to write down since everyone who cast it was immediately hit in the head by flying objects.</q>',
                 require: ['Wizardly accomplishments']
             });
 
             createHeavenlyUpgrade({
                 name: 'Magical hourglass', order: 1050.065, price: 2.3e17, icon: JNE.icon(18, 17, 'custom'), pos: [903, 2051],
-                ddesc: 'Shows the time until your mana is full inside of the mana tooltip for Grimoire.<q>A wizard is never late, Frodo Baggins. Nor is he early. He arrives precisely when he means to.</q>',
+                ddesc: 'Shows the time until your mana is full inside of the mana tooltip for <b>Grimoire</b>.<q>A wizard is never late, Frodo Baggins. Nor is he early. He arrives precisely when he means to.</q>',
                 require: ['Gilded allure']
             });
 
@@ -5686,7 +5683,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Self promoter', order: 1050.08, price: 4e18, icon: JNE.icon(18, 18, 'custom'), pos: [198, 3154],
-                ddesc: 'Your herald bonus is increased by 10% but still cannot exceed a maximum of 100%.<q>Selfishly shouting your own praises from the rooftop, it kinda works I guess.</q>',
+                ddesc: 'Your herald bonus is increased by <b>10%</b> but still cannot exceed a maximum of <b>100%</b>.<q>Selfishly shouting your own praises from the rooftop, it kinda works I guess.</q>',
                 require: ['No more weak links']
             });
 
@@ -5704,7 +5701,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Sugar frenzy II', order: 1050.113, price: 100e15, icon: [22, 17], pos: [-129, 2300],
-                ddesc: 'Sugar frenzy may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Nothing like a good night\'s sleep to get over a killer sugar headache and be ready to hit the ground again. Just remember you aren\'t as young as you use to be.</q>',
+                ddesc: '<b>Sugar frenzy</b> may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Nothing like a good night\'s sleep to get over a killer sugar headache and be ready to hit the ground again. Just remember you aren\'t as young as you used to be.</q>',
                 require: ['Just natural expansion heavenly upgrades']
             });
 
@@ -5716,7 +5713,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Reoccuring business', order: 1050.116, price: 1e19, icon: JNE.icon(1, 17, 'custom'), pos: [-331, 2527],
-                ddesc: 'Sugar for sugar trading may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Thank you! Come Again!</q>',
+                ddesc: '<b>Sugar for sugar trading</b> may be used <b>once every 24 hours</b> instead of once an ascension. Each use per ascension cost <b>one additional sugar lump</b>.<q>Thank you! Come Again!</q>',
                 require: ['Sugar for sugar trading']
             });
 
@@ -5854,13 +5851,13 @@
 
             createHeavenlyUpgrade({
                 name: 'Fish tank', order: 1050.01, price: 100e15, icon: [23, 33], pos: [275, 1532],
-                ddesc: 'Cookie fish have found their way into your milk.<q>Please do not tap the glass.</q>',
+                ddesc: '<b>Cookie fish</b> have found their way into your milk.<q>Please do not tap the glass.</q>',
                 require: ['Annualized returns']
             });
 
             createHeavenlyUpgrade({
                 name: 'Sunken treasure', order: 1050.011, price: 500e15, icon: JNE.icon(7, 15, 'custom'), pos: [337, 1378],
-                ddesc: 'You can now collect your milk fish for a small reward.<q>There\'s gold in them there milk.</q>',
+                ddesc: 'You can now collect your <b>milk fish</b> for a small reward.<q>There\'s gold in them there milk.</q>',
                 require: ['Fish tank']
             });
 
@@ -5890,13 +5887,13 @@
 
             createHeavenlyUpgrade({
                 name: 'Even more cookies of unusual size', order: 1050.018, price: 7.5e19, icon: JNE.icon(10, 1, 'custom'), pos: [504, 1513],
-                ddesc: 'Adds <b>5</b> additional cookie options to your big cookie image selector.<q>C.O.U.S? I don\'t think they exist.</q>',
+                ddesc: 'Adds <b>5</b> additional cookie options to your <b>big cookie image selector</b>.<q>C.O.U.S? I don\'t think they exist.</q>',
                 require: ['Big cookie image selector']
             });
 
             createHeavenlyUpgrade({
                 name: 'Improved cookie chains', order: 1050.089, price: 35e15, icon: [3, 5], pos: [-173, 2156],
-                ddesc: 'Cookie chains last longer, especially at higher levels.<q>Is this a bug fix with the original formula or an upgrade? No one can ever be totally sure, what we can be sure of is those pesky one cookie chain long chains are a thing of the past, mostly anyways.</q>',
+                ddesc: '<b>Cookie chains</b> last longer, especially at higher levels.<q>Is this a bug fix with the original formula or an upgrade? No one can ever be totally sure, what we can be sure of is those pesky one cookie chain long chains are a thing of the past, mostly anyways.</q>',
                 require: ['Just natural expansion heavenly upgrades']
             });
 
@@ -5908,7 +5905,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Triple 7s', order: 1050.093, price: 3.8e17, icon: JNE.icon(4, 13, 'custom'), pos: [-658, 1827],
-                ddesc: 'Lucky digit, Lucky number, and Lucky payout are <b>unlocked</b> even if the conditions have not been met.<q>Helpful if you forgot to do these earlier, useless if you were on top of things already though.</q>',
+                ddesc: '<b>Lucky digit</b>, <b>Lucky number</b>, and <b>Lucky payout</b> are <b>unlocked</b> even if the conditions have not been met.<q>Helpful if you forgot to do these earlier, useless if you were on top of things already though.</q>',
                 require: ['Fading payout']
             });
 
@@ -5920,43 +5917,43 @@
 
             createHeavenlyUpgrade({
                 name: 'Distilled essence of retripled luck', order: 1050.103, price: 5000e15, icon: [27, 12], pos: [-573, 2194],
-                ddesc: 'Golden Cookies have a <b>2% chance of being doubled.</b><q>That wasn\'t the type of triple you were hoping for.</q>',
+                ddesc: 'Golden Cookies have a <b>2% chance of being doubled</b>.<q>That wasn\'t the type of triple you were hoping for.</q>',
                 require: ['Improved cookie chains']
             });
 
             createHeavenlyUpgrade({
                 name: 'Golden stopwatch', order: 1050.104, price: 50000e15, icon: JNE.icon(3, 17, 'custom'), pos: [-754, 2195],
-                ddesc: 'Adds a shimmer timer that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
+                ddesc: 'Adds a <b>shimmer timer</b> that displays spawn time for <b>golden cookies</b> and other shimmers.<q>I wish I could take credit for this idea but it was implemented with love from the work of Timer Widget by Klattmose.</q>',
                 require: ['Distilled essence of retripled luck', 'Lucky fading payout']
             });
 
             createHeavenlyUpgrade({
                 name: 'Countdown complications', order: 1050.105, price: 35000e15, icon: JNE.icon(16, 24, 'custom'), pos: [-698, 2388],
-                ddesc: 'Shows the remaining duration of buffs in your golden stopwatch.<q>A watch complication is any function beyond telling the hours, minutes, and seconds, adding mechanical complexity like chronographs or a buff countdown timer.</q>',
+                ddesc: 'Shows the remaining duration of buffs in your <b>golden stopwatch</b>.<q>A watch complication is any function beyond telling the hours, minutes, and seconds, adding mechanical complexity like chronographs or a buff countdown timer.</q>',
                 require: ['Golden stopwatch']
             });
 
             createHeavenlyUpgrade({
                 name: 'Golden cookie predictor', order: 1050.106, price: 500000e15, icon: JNE.icon(16, 13, 'custom'), pos: [-845, 2329],
-                ddesc: 'Show the expected result of a <b>Golden Cookie 10%</b> of the time.<q>They told us we were mad to try but who is laughing now?</q>',
+                ddesc: 'Show the expected result of a <b>Golden Cookie</b> <b>10%</b> of the time.<q>They told us we were mad to try but who is laughing now?</q>',
                 require: ['Golden stopwatch']
             });
 
             createHeavenlyUpgrade({
                 name: 'Tweaked golden cookie predictor', order: 1050.107, price: 500000e16, icon: JNE.icon(17, 13, 'custom'), pos: [-977, 2458],
-                ddesc: 'Show the expected result of a <b>Golden Cookie 25%</b> of the time.<q>Who are we kidding anyways, you are going to click the cookie anyway.</q>',
+                ddesc: 'Show the expected result of a <b>Golden Cookie</b> <b>25%</b> of the time.<q>Who are we kidding anyways, you are going to click the cookie anyway.</q>',
                 require: ['Golden cookie predictor']
             });
 
             createHeavenlyUpgrade({
                 name: 'Improved golden cookie predictor', order: 1050.108, price: 500000e17, icon: JNE.icon(15, 13, 'custom'), pos: [-1006, 2286],
-                ddesc: 'Show the expected result of a <b>Golden Cookie 50%</b> of the time.<q>We improved it by making improvements to the doohickey that makes it work.</q>',
+                ddesc: 'Show the expected result of a <b>Golden Cookie</b> <b>50%</b> of the time.<q>We improved it by making improvements to the doohickey that makes it work.</q>',
                 require: ['Tweaked golden cookie predictor']
             });
 
             createHeavenlyUpgrade({
                 name: 'Perfected golden cookie predictor', order: 1050.109, price: 800000e17, icon: JNE.icon(14, 13, 'custom'), pos: [-946, 2125],
-                ddesc: 'Show the expected result of a <b>Golden Cookie 65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
+                ddesc: 'Show the expected result of a <b>Golden Cookie</b> <b>65%</b> of the time.<q>We are approaching absolute peak efficiency in our algorithms, to get any better results we would need to be able to see the inside of a black hole.</q>',
                 require: ['Improved golden cookie predictor']
             });
 
@@ -5974,7 +5971,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Fortune tolls for you', order: 1050.09, price: 50e15, icon: JNE.icon(23, 20, 'custom'), pos: [-300, 2307],
-                ddesc: 'Fortune cookies make <b>noise</b> when they appear.<q>When destiny arrives, it refuses to do so quietly.</q>',
+                ddesc: '<b>Fortune cookies</b> make <b>noise</b> when they appear.<q>When destiny arrives, it refuses to do so quietly.</q>',
                 require: ['Improved cookie chains']
             });
 
@@ -5986,24 +5983,24 @@
 
             createHeavenlyUpgrade({
                 name: 'Chinese leftovers', order: 1050.091, price: 100e15, icon: JNE.icon(17, 24, 'custom'), pos: [-439, 2278],
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>3 days</b>.<q>Everyone knows Chinese leftovers mysteriously multiply in the fridge like they\'re running a shadow franchise.</q>',
+                ddesc: '<b>Consumable Fortune Cookies</b> regenerate once every <b>3 days</b>.<q>Everyone knows Chinese leftovers mysteriously multiply in the fridge like they\'re running a shadow franchise.</q>',
                 require: ['Fortune tolls for you']
             });
 
             createHeavenlyUpgrade({
                 name: 'Second day takeout', order: 1050.1, price: 2500e15, icon: [31, 9], pos: [-528, 2388],
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>2 days</b>.<q>Marinated overnight in pure, unfiltered refrigerator funk and wisdom too I guess.</q>',
+                ddesc: '<b>Consumable Fortune Cookies</b> regenerate once every <b>2 days</b>.<q>Marinated overnight in pure, unfiltered refrigerator funk and wisdom too I guess.</q>',
                 require: ['Chinese leftovers']
             });
 
             createHeavenlyUpgrade({
                 name: 'Doordashing every day', order: 1050.101, price: 50000e15, icon: [28, 30], pos: [-472, 2517],
-                ddesc: 'Consumable Fortune Cookies regenerate once every <b>day</b>.<q>You can practically smell the financial irresponsibility.</q>',
+                ddesc: '<b>Consumable Fortune Cookies</b> regenerate once every <b>day</b>.<q>You can practically smell the financial irresponsibility.</q>',
                 require: ['Second day takeout']
             });
 
             createHeavenlyUpgrade({
-                name: 'Rare game hunter', order: 1050.019, price: 10e15, icon: JNE.icon(24, 12, 'main'), pos: [-58, 2038],
+                name: 'Rare game hunter', order: 1050.019, price: 10e15, icon: JNE.icon(0, 17, 'custom'), pos: [-58, 2038],
                 ddesc: 'Shiny Wrinklers are <b>25%</b> more common.',
                 require: ['Just natural expansion heavenly upgrades']
             });
@@ -6043,26 +6040,26 @@
             });
 
             createHeavenlyUpgrade({
-                name: 'The prize at the bottom of the box', order: 1050.037, price: 80e15, icon: [20, 9], pos: [-254, 2024],
+                name: 'The prize at the bottom of the box', order: 1050.037, price: 80e15, icon: JNE.icon(17, 18, 'custom'), pos: [-254, 2024],
                 ddesc: 'Wrinklers have a <b>1%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Just like old cereal boxes, dig through enough weird, crunchy horrors and eventually you\'ll find something shiny and powerful.</q>',
                 require: ['Rare game hunter']
             });
 
             createHeavenlyUpgrade({
-                name: 'Double box prize', order: 1050.038, price: 150e15, icon: [33, 3], pos: [-549, 1786],
+                name: 'Double box prize', order: 1050.038, price: 150e15, icon: [20, 9], pos: [-549, 1786],
                 ddesc: 'Wrinklers have a <b>2%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>Turns out the real prize wasn\'t a decoder ring.</q>',
                 require: ['The prize at the bottom of the box']
             });
 
             createHeavenlyUpgrade({
-                name: 'Mail in sweepstake winner', order: 1050.039, price: 250e15, icon: [34, 8], pos: [-763, 1517],
+                name: 'Mail in sweepstake winner', order: 1050.039, price: 250e15, icon: JNE.icon(7, 16, 'custom'), pos: [-763, 1517],
                 ddesc: 'Wrinklers have a <b>3%</b> chance of a <b>66x</b> buff for <b>6 seconds</b> on pop.<q>As powerful as mail away x-ray specs.</q>',
                 require: ['Double box prize']
             });
 
             createHeavenlyUpgrade({
                 name: 'Glittery jam', order: 1050.044, price: 2.5e19, icon: JNE.icon(16, 18, 'custom'), pos: [-967, 1429],
-                ddesc: 'Shiny wrinklers have a <b>6.66x greater</b> chance of providing their Jam Filling buff when popped.<q>There is glitter in this jam. Fabulous…</q>',
+                ddesc: 'Shiny wrinklers have a <b>6.66x greater</b> chance of providing their <b>Jam Filling</b> buff when popped.<q>There is glitter in this jam. Fabulous…</q>',
                 require: ['Mail in sweepstake winner']
             });
 
@@ -6128,7 +6125,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Dark chocolate milk', order: 1050.136, price: 1e28, icon: JNE.icon(2, 8, 'main'), pos: [-1595, 2727],
-                ddesc: 'Vanilla shadow achievements now grant milk.<q>So dark the light doesnt even shine through anymore.</q>',
+                ddesc: '<b>Vanilla shadow achievements</b> now grant <b>milk</b>.<q>So dark the light doesnt even shine through anymore.</q>',
                 require: ['Unique buildings', 'Sweet refunds', 'Even sweeter']
             });
 
@@ -6140,19 +6137,19 @@
 
             createHeavenlyUpgrade({
                 name: 'Skitter skatter skrum ahh', order: 1050.026, price: 25e15, icon: [28, 11], pos: [-5, 1883],
-                ddesc: 'Resurrect Abomination spell has a <b>1%</b> chance to summon a shiny wrinkler.<q>oooooh it sparkles!</q>',
+                ddesc: '<b>Resurrect Abomination</b> spell has a <b>1%</b> chance to summon a shiny wrinkler.<q>oooooh it sparkles!</q>',
                 require: ['Rare game hunter']
             });
 
             createHeavenlyUpgrade({
                 name: 'Abra-Ka-Wiggle', order: 1050.027, price: 250e15, icon: JNE.icon(5, 16, 'custom'), pos: [-52, 1610],
-                ddesc: 'Resurrect Abomination spell has a <b>2%</b> chance to summon a shiny wrinkler.',
+                ddesc: '<b>Resurrect Abomination</b> spell has a <b>2%</b> chance to summon a shiny wrinkler.',
                 require: ['Skitter skatter skrum ahh']
             });
 
             createHeavenlyUpgrade({
                 name: 'Alakazoodle evil noodle', order: 1050.028, price: 750e15, icon: JNE.icon(14, 16, 'custom'), pos: [-278, 1393],
-                ddesc: 'Resurrect Abomination spell has a <b>3%</b> chance to summon a shiny wrinkler.<q>I think I missed this day at Hogwarts.</q>',
+                ddesc: '<b>Resurrect Abomination</b> spell has a <b>3%</b> chance to summon a shiny wrinkler.<q>I think I missed this day at Hogwarts.</q>',
                 require: ['Abra-Ka-Wiggle']
             });
 
@@ -6170,7 +6167,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Clicklers', order: 1050.032, price: 6.66e21, icon: JNE.icon(14, 27, 'custom'), pos: [-146, 1164],
-                ddesc: 'A fairly uncommon subspecies of wrinkler, the <b>Clicklers</b>, consume only cookies that come from <b>clicking</b> the Big Cookie. This genetic variation changed their appearance and gives them a higher chance of <b>Jam Filling</b> when burst.<q>You\'re an interesting species. An interesting mix. You\'re capable of such beautiful dreams, and such horrible nightmares. You feel so lost, so cut off, so alone, only you\'re not. See, in all our searching, the only thing we\'ve found that makes the emptiness bearable, is each other.</q>',
+                ddesc: 'A fairly uncommon subspecies of wrinkler, the <b>Clicklers</b>, consume only cookies that come from <b>clicking</b> the <b>Big Cookie</b>. This genetic variation changed their appearance and gives them a higher chance of <b>Jam Filling</b> when burst.<q>You\'re an interesting species. An interesting mix. You\'re capable of such beautiful dreams, and such horrible nightmares. You feel so lost, so cut off, so alone, only you\'re not. See, in all our searching, the only thing we\'ve found that makes the emptiness bearable, is each other.</q>',
                 require: ['Infestation']
             });
 
@@ -6194,13 +6191,13 @@
 
             createHeavenlyUpgrade({
                 name: 'Bingo center slots', order: 1050.035, price: 75e19, icon: JNE.icon(18, 24, 'custom'), pos: [-424, 1457],
-                ddesc: 'Add slot machines to your bingo centers. If you own the Bingo center/Research facility upgrade, your grandmas can now play the slots. The more grandmas you own, the more pulls they make. Jackpots are rare, but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!<q>They just love sitting there all day feeding quarters into the machines. Despite the zombie-like appearance, it actually keeps them more docile.</q>',
+                ddesc: 'Add <b>slot machines</b> to your <b>bingo centers</b>. If you own the <b>Bingo center/Research facility</b> upgrade, your grandmas can now play the slots. The more grandmas you own, the more pulls they make. <b>Jackpots</b> are rare, but you can win fabulous prizes such as cookies, golden cookies, and sugar lumps!<q>They just love sitting there all day feeding quarters into the machines. Despite the zombie-like appearance, it actually keeps them more docile.</q>',
                 require: ['Slimy pheromones']
             });
 
             createHeavenlyUpgrade({
                 name: 'When the sun goes down', order: 1050.036, price: 1.1e21, icon: JNE.icon(20, 27, 'custom'), pos: [-580, 1509],
-                ddesc: 'Your grandmas are twice as lucky playing slots during the Grandmapocalypse.<q>Things really get crazy at night in the bingo halls.</q>',
+                ddesc: 'Your grandmas are <b>twice as lucky</b> playing slots during the <b>Grandmapocalypse</b>.<q>Things really get crazy at night in the bingo halls.</q>',
                 require: ['Bingo center slots']
             });
 
@@ -6242,25 +6239,25 @@
 
             createHeavenlyUpgrade({
                 name: 'The legend of Krumblor', order: 1050.134, price: 777e24, icon: JNE.icon(6, 17, 'custom'), pos: [-737, 2883],
-                ddesc: 'Adds a <b>third aura slot</b> to Krumblor that can be unlocked by sacrificing <b>1000</b> of every building.<q>This feels like a very bad idea for so many reasons.</q>',
+                ddesc: 'Adds a <b>third aura slot</b> to <b>Krumblor</b> that can be unlocked by sacrificing <b>1000</b> of every building.<q>This feels like a very bad idea for so many reasons.</q>',
                 require: ['Improved checkboxes']
             });
 
             createHeavenlyUpgrade({
                 name: 'Water cooled processors', order: 1050.066, price: 250e15, icon: JNE.icon(21, 24, 'custom'), pos: [1057, 2100],
-                ddesc: 'Terminal minigame cooldown is reduced by 1 hour.<q>Water and delicate electronics together at last, what\'s the worst that can happen?</q>',
+                ddesc: 'The <b>Terminal</b> minigame cooldown is reduced by <b>1 hour</b>.<q>Water and delicate electronics together at last, what\'s the worst that can happen?</q>',
                 require: ['Gilded allure', 'Aerated soil']
             });
 
             createHeavenlyUpgrade({
                 name: 'Command S', order: 1050.067, price: 3.8e17, icon: JNE.icon(8, 16, 'custom'), pos: [1089, 1948],
-                ddesc: 'Adds the <b>Save Loadout</b> program to the terminal minigame allowing you to save and more importantly restore an entire execution queue.<q>Remember to backup your save.</q>',
+                ddesc: 'Adds the <b>Save Loadout</b> program to the <b>terminal minigame</b> allowing you to save and more importantly restore an entire execution queue.<q>Remember to backup your save.</q>',
                 require: ['Water cooled processors']
             });
 
             createHeavenlyUpgrade({
                 name: 'Overclocked GPUs', order: 1050.068, price: 500e15, icon: JNE.icon(20, 24, 'custom'), pos: [1216, 2071],
-                ddesc: 'Terminal minigame has one extra slot.<q>Triple the price for 3.5% more power, now with flashing LEDs.</q>',
+                ddesc: 'The <b>Terminal</b> minigame has <b>one</b> extra slot.<q>Triple the price for 3.5% more power, now with flashing LEDs.</q>',
                 require: ['Water cooled processors']
             });
 
@@ -6284,7 +6281,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Idle clicks', order: 1050.082, price: 5e21, icon: JNE.icon(14, 18, 'custom'), pos: [511, 2727],
-                ddesc: 'Adds an idle click meter which slowly refills over time. The longer you go without clicking the more powerful your clicks become.<q>Sometimes the best way to win is to not click at all.</q>',
+                ddesc: 'Adds an <b>idle click meter</b> which slowly refills over time. The longer you go without clicking the more powerful your clicks become.<q>Sometimes the best way to win is to not click at all.</q>',
                 require: ['Mega clicks']
             });
 
@@ -6314,7 +6311,7 @@
 
             createHeavenlyUpgrade({
                 name: 'Godzamok\'s Headstart', order: 1050.061, price: 50000e15, icon: [23, 18], pos: [716, 2705],
-                ddesc: 'Godzamok\'s buffs last <b>10%</b> longer.<q>We shouldn\'t be encouraging his destructive behavior, but he is kinda cute.</q>',
+                ddesc: '<b>Godzamok</b>\'s buffs last <b>10%</b> longer.<q>We shouldn\'t be encouraging his destructive behavior, but he is kinda cute.</q>',
                 require: ['Divine uninspiration']
             });
 
@@ -6578,7 +6575,7 @@
                 // Save data collection started
                 if (!Game.JNE) Game.JNE = {};
 
-                var saveData = { version: MOD_HU_VERSION, boughtUpgrades: [], boxRun: Game.resets, pantheon: {}, garden: {}, buffs: [], switches: {}, settings: {}, timers: {}, stats: {}, bigCookieImage: 0 };
+                var saveData = { version: MOD_HU_VERSION, boughtUpgrades: [], boxRun: Game.resets, boxStart: Game.startDate, pantheon: {}, garden: {}, buffs: [], switches: {}, settings: {}, timers: {}, stats: {}, bigCookieImage: 0 };
 
                 var upgradeNames = getHeavenlyUpgradeNames();
 
